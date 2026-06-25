@@ -35,9 +35,7 @@ export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
             Hello {name},
           </Text>
           <Text className="text-[14px] leading-[24px] text-black">
-            Thank you for signing up! We're excited to have you on board. Your
-            account has been successfully created, and you're ready to start
-            exploring our platform.
+            Thank you for signing up! We're excited to have you on board. You're now  ready to explore Humaner possibilities.
           </Text>
           <Section className="my-[32px] text-center">
             <Button

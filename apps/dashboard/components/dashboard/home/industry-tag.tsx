@@ -63,7 +63,12 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
       </Badge>
       <Dialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (nextOpen) {
+            setSelected(industry ?? undefined);
+          }
+        }}
       >
         <DialogTrigger asChild>
           <Button

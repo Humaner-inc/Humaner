@@ -7,6 +7,7 @@ import {
   CodeIcon,
   CreditCardIcon,
   GraduationCapIcon,
+  HeadsetIcon,
   HomeIcon,
   LockKeyholeIcon,
   SettingsIcon,
@@ -49,6 +50,11 @@ export const mainNavItems: NavItem[] = [
     title: 'Analytics',
     href: Routes.Analytics,
     icon: BarChart3Icon
+  },
+  {
+    title: 'Human Desk',
+    href: Routes.HumanDesk,
+    icon: HeadsetIcon
   },
   {
     title: 'Settings',

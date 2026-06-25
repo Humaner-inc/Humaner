@@ -29,6 +29,7 @@ export enum Routes {
   Knowledge = '/dashboard/knowledge',
   Integrations = '/dashboard/integrations',
   Analytics = '/dashboard/analytics',
+  HumanDesk = '/dashboard/human-desk',
   Training = '/dashboard/training',
   Contacts = '/dashboard/agents',
   Settings = '/dashboard/settings',

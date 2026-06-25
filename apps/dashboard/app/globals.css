@@ -108,3 +108,21 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+@keyframes onboarding-pan {
+  0% {
+    transform: scale(1.12) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.18) translate3d(-1.5%, -1%, 0);
+  }
+  100% {
+    transform: scale(1.12) translate3d(0, 0, 0);
+  }
+}
+
+@layer utilities {
+  .animate-onboarding-pan {
+    animation: onboarding-pan 28s ease-in-out infinite;
+  }
+}

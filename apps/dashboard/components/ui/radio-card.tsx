@@ -14,7 +14,7 @@ const RadioCards = React.forwardRef<RadioCardsElement, RadioCardsProps>(
   ({ value, onValueChange, ...props }, ref) => (
     <RadioGroupPrimitive.Root
       ref={ref}
-      value={value}
+      value={value ?? ''}
       onValueChange={onValueChange}
       {...props}
     />

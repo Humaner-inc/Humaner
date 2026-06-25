@@ -53,7 +53,7 @@ export function AuthContainer({
         )}
       >
         {showLogo && (
-          <Logo className="mb-8 justify-center [&_span]:text-white [&_svg]:brightness-0 [&_svg]:invert" />
+          <Logo className="mb-8 justify-center gap-3 [&_img]:h-12 [&_span]:text-2xl [&_span]:text-white [&_svg]:brightness-0 [&_svg]:invert" />
         )}
         {children}
       </div>
