@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { SyncStatus } from '@prisma/client';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon } from '@humaner/shared/icons';
 
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import {

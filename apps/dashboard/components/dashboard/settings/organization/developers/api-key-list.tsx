@@ -3,7 +3,7 @@
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
 import { format } from 'date-fns';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { MoreHorizontalIcon } from '@humaner/shared/icons';
 
 import { EditApiKeyModal } from '@/components/dashboard/settings/organization/developers/edit-api-key-modal';
 import { RevokeApiKeyModal } from '@/components/dashboard/settings/organization/developers/revoke-api-key-modal';

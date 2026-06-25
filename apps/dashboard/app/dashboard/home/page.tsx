@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { getPlanForTier } from '@humaner/shared/plans';
 
-import { ArrowUpRight, BarChart3, BookOpen, Bot, Plus } from 'lucide-react';
+import { ArrowUpRight, BarChart3, BookOpen, Bot, Plus } from '@humaner/shared/icons';
 
 
 
@@ -18,20 +18,7 @@ import { Button } from '@/components/ui/button';
 
 import { EmptyState } from '@/components/ui/empty-state';
 
-import {
-
-  Page,
-
-  PageBody,
-
-  PageHeader,
-
-  PagePrimaryBar,
-
-  PageTitle
-
-} from '@/components/ui/page';
-
+import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
 
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
@@ -100,39 +87,21 @@ export default async function HomePage(): Promise<React.JSX.Element> {
 
   return (
 
-    <Page>
+    <SectionPage width="lg">
 
-      <PageHeader>
+        <div className="space-y-8">
 
-        <PagePrimaryBar>
-
-          <PageTitle>Overview</PageTitle>
-
-          <Button
-
-            asChild
-
-            size="sm"
-
-          >
-
-            <Link href={Routes.Agents}>
-
-              <Plus className="mr-1.5 size-4" />
-
-              New agent
-
-            </Link>
-
-          </Button>
-
-        </PagePrimaryBar>
-
-      </PageHeader>
-
-      <PageBody>
-
-        <div className="mx-auto max-w-5xl space-y-8 p-6">
+          <div className="flex justify-end">
+            <Button
+              asChild
+              size="sm"
+            >
+              <Link href={Routes.Agents}>
+                <Plus className="mr-1.5 size-4" />
+                New agent
+              </Link>
+            </Button>
+          </div>
 
           <section className="flex flex-col gap-5 rounded-xl border bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
 
@@ -334,9 +303,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
 
         </div>
 
-      </PageBody>
-
-    </Page>
+    </SectionPage>
 
   );
 

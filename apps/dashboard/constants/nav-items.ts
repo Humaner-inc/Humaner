@@ -4,7 +4,6 @@ import {
   BlocksIcon,
   BookOpenIcon,
   BotIcon,
-  CodeIcon,
   CreditCardIcon,
   GraduationCapIcon,
   HeadsetIcon,
@@ -14,7 +13,7 @@ import {
   StoreIcon,
   UserIcon,
   UserPlus2Icon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
 import type { NavItem } from '@/types/nav-item';
@@ -38,8 +37,7 @@ export const mainNavItems: NavItem[] = [
   {
     title: 'Training',
     href: Routes.Training,
-    icon: GraduationCapIcon,
-    adminOnly: true
+    icon: GraduationCapIcon
   },
   {
     title: 'Integrations',
@@ -96,10 +94,5 @@ export const organizationNavItems: NavItem[] = [
     title: 'Billing',
     href: Routes.Billing,
     icon: CreditCardIcon
-  },
-  {
-    title: 'Developers',
-    href: Routes.Developers,
-    icon: CodeIcon
   }
 ];

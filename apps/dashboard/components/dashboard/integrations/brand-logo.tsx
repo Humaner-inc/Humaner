@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@humaner/shared/icons';
 
 import { getLogoUrl } from '@/lib/logo';
 import { cn } from '@/lib/utils';

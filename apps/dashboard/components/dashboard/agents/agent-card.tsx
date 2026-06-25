@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   AlertCircleIcon,
+  CheckIcon,
+  CopyIcon,
   MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { deleteAgent } from '@/actions/agents/delete-agent';
@@ -34,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Routes } from '@/constants/routes';
 import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { CHARACTER_META } from '@/lib/character-presets';
 
 export type AgentCardProps = {
@@ -43,9 +46,18 @@ export type AgentCardProps = {
 export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
   const router = useRouter();
   const meta = CHARACTER_META[agent.character];
+  const copyToClipboard = useCopyToClipboard();
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [copiedId, setCopiedId] = React.useState(false);
   const [isDeleting, startDeleteTransition] = React.useTransition();
+
+  const handleCopyId = async (): Promise<void> => {
+    await copyToClipboard(agent.publicId);
+    setCopiedId(true);
+    toast.success('Agent ID copied');
+    window.setTimeout(() => setCopiedId(false), 1500);
+  };
 
   const handleDelete = (): void => {
     startDeleteTransition(async () => {
@@ -132,11 +144,35 @@ export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
             </div>
           )}
 
+          <div className="mt-4 flex items-center gap-2 rounded-lg border bg-muted/40 px-2.5 py-1.5">
+            <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
+              Agent ID
+            </span>
+            <code className="min-w-0 flex-1 truncate font-mono text-xs">
+              {agent.publicId}
+            </code>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={handleCopyId}
+              aria-label="Copy agent ID"
+              title="Use this ID with your API key to call the chat API"
+            >
+              {copiedId ? (
+                <CheckIcon className="size-3.5 text-emerald-500" />
+              ) : (
+                <CopyIcon className="size-3.5" />
+              )}
+            </Button>
+          </div>
+
           <Button
             asChild
             variant="outline"
             size="sm"
-            className="mt-4 w-full"
+            className="mt-3 w-full"
           >
             <Link href={`${Routes.Knowledge}?agent=${agent.id}`}>
               Manage knowledge

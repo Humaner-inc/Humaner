@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { TriangleAlertIcon } from 'lucide-react';
+import { TriangleAlertIcon } from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

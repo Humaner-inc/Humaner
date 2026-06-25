@@ -11,7 +11,7 @@ import {
   SquareDashedKanbanIcon,
   TrashIcon,
   UploadIcon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 import { FormProvider, type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

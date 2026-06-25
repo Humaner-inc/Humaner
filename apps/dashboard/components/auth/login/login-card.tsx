@@ -7,7 +7,7 @@ import {
   ArrowRightIcon,
   LockIcon,
   MailIcon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { toast } from 'sonner';

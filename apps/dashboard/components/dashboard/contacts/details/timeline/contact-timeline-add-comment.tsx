@@ -7,7 +7,7 @@ import EmojiPicker, {
   Theme,
   type EmojiClickData
 } from 'emoji-picker-react';
-import { SmileIcon } from 'lucide-react';
+import { SmileIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

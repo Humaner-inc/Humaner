@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@humaner/shared/icons';
 
 export type NavItem = {
   title: string;

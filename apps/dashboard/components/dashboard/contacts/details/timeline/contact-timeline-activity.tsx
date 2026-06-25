@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { ActionType } from '@prisma/client';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ArrowRightIcon, ClockIcon } from 'lucide-react';
+import { ArrowRightIcon, ClockIcon } from '@humaner/shared/icons';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';

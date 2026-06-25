@@ -2,10 +2,14 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { MessageCircleIcon, PlusIcon } from 'lucide-react';
+import { MessageCircleIcon, PlusIcon, type LucideIcon } from '@humaner/shared/icons';
 
 import { FeedbackModal } from '@/components/dashboard/feedback-modal';
 import { InviteMemberModal } from '@/components/dashboard/settings/organization/members/invite-member-modal';
+import {
+  NavMenuIcon,
+  useNavMenuIconAnimation
+} from '@/components/ui/nav-menu-icon';
 import {
   SidebarGroup,
   SidebarMenu,
@@ -19,6 +23,37 @@ export type NavSupportProps = SidebarGroupProps & {
   profile: ProfileDto;
 };
 
+function NavSupportItem({
+  label,
+  icon,
+  onClick
+}: {
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
+}): React.JSX.Element {
+  const { iconRef, menuHoverHandlers } = useNavMenuIconAnimation();
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        type="button"
+        tooltip={label}
+        className="text-muted-foreground"
+        onClick={onClick}
+        {...menuHoverHandlers}
+      >
+        <NavMenuIcon
+          icon={icon}
+          iconRef={iconRef}
+          className="size-4 shrink-0"
+        />
+        <span>{label}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
 export function NavSupport({
   profile,
   ...other
@@ -29,31 +64,20 @@ export function NavSupport({
   const handleShowFeedbackModal = (): void => {
     NiceModal.show(FeedbackModal);
   };
+
   return (
     <SidebarGroup {...other}>
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            type="button"
-            tooltip="Invite member"
-            className="text-muted-foreground"
-            onClick={handleShowInviteMemberModal}
-          >
-            <PlusIcon className="size-4 shrink-0" />
-            <span>Invite member</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            type="button"
-            tooltip="Feedback"
-            className="text-muted-foreground"
-            onClick={handleShowFeedbackModal}
-          >
-            <MessageCircleIcon className="size-4 shrink-0" />
-            <span>Feedback</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <NavSupportItem
+          label="Invite member"
+          icon={PlusIcon}
+          onClick={handleShowInviteMemberModal}
+        />
+        <NavSupportItem
+          label="Feedback"
+          icon={MessageCircleIcon}
+          onClick={handleShowFeedbackModal}
+        />
       </SidebarMenu>
     </SidebarGroup>
   );

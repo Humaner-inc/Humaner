@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon } from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
 import {

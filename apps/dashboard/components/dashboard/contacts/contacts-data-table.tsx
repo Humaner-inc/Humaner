@@ -17,7 +17,7 @@ import {
   VisibilityState,
   type Row
 } from '@tanstack/react-table';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { MoreHorizontalIcon } from '@humaner/shared/icons';
 import { useQueryStates } from 'nuqs';
 
 import { ContactsBulkActions } from '@/components/dashboard/contacts/contacts-bulk-actions';

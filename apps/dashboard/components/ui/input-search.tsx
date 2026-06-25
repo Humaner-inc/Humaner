@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { SearchIcon, XIcon } from 'lucide-react';
+import { SearchIcon, XIcon } from '@humaner/shared/icons';
 
 import { Button } from './button';
 import {

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { XIcon } from 'lucide-react';
+import { XIcon } from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

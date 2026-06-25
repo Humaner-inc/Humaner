@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { CircleAlert, Plus, X } from 'lucide-react';
+import { CircleAlert, Plus, X } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { updateTrainingTopics } from '@/actions/training/update-training-topics';

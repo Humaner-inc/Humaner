@@ -2,7 +2,7 @@
 
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { addYears, format, isBefore, startOfDay } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

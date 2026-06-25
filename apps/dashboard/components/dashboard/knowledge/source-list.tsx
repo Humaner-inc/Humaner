@@ -9,7 +9,7 @@ import {
   NetworkIcon,
   PlugIcon,
   Trash2Icon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { deleteKnowledgeSource } from '@/actions/knowledge/delete-knowledge-source';

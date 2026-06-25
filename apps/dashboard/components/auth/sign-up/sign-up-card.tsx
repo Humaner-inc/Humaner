@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircleIcon } from 'lucide-react';
+import { AlertCircleIcon } from '@humaner/shared/icons';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { type SubmitHandler } from 'react-hook-form';

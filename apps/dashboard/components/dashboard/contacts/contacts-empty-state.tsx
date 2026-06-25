@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { UsersIcon } from 'lucide-react';
+import { UsersIcon } from '@humaner/shared/icons';
 
 import { AddContactButton } from '@/components/dashboard/contacts/add-contact-button';
 import { EmptyState } from '@/components/ui/empty-state';

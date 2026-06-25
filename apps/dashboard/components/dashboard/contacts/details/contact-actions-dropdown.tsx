@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { MoreHorizontalIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { addFavorite } from '@/actions/favorites/add-favorite';

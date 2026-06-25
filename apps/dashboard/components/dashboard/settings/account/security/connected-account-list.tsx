@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { GlobeLockIcon } from 'lucide-react';
+import { GlobeLockIcon } from '@humaner/shared/icons';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { toast } from 'sonner';

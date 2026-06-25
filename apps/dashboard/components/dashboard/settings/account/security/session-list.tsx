@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { format, isBefore } from 'date-fns';
-import { MonitorIcon } from 'lucide-react';
+import { MonitorIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { signOutSession } from '@/actions/account/sign-out-session';

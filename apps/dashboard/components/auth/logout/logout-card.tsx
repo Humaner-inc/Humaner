@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldIcon } from 'lucide-react';
+import { ShieldIcon } from '@humaner/shared/icons';
 
 import { buttonVariants } from '@/components/ui/button';
 import {

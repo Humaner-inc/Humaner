@@ -2,7 +2,7 @@
 
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { ContactRecord } from '@prisma/client';
-import { BuildingIcon, UserIcon } from 'lucide-react';
+import { BuildingIcon, UserIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

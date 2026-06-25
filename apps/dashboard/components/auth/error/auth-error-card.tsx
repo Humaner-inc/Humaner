@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { AlertCircleIcon } from 'lucide-react';
+import { AlertCircleIcon } from '@humaner/shared/icons';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {

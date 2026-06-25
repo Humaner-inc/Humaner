@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { UploadIcon } from 'lucide-react';
+import { UploadIcon } from '@humaner/shared/icons';
 import {
   useDropzone,
   type DropEvent,

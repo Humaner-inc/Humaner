@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { AlertCircleIcon, LockIcon } from 'lucide-react';
+import { AlertCircleIcon, LockIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 
 import { resetPassword } from '@/actions/auth/reset-password';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ExternalLinkIcon } from 'lucide-react';
+import { ExternalLinkIcon } from '@humaner/shared/icons';
 
 import { slugify } from '@/lib/urls/slugify';
 import { cn } from '@/lib/utils';

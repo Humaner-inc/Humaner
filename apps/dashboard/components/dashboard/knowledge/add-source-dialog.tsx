@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { addKnowledgeSource } from '@/actions/knowledge/add-knowledge-source';

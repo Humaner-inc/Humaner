@@ -4,7 +4,7 @@ import * as React from 'react';
 import { DayOfWeek } from '@prisma/client';
 import { PopoverClose } from '@radix-ui/react-popover';
 import { format, parseISO } from 'date-fns';
-import { CopyIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { CopyIcon, PlusIcon, TrashIcon } from '@humaner/shared/icons';
 import {
   useFieldArray,
   useFormContext,

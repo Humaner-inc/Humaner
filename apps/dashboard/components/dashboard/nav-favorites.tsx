@@ -19,8 +19,7 @@ import {
   SortableContext,
   useSortable
 } from '@dnd-kit/sortable';
-import { DragHandleDots2Icon } from '@radix-ui/react-icons';
-import { ChevronRightIcon, StarOffIcon } from 'lucide-react';
+import { ChevronRightIcon, GripVerticalIcon, StarOffIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { removeFavorite } from '@/actions/favorites/remove-favorite';
@@ -202,7 +201,7 @@ const FavoriteSidebarMenuItem = React.forwardRef<
               'group/fav-item relative'
             )}
           >
-            <DragHandleDots2Icon className="pointer-events-none absolute -left-0.5 top-3 z-20 !size-3 shrink-0 opacity-0 group-hover/fav-item:opacity-60" />
+            <GripVerticalIcon className="pointer-events-none absolute -left-0.5 top-3 z-20 !size-3 shrink-0 opacity-0 group-hover/fav-item:opacity-60" />
             <ContactAvatar
               record={favorite.record}
               src={favorite.image}

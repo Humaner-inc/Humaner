@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { FilePlus2Icon } from 'lucide-react';
+import { FilePlus2Icon } from '@humaner/shared/icons';
 
 import { AddContactNoteModal } from '@/components/dashboard/contacts/details/notes/add-contact-note-modal';
 import { ContactNoteCard } from '@/components/dashboard/contacts/details/notes/contact-note-card';

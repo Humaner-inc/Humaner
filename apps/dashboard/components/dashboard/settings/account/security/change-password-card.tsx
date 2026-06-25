@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { EyeIcon, LockIcon } from 'lucide-react';
+import { EyeIcon, LockIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ChevronLeftIcon } from 'lucide-react';
+import { ChevronLeftIcon } from '@humaner/shared/icons';
 
 import { NavAccount } from '@/components/dashboard/settings/nav-account';
 import { NavOrganization } from '@/components/dashboard/settings/nav-organization';

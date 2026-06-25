@@ -3,7 +3,7 @@
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
 import { ContactTaskStatus } from '@prisma/client';
-import { CheckSquare2Icon } from 'lucide-react';
+import { CheckSquare2Icon } from '@humaner/shared/icons';
 
 import { AddContactTaskModal } from '@/components/dashboard/contacts/details/tasks/add-contact-task-modal';
 import { ContactTaskList } from '@/components/dashboard/contacts/details/tasks/contact-task-list';

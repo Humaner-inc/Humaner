@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon } from '@humaner/shared/icons';
 
 import { ContactAvatar } from '@/components/dashboard/contacts/details/contact-avatar';
 import { buttonVariants } from '@/components/ui/button';

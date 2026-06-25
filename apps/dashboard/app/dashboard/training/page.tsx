@@ -6,13 +6,7 @@ import { redirect } from 'next/navigation';
 import { TrainingPageClient } from './training-page-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Page,
-  PageBody,
-  PageHeader,
-  PagePrimaryBar,
-  PageTitle
-} from '@/components/ui/page';
+import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
 import { getAgents } from '@/data/agents/get-agents';
 import { dedupedAuth } from '@/lib/auth';
@@ -111,14 +105,8 @@ export default async function TrainingPage({
     : null;
 
   return (
-    <Page>
-      <PageHeader>
-        <PagePrimaryBar>
-          <PageTitle>Training</PageTitle>
-        </PagePrimaryBar>
-      </PageHeader>
-      <PageBody>
-        <div className="mx-auto max-w-6xl space-y-5 p-6">
+    <SectionPage width="xl">
+      <div className="space-y-5">
           {agents.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {agents.map((agent) => (
@@ -171,8 +159,7 @@ export default async function TrainingPage({
               organizationName={organization?.name ?? 'Your business'}
             />
           ) : null}
-        </div>
-      </PageBody>
-    </Page>
+      </div>
+    </SectionPage>
   );
 }

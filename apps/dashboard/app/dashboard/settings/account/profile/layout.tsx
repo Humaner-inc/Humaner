@@ -2,13 +2,6 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 
 import { AnnotatedLayout } from '@/components/ui/annotated';
-import {
-  Page,
-  PageBody,
-  PageHeader,
-  PagePrimaryBar,
-  PageTitle
-} from '@/components/ui/page';
 import { Separator } from '@/components/ui/separator';
 import { createTitle } from '@/lib/utils';
 
@@ -28,21 +21,12 @@ export default function ProfileLayout({
   dangerZone
 }: ProfileLayoutProps): React.JSX.Element {
   return (
-    <Page>
-      <PageHeader>
-        <PagePrimaryBar>
-          <PageTitle>Profile</PageTitle>
-        </PagePrimaryBar>
-      </PageHeader>
-      <PageBody>
-        <AnnotatedLayout>
-          {personalDetails}
-          <Separator />
-          {preferences}
-          <Separator />
-          {dangerZone}
-        </AnnotatedLayout>
-      </PageBody>
-    </Page>
+    <AnnotatedLayout className="py-0">
+      {personalDetails}
+      <Separator />
+      {preferences}
+      <Separator />
+      {dangerZone}
+    </AnnotatedLayout>
   );
 }

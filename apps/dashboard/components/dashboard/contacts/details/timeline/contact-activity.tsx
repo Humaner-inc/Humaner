@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon } from '@humaner/shared/icons';
 
 import { ContactTimelineActivity } from '@/components/dashboard/contacts/details/timeline/contact-timeline-activity';
 import { ContactTimelineAddComment } from '@/components/dashboard/contacts/details/timeline/contact-timeline-add-comment';

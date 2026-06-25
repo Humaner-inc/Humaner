@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import type { IndustryType } from '@prisma/client';
-import { AlertTriangleIcon, PencilIcon } from 'lucide-react';
+import { AlertTriangleIcon, PencilIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { updateOrganizationIndustry } from '@/actions/organization/update-organization-industry';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { RadioCardItem, RadioCards } from '@/components/ui/radio-card';
 import { getIndustry, INDUSTRY_LIST } from '@/lib/industries';
+import { getIndustryIcon } from '@/lib/industry-icons';
 
 export type IndustryTagProps = {
   industry: IndustryType | null;
@@ -34,7 +35,7 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
   const [isPending, startTransition] = React.useTransition();
 
   const current = industry ? getIndustry(industry) : null;
-  const CurrentIcon = current?.icon;
+  const CurrentIcon = current ? getIndustryIcon(current.iconKey) : null;
 
   const handleSave = (): void => {
     if (!selected) {
@@ -95,7 +96,7 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
             disabled={isPending}
           >
             {INDUSTRY_LIST.map((item) => {
-              const Icon = item.icon;
+              const Icon = getIndustryIcon(item.iconKey);
               return (
                 <RadioCardItem
                   key={item.id}

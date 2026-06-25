@@ -28,6 +28,7 @@ import { prisma } from '@/lib/db/prisma';
 
 export type AgentOverviewItem = {
   id: string;
+  publicId: string;
   name: string;
   role: string;
   character: CharacterType;
@@ -53,6 +54,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
         where: { organizationId: session.user.organizationId },
         select: {
           id: true,
+          publicId: true,
           name: true,
           role: true,
           character: true,
@@ -107,6 +109,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
 
         return {
           id: agent.id,
+          publicId: agent.publicId,
           name: agent.name,
           role: agent.role,
           character: agent.character,

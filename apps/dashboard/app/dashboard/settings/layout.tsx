@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { Metadata } from 'next';
 
 import { SettingsDock } from '@/components/dashboard/settings/settings-dock';
+import { DockSection } from '@/components/ui/section-shell';
 import { createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -12,9 +13,6 @@ export default function SettingsLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <SettingsDock />
-      <div className="min-h-0 flex-1 overflow-auto">{children}</div>
-    </div>
+    <DockSection dock={<SettingsDock />}>{children}</DockSection>
   );
 }

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { AlertCircleIcon, ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
+import { AlertCircleIcon, ArrowLeftIcon, ArrowRightIcon } from '@humaner/shared/icons';
 
 import { submitRecoveryCode } from '@/actions/auth/submit-recovery-code';
 import { Alert, AlertDescription } from '@/components/ui/alert';

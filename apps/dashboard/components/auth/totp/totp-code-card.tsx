@@ -8,7 +8,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   LockIcon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 
 import { submitTotpCode } from '@/actions/auth/submit-totp-code';
 import { Alert, AlertDescription } from '@/components/ui/alert';

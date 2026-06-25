@@ -2,13 +2,6 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 
 import { AnnotatedLayout } from '@/components/ui/annotated';
-import {
-  Page,
-  PageBody,
-  PageHeader,
-  PagePrimaryBar,
-  PageTitle
-} from '@/components/ui/page';
 import { Separator } from '@/components/ui/separator';
 import { createTitle } from '@/lib/utils';
 
@@ -28,21 +21,12 @@ export default function OrganizationInformationLayout({
   socialMedia
 }: OrganizationInformationLayoutProps): React.JSX.Element {
   return (
-    <Page>
-      <PageHeader>
-        <PagePrimaryBar>
-          <PageTitle>Organization information</PageTitle>
-        </PagePrimaryBar>
-      </PageHeader>
-      <PageBody>
-        <AnnotatedLayout>
-          {organizationDetails}
-          <Separator />
-          {businessHours}
-          <Separator />
-          {socialMedia}
-        </AnnotatedLayout>
-      </PageBody>
-    </Page>
+    <AnnotatedLayout className="py-0">
+      {organizationDetails}
+      <Separator />
+      {businessHours}
+      <Separator />
+      {socialMedia}
+    </AnnotatedLayout>
   );
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircleIcon, MailIcon } from 'lucide-react';
+import { AlertCircleIcon, MailIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 
 import { sendResetPasswordInstructions } from '@/actions/auth/send-reset-password-instructions';

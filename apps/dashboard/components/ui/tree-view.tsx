@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRightIcon, Loader2Icon } from 'lucide-react';
+import { ChevronRightIcon, Loader2Icon } from '@humaner/shared/icons';
 import * as TreeViewPrimitive from 'react-accessible-treeview';
 
 import { Input } from '@/components/ui/input';

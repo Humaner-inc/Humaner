@@ -1,5 +1,9 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import { createSecureHeaders } from 'next-secure-headers';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const bundleAnalyzerConfig = withBundleAnalyzer({
   enabled: process.env.BUNDLE_ANALYZER === 'true'
@@ -25,7 +29,8 @@ const svgLoader = {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@humaner/shared'],
+  transpilePackages: ['@humaner/shared', 'lucide-animated'],
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   turbopack: {
     rules: {
       '*.svg': {

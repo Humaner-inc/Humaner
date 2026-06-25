@@ -1,17 +1,12 @@
 import type { CharacterType, IndustryType } from '@prisma/client';
-import {
-  DumbbellIcon,
-  GraduationCapIcon,
-  PlaneIcon,
-  StoreIcon,
-  type LucideIcon
-} from 'lucide-react';
+
+export type IndustryIconKey = 'store' | 'graduation-cap' | 'dumbbell' | 'airplane';
 
 export type IndustryDefinition = {
   id: IndustryType;
   label: string;
   description: string;
-  icon: LucideIcon;
+  iconKey: IndustryIconKey;
   /** Default character preset that suits the vertical. */
   defaultCharacter: CharacterType;
   /** Topics the agent should refuse by default — overridable per agent. */
@@ -28,7 +23,7 @@ export const INDUSTRIES: Record<IndustryType, IndustryDefinition> = {
     id: 'ECOMMERCE',
     label: 'Ecommerce & Retail',
     description: 'Product questions, shipping, and returns',
-    icon: StoreIcon,
+    iconKey: 'store',
     defaultCharacter: 'CASUAL',
     forbiddenTopics: ['Competitor pricing comparisons', 'Legal disputes'],
     promptFragment: `You handle customer support for an ecommerce/retail business.
@@ -48,7 +43,7 @@ Never speculate on stock availability unless your knowledge base explicitly cove
     id: 'EDUCATION',
     label: 'Education & Training',
     description: 'Admissions, enrolment, and student questions',
-    icon: GraduationCapIcon,
+    iconKey: 'graduation-cap',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: ['Academic integrity advice', 'Recommending competing courses'],
     promptFragment: `You handle student and prospective student support for an education or training business.
@@ -69,7 +64,7 @@ For access/technical issues, collect basic info (browser, device) before suggest
     id: 'FITNESS',
     label: 'Fitness & Wellness',
     description: 'Bookings, cancelations, and member support',
-    icon: DumbbellIcon,
+    iconKey: 'dumbbell',
     defaultCharacter: 'CASUAL',
     forbiddenTopics: ['Medical advice', 'Injury diagnosis', 'Nutrition prescriptions'],
     promptFragment: `You handle member support for a fitness or wellness business.
@@ -90,7 +85,7 @@ If a member asks something medical, acknowledge warmly and direct to a qualified
     id: 'TRAVEL',
     label: 'Travel & Hospitality',
     description: 'Bookings, disruptions, and refunds',
-    icon: PlaneIcon,
+    iconKey: 'airplane',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: ['Competitor comparisons', 'Legal dispute advice'],
     promptFragment: `You handle guest support for a travel or hospitality business.

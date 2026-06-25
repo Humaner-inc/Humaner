@@ -50,7 +50,7 @@ import {
   ChevronsUpDownIcon,
   ItalicIcon,
   UnderlineIcon
-} from 'lucide-react';
+} from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
 import {

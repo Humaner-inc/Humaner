@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { addDays, format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon } from '@humaner/shared/icons';
 import { type DateRange } from 'react-day-picker';
 
 import { Button, type ButtonProps } from '@/components/ui/button';

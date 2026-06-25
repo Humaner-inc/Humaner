@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { StarIcon } from 'lucide-react';
+import { StarIcon } from '@humaner/shared/icons';
 
 import { cn, mergeRefs } from '@/lib/utils';
 

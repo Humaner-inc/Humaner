@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { AlertCircleIcon, ArrowUpRightIcon } from 'lucide-react';
+import { AlertCircleIcon, ArrowUpRightIcon } from '@humaner/shared/icons';
 
 import { AgentMetricBars } from '@/components/dashboard/agents/agent-metric-bars';
 import { Badge } from '@/components/ui/badge';

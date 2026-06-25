@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon } from '@humaner/shared/icons';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';

@@ -4,9 +4,13 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, VariantProps } from 'class-variance-authority';
-import { ChevronLeftIcon, ChevronRightIcon, MenuIcon } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, MenuIcon } from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
+import {
+  NavMenuIcon,
+  useNavMenuIconAnimation
+} from '@/components/ui/nav-menu-icon';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -290,6 +294,14 @@ const SidebarTrigger = React.forwardRef<
   SidebarTriggerProps
 >(({ className, onClick, icon = 'menu', ...props }, ref) => {
   const { toggleSidebar } = useSidebar();
+  const { iconRef, menuHoverHandlers } = useNavMenuIconAnimation();
+  const TriggerIcon =
+    icon === 'chevronLeft'
+      ? ChevronLeftIcon
+      : icon === 'chevronRight'
+        ? ChevronRightIcon
+        : MenuIcon;
+
   return (
     <Button
       ref={ref}
@@ -301,15 +313,14 @@ const SidebarTrigger = React.forwardRef<
         onClick?.(event);
         toggleSidebar();
       }}
+      {...menuHoverHandlers}
       {...props}
     >
-      {icon === 'menu' && <MenuIcon className="size-4 shrink-0" />}
-      {icon === 'chevronLeft' && (
-        <ChevronLeftIcon className="size-4 shrink-0" />
-      )}
-      {icon === 'chevronRight' && (
-        <ChevronRightIcon className="size-4 shrink-0" />
-      )}
+      <NavMenuIcon
+        icon={TriggerIcon}
+        iconRef={iconRef}
+        className="size-4 shrink-0"
+      />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

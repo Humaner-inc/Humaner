@@ -2,13 +2,6 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 
 import { AnnotatedLayout } from '@/components/ui/annotated';
-import {
-  Page,
-  PageBody,
-  PageHeader,
-  PagePrimaryBar,
-  PageTitle
-} from '@/components/ui/page';
 import { Separator } from '@/components/ui/separator';
 import { session } from '@/lib/auth/session';
 import { createTitle } from '@/lib/utils';
@@ -31,27 +24,18 @@ export default function SecurityLayout({
   manageSessions
 }: SecurityLayoutProps): React.JSX.Element {
   return (
-    <Page>
-      <PageHeader>
-        <PagePrimaryBar>
-          <PageTitle>Security</PageTitle>
-        </PagePrimaryBar>
-      </PageHeader>
-      <PageBody>
-        <AnnotatedLayout>
-          {changePassword}
+    <AnnotatedLayout className="py-0">
+      {changePassword}
+      <Separator />
+      {connectedAccounts}
+      <Separator />
+      {multiFactorAuthentication}
+      {session.strategy === 'database' && (
+        <>
           <Separator />
-          {connectedAccounts}
-          <Separator />
-          {multiFactorAuthentication}
-          {session.strategy === 'database' && (
-            <>
-              <Separator />
-              {manageSessions}
-            </>
-          )}
-        </AnnotatedLayout>
-      </PageBody>
-    </Page>
+          {manageSessions}
+        </>
+      )}
+    </AnnotatedLayout>
   );
 }
