@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* HUMANER — accent #6b2d3a (wine), fracture #dc143c (title emphasis) */
+    --background: 40 20% 97%;
+    --foreground: 300 8% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 300 8% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 300 8% 4%;
+
+    --primary: 347 41% 30%;
+    --primary-foreground: 40 30% 97%;
+
+    --secondary: 36 22% 93%;
+    --secondary-foreground: 347 41% 24%;
+
+    --muted: 36 18% 93%;
+    --muted-foreground: 330 5% 40%;
+
+    --accent: 346 40% 96%;
+    --accent-foreground: 347 41% 28%;
+
+    --brand: 347 41% 30%;
+    --brand-foreground: 40 30% 97%;
+
+    --fracture: 348 83% 47%;
+    --fracture-foreground: 40 30% 97%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 40 30% 97%;
+
+    --border: 340 12% 88%;
+    --input: 340 12% 88%;
+    --ring: 347 41% 30%;
+
+    --radius: 0.625rem;
+
+    --chart-1: 347 41% 38%;
+    --chart-2: 348 83% 47%;
+    --chart-3: 24 60% 55%;
+    --chart-4: 43 74% 60%;
+    --chart-5: 300 8% 25%;
+
+    --sidebar-background: 38 24% 95%;
+    --sidebar-foreground: 300 8% 4%;
+    --sidebar-primary: 347 41% 30%;
+    --sidebar-primary-foreground: 40 30% 97%;
+    --sidebar-accent: 346 35% 94%;
+    --sidebar-accent-foreground: 347 41% 28%;
+    --sidebar-border: 340 12% 88%;
+    --sidebar-ring: 347 41% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply box-border bg-background text-foreground;
+  }
+  /* Demo display font watermarks $, +, digits, etc. — route those glyphs to Georgia. */
+  @font-face {
+    font-family: 'Humaner Display Fallback';
+    src: local('Georgia');
+    unicode-range:
+      U+0020-002F,
+      U+0030-0039,
+      U+003A-0040,
+      U+005B-0060,
+      U+007B-007E,
+      U+00B7,
+      U+2013-2014,
+      U+2018-2019;
+  }
+
+  .font-display {
+    font-feature-settings: 'liga' 0, 'dlig' 0;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .min-h-screen {
+    min-height: 100vh; /* Fallback */
+    min-height: 100dvh;
+  }
+  .h-screen {
+    height: 100vh; /* Fallback */
+    height: 100dvh;
+  }
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}

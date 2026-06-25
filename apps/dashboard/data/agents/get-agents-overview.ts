@@ -1,0 +1,138 @@
+import 'server-only';
+
+import type {
+  CharacterType,
+  EmojiMode,
+  Formality,
+  IndustryType,
+  OpenerStyle,
+  Verbosity
+} from '@prisma/client';
+import { unstable_cache as cache } from 'next/cache';
+import { redirect } from 'next/navigation';
+
+import {
+  Caching,
+  defaultRevalidateTimeInSeconds,
+  OrganizationCacheKey
+} from '@/data/caching';
+import { dedupedAuth } from '@/lib/auth';
+import {
+  computeAgentMetrics,
+  summarizeSourceStatuses,
+  type AgentMetrics
+} from '@/lib/agents/compute-agent-metrics';
+import { getLoginRedirect } from '@/lib/auth/redirect';
+import { checkSession } from '@/lib/auth/session';
+import { prisma } from '@/lib/db/prisma';
+
+export type AgentOverviewItem = {
+  id: string;
+  name: string;
+  role: string;
+  character: CharacterType;
+  industry: IndustryType;
+  verbosity: Verbosity;
+  formality: Formality;
+  emojiMode: EmojiMode;
+  openerStyle: OpenerStyle;
+  allowTypos: boolean;
+  fallbackMessage: string;
+  metrics: AgentMetrics;
+};
+
+export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) {
+    return redirect(getLoginRedirect());
+  }
+
+  return cache(
+    async () => {
+      const agents = await prisma.agent.findMany({
+        where: { organizationId: session.user.organizationId },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          character: true,
+          industry: true,
+          verbosity: true,
+          formality: true,
+          emojiMode: true,
+          openerStyle: true,
+          allowTypos: true,
+          fallbackMessage: true,
+          _count: { select: { chunks: true } },
+          knowledgeSources: { select: { status: true } },
+          conversations: {
+            select: {
+              resolved: true,
+              messages: {
+                where: { role: 'ASSISTANT' },
+                select: { unanswered: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return agents.map((agent) => {
+        const totalConversations = agent.conversations.length;
+        const resolvedConversations = agent.conversations.filter(
+          (conversation) => conversation.resolved
+        ).length;
+
+        const assistantMessages = agent.conversations.flatMap(
+          (conversation) => conversation.messages
+        );
+        const totalAssistantMessages = assistantMessages.length;
+        const unansweredMessages = assistantMessages.filter(
+          (message) => message.unanswered
+        ).length;
+
+        const sourceCounts = summarizeSourceStatuses(
+          agent.knowledgeSources.map((source) => source.status)
+        );
+
+        const metrics = computeAgentMetrics({
+          resolvedConversations,
+          totalConversations,
+          unansweredMessages,
+          totalAssistantMessages,
+          chunkCount: agent._count.chunks,
+          ...sourceCounts
+        });
+
+        return {
+          id: agent.id,
+          name: agent.name,
+          role: agent.role,
+          character: agent.character,
+          industry: agent.industry,
+          verbosity: agent.verbosity,
+          formality: agent.formality,
+          emojiMode: agent.emojiMode,
+          openerStyle: agent.openerStyle,
+          allowTypos: agent.allowTypos,
+          fallbackMessage: agent.fallbackMessage,
+          metrics
+        };
+      });
+    },
+    Caching.createOrganizationKeyParts(
+      OrganizationCacheKey.Agents,
+      session.user.organizationId
+    ),
+    {
+      revalidate: defaultRevalidateTimeInSeconds,
+      tags: [
+        Caching.createOrganizationTag(
+          OrganizationCacheKey.Agents,
+          session.user.organizationId
+        )
+      ]
+    }
+  )();
+}
