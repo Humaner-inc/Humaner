@@ -53,14 +53,17 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SidebarProvider>
-        <SidebarRenderer profile={profile} />
+        <SidebarRenderer
+          profile={profile}
+          workspaces={workspaces}
+        />
         {/* Set max-width so full-width tables can overflow horizontally correctly */}
         <SidebarInset
           id="skip"
           className="min-h-0 min-w-0 flex-1"
         >
           <DashboardTopNav
-            workspaces={workspaces}
+            profile={profile}
             notifications={notifications}
           />
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

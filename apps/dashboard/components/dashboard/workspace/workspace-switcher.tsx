@@ -17,6 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem
+} from '@/components/ui/sidebar';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
@@ -42,9 +48,11 @@ function resolveWorkspaceLogo(workspace: UserWorkspaceSummary): string | null {
 }
 
 function WorkspaceAvatar({
-  workspace
+  workspace,
+  className
 }: {
   workspace: UserWorkspaceSummary;
+  className?: string;
 }): React.JSX.Element {
   const logoUrl = resolveWorkspaceLogo(workspace);
   const initial = workspace.name.trim().charAt(0).toUpperCase() || 'W';
@@ -55,13 +63,18 @@ function WorkspaceAvatar({
       <img
         src={logoUrl}
         alt=""
-        className="size-7 rounded-md object-cover"
+        className={cn('size-8 rounded-lg object-cover ring-1 ring-border/50', className)}
       />
     );
   }
 
   return (
-    <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white">
+    <span
+      className={cn(
+        'flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white ring-1 ring-border/40',
+        className
+      )}
+    >
       {initial}
     </span>
   );
@@ -107,6 +120,70 @@ export function WorkspaceSwitcher({
     NiceModal.show(CreateWorkspaceModal);
   };
 
+  const menuContent = (
+    <>
+      <DropdownMenuLabel className="text-xs text-muted-foreground">
+        Workspaces
+      </DropdownMenuLabel>
+      {workspaces.map((workspace) => (
+        <DropdownMenuItem
+          key={workspace.id}
+          className="gap-2"
+          onClick={() => void handleSwitch(workspace.id)}
+        >
+          <WorkspaceAvatar workspace={workspace} />
+          <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
+          {workspace.isActive ? (
+            <CheckIcon className="size-4 shrink-0 text-primary" />
+          ) : null}
+        </DropdownMenuItem>
+      ))}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        className="gap-2"
+        onClick={handleCreateWorkspace}
+      >
+        <span className="flex size-8 items-center justify-center rounded-lg border border-dashed border-border/80">
+          <PlusIcon className="size-4" />
+        </span>
+        Create workspace
+      </DropdownMenuItem>
+    </>
+  );
+
+  if (variant === 'sidebar') {
+    return (
+      <DropdownMenu>
+        <SidebarGroup className={cn('p-0', className)}>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  tooltip={active.name}
+                  className="h-auto gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 px-2.5 py-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
+                >
+                  <WorkspaceAvatar workspace={active} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">
+                    {active.name}
+                  </span>
+                  <ChevronsUpDownIcon className="size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <DropdownMenuContent
+          align="start"
+          side="right"
+          className="w-72"
+        >
+          {menuContent}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -115,8 +192,7 @@ export function WorkspaceSwitcher({
           variant="ghost"
           className={cn(
             'h-auto gap-2 rounded-lg border border-border/60 bg-card/40 px-2.5 py-1.5 hover:bg-accent/50',
-            variant === 'navbar' &&
-              'w-auto max-w-[min(100vw-12rem,16rem)] justify-center',
+            'w-auto max-w-[min(100vw-12rem,16rem)] justify-center',
             className
           )}
         >
@@ -128,35 +204,10 @@ export function WorkspaceSwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align={variant === 'navbar' ? 'center' : 'start'}
-        className="w-64"
+        align="center"
+        className="w-72"
       >
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Workspaces
-        </DropdownMenuLabel>
-        {workspaces.map((workspace) => (
-          <DropdownMenuItem
-            key={workspace.id}
-            className="gap-2"
-            onClick={() => void handleSwitch(workspace.id)}
-          >
-            <WorkspaceAvatar workspace={workspace} />
-            <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
-            {workspace.isActive ? (
-              <CheckIcon className="size-4 shrink-0 text-primary" />
-            ) : null}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="gap-2"
-          onClick={handleCreateWorkspace}
-        >
-          <span className="flex size-7 items-center justify-center rounded-md border border-dashed">
-            <PlusIcon className="size-4" />
-          </span>
-          Create workspace
-        </DropdownMenuItem>
+        {menuContent}
       </DropdownMenuContent>
     </DropdownMenu>
   );

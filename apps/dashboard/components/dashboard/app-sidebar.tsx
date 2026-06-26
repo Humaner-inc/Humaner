@@ -5,8 +5,7 @@ import Image from 'next/image';
 import * as React from 'react';
 
 import { NavMain } from '@/components/dashboard/nav-main';
-import { NavSupport } from '@/components/dashboard/nav-support';
-import { NavUser } from '@/components/dashboard/nav-user';
+import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
@@ -18,13 +17,18 @@ import {
 import { MediaQueries } from '@/constants/media-queries';
 import { AppInfo } from '@/constants/app-info';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type AppSidebarProps = {
   profile: ProfileDto;
+  workspaces: UserWorkspaceSummary[];
 };
 
-export function AppSidebar({ profile }: AppSidebarProps): React.JSX.Element {
+export function AppSidebar({
+  profile,
+  workspaces
+}: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const xlUp = useMediaQuery(MediaQueries.XlUp, { ssr: true, fallback: true });
   const isCollapsed = !sidebar.isMobile && !sidebar.open;
@@ -64,16 +68,12 @@ export function AppSidebar({ profile }: AppSidebarProps): React.JSX.Element {
           className="h-full [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:flex-col"
         >
           <NavMain profile={profile} />
-          <NavSupport
-            profile={profile}
-            className="mt-auto pb-0"
-          />
         </ScrollArea>
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser
-          profile={profile}
-          className="p-0"
+      <SidebarFooter className="border-t border-sidebar-border/60 p-2">
+        <WorkspaceSwitcher
+          variant="sidebar"
+          workspaces={workspaces}
         />
       </SidebarFooter>
     </Sidebar>

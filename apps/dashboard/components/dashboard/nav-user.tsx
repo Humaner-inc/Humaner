@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 
 import { logOut } from '@/actions/auth/log-out';
 import { CommandMenu } from '@/components/dashboard/command-menu';
+import { InviteTeammateModal } from '@/components/dashboard/settings/organization/members/invite-member-modal';
 import { UserTicketsSheet } from '@/components/support/user-tickets-sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,15 +35,91 @@ import { isDialogOpen } from '@/lib/browser/is-dialog-open';
 import { isInputFocused } from '@/lib/browser/is-input-focused';
 import { isMac } from '@/lib/browser/is-mac';
 import { getDocsUrl } from '@/lib/urls/get-docs-url';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type NavUserProps = SidebarGroupProps & {
   profile: ProfileDto;
+  variant?: 'sidebar' | 'navbar';
 };
+
+function ProfileMenuContent({
+  profile,
+  onNavigateToProfilePage,
+  onNavigateToBillingPage,
+  onShowInviteTeammateModal,
+  onShowSupportTickets,
+  onShowCommandMenu,
+  onLogOut
+}: {
+  profile: ProfileDto;
+  onNavigateToProfilePage: () => void;
+  onNavigateToBillingPage: () => void;
+  onShowInviteTeammateModal: () => void;
+  onShowSupportTickets: () => void;
+  onShowCommandMenu: () => void;
+  onLogOut: () => void;
+}): React.JSX.Element {
+  return (
+    <>
+      <DropdownMenuLabel className="font-normal">
+        <div className="flex flex-col space-y-1">
+          <p className="truncate text-sm font-medium leading-none">
+            {profile.name}
+          </p>
+          <p className="text-xs leading-none text-muted-foreground">
+            {profile.email}
+          </p>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuGroup>
+        <DropdownMenuItem onClick={onNavigateToProfilePage}>
+          Profile
+          <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+        </DropdownMenuItem>
+        {isWorkspaceOwner(profile) ? (
+          <>
+            <DropdownMenuItem onClick={onNavigateToBillingPage}>
+              Billing
+              <DropdownMenuShortcut>⇧⌘B</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onShowInviteTeammateModal}>
+              Invite teammate
+            </DropdownMenuItem>
+          </>
+        ) : null}
+        <DropdownMenuItem onClick={onShowSupportTickets}>
+          My tickets
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href={getDocsUrl()}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Docs
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onShowCommandMenu}>
+          Command Menu
+          <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={onLogOut}>
+        Log out
+        <DropdownMenuShortcut>⇧⌘L</DropdownMenuShortcut>
+      </DropdownMenuItem>
+    </>
+  );
+}
 
 export function NavUser({
   profile,
+  variant = 'sidebar',
+  className,
   ...other
 }: NavUserProps): React.JSX.Element {
   const router = useRouter();
@@ -57,6 +135,9 @@ export function NavUser({
   };
   const handleShowSupportTickets = (): void => {
     NiceModal.show(UserTicketsSheet);
+  };
+  const handleShowInviteTeammateModal = (): void => {
+    NiceModal.show(InviteTeammateModal, { profile });
   };
   const handleLogOut = async (): Promise<void> => {
     const result = await logOut({ redirect: true });
@@ -92,8 +173,60 @@ export function NavUser({
     return () => document.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const menuContent = (
+    <ProfileMenuContent
+      profile={profile}
+      onNavigateToProfilePage={handleNavigateToProfilePage}
+      onNavigateToBillingPage={handleNavigateToBillingPage}
+      onShowInviteTeammateModal={handleShowInviteTeammateModal}
+      onShowSupportTickets={handleShowSupportTickets}
+      onShowCommandMenu={handleShowCommandMenu}
+      onLogOut={() => void handleLogOut()}
+    />
+  );
+
+  if (variant === 'navbar') {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              'size-9 shrink-0 rounded-full p-0 hover:bg-accent/60',
+              className
+            )}
+            aria-label="Open profile menu"
+          >
+            <Avatar className="size-8 rounded-full ring-1 ring-border/60">
+              <AvatarImage
+                src={profile.image}
+                alt={profile.name}
+              />
+              <AvatarFallback className="rounded-full text-xs">
+                {getInitials(profile.name)}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-56"
+          align="end"
+          forceMount
+        >
+          {menuContent}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
-    <SidebarGroup {...other}>
+    <SidebarGroup
+      className={className}
+      {...other}
+    >
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
@@ -118,51 +251,7 @@ export function NavUser({
               align="start"
               forceMount
             >
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="truncate text-sm font-medium leading-none">
-                    {profile.name}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {profile.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleNavigateToProfilePage}>
-                  Profile
-                  <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                {isWorkspaceOwner(profile) ? (
-                  <DropdownMenuItem onClick={handleNavigateToBillingPage}>
-                    Billing
-                    <DropdownMenuShortcut>⇧⌘B</DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuItem onClick={handleShowSupportTickets}>
-                  My tickets
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={getDocsUrl()}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Docs
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleShowCommandMenu}>
-                  Command Menu
-                  <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogOut}>
-                Log out
-                <DropdownMenuShortcut>⇧⌘L</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              {menuContent}
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
