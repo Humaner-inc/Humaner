@@ -44,6 +44,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'img.logo.dev'
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co'
       }
     ]
   },
@@ -120,13 +124,23 @@ const nextConfig = {
       },
       {
         source: '/dashboard/contacts',
-        destination: '/dashboard/agents',
+        destination: '/dashboard/home',
         permanent: false
       },
       {
         source: '/dashboard/contacts/:path*',
-        destination: '/dashboard/agents',
+        destination: '/dashboard/home',
         permanent: false
+      },
+      {
+        source: '/dashboard/agents',
+        destination: '/dashboard/home',
+        permanent: true
+      },
+      {
+        source: '/dashboard/agents/:path*',
+        destination: '/dashboard/home',
+        permanent: true
       },
       {
         source: '/dashboard/settings/organization',

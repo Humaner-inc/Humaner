@@ -31,6 +31,8 @@ export async function getProfile(): Promise<ProfileDto> {
           name: true,
           email: true,
           role: true,
+          workspaceRole: true,
+          allowedPages: true,
           locale: true
         }
       });
@@ -44,6 +46,8 @@ export async function getProfile(): Promise<ProfileDto> {
         name: userFromDb.name,
         email: userFromDb.email ?? undefined,
         role: userFromDb.role,
+        workspaceRole: userFromDb.workspaceRole,
+        allowedPages: userFromDb.allowedPages,
         locale: userFromDb.locale
       };
 

@@ -3,13 +3,13 @@
 import { revalidateTag } from 'next/cache';
 import { startOfDay } from 'date-fns';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateApiKeySchema } from '@/schemas/api-keys/update-api-key-schema';
 
-export const updateApiKey = authActionClient
+export const updateApiKey = ownerActionClient
   .metadata({ actionName: 'updateApiKey' })
   .schema(updateApiKeySchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

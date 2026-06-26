@@ -2,13 +2,13 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { revokeApiKeySchema } from '@/schemas/api-keys/revoke-api-key-schema';
 
-export const revokeApiKey = authActionClient
+export const revokeApiKey = ownerActionClient
   .metadata({ actionName: 'revokeApiKey' })
   .schema(revokeApiKeySchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

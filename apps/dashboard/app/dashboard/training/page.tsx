@@ -130,7 +130,7 @@ export default async function TrainingPage({
                 Create an agent first, then return here to run training.
                 <div className="mt-4">
                   <Button asChild>
-                    <Link href={Routes.Agents}>Go to Agents</Link>
+                    <Link href={Routes.Home}>Go to Dashboard</Link>
                   </Button>
                 </div>
               </CardContent>

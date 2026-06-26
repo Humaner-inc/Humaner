@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
-import { authActionClient } from '@/actions/safe-action';
+import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { GatewayError, NotFoundError } from '@/lib/validation/exceptions';
@@ -26,7 +26,7 @@ const runAgentTrainingSchema = z.object({
     .default(25)
 });
 
-export const runAgentTraining = authActionClient
+export const runAgentTraining = pageActionClient('training')
   .metadata({ actionName: 'runAgentTraining' })
   .schema(runAgentTrainingSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

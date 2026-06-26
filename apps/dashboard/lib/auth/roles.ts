@@ -4,7 +4,8 @@ import { ForbiddenError } from '@/lib/validation/exceptions';
 
 /**
  * Roles assignable through the application.
- * Admin is reserved for manual updates in the database only.
+ * Role.ADMIN is for Humaner platform operators (set manually in DB).
+ * Workspace ownership uses WorkspaceRole.OWNER instead.
  */
 export const APP_ASSIGNABLE_ROLE = Role.MEMBER;
 

@@ -41,7 +41,7 @@ export function SectionPage({
   children: React.ReactNode;
 }): React.JSX.Element {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       <SectionContent
         width={width}
         className={className}
@@ -65,7 +65,7 @@ export function DockSection({
   width = 'lg'
 }: DockSectionProps): React.JSX.Element {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       {dock}
       <SectionContent
         width={width}

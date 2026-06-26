@@ -2,13 +2,13 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateWebhookSchema } from '@/schemas/webhooks/update-webhook-schema';
 
-export const updateWebhook = authActionClient
+export const updateWebhook = ownerActionClient
   .metadata({ actionName: 'updateWebhook' })
   .schema(updateWebhookSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

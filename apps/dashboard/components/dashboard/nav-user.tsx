@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
 import { toast } from 'sonner';
 
 import { logOut } from '@/actions/auth/log-out';
 import { CommandMenu } from '@/components/dashboard/command-menu';
+import { UserTicketsSheet } from '@/components/support/user-tickets-sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -26,9 +28,11 @@ import {
   type SidebarGroupProps
 } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
+import { isWorkspaceOwner } from '@/lib/auth/workspace-access';
 import { isDialogOpen } from '@/lib/browser/is-dialog-open';
 import { isInputFocused } from '@/lib/browser/is-input-focused';
 import { isMac } from '@/lib/browser/is-mac';
+import { getDocsUrl } from '@/lib/urls/get-docs-url';
 import { getInitials } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
@@ -49,7 +53,10 @@ export function NavUser({
     router.push(Routes.Billing);
   };
   const handleShowCommandMenu = (): void => {
-    NiceModal.show(CommandMenu);
+    NiceModal.show(CommandMenu, { profile });
+  };
+  const handleShowSupportTickets = (): void => {
+    NiceModal.show(UserTicketsSheet);
   };
   const handleLogOut = async (): Promise<void> => {
     const result = await logOut({ redirect: true });
@@ -127,9 +134,23 @@ export function NavUser({
                   Profile
                   <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleNavigateToBillingPage}>
-                  Billing
-                  <DropdownMenuShortcut>⇧⌘B</DropdownMenuShortcut>
+                {isWorkspaceOwner(profile) ? (
+                  <DropdownMenuItem onClick={handleNavigateToBillingPage}>
+                    Billing
+                    <DropdownMenuShortcut>⇧⌘B</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem onClick={handleShowSupportTickets}>
+                  My tickets
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={getDocsUrl()}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Docs
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleShowCommandMenu}>

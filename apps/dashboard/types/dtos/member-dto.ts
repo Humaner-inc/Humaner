@@ -1,4 +1,4 @@
-import type { Role } from '@prisma/client';
+import type { Role, WorkspaceRole } from '@prisma/client';
 
 export type MemberDto = {
   id: string;
@@ -6,6 +6,8 @@ export type MemberDto = {
   name: string;
   email: string;
   role: Role;
+  workspaceRole: WorkspaceRole;
+  allowedPages: string[];
   dateAdded: Date;
   lastLogin?: Date;
 };

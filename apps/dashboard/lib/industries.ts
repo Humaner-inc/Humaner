@@ -1,6 +1,10 @@
 import type { CharacterType, IndustryType } from '@prisma/client';
 
-export type IndustryIconKey = 'store' | 'graduation-cap' | 'dumbbell' | 'airplane';
+export type IndustryIconKey =
+  | 'shopping-bag'
+  | 'graduation-cap'
+  | 'heart-pulse'
+  | 'building';
 
 export type IndustryDefinition = {
   id: IndustryType;
@@ -21,9 +25,9 @@ export type IndustryDefinition = {
 export const INDUSTRIES: Record<IndustryType, IndustryDefinition> = {
   ECOMMERCE: {
     id: 'ECOMMERCE',
-    label: 'Ecommerce & Retail',
-    description: 'Product questions, shipping, and returns',
-    iconKey: 'store',
+    label: 'Retail',
+    description: 'Ecommerce and local stores',
+    iconKey: 'shopping-bag',
     defaultCharacter: 'CASUAL',
     forbiddenTopics: ['Competitor pricing comparisons', 'Legal disputes'],
     promptFragment: `You handle customer support for an ecommerce/retail business.
@@ -41,8 +45,8 @@ Never speculate on stock availability unless your knowledge base explicitly cove
   },
   EDUCATION: {
     id: 'EDUCATION',
-    label: 'Education & Training',
-    description: 'Admissions, enrolment, and student questions',
+    label: 'Digital Services',
+    description: 'SaaS and online courses',
     iconKey: 'graduation-cap',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: ['Academic integrity advice', 'Recommending competing courses'],
@@ -62,9 +66,9 @@ For access/technical issues, collect basic info (browser, device) before suggest
   },
   FITNESS: {
     id: 'FITNESS',
-    label: 'Fitness & Wellness',
-    description: 'Bookings, cancelations, and member support',
-    iconKey: 'dumbbell',
+    label: 'Wellness',
+    description: 'Care and fitness',
+    iconKey: 'heart-pulse',
     defaultCharacter: 'CASUAL',
     forbiddenTopics: ['Medical advice', 'Injury diagnosis', 'Nutrition prescriptions'],
     promptFragment: `You handle member support for a fitness or wellness business.
@@ -83,9 +87,9 @@ If a member asks something medical, acknowledge warmly and direct to a qualified
   },
   TRAVEL: {
     id: 'TRAVEL',
-    label: 'Travel & Hospitality',
-    description: 'Bookings, disruptions, and refunds',
-    iconKey: 'airplane',
+    label: 'Hospitality',
+    description: 'Guest services & travel',
+    iconKey: 'building',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: ['Competitor comparisons', 'Legal dispute advice'],
     promptFragment: `You handle guest support for a travel or hospitality business.

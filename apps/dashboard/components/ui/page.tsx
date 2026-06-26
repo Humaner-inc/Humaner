@@ -52,7 +52,7 @@ const PagePrimaryBar = React.forwardRef<
     {...other}
   >
     <SidebarTrigger
-      icon="menu"
+      icon="chevronsLeftRight"
       className="-ml-2 lg:hidden"
     />
     <div className="flex w-full flex-row items-center justify-between">

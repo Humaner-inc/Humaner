@@ -2,14 +2,14 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { pageActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { purgeVisitorMemory } from '@/services/agent-memory';
 import { deleteAgentSchema } from '@/schemas/agents/delete-agent-schema';
 
-export const deleteAgent = authActionClient
+export const deleteAgent = pageActionClient('agents')
   .metadata({ actionName: 'deleteAgent' })
   .schema(deleteAgentSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

@@ -56,6 +56,58 @@
     --sidebar-border: 340 12% 88%;
     --sidebar-ring: 347 41% 30%;
   }
+
+  .dark {
+    /* #070607 base — dashboard dark shell */
+    --background: 300 8% 2.55%;
+    --foreground: 40 20% 96%;
+
+    --card: 300 6% 5.5%;
+    --card-foreground: 40 20% 96%;
+
+    --popover: 300 6% 6.5%;
+    --popover-foreground: 40 20% 96%;
+
+    --primary: 347 41% 42%;
+    --primary-foreground: 40 30% 97%;
+
+    --secondary: 300 5% 11%;
+    --secondary-foreground: 40 15% 92%;
+
+    --muted: 300 5% 11%;
+    --muted-foreground: 330 6% 58%;
+
+    --accent: 347 28% 14%;
+    --accent-foreground: 40 20% 96%;
+
+    --brand: 347 41% 42%;
+    --brand-foreground: 40 30% 97%;
+
+    --fracture: 348 83% 52%;
+    --fracture-foreground: 40 30% 97%;
+
+    --destructive: 0 62% 42%;
+    --destructive-foreground: 40 30% 97%;
+
+    --border: 300 5% 14%;
+    --input: 300 5% 14%;
+    --ring: 347 41% 42%;
+
+    --chart-1: 347 41% 48%;
+    --chart-2: 348 83% 52%;
+    --chart-3: 24 55% 58%;
+    --chart-4: 43 65% 62%;
+    --chart-5: 300 8% 72%;
+
+    --sidebar-background: 300 8% 2.55%;
+    --sidebar-foreground: 40 20% 96%;
+    --sidebar-primary: 347 41% 42%;
+    --sidebar-primary-foreground: 40 30% 97%;
+    --sidebar-accent: 300 5% 10%;
+    --sidebar-accent-foreground: 40 15% 92%;
+    --sidebar-border: 300 5% 14%;
+    --sidebar-ring: 347 41% 42%;
+  }
 }
 
 @layer base {

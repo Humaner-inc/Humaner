@@ -31,37 +31,51 @@ export async function deleteUserRecords(
 export async function deleteUserAccount(
   input: DeleteUserAccountInput
 ): Promise<void> {
-  if (!input.organizationId) {
+  const memberships = await prisma.organizationMembership.findMany({
+    where: { userId: input.userId },
+    select: { organizationId: true }
+  });
+
+  if (memberships.length === 0) {
     await deleteUserRecords(input.userId, input.email);
     return;
   }
 
-  const memberCount = await prisma.user.count({
-    where: { organizationId: input.organizationId }
-  });
-
-  if (memberCount <= 1) {
-    await deleteOrganizationData(input.organizationId);
-    return;
-  }
-
-  const user = await prisma.user.findFirst({
-    where: { id: input.userId, organizationId: input.organizationId },
-    select: { role: true }
-  });
-
-  if (!user) {
-    return;
-  }
-
-  if (user.role === Role.ADMIN) {
-    const adminCount = await prisma.user.count({
-      where: { organizationId: input.organizationId, role: Role.ADMIN }
+  for (const { organizationId } of memberships) {
+    const memberCount = await prisma.organizationMembership.count({
+      where: { organizationId }
     });
-    if (adminCount <= 1) {
-      throw new PreConditionError(
-        'Assign another admin before deleting your account.'
-      );
+    if (memberCount <= 1) {
+      await deleteOrganizationData(organizationId);
+    }
+  }
+
+  if (input.organizationId) {
+    const memberCount = await prisma.organizationMembership.count({
+      where: { organizationId: input.organizationId }
+    });
+
+    if (memberCount > 1) {
+      const user = await prisma.user.findFirst({
+        where: { id: input.userId, organizationId: input.organizationId },
+        select: { role: true }
+      });
+
+      if (!user) {
+        await deleteUserRecords(input.userId, input.email);
+        return;
+      }
+
+      if (user.role === Role.ADMIN) {
+        const adminCount = await prisma.user.count({
+          where: { organizationId: input.organizationId, role: Role.ADMIN }
+        });
+        if (adminCount <= 1) {
+          throw new PreConditionError(
+            'Assign another admin before deleting your account.'
+          );
+        }
+      }
     }
   }
 

@@ -2,13 +2,13 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateSocialMediaSchema } from '@/schemas/organization/update-social-media-schema';
 
-export const updateSocialMedia = authActionClient
+export const updateSocialMedia = ownerActionClient
   .metadata({ actionName: 'updateSocialMedia' })
   .schema(updateSocialMediaSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

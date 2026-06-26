@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Role } from '@prisma/client';
 
 import {
   SidebarGroup,
@@ -17,6 +16,7 @@ import {
   useNavMenuIconAnimation
 } from '@/components/ui/nav-menu-icon';
 import { mainNavItems } from '@/constants/nav-items';
+import { filterNavItemsForProfile } from '@/lib/auth/workspace-access';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types/nav-item';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -69,10 +69,7 @@ function NavMainItem({
 
 export function NavMain({ profile, ...props }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
-  const isAdmin = profile.role === Role.ADMIN;
-  const items = mainNavItems.filter(
-    (item) => !item.adminOnly || isAdmin
-  );
+  const items = filterNavItemsForProfile(mainNavItems, profile);
 
   return (
     <SidebarGroup {...props}>

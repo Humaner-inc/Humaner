@@ -17,6 +17,13 @@ export const deleteAccount = authActionClient
       throw new PreConditionError('Email is missing.');
     }
 
+    if (
+      parsedInput.email.trim().toLowerCase() !==
+      session.user.email.trim().toLowerCase()
+    ) {
+      throw new PreConditionError('Email does not match your account.');
+    }
+
     await deleteUserAccount({
       userId: session.user.id,
       organizationId: session.user.organizationId,

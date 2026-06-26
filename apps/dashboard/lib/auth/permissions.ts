@@ -1,8 +1,15 @@
 import { Role } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import { NotFoundError } from '@/lib/validation/exceptions';
+import {
+  ForbiddenError,
+  NotFoundError
+} from '@/lib/validation/exceptions';
 
+/**
+ * Platform operator flag (Humaner staff). Set manually in the database.
+ * Used for support ticket triage and plan-limit bypass — not workspace ownership.
+ */
 export async function isAdmin(userId: string): Promise<boolean> {
   const user = await prisma.user.findFirst({
     where: { id: userId },
@@ -13,6 +20,12 @@ export async function isAdmin(userId: string): Promise<boolean> {
   }
 
   return user.role === Role.ADMIN;
+}
+
+export async function requireAdmin(userId: string): Promise<void> {
+  if (!(await isAdmin(userId))) {
+    throw new ForbiddenError('Admin access required');
+  }
 }
 
 export async function isMember(userId: string): Promise<boolean> {

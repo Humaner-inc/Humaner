@@ -2,14 +2,14 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { getIndustry } from '@/lib/industries';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateOrganizationIndustrySchema } from '@/schemas/organization/update-organization-industry-schema';
 
-export const updateOrganizationIndustry = authActionClient
+export const updateOrganizationIndustry = ownerActionClient
   .metadata({ actionName: 'updateOrganizationIndustry' })
   .schema(updateOrganizationIndustrySchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

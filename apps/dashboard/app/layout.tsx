@@ -14,7 +14,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   minimumScale: 1,
   maximumScale: 1,
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: 'white' }]
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#070607' },
+    { media: '(prefers-color-scheme: dark)', color: '#070607' }
+  ]
 };
 
 export const metadata: Metadata = {
@@ -22,9 +25,9 @@ export const metadata: Metadata = {
   title: AppInfo.APP_NAME,
   description: AppInfo.APP_DESCRIPTION,
   icons: {
-    icon: '/humaner.svg',
-    shortcut: '/humaner.svg',
-    apple: '/humaner.svg'
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg'
   },
   manifest: `${getBaseUrl()}/manifest`,
   robots: {

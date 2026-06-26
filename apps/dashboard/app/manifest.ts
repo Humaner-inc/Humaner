@@ -9,17 +9,17 @@ export default function manifest(): MetadataRoute.Manifest {
     description: AppInfo.APP_DESCRIPTION,
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#ffffff',
+    background_color: '#070607',
+    theme_color: '#070607',
     icons: [
       {
-        src: '/humaner.svg',
+        src: '/favicon.svg',
         sizes: 'any',
         type: 'image/svg+xml',
         purpose: 'any'
       },
       {
-        src: '/humaner.svg',
+        src: '/favicon.svg',
         sizes: 'any',
         type: 'image/svg+xml',
         purpose: 'maskable'

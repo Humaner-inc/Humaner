@@ -3,9 +3,13 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
+import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
+import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
+import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
+import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -43,17 +47,25 @@ export default async function DashboardLayout({
   }
 
   const profile = await getProfile();
+  const workspaces = await getWorkspaceSwitcherData();
+  const { items: notifications } = await getDashboardNotifications();
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SidebarProvider>
         <SidebarRenderer profile={profile} />
         {/* Set max-width so full-width tables can overflow horizontally correctly */}
         <SidebarInset
           id="skip"
-          className="size-full lg:peer-data-[state=collapsed]:max-w-[calc(100vw-var(--sidebar-width-icon))] lg:peer-data-[state=expanded]:max-w-[calc(100vw-var(--sidebar-width))]"
+          className="min-h-0 min-w-0 flex-1"
         >
-          {children}
+          <DashboardTopNav
+            workspaces={workspaces}
+            notifications={notifications}
+          />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <PageAccessGate profile={profile}>{children}</PageAccessGate>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>

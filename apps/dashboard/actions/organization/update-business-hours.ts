@@ -2,13 +2,13 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateBusinessHoursSchema } from '@/schemas/organization/update-business-hours-schema';
 
-export const updateBusinessHours = authActionClient
+export const updateBusinessHours = ownerActionClient
   .metadata({ actionName: 'updateBusinessHours' })
   .schema(updateBusinessHoursSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

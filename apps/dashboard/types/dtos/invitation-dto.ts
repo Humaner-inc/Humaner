@@ -6,6 +6,7 @@ export type InvitationDto = {
   status: InvitationStatus;
   email: string;
   role: Role;
+  allowedPages: string[];
   lastSent?: Date;
   dateAdded: Date;
 };

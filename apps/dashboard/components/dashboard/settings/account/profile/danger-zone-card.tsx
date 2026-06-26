@@ -13,9 +13,19 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
-export function DangerZoneCard(props: CardProps): React.JSX.Element {
+export type DangerZoneCardProps = CardProps & {
+  email: string;
+};
+
+export function DangerZoneCard({
+  email,
+  ...props
+}: DangerZoneCardProps): React.JSX.Element {
   const handleShowDeleteAccountModal = (): void => {
-    NiceModal.show(DeleteAccountModal);
+    if (!email) {
+      return;
+    }
+    NiceModal.show(DeleteAccountModal, { email });
   };
   return (
     <Card {...props}>
@@ -31,6 +41,7 @@ export function DangerZoneCard(props: CardProps): React.JSX.Element {
           type="button"
           variant="destructive"
           size="default"
+          disabled={!email}
           onClick={handleShowDeleteAccountModal}
         >
           Delete account

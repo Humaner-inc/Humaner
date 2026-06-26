@@ -4,13 +4,11 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, VariantProps } from 'class-variance-authority';
-import { ChevronLeftIcon, ChevronRightIcon, MenuIcon } from '@humaner/shared/icons';
+import { ChevronRightIcon } from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
-import {
-  NavMenuIcon,
-  useNavMenuIconAnimation
-} from '@/components/ui/nav-menu-icon';
+import { ChevronsLeftRightIcon } from '@/components/ui/chevrons-left-right-icon';
+import { ChevronsRightLeftIcon } from '@/components/ui/chevrons-right-left-icon';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -287,20 +285,26 @@ Sidebar.displayName = 'Sidebar';
 
 export type SidebarTriggerElement = React.ElementRef<typeof Button>;
 export type SidebarTriggerProps = React.ComponentProps<typeof Button> & {
-  icon?: 'menu' | 'chevronLeft' | 'chevronRight';
+  icon?:
+    | 'chevronsLeftRight'
+    | 'chevronsRightLeft'
+    | 'chevronRight'
+    /** @deprecated Use `chevronsLeftRight` */
+    | 'menu'
+    /** @deprecated Use `chevronsRightLeft` */
+    | 'chevronLeft';
 };
 const SidebarTrigger = React.forwardRef<
   SidebarTriggerElement,
   SidebarTriggerProps
->(({ className, onClick, icon = 'menu', ...props }, ref) => {
+>(({ className, onClick, icon = 'chevronsLeftRight', ...props }, ref) => {
   const { toggleSidebar } = useSidebar();
-  const { iconRef, menuHoverHandlers } = useNavMenuIconAnimation();
-  const TriggerIcon =
-    icon === 'chevronLeft'
-      ? ChevronLeftIcon
-      : icon === 'chevronRight'
-        ? ChevronRightIcon
-        : MenuIcon;
+  const resolvedIcon =
+    icon === 'menu'
+      ? 'chevronsLeftRight'
+      : icon === 'chevronLeft'
+        ? 'chevronsRightLeft'
+        : icon;
 
   return (
     <Button
@@ -313,14 +317,15 @@ const SidebarTrigger = React.forwardRef<
         onClick?.(event);
         toggleSidebar();
       }}
-      {...menuHoverHandlers}
       {...props}
     >
-      <NavMenuIcon
-        icon={TriggerIcon}
-        iconRef={iconRef}
-        className="size-4 shrink-0"
-      />
+      {resolvedIcon === 'chevronsRightLeft' ? (
+        <ChevronsRightLeftIcon className="shrink-0 text-current" size={16} />
+      ) : resolvedIcon === 'chevronRight' ? (
+        <ChevronRightIcon className="size-4 shrink-0" animateOnHover={false} />
+      ) : (
+        <ChevronsLeftRightIcon className="shrink-0 text-current" size={16} />
+      )}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

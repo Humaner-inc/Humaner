@@ -1,6 +1,9 @@
+'use client';
+
+import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 import Image from 'next/image';
 import * as React from 'react';
-
+import { useState } from 'react';
 import { AppInfo } from '@/constants/app-info';
 import { cn } from '@/lib/utils';
 
@@ -15,9 +18,13 @@ export function Logo({
   className,
   ...other
 }: LogoProps): React.JSX.Element {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <div
       className={cn('flex items-center gap-2.5', className)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       {...other}
     >
       {!hideSymbol && (
@@ -31,9 +38,12 @@ export function Logo({
         />
       )}
       {!hideWordmark && (
-        <span className="font-display text-lg font-semibold tracking-tight text-foreground">
+        <BrandWordmark
+          active={hovered}
+          className="font-display text-lg font-semibold tracking-tight text-foreground"
+        >
           {AppInfo.APP_NAME}
-        </span>
+        </BrandWordmark>
       )}
     </div>
   );

@@ -1,0 +1,163 @@
+'use client';
+
+import * as React from 'react';
+import NiceModal from '@ebay/nice-modal-react';
+import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from '@humaner/shared/icons';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
+import { switchWorkspace } from '@/actions/workspaces/switch-workspace';
+import { CreateWorkspaceModal } from '@/components/dashboard/workspace/create-workspace-modal';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
+import { getLogoUrl, toHostname } from '@/lib/logo';
+import { cn } from '@/lib/utils';
+
+export type WorkspaceSwitcherProps = {
+  workspaces: UserWorkspaceSummary[];
+  variant?: 'navbar' | 'sidebar';
+  className?: string;
+};
+
+function resolveWorkspaceLogo(workspace: UserWorkspaceSummary): string | null {
+  if (workspace.logoUrl) {
+    return workspace.logoUrl;
+  }
+  if (!workspace.website) {
+    return null;
+  }
+  const domain = toHostname(workspace.website);
+  if (!domain) {
+    return null;
+  }
+  return getLogoUrl(domain, 64, true);
+}
+
+function WorkspaceAvatar({
+  workspace
+}: {
+  workspace: UserWorkspaceSummary;
+}): React.JSX.Element {
+  const logoUrl = resolveWorkspaceLogo(workspace);
+  const initial = workspace.name.trim().charAt(0).toUpperCase() || 'W';
+
+  if (logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={logoUrl}
+        alt=""
+        className="size-7 rounded-md object-cover"
+      />
+    );
+  }
+
+  return (
+    <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white">
+      {initial}
+    </span>
+  );
+}
+
+export function WorkspaceSwitcher({
+  workspaces,
+  variant = 'navbar',
+  className
+}: WorkspaceSwitcherProps): React.JSX.Element | null {
+  const router = useRouter();
+  const active =
+    workspaces.find((workspace) => workspace.isActive) ?? workspaces[0];
+
+  if (!active) {
+    return null;
+  }
+
+  const handleSwitch = async (organizationId: string): Promise<void> => {
+    if (organizationId === active.id) {
+      return;
+    }
+
+    const result = await switchWorkspace({ organizationId });
+    if (result?.serverError) {
+      toast.error(result.serverError);
+      return;
+    }
+    if (result?.validationErrors) {
+      toast.error("Couldn't switch workspace");
+      return;
+    }
+
+    toast.success('Workspace switched');
+    if (result?.data?.redirectTo) {
+      router.push(result.data.redirectTo);
+    } else {
+      router.refresh();
+    }
+  };
+
+  const handleCreateWorkspace = (): void => {
+    NiceModal.show(CreateWorkspaceModal);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          className={cn(
+            'h-auto gap-2 rounded-lg border border-border/60 bg-card/40 px-2.5 py-1.5 hover:bg-accent/50',
+            variant === 'navbar' &&
+              'w-auto max-w-[min(100vw-12rem,16rem)] justify-center',
+            className
+          )}
+        >
+          <WorkspaceAvatar workspace={active} />
+          <span className="min-w-0 truncate text-sm font-medium">
+            {active.name}
+          </span>
+          <ChevronsUpDownIcon className="size-4 shrink-0 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align={variant === 'navbar' ? 'center' : 'start'}
+        className="w-64"
+      >
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
+          Workspaces
+        </DropdownMenuLabel>
+        {workspaces.map((workspace) => (
+          <DropdownMenuItem
+            key={workspace.id}
+            className="gap-2"
+            onClick={() => void handleSwitch(workspace.id)}
+          >
+            <WorkspaceAvatar workspace={workspace} />
+            <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
+            {workspace.isActive ? (
+              <CheckIcon className="size-4 shrink-0 text-primary" />
+            ) : null}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="gap-2"
+          onClick={handleCreateWorkspace}
+        >
+          <span className="flex size-7 items-center justify-center rounded-md border border-dashed">
+            <PlusIcon className="size-4" />
+          </span>
+          Create workspace
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

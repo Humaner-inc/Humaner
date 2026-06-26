@@ -7,6 +7,8 @@ import type { AnimatedIconHandle, LucideIcon } from '@humaner/shared/icons';
 export type NavMenuIconProps = {
   icon: LucideIcon;
   className?: string;
+  /** Prevents hover morph (e.g. menu → close) for sidebar expand trigger. */
+  disableAnimation?: boolean;
 };
 
 export function useNavMenuIconAnimation(): {
@@ -42,13 +44,14 @@ export function useNavMenuIconAnimation(): {
 export function NavMenuIcon({
   icon: Icon,
   className,
-  iconRef
+  iconRef,
+  disableAnimation = false
 }: NavMenuIconProps & {
   iconRef: React.RefObject<AnimatedIconHandle | null>;
 }): React.JSX.Element {
   return (
     <Icon
-      ref={iconRef as React.Ref<AnimatedIconHandle>}
+      ref={disableAnimation ? undefined : (iconRef as React.Ref<AnimatedIconHandle>)}
       className={className}
       animateOnHover={false}
     />

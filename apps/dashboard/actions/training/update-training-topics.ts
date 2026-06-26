@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { authActionClient } from '@/actions/safe-action';
+import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
@@ -13,7 +13,7 @@ const updateTrainingTopicsSchema = z.object({
   topics: z.array(z.string().trim().min(1).max(120)).max(20)
 });
 
-export const updateTrainingTopics = authActionClient
+export const updateTrainingTopics = pageActionClient('training')
   .metadata({ actionName: 'updateTrainingTopics' })
   .schema(updateTrainingTopicsSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

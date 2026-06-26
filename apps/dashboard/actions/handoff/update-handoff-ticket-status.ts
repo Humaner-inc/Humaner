@@ -2,13 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const updateHandoffTicketStatus = authActionClient
+export const updateHandoffTicketStatus = pageActionClient('human-desk')
   .metadata({ actionName: 'updateHandoffTicketStatus' })
   .schema(updateHandoffTicketStatusSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

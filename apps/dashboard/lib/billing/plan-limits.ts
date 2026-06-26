@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db/prisma';
 
 /** Unlimited agent slots when plan limits are bypassed. */
 export const UNLIMITED_AGENTS = 999;
+export const UNLIMITED_MEMBERS = 999;
 
 export async function userBypassesPlanLimits(userId: string): Promise<boolean> {
   return isAdmin(userId);
@@ -33,6 +34,13 @@ export function getEffectiveAgentLimit(
   return bypassLimits ? UNLIMITED_AGENTS : plan.agents;
 }
 
+export function getEffectiveMemberLimit(
+  plan: PlanDefinition,
+  bypassLimits: boolean
+): number {
+  return bypassLimits ? UNLIMITED_MEMBERS : plan.members;
+}
+
 export function hasReachedAgentLimit(
   agentCount: number,
   plan: PlanDefinition,
@@ -43,4 +51,16 @@ export function hasReachedAgentLimit(
   }
 
   return agentCount >= plan.agents;
+}
+
+export function hasReachedMemberLimit(
+  seatCount: number,
+  plan: PlanDefinition,
+  bypassLimits: boolean
+): boolean {
+  if (bypassLimits) {
+    return false;
+  }
+
+  return seatCount >= plan.members;
 }

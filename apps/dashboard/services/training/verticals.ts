@@ -37,7 +37,7 @@ export type VerticalConfig = {
 export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
   ECOMMERCE: {
     id: 'ECOMMERCE',
-    name: 'Ecommerce & Retail',
+    name: 'Retail',
     description:
       'Shopping support for DTC, marketplaces, and omnichannel businesses. Handles orders, shipping, returns, and product questions.',
     icon: '🛒',
@@ -134,7 +134,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
 
   EDUCATION: {
     id: 'EDUCATION',
-    name: 'Education & Training',
+    name: 'Digital Services',
     description:
       'Support for universities, bootcamps, online programs, and training providers. Handles enrollment, course access, and student support.',
     icon: '🎓',
@@ -230,7 +230,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
 
   FITNESS: {
     id: 'FITNESS',
-    name: 'Fitness & Wellness',
+    name: 'Wellness',
     description:
       'Support for gyms, yoga studios, spas, and online coaching. Handles memberships, bookings, and wellness guidance.',
     icon: '💪',
@@ -325,7 +325,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
 
   TRAVEL: {
     id: 'TRAVEL',
-    name: 'Travel & Hospitality',
+    name: 'Hospitality',
     description:
       'Support for hotels, airlines, OTAs, and tour operators. Handles bookings, cancellations, and travel disruptions.',
     icon: '✈️',

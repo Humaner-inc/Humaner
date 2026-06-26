@@ -34,7 +34,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
   },
   BOLD: {
     id: 'BOLD',
-    label: 'Bold',
+    label: 'Sharp',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
     image: '/caracters/gradient_2.png',
     example: 'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
