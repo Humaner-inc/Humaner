@@ -60,6 +60,7 @@ import {
   MenuIcon as MenuIconSource,
   MessageCircleIcon as MessageCircleIconSource,
   MessageSquareIcon as MessageSquareIconSource,
+  MapPinHouseIcon as MapPinHouseIconSource,
   MonitorCheckIcon,
   PhoneIcon as PhoneIconSource,
   PlayIcon as PlayIconSource,
@@ -157,6 +158,7 @@ export const GraduationCapIcon = createAnimatedIcon(GraduationCapIconSource);
 export const GripVerticalIcon = createAnimatedIcon(GripVerticalIconSource);
 export const GridIcon = createAnimatedIcon(LayoutGridIcon);
 export const HeadsetIcon = createAnimatedIcon(ConciergeBellIcon);
+export const HotelIcon = createAnimatedIcon(ConciergeBellIcon);
 export const HeartPulse = createAnimatedIcon(HeartPulseIconSource);
 export const HomeIcon = createAnimatedIcon(HomeIconSource);
 export const InfoIcon = createAnimatedIcon(CircleHelpIcon);
@@ -179,6 +181,7 @@ export const MessageCircleIcon = createAnimatedIcon(MessageCircleIconSource);
 export const MessageSquare = createAnimatedIcon(MessageSquareIconSource);
 export const Minus = createAnimatedIcon(DeleteIcon);
 export const MonitorIcon = createAnimatedIcon(MonitorCheckIcon);
+export const MapPinHouseIcon = createAnimatedIcon(MapPinHouseIconSource);
 export const MoreHorizontalIcon = createAnimatedIcon(GripHorizontalIcon);
 export const NetworkIcon = createAnimatedIcon(RouteIcon);
 export const Paperclip = createAnimatedIcon(AttachFileIcon);

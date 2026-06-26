@@ -150,7 +150,7 @@ export function AddSourceDialog({
                   {option.label}
                   {option.delegateOnly && (
                     <span className="rounded bg-secondary px-1 py-0.5 text-[10px] font-semibold uppercase text-secondary-foreground">
-                      Delegate
+                      Deploy
                     </span>
                   )}
                 </button>

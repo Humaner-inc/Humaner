@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircleIcon } from '@humaner/shared/icons';
+import { getPrivacyUrl } from '@humaner/shared/urls';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { type SubmitHandler } from 'react-hook-form';
@@ -231,7 +232,7 @@ export function SignUpCard(): React.JSX.Element {
         </Link>{' '}
         and{' '}
         <Link
-          href="#"
+          href={getPrivacyUrl()}
           className={authLinkClassName}
         >
           Privacy Policy

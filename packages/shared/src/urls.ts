@@ -24,3 +24,11 @@ export function getDashboardLoginUrl(): string {
 export function getPricingUrl(): string {
   return `${getLandingUrl()}/pricing`;
 }
+
+export function getPrivacyUrl(): string {
+  return `${getLandingUrl()}/privacy`;
+}
+
+export function getSecurityUrl(): string {
+  return `${getLandingUrl()}/security`;
+}

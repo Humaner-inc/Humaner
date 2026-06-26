@@ -174,12 +174,12 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         items.push({
           id: 'billing-free-quota',
           kind: 'billing',
-          title: 'Launch message quota exhausted',
+          title: `${plan.name} message quota exhausted`,
           description:
             'Free messages for this period are used up. Upgrade to keep agents responding.',
           href: Routes.Billing,
           severity: 'critical',
-          tag: 'Launch',
+          tag: plan.name,
           createdAt: new Date().toISOString()
         });
       } else {
