@@ -1,9 +1,12 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { WorkspaceRole } from '@prisma/client';
+import { getPrivacyUrl } from '@humaner/shared/urls';
 
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
+import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
@@ -32,9 +35,11 @@ export default async function DashboardLayout({
     where: { id: session.user.id },
     select: {
       completedOnboarding: true,
+      workspaceRole: true,
       organization: {
         select: {
-          completedOnboarding: true
+          completedOnboarding: true,
+          dataImprovementConsent: true
         }
       }
     }
@@ -50,8 +55,16 @@ export default async function DashboardLayout({
   const workspaces = await getWorkspaceSwitcherData();
   const { items: notifications } = await getDashboardNotifications();
 
+  const showDataImprovementPrompt =
+    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    userFromDb!.organization!.dataImprovementConsent === null;
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <DataImprovementConsentGate
+        privacyPolicyUrl={getPrivacyUrl()}
+        showPrompt={showDataImprovementPrompt}
+      />
       <SidebarProvider>
         <SidebarRenderer
           profile={profile}
