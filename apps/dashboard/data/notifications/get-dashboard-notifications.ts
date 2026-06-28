@@ -12,7 +12,7 @@ import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { getMessageUsage } from '@/lib/billing/polar-usage';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
-import { getConversationAccuracy } from '@/lib/notifications/conversation-accuracy';
+import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
 import { reportBugTabLabel } from '@/lib/report-bug-context-options';
 import { supportTicketStatusLabel } from '@/lib/support-ticket-labels';
 import type {
@@ -21,8 +21,6 @@ import type {
 } from '@/types/dashboard-notification';
 
 const HISTORY_LOOKBACK_DAYS = 14;
-const HISTORY_ACCURACY_HIGH = 90;
-const HISTORY_ACCURACY_LOW = 15;
 
 const HANDOFF_STATUS_LABELS: Record<string, string> = {
   OPEN: 'Open',
@@ -135,7 +133,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         updatedAt: true,
         agent: { select: { name: true } },
         messages: {
-          select: { role: true, unanswered: true },
+          select: { role: true, unanswered: true, content: true },
           orderBy: { createdAt: 'asc' }
         }
       },
@@ -291,41 +289,19 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     });
   }
 
-  let historyHighCount = 0;
-  let historyLowCount = 0;
+  const conversationHighlights = detectConversationHighlights(recentConversations);
 
-  for (const conversation of recentConversations) {
-    const accuracy = getConversationAccuracy(conversation.messages);
-
-    if (accuracy === null) {
-      continue;
-    }
-
-    if (accuracy > HISTORY_ACCURACY_HIGH && historyHighCount < 3) {
-      historyHighCount += 1;
-      items.push({
-        id: `history-high-${conversation.id}`,
-        kind: 'history_highlight',
-        title: 'Standout conversation',
-        description: `${conversation.agent.name} scored ${accuracy}% grounded replies — worth reviewing.`,
-        href: Routes.History,
-        severity: 'success',
-        tag: `${accuracy}% accuracy`,
-        createdAt: conversation.updatedAt.toISOString()
-      });
-    } else if (accuracy < HISTORY_ACCURACY_LOW && historyLowCount < 3) {
-      historyLowCount += 1;
-      items.push({
-        id: `history-low-${conversation.id}`,
-        kind: 'history_highlight',
-        title: 'Low-accuracy conversation',
-        description: `${conversation.agent.name} scored ${accuracy}% grounded replies — check knowledge gaps.`,
-        href: Routes.History,
-        severity: 'critical',
-        tag: `${accuracy}% accuracy`,
-        createdAt: conversation.updatedAt.toISOString()
-      });
-    }
+  for (const highlight of conversationHighlights) {
+    items.push({
+      id: highlight.id,
+      kind: 'history_highlight',
+      title: highlight.title,
+      description: highlight.description,
+      href: Routes.History,
+      severity: highlight.severity,
+      tag: highlight.tag,
+      createdAt: highlight.createdAt
+    });
   }
 
   const sorted = sortNotifications(items).slice(0, 24);

@@ -8,22 +8,19 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 
-export type HandoffTicketItem = {
-  id: string;
-  agentName: string;
-  visitorEmail: string | null;
-  subject: string;
-  summary: string;
-  transcript: string;
-  note: string | null;
-  status: HandoffTicketStatus;
-  urgency: HandoffTicketUrgency;
-  createdAt: Date;
-};
+import type { HandoffInboxAssignee, HandoffInboxTicket } from '@/lib/handoff/handoff-inbox';
+
+const HANDOFF_TICKET_LIMIT = 500;
+
+export type HandoffTeamMember = HandoffInboxAssignee;
+
+export type HandoffTicketItem = HandoffInboxTicket;
 
 export type HandoffDeskData = {
   humanDeskEnabled: boolean;
   supportEmail: string | null;
+  currentUserId: string;
+  teamMembers: HandoffTeamMember[];
   tickets: HandoffTicketItem[];
 };
 
@@ -35,7 +32,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
 
   const organizationId = session.user.organizationId;
 
-  const [organization, tickets] = await Promise.all([
+  const [organization, tickets, teamMembers] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
       select: { humanDeskEnabled: true, supportEmail: true }
@@ -51,16 +48,44 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         note: true,
         status: true,
         urgency: true,
+        assignedAt: true,
         createdAt: true,
-        agent: { select: { name: true } }
+        updatedAt: true,
+        agent: { select: { name: true } },
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true
+          }
+        }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+      take: HANDOFF_TICKET_LIMIT
+    }),
+    prisma.user.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        email: true
+      },
+      orderBy: { name: 'asc' }
     })
   ]);
 
   return {
     humanDeskEnabled: organization?.humanDeskEnabled ?? false,
     supportEmail: organization?.supportEmail ?? null,
+    currentUserId: session.user.id,
+    teamMembers: teamMembers.map((member) => ({
+      id: member.id,
+      name: member.name,
+      image: member.image,
+      email: member.email
+    })),
     tickets: tickets.map((ticket) => ({
       id: ticket.id,
       agentName: ticket.agent.name,
@@ -69,9 +94,19 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       summary: ticket.summary,
       transcript: ticket.transcript,
       note: ticket.note,
-      status: ticket.status,
-      urgency: ticket.urgency,
-      createdAt: ticket.createdAt
+      status: ticket.status as HandoffTicketStatus,
+      urgency: ticket.urgency as HandoffTicketUrgency,
+      assignee: ticket.assignee
+        ? {
+            id: ticket.assignee.id,
+            name: ticket.assignee.name,
+            image: ticket.assignee.image,
+            email: ticket.assignee.email
+          }
+        : null,
+      assignedAt: ticket.assignedAt?.toISOString() ?? null,
+      createdAt: ticket.createdAt.toISOString(),
+      updatedAt: ticket.updatedAt.toISOString()
     }))
   };
 }

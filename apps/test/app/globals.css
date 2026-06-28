@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .hero-bg-layer {
+    animation: hero-drift 28s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes hero-drift {
+    0% {
+      transform: scale(1.08) translate(0%, 0%);
+    }
+    50% {
+      transform: scale(1.14) translate(-1.5%, -0.8%);
+    }
+    100% {
+      transform: scale(1.1) translate(1%, 0.5%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-bg-layer {
+      animation: none;
+    }
+  }
+}

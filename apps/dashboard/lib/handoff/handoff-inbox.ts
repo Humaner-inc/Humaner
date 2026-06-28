@@ -1,0 +1,155 @@
+import type {
+  HandoffTicketStatus,
+  HandoffTicketUrgency
+} from '@/types/handoff-ticket';
+
+export type HandoffInboxAssignee = {
+  id: string;
+  name: string;
+  image: string | null;
+  email: string | null;
+};
+
+export type HandoffInboxTicket = {
+  id: string;
+  agentName: string;
+  visitorEmail: string | null;
+  subject: string;
+  summary: string;
+  transcript: string;
+  note: string | null;
+  status: HandoffTicketStatus;
+  urgency: HandoffTicketUrgency;
+  assignee: HandoffInboxAssignee | null;
+  assignedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type HandoffInboxStatusFilter =
+  | 'active'
+  | 'all'
+  | 'OPEN'
+  | 'IN_PROGRESS'
+  | 'RESOLVED'
+  | 'CLOSED';
+
+export type HandoffInboxAssignmentFilter =
+  | 'all'
+  | 'unassigned'
+  | 'mine'
+  | 'others';
+
+const URGENCY_RANK: Record<HandoffTicketUrgency, number> = {
+  HIGH: 0,
+  MEDIUM: 1,
+  LOW: 2
+};
+
+const ACTIVE_STATUSES = new Set<HandoffTicketStatus>(['OPEN', 'IN_PROGRESS']);
+
+export function filterHandoffInboxTickets(
+  tickets: HandoffInboxTicket[],
+  input: {
+    query: string;
+    statusFilter: HandoffInboxStatusFilter;
+    assignmentFilter: HandoffInboxAssignmentFilter;
+    currentUserId: string;
+  }
+): HandoffInboxTicket[] {
+  const normalizedQuery = input.query.trim().toLowerCase();
+
+  return tickets.filter((ticket) => {
+    if (input.statusFilter === 'active') {
+      if (!ACTIVE_STATUSES.has(ticket.status)) {
+        return false;
+      }
+    } else if (
+      input.statusFilter !== 'all' &&
+      ticket.status !== input.statusFilter
+    ) {
+      return false;
+    }
+
+    if (input.assignmentFilter === 'unassigned' && ticket.assignee) {
+      return false;
+    }
+    if (
+      input.assignmentFilter === 'mine' &&
+      ticket.assignee?.id !== input.currentUserId
+    ) {
+      return false;
+    }
+    if (
+      input.assignmentFilter === 'others' &&
+      (!ticket.assignee || ticket.assignee.id === input.currentUserId)
+    ) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    const haystack = [
+      ticket.subject,
+      ticket.summary,
+      ticket.visitorEmail ?? '',
+      ticket.agentName,
+      ticket.assignee?.name ?? '',
+      ticket.assignee?.email ?? ''
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(normalizedQuery);
+  });
+}
+
+export function sortHandoffInboxTickets(
+  tickets: HandoffInboxTicket[]
+): HandoffInboxTicket[] {
+  return [...tickets].sort((left, right) => {
+    const leftActive = ACTIVE_STATUSES.has(left.status) ? 0 : 1;
+    const rightActive = ACTIVE_STATUSES.has(right.status) ? 0 : 1;
+    if (leftActive !== rightActive) {
+      return leftActive - rightActive;
+    }
+
+    const leftUnassigned = left.assignee ? 1 : 0;
+    const rightUnassigned = right.assignee ? 1 : 0;
+    if (leftUnassigned !== rightUnassigned) {
+      return leftUnassigned - rightUnassigned;
+    }
+
+    const urgencyDiff =
+      URGENCY_RANK[left.urgency] - URGENCY_RANK[right.urgency];
+    if (urgencyDiff !== 0) {
+      return urgencyDiff;
+    }
+
+    return (
+      new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
+    );
+  });
+}
+
+export function countHandoffInboxTickets(
+  tickets: HandoffInboxTicket[],
+  currentUserId: string
+): {
+  active: number;
+  unassigned: number;
+  mine: number;
+} {
+  const activeTickets = tickets.filter((ticket) =>
+    ACTIVE_STATUSES.has(ticket.status)
+  );
+
+  return {
+    active: activeTickets.length,
+    unassigned: activeTickets.filter((ticket) => !ticket.assignee).length,
+    mine: activeTickets.filter((ticket) => ticket.assignee?.id === currentUserId)
+      .length
+  };
+}

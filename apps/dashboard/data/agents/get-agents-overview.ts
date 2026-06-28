@@ -22,6 +22,7 @@ import {
   summarizeSourceStatuses,
   type AgentMetrics
 } from '@/lib/agents/compute-agent-metrics';
+import { countConversationOutcomes } from '@/lib/conversations/conversation-outcome';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
@@ -69,10 +70,11 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           knowledgeSources: { select: { status: true } },
           conversations: {
             select: {
-              resolved: true,
               messages: {
-                where: { role: 'ASSISTANT' },
-                select: { unanswered: true }
+                select: { role: true, unanswered: true }
+              },
+              handoffTickets: {
+                select: { status: true }
               }
             }
           }
@@ -81,13 +83,13 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
       });
 
       return agents.map((agent) => {
-        const totalConversations = agent.conversations.length;
-        const resolvedConversations = agent.conversations.filter(
-          (conversation) => conversation.resolved
-        ).length;
+        const outcomeCounts = countConversationOutcomes(agent.conversations);
 
         const assistantMessages = agent.conversations.flatMap(
-          (conversation) => conversation.messages
+          (conversation) =>
+            conversation.messages.filter(
+              (message) => message.role === 'ASSISTANT'
+            )
         );
         const totalAssistantMessages = assistantMessages.length;
         const unansweredMessages = assistantMessages.filter(
@@ -99,8 +101,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
         );
 
         const metrics = computeAgentMetrics({
-          resolvedConversations,
-          totalConversations,
+          outcomeCounts,
           unansweredMessages,
           totalAssistantMessages,
           chunkCount: agent._count.chunks,

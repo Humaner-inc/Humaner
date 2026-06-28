@@ -17,16 +17,28 @@ export const updateHandoffTicketStatus = pageActionClient('human-desk')
         id: parsedInput.id,
         organizationId: session.user.organizationId
       },
-      select: { id: true }
+      select: { id: true, conversationId: true }
     });
     if (!ticket) {
       throw new NotFoundError('Ticket not found');
     }
 
-    await prisma.handoffTicket.update({
-      where: { id: ticket.id },
-      data: { status: parsedInput.status }
-    });
+    await prisma.$transaction([
+      prisma.handoffTicket.update({
+        where: { id: ticket.id },
+        data: { status: parsedInput.status }
+      }),
+      ...(ticket.conversationId &&
+      (parsedInput.status === 'RESOLVED' || parsedInput.status === 'CLOSED')
+        ? [
+            prisma.conversation.update({
+              where: { id: ticket.conversationId },
+              data: { resolved: true }
+            })
+          ]
+        : [])
+    ]);
 
     revalidatePath(Routes.HumanDesk);
+    revalidatePath(Routes.History);
   });

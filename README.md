@@ -8,6 +8,7 @@ Personality-driven AI support agents. Monorepo baseline for **humaner.io** (land
 apps/
   landing/     → humaner.io        (port 3000)
   dashboard/   → app.humaner.io    (port 3001)
+  test/        → local agent sandbox (port 3003)
 packages/
   shared/      → plans, LLM tiers, shared URLs
 ```
@@ -45,6 +46,7 @@ pnpm dev
 
 - Landing: http://localhost:3000
 - Dashboard: http://localhost:3001
+- Agent test harness: http://localhost:3003 (`pnpm dev:test`, configure `apps/test/.env.local`)
 
 ## Deploy split
 

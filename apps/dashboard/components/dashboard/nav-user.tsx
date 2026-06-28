@@ -85,7 +85,7 @@ function ProfileMenuContent({
               <DropdownMenuShortcut>⇧⌘B</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onShowInviteTeammateModal}>
-              Invite teammate
+              Invite team member
             </DropdownMenuItem>
           </>
         ) : null}

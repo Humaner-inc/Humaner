@@ -9,6 +9,10 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { getMessageUsage } from '@/lib/billing/polar-usage';
 import { normalizeTier } from '@/lib/billing/tier';
+import {
+  countConversationOutcomes,
+  formatSatisfactionDetail
+} from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
 
 export type AnalyticsVolumePoint = {
@@ -28,8 +32,9 @@ export type AnalyticsKnowledgeGap = {
 export type AnalyticsOverview = {
   summary: {
     totalConversations: number;
-    resolvedConversations: number;
+    satisfiedConversations: number;
     resolutionRate: number;
+    satisfactionDetail: string;
     unansweredCount: number;
     totalMessages: number;
     messagesUsed: number;
@@ -163,7 +168,14 @@ export async function getAnalyticsOverview(options?: {
       }),
       prisma.conversation.findMany({
         where: { agent: { organizationId, ...agentFilter } },
-        select: { resolved: true }
+        select: {
+          messages: {
+            select: { role: true, unanswered: true }
+          },
+          handoffTickets: {
+            select: { status: true }
+          }
+        }
       }),
       prisma.message.findMany({
         where: {
@@ -196,13 +208,10 @@ export async function getAnalyticsOverview(options?: {
       })
     ]);
 
-  const totalConversations = conversations.length;
-  const resolvedConversations = conversations.filter(
-    (conversation) => conversation.resolved
-  ).length;
+  const outcomeCounts = countConversationOutcomes(conversations);
   const resolutionRate =
-    totalConversations > 0
-      ? Math.round((resolvedConversations / totalConversations) * 100)
+    outcomeCounts.total > 0
+      ? Math.round((outcomeCounts.satisfied / outcomeCounts.total) * 100)
       : 0;
 
   const knowledgeGaps = extractKnowledgeGaps(gapConversations);
@@ -226,9 +235,10 @@ export async function getAnalyticsOverview(options?: {
 
   return {
     summary: {
-      totalConversations,
-      resolvedConversations,
+      totalConversations: outcomeCounts.total,
+      satisfiedConversations: outcomeCounts.satisfied,
       resolutionRate,
+      satisfactionDetail: formatSatisfactionDetail(outcomeCounts),
       unansweredCount,
       totalMessages,
       messagesUsed,

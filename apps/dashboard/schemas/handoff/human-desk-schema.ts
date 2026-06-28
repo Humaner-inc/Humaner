@@ -31,3 +31,10 @@ export const updateHandoffTicketStatusSchema = z.object({
 export type UpdateHandoffTicketStatusSchema = z.infer<
   typeof updateHandoffTicketStatusSchema
 >;
+
+export const assignHandoffTicketSchema = z.object({
+  id: z.string().uuid('A valid ticket is required.'),
+  assigneeId: z.string().uuid('A valid teammate is required.').nullable()
+});
+
+export type AssignHandoffTicketSchema = z.infer<typeof assignHandoffTicketSchema>;

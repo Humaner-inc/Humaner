@@ -1,8 +1,10 @@
 import type { SyncStatus } from '@prisma/client';
 
+import type { ConversationOutcomeCounts } from '@/lib/conversations/conversation-outcome';
+import { formatSatisfactionDetail } from '@/lib/conversations/conversation-outcome';
+
 export type AgentMetricsInput = {
-  resolvedConversations: number;
-  totalConversations: number;
+  outcomeCounts: ConversationOutcomeCounts;
   unansweredMessages: number;
   totalAssistantMessages: number;
   readySources: number;
@@ -10,7 +12,6 @@ export type AgentMetricsInput = {
   failedSources: number;
   chunkCount: number;
 };
-
 export type AgentMetric = {
   score: number;
   label: string;
@@ -38,12 +39,11 @@ function scoreLabel(score: number): string {
 
 export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
   const gaps: string[] = [];
+  const { outcomeCounts } = input;
 
   const satisfactionScore =
-    input.totalConversations > 0
-      ? Math.round(
-          (input.resolvedConversations / input.totalConversations) * 100
-        )
+    outcomeCounts.total > 0
+      ? Math.round((outcomeCounts.satisfied / outcomeCounts.total) * 100)
       : input.totalAssistantMessages > 0
         ? Math.round(
             ((input.totalAssistantMessages - input.unansweredMessages) /
@@ -53,28 +53,31 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
         : 0;
 
   const satisfactionDetail =
-    input.totalConversations > 0
-      ? `${input.resolvedConversations} of ${input.totalConversations} conversations resolved`
+    outcomeCounts.total > 0
+      ? formatSatisfactionDetail(outcomeCounts)
       : input.totalAssistantMessages > 0
         ? `${input.totalAssistantMessages - input.unansweredMessages} of ${input.totalAssistantMessages} questions answered`
         : 'No conversations yet';
 
-  if (input.totalConversations === 0 && input.totalAssistantMessages === 0) {
+  if (outcomeCounts.total === 0 && input.totalAssistantMessages === 0) {
     gaps.push('No chat history yet — satisfaction will appear after first conversations.');
   } else if (input.unansweredMessages > 0) {
     gaps.push(
       `${input.unansweredMessages} unanswered question${input.unansweredMessages === 1 ? '' : 's'} — add knowledge to close gaps.`
     );
-  } else if (
-    input.totalConversations > 0 &&
-    input.resolvedConversations < input.totalConversations
-  ) {
-    const open = input.totalConversations - input.resolvedConversations;
+  } else if (outcomeCounts.unsolved > 0) {
     gaps.push(
-      `${open} open conversation${open === 1 ? '' : 's'} still need resolution.`
+      `${outcomeCounts.unsolved} conversation${outcomeCounts.unsolved === 1 ? '' : 's'} left visitors without proper answers.`
+    );
+  } else if (outcomeCounts.escalated > 0) {
+    gaps.push(
+      `${outcomeCounts.escalated} conversation${outcomeCounts.escalated === 1 ? '' : 's'} escalated to Human Desk.`
+    );
+  } else if (outcomeCounts.open > 0) {
+    gaps.push(
+      `${outcomeCounts.open} conversation${outcomeCounts.open === 1 ? '' : 's'} still need attention.`
     );
   }
-
   let knowledgeScore = 0;
   if (input.readySources === 0) {
     gaps.push('No trained knowledge — add URLs or docs so this agent can answer.');

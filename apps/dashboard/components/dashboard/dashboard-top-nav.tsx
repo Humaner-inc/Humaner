@@ -8,6 +8,7 @@ import { NavUser } from '@/components/dashboard/nav-user';
 import { NotificationsDrawer } from '@/components/dashboard/notifications-drawer';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { useDashboardNotifications } from '@/hooks/use-dashboard-notifications';
 import { cn } from '@/lib/utils';
 import type { DashboardNotification } from '@/types/dashboard-notification';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -25,7 +26,12 @@ export function DashboardTopNav({
 }: DashboardTopNavProps): React.JSX.Element {
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
-  const unreadCount = notifications.length;
+  const {
+    visibleNotifications,
+    unreadCount,
+    markSeen,
+    dismissAll
+  } = useDashboardNotifications(notifications);
 
   return (
     <>
@@ -43,7 +49,7 @@ export function DashboardTopNav({
           onClick={() => setNotificationsOpen(true)}
           aria-label={
             unreadCount > 0
-              ? `Notifications, ${unreadCount} items`
+              ? `Notifications, ${unreadCount} unread`
               : 'Notifications'
           }
         >
@@ -82,7 +88,9 @@ export function DashboardTopNav({
       <NotificationsDrawer
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
-        notifications={notifications}
+        notifications={visibleNotifications}
+        onOpen={markSeen}
+        onDismissAll={dismissAll}
       />
       <HelpDrawer
         open={helpOpen}
