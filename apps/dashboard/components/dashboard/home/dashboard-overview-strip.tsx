@@ -46,8 +46,8 @@ export function DashboardOverviewStrip({
         </div>
         <Button
           asChild
-          variant="outline"
           size="sm"
+          variant={isFreePlan ? 'upgrade' : 'outline'}
           className="shrink-0"
         >
           <Link href={Routes.Billing}>

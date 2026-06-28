@@ -119,10 +119,10 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
       disabled={disabled}
       variant="outline"
       className={cn(
-        'flex h-fit w-full flex-col items-center justify-center border-dashed hover:border-primary hover:bg-accent',
+        'flex h-fit w-full flex-col items-center justify-center border-dashed hover:border-foreground/25 hover:bg-accent',
         borderRadiusClass,
         src ? 'p-0.5' : 'px-0 py-3',
-        isDragActive && 'border-primary',
+        isDragActive && 'border-foreground/30',
         className
       )}
       {...getRootProps()}

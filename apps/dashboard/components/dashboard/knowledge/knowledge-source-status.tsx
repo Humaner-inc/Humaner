@@ -65,7 +65,7 @@ export function KnowledgeSourceStatus({
   if (status === 'PROCESSING' || status === 'PENDING') {
     return (
       <Badge variant="secondary" className="gap-1.5">
-        <Loader2Icon className="size-3 animate-spin text-[#6b2d3a]" aria-hidden />
+        <Loader2Icon className="size-3 animate-spin text-muted-foreground" aria-hidden />
         {status === 'PENDING' ? 'Queued' : 'Processing'}
       </Badge>
     );

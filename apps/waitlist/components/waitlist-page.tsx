@@ -65,15 +65,13 @@ export function WaitlistPage(): React.JSX.Element {
 
         <main className="flex w-full flex-col items-center">
           <h1 className="max-w-4xl font-display text-[2.35rem] font-semibold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-[3.35rem]">
-            <span className="whitespace-nowrap">Customer agents for developers</span>
+            <span className="whitespace-nowrap">Customer support</span>
             <br />
-            but Humaner.
+            that feels human.
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
-            Before Humaner everything was generic.
-            <br />
-            Now every part of your business sounds like you.
+           Built for developers. Designed for customers.
           </p>
 
           {formState === 'success' ? (
@@ -122,8 +120,7 @@ export function WaitlistPage(): React.JSX.Element {
           )}
 
           <p className="mx-auto mt-5 max-w-md text-xs leading-relaxed text-white/40">
-            Join for free and get notified before launch to claim one of the 50 Founding
-            Member seats — locking a discounted price for 2 years.
+            We're redefining how customer relationships should work in the AI era.
           </p>
         </main>
       </div>

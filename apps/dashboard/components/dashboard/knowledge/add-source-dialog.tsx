@@ -143,8 +143,8 @@ export function AddSourceDialog({
                   className={cn(
                     'flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                     type === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
+                      ? 'border-foreground/20 bg-muted text-foreground'
+                      : 'border-border text-muted-foreground hover:border-foreground/15 hover:text-foreground'
                   )}
                 >
                   {option.label}

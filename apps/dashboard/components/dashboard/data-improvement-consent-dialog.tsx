@@ -53,15 +53,11 @@ export function DataImprovementConsentDialog({
           <DialogDescription asChild>
             <div className="space-y-3 pt-1 text-sm text-muted-foreground">
               <p>
-                With your permission, Humaner may use your workspace data to
-                improve agent quality — for example anonymized knowledge gaps,
-                resolved Human Desk tickets you approve for the knowledge base,
-                and aggregated usage patterns.
+                Humaner may use your data to train and improve agents capabilities.
               </p>
               <p>
-                This is optional. Humaner works fully whether you allow this or
-                not. We do not sell your data, and we do not use your content to
-                train third-party foundation models (such as Anthropic&apos;s).
+                This is optional. Agents work fully regardless of your choice.
+                <br/>We do not sell your data and do not use your content for anything else.
               </p>
               <p>
                 You remain responsible for informing your end-customers in your

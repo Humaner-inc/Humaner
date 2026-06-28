@@ -3,6 +3,8 @@
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
 
+import { PlusIcon } from '@humaner/shared/icons';
+
 import { ApiKeyList } from '@/components/dashboard/settings/organization/developers/api-key-list';
 import { CopyCreatedApiKeyModal } from '@/components/dashboard/settings/organization/developers/copy-created-api-key-modal';
 import { CreateApiKeyModal } from '@/components/dashboard/settings/organization/developers/create-api-key-modal';
@@ -54,8 +56,10 @@ export function ApiKeysCard({
           type="button"
           variant="default"
           size="default"
+          className="group gap-0 transition-[gap] duration-200 hover:gap-1.5"
           onClick={handleShowCreateApiKeyModal}
         >
+          <PlusIcon className="size-0 shrink-0 opacity-0 transition-all duration-200 group-hover:size-4 group-hover:opacity-100" />
           Create API key
         </Button>
       </CardFooter>

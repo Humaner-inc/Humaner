@@ -38,9 +38,9 @@ const RadioCardItem = React.forwardRef<
     ref={ref}
     className={cn(
       'group relative overflow-hidden rounded-md border border-input p-4',
-      'hover:border-primary focus:border-primary focus:outline-none',
+      'hover:border-foreground/25 focus:border-foreground/25 focus:outline-none',
       'disabled:cursor-not-allowed disabled:opacity-50',
-      'data-[state=checked]:border-primary data-[state=checked]:bg-primary/5',
+      'data-[state=checked]:border-foreground/30 data-[state=checked]:bg-muted',
       className
     )}
     {...props}

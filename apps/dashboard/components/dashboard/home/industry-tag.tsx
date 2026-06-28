@@ -103,7 +103,7 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
                   value={item.id}
                   className="flex flex-col items-start gap-1 pr-9 text-left"
                 >
-                  <Icon className="mb-1 size-5 text-primary" />
+                  <Icon className="mb-1 size-5 text-foreground" />
                   <span className="text-sm font-medium">{item.label}</span>
                   <span className="text-xs text-muted-foreground">
                     {item.description}

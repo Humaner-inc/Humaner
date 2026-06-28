@@ -5,12 +5,20 @@ import { Loader2Icon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
+const neutralCtaClasses =
+  'border border-transparent bg-[#070607] text-[#f5f5f5] shadow-sm hover:bg-[#070607]/90 dark:bg-[#f5f5f5] dark:text-[#070607] dark:hover:bg-[#f5f5f5]/90';
+
+const upgradeCtaClasses =
+  'border-0 bg-[linear-gradient(to_right,#dc143c_0%,#dc143c_72%,#6b2d3a_100%)] text-white shadow-sm transition-all hover:brightness-[1.06]';
+
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default:
+        default: neutralCtaClasses,
+        upgrade: upgradeCtaClasses,
+        accent:
           'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
@@ -19,7 +27,7 @@ const buttonVariants = cva(
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline'
+        link: 'text-foreground underline-offset-4 hover:underline'
       },
       size: {
         default: 'h-9 px-4 py-2',

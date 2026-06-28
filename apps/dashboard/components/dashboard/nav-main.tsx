@@ -51,14 +51,10 @@ function NavMainItem({
             iconRef={iconRef}
             className={cn(
               'size-4 shrink-0',
-              isActive ? 'text-foreground' : 'text-muted-foreground'
+              isActive ? 'text-inherit' : 'text-muted-foreground'
             )}
           />
-          <span
-            className={
-              isActive ? 'dark:text-foreground' : 'dark:text-muted-foreground'
-            }
-          >
+          <span className={isActive ? 'text-inherit' : 'text-muted-foreground'}>
             {item.title}
           </span>
         </Link>

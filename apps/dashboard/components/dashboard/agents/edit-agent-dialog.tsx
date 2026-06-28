@@ -143,8 +143,8 @@ export function EditAgentDialog({
                   className={cn(
                     'group relative h-32 overflow-hidden rounded-xl border text-left transition-all disabled:opacity-50',
                     character === item.id
-                      ? 'border-primary ring-2 ring-primary'
-                      : 'border-border hover:border-primary/50'
+                      ? 'border-foreground/30 ring-2 ring-foreground/15'
+                      : 'border-border hover:border-foreground/15'
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -304,8 +304,8 @@ function SegmentedControl<T extends string>({
             className={cn(
               'rounded-lg border px-2 py-2 text-center transition-colors disabled:opacity-50',
               value === option.value
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50'
+                ? 'border-foreground/20 bg-muted'
+                : 'border-border hover:border-foreground/15'
             )}
           >
             <span className="block text-xs font-medium">{option.label}</span>

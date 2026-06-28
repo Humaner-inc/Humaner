@@ -129,7 +129,7 @@ export function UserSupportTicketsPanel({
                   className={cn(
                     'flex w-full flex-col gap-2 rounded-lg border px-3 py-2.5 text-left transition-colors',
                     active
-                      ? 'border-primary/30 bg-primary/5'
+                      ? 'border-foreground/20 bg-muted'
                       : 'border-transparent hover:border-border/60 hover:bg-muted/40'
                   )}
                 >
@@ -257,7 +257,7 @@ export function UserSupportTicketsPanel({
                         className={cn(
                           'max-w-[95%] rounded-lg border px-3 py-2.5 text-sm leading-relaxed',
                           fromUser
-                            ? 'ml-auto border-primary/25 bg-primary/5'
+                            ? 'ml-auto border-foreground/20 bg-muted'
                             : 'mr-auto border-border/60 bg-muted/30'
                         )}
                       >

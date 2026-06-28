@@ -31,7 +31,7 @@ export function DashboardTopNav({
     <>
       <header
         className={cn(
-          'sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-2 border-b border-border/50 bg-background px-4 sm:gap-3 sm:px-6',
+          'sticky top-0 z-30 relative flex h-14 shrink-0 items-center justify-end gap-2 border-b border-border/50 bg-background px-4 sm:gap-3 sm:px-6',
           className
         )}
       >
@@ -72,6 +72,10 @@ export function DashboardTopNav({
         <NavUser
           profile={profile}
           variant="navbar"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent"
         />
       </header>
 

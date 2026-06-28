@@ -14,13 +14,10 @@ export function PageDock({
 }: PageDockProps): React.JSX.Element {
   return (
     <div
-      className={cn(
-        'shrink-0 border-b bg-background px-4 pb-8 pt-5',
-        className
-      )}
+      className={cn('shrink-0 px-4 pb-6 pt-5', className)}
       {...props}
     >
-      <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-center gap-2 sm:gap-3">
+      <div className="-mx-1 flex items-end justify-start gap-2 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:flex-wrap sm:justify-center sm:gap-3 sm:overflow-visible">
         {children}
       </div>
     </div>
@@ -30,7 +27,7 @@ export function PageDock({
 export function PageDockDivider(): React.JSX.Element {
   return (
     <div
-      className="mx-1 hidden h-10 w-px self-center bg-border sm:block"
+      className="mx-1 hidden h-12 w-px self-center bg-border/80 sm:block"
       aria-hidden
     />
   );
@@ -41,10 +38,9 @@ export type PageDockItemProps = {
   isActive?: boolean;
   href?: string;
   disabled?: boolean;
-  showLabel?: boolean;
-  /** When true, the label only appears on hover (not while selected). */
-  labelOnHoverOnly?: boolean;
   onClick?: () => void;
+  /** Glass tiles with white-like icons — matches landing Integrate faster dock. */
+  variant?: 'default' | 'glass';
   children: React.ReactNode;
 };
 
@@ -53,49 +49,82 @@ export function PageDockItem({
   isActive = false,
   href,
   disabled = false,
-  showLabel = true,
-  labelOnHoverOnly = false,
   onClick,
+  variant = 'default',
   children
 }: PageDockItemProps): React.JSX.Element {
-  const [hovered, setHovered] = React.useState(false);
-  const showTooltip = labelOnHoverOnly ? hovered : isActive || hovered;
-
-  const iconShell = (
-    <span
-      className={cn(
-        'flex size-11 items-center justify-center rounded-2xl border bg-card p-2 shadow-sm transition-all duration-200 sm:size-12',
-        isActive
-          ? 'scale-105 border-primary/40 bg-primary/5 shadow-md ring-2 ring-primary/20'
-          : hovered
-            ? 'scale-110 border-foreground/20 shadow-md ring-2 ring-foreground/10'
-            : 'border-border scale-100',
-        disabled && 'pointer-events-none opacity-50'
-      )}
-    >
-      {children}
-    </span>
-  );
-
-  const tooltip = (
-    <span
-      className={cn(
-        'pointer-events-none absolute -bottom-8 z-10 whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-medium transition-all duration-200',
-        showTooltip ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'
-      )}
-      style={{
-        backgroundColor: showTooltip ? '#111' : 'transparent',
-        color: showTooltip ? '#fff' : 'transparent'
-      }}
-    >
-      {label}
-    </span>
-  );
+  const isGlass = variant === 'glass';
+  const isComingSoon = disabled && isGlass;
 
   const shell = (
     <>
-      {iconShell}
-      {showLabel ? tooltip : null}
+      <span
+        className={cn(
+          'relative isolate size-12 sm:size-14',
+          isGlass && 'transition-opacity duration-300'
+        )}
+      >
+        {isGlass ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-[#060707]"
+          />
+        ) : null}
+        <span
+          className={cn(
+            'absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl border p-2 transition-[border-color,background-color,box-shadow,opacity] duration-300',
+            isGlass
+              ? cn(
+                  isComingSoon
+                    ? isActive
+                      ? 'border-white/12 bg-black/30'
+                      : 'border-white/8 bg-black/25 group-hover:border-white/12 group-hover:bg-black/30'
+                    : isActive
+                      ? 'border-white/24 bg-black/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                      : 'border-white/16 bg-black/40 group-hover:border-white/22 group-hover:bg-black/50'
+                )
+              : cn(
+                  'relative',
+                  isActive
+                    ? 'border-primary/30 bg-muted shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06),0_0_24px_-10px_rgb(220_20_60_/_0.35)]'
+                    : 'border-transparent bg-transparent group-hover:border-border/60 group-hover:bg-muted/40'
+                )
+          )}
+        >
+          {isActive && (isGlass ? !isComingSoon : true) ? (
+            <span
+              aria-hidden
+              className={cn(
+                'pointer-events-none absolute inset-0',
+                isGlass
+                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
+                  : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(220_20_60_/_0.18),transparent_68%)]'
+              )}
+            />
+          ) : null}
+          <span className="relative z-10 flex items-center justify-center">
+            {children}
+          </span>
+        </span>
+      </span>
+      <span
+        className={cn(
+          'mt-2.5 max-w-[5.5rem] truncate text-center text-[11px] font-medium transition-colors duration-300 sm:max-w-none sm:text-xs',
+          isGlass
+            ? isComingSoon
+              ? isActive
+                ? 'text-muted-foreground dark:text-white/55'
+                : 'text-muted-foreground/55 group-hover:text-muted-foreground dark:text-white/32 dark:group-hover:text-white/45'
+              : isActive
+                ? 'text-foreground dark:text-white'
+                : 'text-muted-foreground group-hover:text-foreground dark:text-white/48 dark:group-hover:text-white/72'
+            : isActive
+              ? 'text-foreground'
+              : 'text-muted-foreground group-hover:text-foreground'
+        )}
+      >
+        {label}
+      </span>
     </>
   );
 
@@ -103,10 +132,11 @@ export function PageDockItem({
     return (
       <Link
         href={href}
-        className="group relative flex flex-col items-center"
+        className={cn(
+          'group relative flex shrink-0 flex-col items-center',
+          isComingSoon && !isActive && 'opacity-50 transition-opacity duration-300 hover:opacity-65'
+        )}
         aria-current={isActive ? 'page' : undefined}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
       >
         {shell}
       </Link>
@@ -116,13 +146,15 @@ export function PageDockItem({
   return (
     <button
       type="button"
-      className="group relative flex flex-col items-center"
+      className={cn(
+        'group relative flex shrink-0 flex-col items-center',
+        isComingSoon && !isActive && 'opacity-50 transition-opacity duration-300 hover:opacity-65'
+      )}
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}
       aria-label={label}
+      aria-pressed={onClick ? isActive : undefined}
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       {shell}
     </button>

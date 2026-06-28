@@ -200,7 +200,7 @@ export function SupportTicketInbox({
                   className={cn(
                     'flex w-full flex-col gap-0.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors',
                     active
-                      ? 'bg-primary/10 text-foreground'
+                      ? 'bg-muted text-foreground'
                       : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                   )}
                 >
@@ -350,7 +350,7 @@ export function SupportTicketInbox({
                       className={cn(
                         'max-w-[95%] rounded-lg border px-3 py-2 text-sm leading-relaxed',
                         fromUser
-                          ? 'ml-auto border-primary/25 bg-primary/5'
+                          ? 'ml-auto border-foreground/20 bg-muted'
                           : 'mr-auto border-border/60 bg-muted/30'
                       )}
                     >
