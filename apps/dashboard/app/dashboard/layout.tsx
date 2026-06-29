@@ -11,6 +11,7 @@ import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
+import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { dedupedAuth } from '@/lib/auth';
@@ -53,6 +54,7 @@ export default async function DashboardLayout({
 
   const profile = await getProfile();
   const workspaces = await getWorkspaceSwitcherData();
+  const messageUsage = await getSidebarMessageUsage();
   const { items: notifications } = await getDashboardNotifications();
 
   const showDataImprovementPrompt =
@@ -69,6 +71,7 @@ export default async function DashboardLayout({
         <SidebarRenderer
           profile={profile}
           workspaces={workspaces}
+          messageUsage={messageUsage}
         />
         {/* Set max-width so full-width tables can overflow horizontally correctly */}
         <SidebarInset

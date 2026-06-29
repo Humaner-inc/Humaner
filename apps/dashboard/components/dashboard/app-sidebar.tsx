@@ -5,6 +5,7 @@ import Image from 'next/image';
 import * as React from 'react';
 
 import { NavMain } from '@/components/dashboard/nav-main';
+import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -19,15 +20,18 @@ import { AppInfo } from '@/constants/app-info';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
+import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export type AppSidebarProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
+  messageUsage: SidebarMessageUsageDto;
 };
 
 export function AppSidebar({
   profile,
-  workspaces
+  workspaces,
+  messageUsage
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const xlUp = useMediaQuery(MediaQueries.XlUp, { ssr: true, fallback: true });
@@ -70,12 +74,18 @@ export function AppSidebar({
           <NavMain profile={profile} />
         </ScrollArea>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border/60 p-2">
-        <WorkspaceSwitcher
-          variant="sidebar"
-          workspaces={workspaces}
+      <div className="border-t border-sidebar-border/60">
+        <SidebarMessageUsage
+          usage={messageUsage}
+          className="pt-2"
         />
-      </SidebarFooter>
+        <SidebarFooter className="p-2">
+          <WorkspaceSwitcher
+            variant="sidebar"
+            workspaces={workspaces}
+          />
+        </SidebarFooter>
+      </div>
     </Sidebar>
   );
 }

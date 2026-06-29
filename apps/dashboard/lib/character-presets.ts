@@ -32,8 +32,8 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     example:
       'Thank you for reaching out. To resolve this, please navigate to Settings, select Account, and click Reset. The change takes effect immediately.'
   },
-  BOLD: {
-    id: 'BOLD',
+  SHARP: {
+    id: 'SHARP',
     label: 'Sharp',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
     image: '/caracters/gradient_2.png',

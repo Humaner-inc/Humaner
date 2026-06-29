@@ -9,7 +9,7 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
-import { getMessageUsage } from '@/lib/billing/polar-usage';
+import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
 import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
@@ -148,18 +148,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const tier = normalizeTier(organization.tier);
   const plan = getPlanForTier(tier);
-  let messagesUsed = 0;
-  let messageQuotaExhausted = false;
-
-  if (organization.polarCustomerId) {
-    const usage = await getMessageUsage(organization.polarCustomerId);
-    messagesUsed = usage?.consumed ?? 0;
-
-    if (usage) {
-      messageQuotaExhausted =
-        usage.balance <= 0 && usage.consumed >= usage.credited;
-    }
-  }
+  const messagesUsed = await getMessagesUsedThisMonth(session.user.organizationId);
+  const messageQuotaExhausted =
+    plan.overagePerMessage === null &&
+    plan.includedMessages > 0 &&
+    messagesUsed >= plan.includedMessages;
 
   if (!bypassLimits) {
     const usagePercent =

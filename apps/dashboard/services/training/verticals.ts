@@ -1,4 +1,13 @@
-import type { IndustryType } from '@prisma/client';
+import type {
+  CharacterType,
+  EmojiMode,
+  Formality,
+  IndustryType,
+  OpenerStyle,
+  Verbosity
+} from '@prisma/client';
+
+import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
 /**
  * Vertical Configuration for Agent Training
@@ -14,12 +23,25 @@ import type { IndustryType } from '@prisma/client';
  * - Behavioral rules
  */
 
+export type PersonaPreset = {
+  character: CharacterType;
+  verbosity: Verbosity;
+  formality: Formality;
+  emojiMode: EmojiMode;
+  openerStyle: OpenerStyle;
+  allowTypos: boolean;
+  role: string;
+  name: string;
+  fallbackMessage: string;
+};
+
 export type VerticalConfig = {
   id: IndustryType;
   name: string;
   description: string;
   icon: string;
   color: string;
+  personaPreset: PersonaPreset;
   commonTopics: string[];
   domainTerms: string[];
   questionCategories: {
@@ -42,6 +64,18 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
       'Shopping support for DTC, marketplaces, and omnichannel businesses. Handles orders, shipping, returns, and product questions.',
     icon: '🛒',
     color: '#10B981',
+    personaPreset: {
+      character: 'CASUAL',
+      verbosity: 'BALANCED',
+      formality: 'STANDARD',
+      emojiMode: 'SUBTLE',
+      openerStyle: 'MIRRORING',
+      allowTypos: true,
+      role: 'customer support specialist',
+      name: 'Alex',
+      fallbackMessage:
+        "I don't have that detail on hand yet — I'll flag it for the team and get back to you."
+    },
     commonTopics: [
       'Orders and order status',
       'Shipping and delivery',
@@ -139,6 +173,18 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
       'Support for universities, bootcamps, online programs, and training providers. Handles enrollment, course access, and student support.',
     icon: '🎓',
     color: '#6366F1',
+    personaPreset: {
+      character: 'CORPORATE',
+      verbosity: 'DETAILED',
+      formality: 'STANDARD',
+      emojiMode: 'NONE',
+      openerStyle: 'WARM',
+      allowTypos: true,
+      role: 'product support engineer',
+      name: 'Jordan',
+      fallbackMessage:
+        "I can't confirm that from our docs yet — want me to loop in someone who can?"
+    },
     commonTopics: [
       'Enrollment and registration',
       'Course access and materials',
@@ -235,6 +281,18 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
       'Support for gyms, yoga studios, spas, and online coaching. Handles memberships, bookings, and wellness guidance.',
     icon: '💪',
     color: '#F59E0B',
+    personaPreset: {
+      character: 'CASUAL',
+      verbosity: 'BALANCED',
+      formality: 'RELAXED',
+      emojiMode: 'SUBTLE',
+      openerStyle: 'WARM',
+      allowTypos: true,
+      role: 'membership concierge',
+      name: 'Sam',
+      fallbackMessage:
+        "I'm not sure on that one — best to check with the front desk team directly."
+    },
     commonTopics: [
       'Membership plans and pricing',
       'Class bookings and schedules',
@@ -330,6 +388,18 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
       'Support for hotels, airlines, OTAs, and tour operators. Handles bookings, cancellations, and travel disruptions.',
     icon: '✈️',
     color: '#EC4899',
+    personaPreset: {
+      character: 'CORPORATE',
+      verbosity: 'BALANCED',
+      formality: 'ELEVATED',
+      emojiMode: 'NONE',
+      openerStyle: 'WARM',
+      allowTypos: false,
+      role: 'guest relations coordinator',
+      name: 'Morgan',
+      fallbackMessage:
+        "I don't have that information available right now — I'll connect you with our team."
+    },
     commonTopics: [
       'Reservations and bookings',
       'Cancellations and changes',
@@ -420,6 +490,22 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
   }
 };
 
+/**
+ * Per-vertical release versions. Each vertical ships independently — bump only
+ * the industry you retrained (e.g. Retail 1.1.0 while Hospitality stays 1.0.0).
+ * Drives VerticalRelease.version; keyed by (industry, version) in the DB.
+ */
+export const VERTICAL_VERSIONS: Record<IndustryType, string> = {
+  ECOMMERCE: '1.0.0',
+  EDUCATION: '1.0.0',
+  FITNESS: '1.0.0',
+  TRAVEL: '1.0.0'
+};
+
+export function getVerticalVersion(industry: IndustryType): string {
+  return VERTICAL_VERSIONS[industry];
+}
+
 export function getVerticalConfig(industry: IndustryType): VerticalConfig {
   return VERTICAL_CONFIGS[industry];
 }
@@ -434,4 +520,28 @@ export function getVerticalColor(industry: IndustryType): string {
 
 export function getVerticalIcon(industry: IndustryType): string {
   return VERTICAL_CONFIGS[industry].icon;
+}
+
+export function getVerticalPersonaPreset(industry: IndustryType): PersonaPreset {
+  return VERTICAL_CONFIGS[industry].personaPreset;
+}
+
+/** Synthetic agent used for platform / vertical training runs. */
+export function buildPlatformTrainingAgent(
+  industry: IndustryType
+): SystemPromptAgent {
+  const config = VERTICAL_CONFIGS[industry];
+  return {
+    industry,
+    character: config.personaPreset.character,
+    verbosity: config.personaPreset.verbosity,
+    formality: config.personaPreset.formality,
+    emojiMode: config.personaPreset.emojiMode,
+    openerStyle: config.personaPreset.openerStyle,
+    allowTypos: config.personaPreset.allowTypos,
+    forbiddenTopics: config.forbiddenTopics,
+    fallbackMessage: config.personaPreset.fallbackMessage,
+    role: config.personaPreset.role,
+    name: config.personaPreset.name
+  };
 }

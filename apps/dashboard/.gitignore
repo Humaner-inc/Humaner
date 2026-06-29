@@ -33,3 +33,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# prisma (generated on postinstall / db:generate)
+/lib/generated/

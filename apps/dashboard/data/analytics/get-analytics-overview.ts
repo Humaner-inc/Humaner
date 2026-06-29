@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { getMessageUsage } from '@/lib/billing/polar-usage';
+import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { normalizeTier } from '@/lib/billing/tier';
 import {
   countConversationOutcomes,
@@ -164,7 +164,7 @@ export async function getAnalyticsOverview(options?: {
     await Promise.all([
       prisma.organization.findFirst({
         where: { id: organizationId },
-        select: { tier: true, polarCustomerId: true }
+        select: { tier: true }
       }),
       prisma.conversation.findMany({
         where: { agent: { organizationId, ...agentFilter } },
@@ -222,12 +222,7 @@ export async function getAnalyticsOverview(options?: {
 
   const tier = normalizeTier(organization?.tier ?? 'free');
   const plan = getPlanForTier(tier);
-  let messagesUsed = 0;
-
-  if (organization?.polarCustomerId) {
-    const usage = await getMessageUsage(organization.polarCustomerId);
-    messagesUsed = usage?.consumed ?? 0;
-  }
+  const messagesUsed = await getMessagesUsedThisMonth(organizationId);
 
   const totalMessages = await prisma.message.count({
     where: { conversation: { agent: { organizationId, ...agentFilter } } }

@@ -1,6 +1,15 @@
 'use client';
 
-import { forwardRef, type ComponentType, type HTMLAttributes } from 'react';
+import {
+  forwardRef,
+  memo,
+  useImperativeHandle,
+  useRef,
+  type ComponentType,
+  type ForwardRefExoticComponent,
+  type HTMLAttributes,
+  type RefAttributes
+} from 'react';
 
 export type AnimatedIconHandle = {
   startAnimation: () => void;
@@ -15,7 +24,9 @@ export type LucideIconProps = HTMLAttributes<HTMLDivElement> & {
   height?: number;
 };
 
-export type LucideIcon = ComponentType<LucideIconProps>;
+export type LucideIcon = ForwardRefExoticComponent<
+  LucideIconProps & RefAttributes<AnimatedIconHandle>
+>;
 
 const SIZE_CLASS_MAP: Record<string, number> = {
   'size-3': 12,
@@ -66,8 +77,8 @@ function parseSizeFromClassName(className?: string): number | undefined {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createAnimatedIcon(Icon: ComponentType<any>, defaultSize = 16): LucideIcon {
-  const AnimatedIcon = forwardRef<AnimatedIconHandle, LucideIconProps>(
-    function AnimatedIcon(
+  const AnimatedIcon = memo(
+    forwardRef<AnimatedIconHandle, LucideIconProps>(function AnimatedIcon(
       {
         className,
         size,
@@ -79,6 +90,7 @@ export function createAnimatedIcon(Icon: ComponentType<any>, defaultSize = 16): 
       },
       ref
     ) {
+      const innerRef = useRef<AnimatedIconHandle>(null);
       const resolvedSize =
         size ??
         width ??
@@ -86,19 +98,28 @@ export function createAnimatedIcon(Icon: ComponentType<any>, defaultSize = 16): 
         parseSizeFromClassName(className) ??
         defaultSize;
 
+      useImperativeHandle(
+        ref,
+        () => ({
+          startAnimation: () => innerRef.current?.startAnimation(),
+          stopAnimation: () => innerRef.current?.stopAnimation()
+        }),
+        []
+      );
+
       return (
         <Icon
-          ref={ref}
+          ref={innerRef}
           className={className}
           size={resolvedSize}
           animateOnHover={animateOnHover}
           {...props}
         />
       );
-    }
+    })
   );
 
   AnimatedIcon.displayName = `Animated(${Icon.displayName ?? 'Icon'})`;
 
-  return AnimatedIcon as LucideIcon;
+  return AnimatedIcon;
 }
