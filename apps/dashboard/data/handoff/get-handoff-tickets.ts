@@ -7,6 +7,10 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import {
+  resolveHandoffIntegrationProfile,
+  type HandoffIntegrationProfile
+} from '@/lib/integrations/handoff-integration-profile';
 
 import type { HandoffInboxAssignee, HandoffInboxTicket } from '@/lib/handoff/handoff-inbox';
 
@@ -19,6 +23,10 @@ export type HandoffTicketItem = HandoffInboxTicket;
 export type HandoffDeskData = {
   humanDeskEnabled: boolean;
   supportEmail: string | null;
+  liveChatEnabled: boolean;
+  liveChatTimeoutMinutes: number;
+  liveChatTimeoutMessage: string | null;
+  integrationProfile: HandoffIntegrationProfile;
   currentUserId: string;
   teamMembers: HandoffTeamMember[];
   tickets: HandoffTicketItem[];
@@ -32,10 +40,17 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
 
   const organizationId = session.user.organizationId;
 
-  const [organization, tickets, teamMembers] = await Promise.all([
+  const [organization, tickets, teamMembers, apiKeyCount] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
-      select: { humanDeskEnabled: true, supportEmail: true }
+      select: {
+        humanDeskEnabled: true,
+        supportEmail: true,
+        liveChatEnabled: true,
+        liveChatTimeoutMinutes: true,
+        liveChatTimeoutMessage: true,
+        onboardingIntegrations: true
+      }
     }),
     prisma.handoffTicket.findMany({
       where: { organizationId },
@@ -46,6 +61,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         summary: true,
         transcript: true,
         note: true,
+        source: true,
         status: true,
         urgency: true,
         assignedAt: true,
@@ -73,12 +89,24 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         email: true
       },
       orderBy: { name: 'asc' }
+    }),
+    prisma.apiKey.count({
+      where: { organizationId }
     })
   ]);
+
+  const integrationProfile = resolveHandoffIntegrationProfile({
+    onboardingIntegrations: organization?.onboardingIntegrations ?? [],
+    hasApiKeys: apiKeyCount > 0
+  });
 
   return {
     humanDeskEnabled: organization?.humanDeskEnabled ?? false,
     supportEmail: organization?.supportEmail ?? null,
+    liveChatEnabled: organization?.liveChatEnabled ?? false,
+    liveChatTimeoutMinutes: organization?.liveChatTimeoutMinutes ?? 20,
+    liveChatTimeoutMessage: organization?.liveChatTimeoutMessage ?? null,
+    integrationProfile,
     currentUserId: session.user.id,
     teamMembers: teamMembers.map((member) => ({
       id: member.id,
@@ -94,6 +122,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       summary: ticket.summary,
       transcript: ticket.transcript,
       note: ticket.note,
+      source: ticket.source,
       status: ticket.status as HandoffTicketStatus,
       urgency: ticket.urgency as HandoffTicketUrgency,
       assignee: ticket.assignee

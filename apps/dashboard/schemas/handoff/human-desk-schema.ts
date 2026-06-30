@@ -38,3 +38,21 @@ export const assignHandoffTicketSchema = z.object({
 });
 
 export type AssignHandoffTicketSchema = z.infer<typeof assignHandoffTicketSchema>;
+
+export const updateLiveChatSettingsSchema = z.object({
+  liveChatEnabled: z.boolean(),
+  liveChatTimeoutMinutes: z
+    .number()
+    .int()
+    .min(1, 'Minimum 1 minute.')
+    .max(1440, 'Maximum 24 hours (1440 minutes).'),
+  liveChatTimeoutMessage: z
+    .string()
+    .max(2000, 'Maximum 2000 characters.')
+    .optional()
+    .or(z.literal(''))
+});
+
+export type UpdateLiveChatSettingsSchema = z.infer<
+  typeof updateLiveChatSettingsSchema
+>;

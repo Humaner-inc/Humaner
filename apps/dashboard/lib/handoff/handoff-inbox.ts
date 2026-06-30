@@ -1,4 +1,5 @@
 import type {
+  HandoffTicketSource,
   HandoffTicketStatus,
   HandoffTicketUrgency
 } from '@/types/handoff-ticket';
@@ -18,6 +19,7 @@ export type HandoffInboxTicket = {
   summary: string;
   transcript: string;
   note: string | null;
+  source: HandoffTicketSource;
   status: HandoffTicketStatus;
   urgency: HandoffTicketUrgency;
   assignee: HandoffInboxAssignee | null;
@@ -40,6 +42,14 @@ export type HandoffInboxAssignmentFilter =
   | 'mine'
   | 'others';
 
+export type HandoffInboxUrgencyFilter = 'all' | HandoffTicketUrgency;
+
+export const URGENCY_LABELS: Record<HandoffTicketUrgency, string> = {
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low'
+};
+
 const URGENCY_RANK: Record<HandoffTicketUrgency, number> = {
   HIGH: 0,
   MEDIUM: 1,
@@ -54,6 +64,7 @@ export function filterHandoffInboxTickets(
     query: string;
     statusFilter: HandoffInboxStatusFilter;
     assignmentFilter: HandoffInboxAssignmentFilter;
+    urgencyFilter: HandoffInboxUrgencyFilter;
     currentUserId: string;
   }
 ): HandoffInboxTicket[] {
@@ -67,6 +78,13 @@ export function filterHandoffInboxTickets(
     } else if (
       input.statusFilter !== 'all' &&
       ticket.status !== input.statusFilter
+    ) {
+      return false;
+    }
+
+    if (
+      input.urgencyFilter !== 'all' &&
+      ticket.urgency !== input.urgencyFilter
     ) {
       return false;
     }

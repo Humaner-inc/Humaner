@@ -63,4 +63,113 @@
       animation: none;
     }
   }
+
+  .section-headline {
+    @apply font-display text-[2rem] font-semibold leading-[1.25] tracking-tight sm:text-[2.75rem] lg:text-5xl;
+    padding-bottom: 0.2em;
+  }
+
+  .story-sentence {
+    background: linear-gradient(
+      90deg,
+      #f5f5f5 0%,
+      #f5f5f5 55%,
+      rgb(245 245 245 / 0.22) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-block: 0.12em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .story-sentence--muted {
+    background: linear-gradient(
+      90deg,
+      rgb(245 245 245 / 0.55) 0%,
+      rgb(245 245 245 / 0.55) 55%,
+      rgb(245 245 245 / 0.12) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-block: 0.12em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .waitlist-cta__headline-wrap {
+    opacity: 0;
+    transform: translateY(1rem);
+    transition:
+      opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .waitlist-cta[data-open='true'] .waitlist-cta__headline-wrap {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .waitlist-cta__sub {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity 0.6s ease 0.12s,
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+  }
+
+  .waitlist-cta[data-open='true'] .waitlist-cta__sub {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .waitlist-cta__form {
+    margin-top: 1.75rem;
+    opacity: 0;
+    transform: translateY(1rem);
+    transition:
+      opacity 0.65s ease 0.28s,
+      transform 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.28s;
+  }
+
+  .waitlist-cta[data-open='true'] .waitlist-cta__form {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .waitlist-cta__headline-wrap,
+    .waitlist-cta__sub,
+    .waitlist-cta__form {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .email-char-highlight {
+    border-radius: 0.1rem;
+    animation: email-char-highlight 0.8s ease forwards;
+  }
+
+  @keyframes email-char-highlight {
+    0% {
+      background-color: rgb(220 20 60 / 0.38);
+    }
+    70% {
+      background-color: rgb(220 20 60 / 0.12);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .email-char-highlight {
+      animation: none;
+      background-color: transparent;
+    }
+  }
 }

@@ -79,10 +79,6 @@ export function DashboardTopNav({
           profile={profile}
           variant="navbar"
         />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent"
-        />
       </header>
 
       <NotificationsDrawer

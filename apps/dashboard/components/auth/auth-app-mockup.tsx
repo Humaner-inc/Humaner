@@ -36,6 +36,8 @@ export function AuthAppMockup(): React.JSX.Element {
         </div>
       </div>
 
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/40 to-transparent" />
+
       <div className="relative z-10 mt-8 flex items-center justify-between gap-6">
         <p className="font-display text-xl text-white/90 sm:text-2xl">
           Support that feels human

@@ -27,11 +27,11 @@ export default async function AuthLayout({
     <div className="relative min-h-screen">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/burgundy.png)' }}
+        style={{ backgroundImage: 'url(/no_screen.png)' }}
         role="img"
         aria-label=""
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/45" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" />
       <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8">
         {children}
       </main>
