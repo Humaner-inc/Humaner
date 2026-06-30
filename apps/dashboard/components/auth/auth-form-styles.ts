@@ -1,5 +1,5 @@
 export const authInputClassName =
-  'h-11 rounded-xl border-white/30 bg-white/10 text-white shadow-none placeholder:text-white/45 focus-visible:border-white/50 focus-visible:ring-white/30';
+  'auth-input h-11 rounded-xl border-white/30 bg-white/10 text-white shadow-none placeholder:text-white/45 focus-visible:border-white/50 focus-visible:ring-white/30';
 
 export const authInputAdornmentClassName = 'text-white/60';
 

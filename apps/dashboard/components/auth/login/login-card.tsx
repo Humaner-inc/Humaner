@@ -49,9 +49,11 @@ import {
 export function LoginCard(): React.JSX.Element {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>();
+  const [highlightInputs, setHighlightInputs] = React.useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = React.useState<
     string | undefined
   >();
+  const highlightTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
   const methods = useZodForm({
     schema: passThroughlogInSchema,
     mode: 'onSubmit',
@@ -61,6 +63,28 @@ export function LoginCard(): React.JSX.Element {
     }
   });
   const canSubmit = !isLoading && !methods.formState.isSubmitting;
+
+  React.useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const pulseInputs = (): void => {
+    setHighlightInputs(false);
+    window.requestAnimationFrame(() => {
+      setHighlightInputs(true);
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+      highlightTimeoutRef.current = setTimeout(() => {
+        setHighlightInputs(false);
+      }, 550);
+    });
+  };
+
   const onSubmit = async (values: PassThroughLogInSchema): Promise<void> => {
     if (!canSubmit) {
       return;
@@ -125,7 +149,10 @@ export function LoginCard(): React.JSX.Element {
       <FormProvider {...methods}>
         <form
           className="flex flex-col gap-4"
-          onSubmit={methods.handleSubmit(onSubmit)}
+          onSubmit={(event) => {
+            pulseInputs();
+            void methods.handleSubmit(onSubmit)(event);
+          }}
         >
           <FormField
             control={methods.control}
@@ -141,7 +168,10 @@ export function LoginCard(): React.JSX.Element {
                     autoCapitalize="off"
                     autoComplete="username"
                     placeholder="Enter your email address"
-                    className={authInputClassName}
+                    className={cn(
+                      authInputClassName,
+                      highlightInputs && 'auth-input--highlight'
+                    )}
                     startAdornment={
                       <MailIcon
                         className={cn('size-4 shrink-0', authInputAdornmentClassName)}
@@ -175,7 +205,10 @@ export function LoginCard(): React.JSX.Element {
                     autoCapitalize="off"
                     autoComplete="current-password"
                     placeholder="Enter your password"
-                    className={authInputClassName}
+                    className={cn(
+                      authInputClassName,
+                      highlightInputs && 'auth-input--highlight'
+                    )}
                     startAdornment={
                       <LockIcon
                         className={cn('size-4 shrink-0', authInputAdornmentClassName)}
@@ -218,7 +251,6 @@ export function LoginCard(): React.JSX.Element {
             className={authPrimaryButtonClassName}
             disabled={!canSubmit}
             loading={methods.formState.isSubmitting}
-            onClick={methods.handleSubmit(onSubmit)}
           >
             Log in
           </Button>

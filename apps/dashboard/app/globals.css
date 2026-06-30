@@ -165,6 +165,34 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
+@keyframes auth-input-highlight {
+  0%,
+  100% {
+    border-color: rgb(255 255 255 / 0.3);
+    box-shadow: none;
+  }
+
+  45% {
+    border-color: rgb(255 255 255 / 0.9);
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18);
+  }
+}
+
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgb(255 255 255 / 0.1) inset !important;
+  box-shadow: 0 0 0 1000px rgb(255 255 255 / 0.1) inset !important;
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #fff;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.auth-input--highlight {
+  animation: auth-input-highlight 0.55s ease-out;
+}
+
 @keyframes onboarding-pan {
   0% {
     transform: scale(1.12) translate3d(0, 0, 0);
