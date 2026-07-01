@@ -23,7 +23,10 @@ import {
   authLinkClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
-  authPrimaryButtonClassName
+  authHighlightButtonClassName,
+  glassAlertDestructiveClassName,
+  glassDestructiveMessageClassName,
+  glassHeadingClassName
 } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -138,7 +141,7 @@ export function LoginCard(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-white">
+        <h1 className={cn(glassHeadingClassName, 'text-4xl')}>
           Welcome
         </h1>
         <p className={authMutedTextClassName}>
@@ -180,7 +183,7 @@ export function LoginCard(): React.JSX.Element {
                     disabled={methods.formState.isSubmitting}
                   />
                 </FormControl>
-                <FormMessage className="text-red-200" />
+                <FormMessage className={glassDestructiveMessageClassName} />
               </FormItem>
             )}
           />
@@ -217,14 +220,14 @@ export function LoginCard(): React.JSX.Element {
                     disabled={methods.formState.isSubmitting}
                   />
                 </FormControl>
-                <FormMessage className="text-red-200" />
+                <FormMessage className={glassDestructiveMessageClassName} />
               </FormItem>
             )}
           />
           {errorMessage && (
             <Alert
               variant="destructive"
-              className="border-red-400/30 bg-red-500/15 text-white"
+              className={glassAlertDestructiveClassName}
             >
               <div className="flex flex-row items-center gap-2">
                 <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -234,7 +237,7 @@ export function LoginCard(): React.JSX.Element {
                     <Link
                       className={cn(
                         buttonVariants({ variant: 'link' }),
-                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-white underline'
+                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-800 underline'
                       )}
                       href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
                     >
@@ -248,7 +251,8 @@ export function LoginCard(): React.JSX.Element {
           )}
           <Button
             type="submit"
-            className={authPrimaryButtonClassName}
+            variant="ghost"
+            className={authHighlightButtonClassName}
             disabled={!canSubmit}
             loading={methods.formState.isSubmitting}
           >
@@ -262,7 +266,7 @@ export function LoginCard(): React.JSX.Element {
       <div className="flex flex-row gap-4">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className={authOutlineButtonClassName}
           disabled={!canSubmit}
           onClick={handleSignInWithGoogle}
@@ -275,7 +279,7 @@ export function LoginCard(): React.JSX.Element {
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className={authOutlineButtonClassName}
           disabled={!canSubmit}
           onClick={handleSignInWithGitHub}
@@ -283,7 +287,7 @@ export function LoginCard(): React.JSX.Element {
           <GitHubLogo
             width="20"
             height="20"
-            className="brightness-0 invert"
+            className="opacity-90"
           />
           GitHub
         </Button>
@@ -295,7 +299,7 @@ export function LoginCard(): React.JSX.Element {
         </p>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className={authOutlineButtonClassName}
           asChild
         >

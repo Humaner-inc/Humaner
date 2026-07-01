@@ -21,3 +21,11 @@ export const HandoffTicketUrgency = {
 
 export type HandoffTicketUrgency =
   (typeof HandoffTicketUrgency)[keyof typeof HandoffTicketUrgency];
+
+export const HandoffTicketSource = {
+  WIDGET: 'WIDGET',
+  API: 'API'
+} as const;
+
+export type HandoffTicketSource =
+  (typeof HandoffTicketSource)[keyof typeof HandoffTicketSource];
