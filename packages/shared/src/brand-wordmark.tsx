@@ -90,12 +90,15 @@ export type BrandWordmarkProps = HTMLAttributes<HTMLSpanElement> & {
   children?: string;
   hoverText?: string;
   active?: boolean;
+  /** When false, renders static text with no hover morph (for embeds, footers). */
+  interactive?: boolean;
 };
 
 export function BrandWordmark({
   children = BRAND_WORDMARK_DEFAULT,
   hoverText = BRAND_WORDMARK_HOVER,
   active,
+  interactive = true,
   className,
   style,
   onMouseEnter,
@@ -105,6 +108,19 @@ export function BrandWordmark({
   const from = children;
   const to = hoverText;
   const isControlled = active !== undefined;
+
+  if (!interactive) {
+    return (
+      <span
+        className={className}
+        style={style}
+        aria-label={from}
+        {...props}
+      >
+        {from}
+      </span>
+    );
+  }
 
   const [displayText, setDisplayText] = useState(from);
   const [useHoverTypography, setUseHoverTypography] = useState(false);

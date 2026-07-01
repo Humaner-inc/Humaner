@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -21,8 +22,16 @@ export function WaitlistCtaReveal({
       data-open={open ? 'true' : 'false'}
     >
       <div className="waitlist-cta__headline-wrap">
+        <Image
+          src="/favicon.svg"
+          alt=""
+          width={64}
+          height={64}
+          unoptimized
+          className="mx-auto mb-5 size-16"
+        />
         <h3 className="story-sentence font-display text-[2.35rem] font-semibold leading-[1.22] tracking-tight sm:text-5xl sm:leading-[1.2]">
-          Be among the first
+          Be Humaner.
         </h3>
       </div>
 

@@ -33,6 +33,9 @@ export type AgentListItem = {
   openerStyle: OpenerStyle;
   allowTypos: boolean;
   fallbackMessage: string;
+  greetingMessage: string | null;
+  image: string | null;
+  showRole: boolean;
 };
 
 export async function getAgents(): Promise<AgentListItem[]> {
@@ -56,7 +59,10 @@ export async function getAgents(): Promise<AgentListItem[]> {
           emojiMode: true,
           openerStyle: true,
           allowTypos: true,
-          fallbackMessage: true
+          fallbackMessage: true,
+          greetingMessage: true,
+          image: true,
+          showRole: true
         },
         orderBy: { createdAt: 'desc' }
       });

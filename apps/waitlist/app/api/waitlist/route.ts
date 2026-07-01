@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { sendWaitlistWelcomeEmail } from '@/lib/smtp/send-waitlist-welcome-email';
+
 const waitlistSchema = z.object({
   email: z.string().trim().email('Please enter a valid email address.')
 });
 
+function getResendApiKey(): string | undefined {
+  return process.env.RESEND_API_KEY ?? process.env.EMAIL_RESEND_API_KEY;
+}
+
 async function addToResendAudience(email: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = getResendApiKey();
   const audienceId = process.env.RESEND_AUDIENCE_ID;
 
   if (!apiKey || !audienceId) {
@@ -46,7 +52,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    await addToResendAudience(parsed.data.email);
+    const email = parsed.data.email;
+
+    await addToResendAudience(email);
+
+    try {
+      await sendWaitlistWelcomeEmail({ recipient: email });
+    } catch (error) {
+      console.error('[waitlist] welcome email failed:', error);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

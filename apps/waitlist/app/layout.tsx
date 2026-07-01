@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fellix.variable} ${theSeasons.variable} min-h-screen bg-[#070607] font-sans text-white antialiased`}
+        className={`${fellix.variable} ${theSeasons.variable} min-h-screen bg-foreground font-sans text-background antialiased`}
       >
         {children}
       </body>

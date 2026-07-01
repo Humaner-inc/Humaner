@@ -24,7 +24,7 @@ export function CopyBlock({
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success('Copied to clipboard');
+      toast.success('Copied');
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
       toast.error('Could not copy — copy it manually');
@@ -34,37 +34,32 @@ export function CopyBlock({
   return (
     <div
       className={cn(
-        'relative rounded-lg border bg-muted/50 font-mono text-xs',
+        'overflow-hidden rounded-xl border border-border/60 bg-muted/30',
         className
       )}
     >
-      {language && (
-        <span className="absolute left-3 top-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-          {language}
+      <div className="flex items-center justify-between gap-3 border-b border-border/40 px-3 py-2">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          {language ?? 'code'}
         </span>
-      )}
-      <pre
-        className={cn(
-          'overflow-x-auto whitespace-pre-wrap break-all p-3 pr-12',
-          language && 'pt-7'
-        )}
-      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+          onClick={handleCopy}
+          aria-label="Copy"
+        >
+          {copied ? (
+            <CheckIcon className="size-3.5 text-emerald-500" />
+          ) : (
+            <CopyIcon className="size-3.5" />
+          )}
+        </Button>
+      </div>
+      <pre className="overflow-x-auto whitespace-pre-wrap break-all p-3 font-mono text-[11px] leading-relaxed text-foreground/90">
         {value}
       </pre>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="absolute right-1.5 top-1.5 size-7"
-        onClick={handleCopy}
-        aria-label="Copy"
-      >
-        {copied ? (
-          <CheckIcon className="size-3.5 text-emerald-500" />
-        ) : (
-          <CopyIcon className="size-3.5" />
-        )}
-      </Button>
     </div>
   );
 }

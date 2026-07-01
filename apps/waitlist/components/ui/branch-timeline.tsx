@@ -30,6 +30,9 @@ type UseBranchScrollTimelineOptions = {
   stepRefs: RefObject<(HTMLElement | null)[]>;
   timelineRef: RefObject<HTMLDivElement | null>;
   ctaRef?: RefObject<HTMLElement | null>;
+  trunkOriginY?: number;
+  /** When true, trunk fill only advances with scroll — never pre-fills to active steps. */
+  scrollDrivenFill?: boolean;
 };
 
 export function useBranchScrollTimeline({
@@ -37,7 +40,9 @@ export function useBranchScrollTimeline({
   stepCount,
   stepRefs,
   timelineRef,
-  ctaRef
+  ctaRef,
+  trunkOriginY = 0,
+  scrollDrivenFill = false
 }: UseBranchScrollTimelineOptions): BranchTimelineState {
   const [timeline, setTimeline] = useState<BranchTimelineState>({
     trunkFillPx: 0,
@@ -51,6 +56,7 @@ export function useBranchScrollTimeline({
 
   useEffect(() => {
     let raf = 0;
+    const trunkStart = trunkOriginY + TRUNK_START_Y;
 
     const getNode = (index: number): HTMLElement | null => {
       if (index < stepCount) {
@@ -66,7 +72,7 @@ export function useBranchScrollTimeline({
       const ctaNodeTop =
         cta.getBoundingClientRect().top - containerRect.top + NODE_Y;
 
-      return Math.max(0, ctaNodeTop - TRUNK_START_Y);
+      return Math.max(0, ctaNodeTop - trunkStart);
     };
 
     const getTrunkExtentPx = (
@@ -79,10 +85,10 @@ export function useBranchScrollTimeline({
       const cta = ctaRef?.current;
       if (cta) {
         const ctaRect = cta.getBoundingClientRect();
-        return Math.max(0, ctaRect.top - containerRect.top + NODE_Y - TRUNK_START_Y);
+        return Math.max(0, ctaRect.top - containerRect.top + NODE_Y - trunkStart);
       }
 
-      return Math.max(0, container.offsetHeight - TRUNK_START_Y);
+      return Math.max(0, container.offsetHeight - trunkStart);
     };
 
     const computeProgress = (
@@ -107,7 +113,7 @@ export function useBranchScrollTimeline({
         const stepRect = element.getBoundingClientRect();
         const nodeViewportY = stepRect.top + NODE_Y;
         const stepTop = stepRect.top - containerRect.top + NODE_Y;
-        const fillEnd = trunkFillPx + TRUNK_START_Y;
+        const fillEnd = trunkFillPx + trunkStart;
         const distPastNode = fillEnd - stepTop;
 
         if (nodeViewportY <= anchorY) activeIndex = index;
@@ -133,7 +139,7 @@ export function useBranchScrollTimeline({
 
       let trunkFillPx = Math.max(
         0,
-        Math.min(trunkExtentPx, anchorY - containerRect.top - TRUNK_START_Y)
+        Math.min(trunkExtentPx, anchorY - containerRect.top - trunkStart)
       );
 
       const trunkTrackPx = trunkExtentPx;
@@ -165,10 +171,10 @@ export function useBranchScrollTimeline({
       );
 
       const activeElement = getNode(activeIndex);
-      if (activeElement) {
+      if (!scrollDrivenFill && activeElement) {
         const activeTop =
           activeElement.getBoundingClientRect().top - containerRect.top + NODE_Y;
-        const fillForActive = activeTop - TRUNK_START_Y;
+        const fillForActive = activeTop - trunkStart;
         trunkFillPx = Math.max(
           trunkFillPx,
           Math.min(trunkExtentPx, fillForActive)
@@ -268,7 +274,7 @@ export function useBranchScrollTimeline({
       window.removeEventListener('scroll', onScrollOrResize);
       window.removeEventListener('resize', onScrollOrResize);
     };
-  }, [ctaRef, nodeCount, stepCount, stepRefs, timelineRef]);
+  }, [ctaRef, nodeCount, scrollDrivenFill, stepCount, stepRefs, timelineRef, trunkOriginY]);
 
   return timeline;
 }
@@ -279,7 +285,9 @@ export function BranchTrunk({
   trunkExtentPx,
   rootNodeFill,
   rootActive,
-  tone = 'dark'
+  tone = 'dark',
+  lightTrackPx = 0,
+  trunkOriginY = 0
 }: {
   trunkTrackPx: number;
   trunkFillPx: number;
@@ -287,16 +295,30 @@ export function BranchTrunk({
   rootNodeFill: number;
   rootActive: boolean;
   tone?: 'light' | 'dark';
+  lightTrackPx?: number;
+  trunkOriginY?: number;
 }): React.JSX.Element {
+  const lightTone = tone === 'light';
+  const lightSegmentPx = Math.max(0, Math.min(lightTrackPx, trunkTrackPx));
+  const darkSegmentPx = Math.max(0, trunkTrackPx - lightSegmentPx);
+
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden lg:block"
-      style={{ height: trunkTrackPx > 0 ? trunkTrackPx + TRUNK_START_Y : undefined }}
+      className="pointer-events-none absolute inset-x-0 z-10 hidden lg:block"
+      style={{
+        top: trunkOriginY,
+        height: trunkTrackPx > 0 ? trunkTrackPx + TRUNK_START_Y : undefined
+      }}
     >
       <div className="mx-auto h-full max-w-6xl px-6">
         <div className="relative h-full w-20">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+          <p
+            className={cn(
+              'font-mono text-[10px] uppercase tracking-[0.2em]',
+              lightTone ? 'text-foreground/35' : 'text-white/35'
+            )}
+          >
             main
           </p>
           <div
@@ -305,14 +327,26 @@ export function BranchTrunk({
           >
             <BranchNode fillProgress={rootNodeFill} active={rootActive} tone={tone} />
           </div>
-          <div
-            className="absolute w-0.5 bg-white/10"
-            style={{
-              left: TRUNK_X,
-              top: '1.75rem',
-              height: trunkTrackPx
-            }}
-          />
+          {lightSegmentPx > 0 ? (
+            <div
+              className="absolute w-0.5 bg-foreground/10"
+              style={{
+                left: TRUNK_X,
+                top: '1.75rem',
+                height: lightSegmentPx
+              }}
+            />
+          ) : null}
+          {darkSegmentPx > 0 ? (
+            <div
+              className="absolute w-0.5 bg-white/10"
+              style={{
+                left: TRUNK_X,
+                top: `calc(1.75rem + ${lightSegmentPx}px)`,
+                height: darkSegmentPx
+              }}
+            />
+          ) : null}
           <div
             className="absolute w-0.5 bg-accent will-change-[height]"
             style={{
@@ -475,7 +509,7 @@ export function BranchNode({
   return (
     <span
       className={cn(
-        'relative block rounded-full border-2 transition-[border-color,box-shadow] duration-150',
+        'relative block rounded-[2px] border-2 transition-[border-color,box-shadow] duration-150',
         active ? 'size-3' : 'size-2.5',
         filled
           ? 'border-accent'
@@ -488,12 +522,12 @@ export function BranchNode({
     >
       <span
         className={cn(
-          'absolute inset-0 rounded-full',
+          'absolute inset-0 rounded-[1px]',
           isDark ? 'bg-foreground' : 'bg-foreground'
         )}
       />
       <span
-        className="absolute inset-0 rounded-full bg-accent will-change-transform"
+        className="absolute inset-0 rounded-[1px] bg-accent will-change-transform"
         style={{
           transform: `scale(${fill})`,
           transformOrigin: 'center'

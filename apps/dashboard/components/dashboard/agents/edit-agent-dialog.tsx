@@ -12,6 +12,9 @@ import type {
 import { toast } from 'sonner';
 
 import { updateAgent } from '@/actions/agents/update-agent';
+import { AgentAvatarUpload } from '@/components/dashboard/agents/agent-avatar-upload';
+import { AgentPersonalityTuning } from '@/components/dashboard/agents/agent-personality-tuning';
+import { RoleFieldLabel } from '@/components/dashboard/agents/role-field-label';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,21 +26,19 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { AgentListItem } from '@/data/agents/get-agents';
 import {
   CHARACTER_LIST,
-  CHARACTER_META,
-  EMOJI_OPTIONS,
-  FORMALITY_OPTIONS,
-  OPENER_OPTIONS,
-  VERBOSITY_OPTIONS
+  CHARACTER_META
 } from '@/lib/character-presets';
+import {
+  DEFAULT_AGENT_ROLE,
+  DEFAULT_FALLBACK_MESSAGE,
+  getGreetingPlaceholder,
+  isPersonalityDefaultGreeting
+} from '@/lib/agent-defaults';
 import { cn } from '@/lib/utils';
-
-const DEFAULT_FALLBACK =
-  "I don't have that information yet. A team member will follow up shortly.";
 
 export type EditAgentDialogProps = {
   agent: AgentListItem;
@@ -62,7 +63,23 @@ export function EditAgentDialog({
   const [openerStyle, setOpenerStyle] = React.useState(agent.openerStyle);
   const [allowTypos, setAllowTypos] = React.useState(agent.allowTypos);
   const [fallbackMessage, setFallbackMessage] = React.useState(
-    agent.fallbackMessage === DEFAULT_FALLBACK ? '' : agent.fallbackMessage
+    agent.fallbackMessage === DEFAULT_FALLBACK_MESSAGE ? '' : agent.fallbackMessage
+  );
+  const [greetingMessage, setGreetingMessage] = React.useState(
+    isPersonalityDefaultGreeting(
+      agent.greetingMessage,
+      agent.character,
+      agent.name
+    )
+      ? ''
+      : (agent.greetingMessage ?? '')
+  );
+  const [showRole, setShowRole] = React.useState(agent.showRole);
+  const [avatarImage, setAvatarImage] = React.useState(agent.image);
+
+  const greetingPlaceholder = React.useMemo(
+    () => getGreetingPlaceholder(character, name),
+    [character, name]
   );
 
   React.useEffect(() => {
@@ -78,11 +95,22 @@ export function EditAgentDialog({
     setOpenerStyle(agent.openerStyle);
     setAllowTypos(agent.allowTypos);
     setFallbackMessage(
-      agent.fallbackMessage === DEFAULT_FALLBACK ? '' : agent.fallbackMessage
+      agent.fallbackMessage === DEFAULT_FALLBACK_MESSAGE ? '' : agent.fallbackMessage
     );
+    setGreetingMessage(
+      isPersonalityDefaultGreeting(
+        agent.greetingMessage,
+        agent.character,
+        agent.name
+      )
+        ? ''
+        : (agent.greetingMessage ?? '')
+    );
+    setShowRole(agent.showRole);
+    setAvatarImage(agent.image);
   }, [agent, open]);
 
-  const canSubmit = name.trim().length > 0 && role.trim().length > 0;
+  const canSubmit = name.trim().length > 0;
 
   const handleSave = (): void => {
     if (!canSubmit) {
@@ -92,14 +120,16 @@ export function EditAgentDialog({
       const result = await updateAgent({
         id: agent.id,
         name,
-        role,
+        role: role.trim() || undefined,
         character,
         verbosity,
         formality,
         emojiMode,
         openerStyle,
         allowTypos,
-        fallbackMessage: fallbackMessage.trim() || undefined
+        fallbackMessage: fallbackMessage.trim() || undefined,
+        greetingMessage: greetingMessage.trim() || undefined,
+        showRole
       });
       if (result?.serverError) {
         toast.error(result.serverError);
@@ -123,7 +153,7 @@ export function EditAgentDialog({
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
-            Edit character
+            Edit personality
           </DialogTitle>
           <DialogDescription>
             Update this agent&apos;s personality and voice settings.
@@ -131,8 +161,21 @@ export function EditAgentDialog({
         </DialogHeader>
 
         <div className="space-y-6">
+          <div className="flex flex-col items-center gap-3 border-b border-border/50 pb-6">
+            <AgentAvatarUpload
+              agentId={agent.id}
+              character={character}
+              image={avatarImage}
+              disabled={isPending}
+              onImageChange={setAvatarImage}
+            />
+            <p className="max-w-sm text-center text-xs text-muted-foreground">
+              Upload a profile picture to personnalize your chat.
+            </p>
+          </div>
+
           <div>
-            <Label className="mb-2 block">Character</Label>
+            <Label className="mb-2 block">Personality</Label>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {CHARACTER_LIST.map((item) => (
                 <button
@@ -170,71 +213,64 @@ export function EditAgentDialog({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor={`edit-agent-name-${agent.id}`}>Name</Label>
-              <Input
-                id={`edit-agent-name-${agent.id}`}
-                value={name}
-                maxLength={255}
-                disabled={isPending}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor={`edit-agent-role-${agent.id}`}>Role</Label>
-              <Input
-                id={`edit-agent-role-${agent.id}`}
-                value={role}
-                maxLength={255}
-                disabled={isPending}
-                onChange={(e) => setRole(e.target.value)}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 sm:items-center">
+            <Label htmlFor={`edit-agent-name-${agent.id}`}>Name</Label>
+            <RoleFieldLabel
+              htmlFor={`edit-agent-role-${agent.id}`}
+              showRoleId={`edit-show-role-${agent.id}`}
+              showRole={showRole}
+              disabled={isPending}
+              onShowRoleChange={setShowRole}
+            />
+            <Input
+              id={`edit-agent-name-${agent.id}`}
+              value={name}
+              maxLength={255}
+              disabled={isPending}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Input
+              id={`edit-agent-role-${agent.id}`}
+              placeholder={DEFAULT_AGENT_ROLE}
+              value={role}
+              maxLength={255}
+              disabled={isPending}
+              onChange={(e) => setRole(e.target.value)}
+            />
           </div>
 
-          <div className="space-y-4">
-            <SegmentedControl
-              label="Verbosity"
-              options={VERBOSITY_OPTIONS}
-              value={verbosity}
-              onChange={setVerbosity}
+          <AgentPersonalityTuning
+            character={character}
+            verbosity={verbosity}
+            formality={formality}
+            emojiMode={emojiMode}
+            openerStyle={openerStyle}
+            allowTypos={allowTypos}
+            disabled={isPending}
+            onVerbosityChange={setVerbosity}
+            onFormalityChange={setFormality}
+            onEmojiModeChange={setEmojiMode}
+            onOpenerStyleChange={setOpenerStyle}
+            onAllowTyposChange={setAllowTypos}
+          />
+
+          <div className="space-y-2">
+            <Label htmlFor={`edit-agent-greeting-${agent.id}`}>
+              Greeting message
+            </Label>
+            <Textarea
+              id={`edit-agent-greeting-${agent.id}`}
+              rows={2}
+              placeholder={greetingPlaceholder}
+              value={greetingMessage}
+              maxLength={500}
               disabled={isPending}
+              onChange={(e) => setGreetingMessage(e.target.value)}
             />
-            <SegmentedControl
-              label="Formality"
-              options={FORMALITY_OPTIONS}
-              value={formality}
-              onChange={setFormality}
-              disabled={isPending}
-            />
-            <SegmentedControl
-              label="Emoji"
-              options={EMOJI_OPTIONS}
-              value={emojiMode}
-              onChange={setEmojiMode}
-              disabled={isPending}
-            />
-            <SegmentedControl
-              label="Opener"
-              options={OPENER_OPTIONS}
-              value={openerStyle}
-              onChange={setOpenerStyle}
-              disabled={isPending}
-            />
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Realistic typos</p>
-                <p className="text-xs text-muted-foreground">
-                  Occasional human typos for max authenticity.
-                </p>
-              </div>
-              <Switch
-                checked={allowTypos}
-                onCheckedChange={setAllowTypos}
-                disabled={isPending}
-              />
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Shown when the widget, hosted link, or React component opens.
+              Leave blank to use the default for this personality.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -244,7 +280,7 @@ export function EditAgentDialog({
             <Textarea
               id={`edit-agent-fallback-${agent.id}`}
               rows={2}
-              placeholder="Leave blank to use the default fallback."
+              placeholder={DEFAULT_FALLBACK_MESSAGE}
               value={fallbackMessage}
               maxLength={2000}
               disabled={isPending}
@@ -273,48 +309,5 @@ export function EditAgentDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-type SegmentedControlProps<T extends string> = {
-  label: string;
-  options: { value: T; label: string; hint: string }[];
-  value: T;
-  onChange: (value: T) => void;
-  disabled?: boolean;
-};
-
-function SegmentedControl<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-  disabled
-}: SegmentedControlProps<T>): React.JSX.Element {
-  return (
-    <div>
-      <Label className="mb-2 block">{label}</Label>
-      <div className="grid grid-cols-3 gap-2">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              'rounded-lg border px-2 py-2 text-center transition-colors disabled:opacity-50',
-              value === option.value
-                ? 'border-foreground/20 bg-muted'
-                : 'border-border hover:border-foreground/15'
-            )}
-          >
-            <span className="block text-xs font-medium">{option.label}</span>
-            <span className="block text-[10px] text-muted-foreground">
-              {option.hint}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

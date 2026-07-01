@@ -10,17 +10,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@humaner/shared": "workspace:*",
+    "@react-email/components": "0.0.26",
+    "@react-email/render": "1.0.2",
+    "@react-email/tailwind": "1.0.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.41.0",
     "next": "15.0.2",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "resend": "4.0.0",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "22.8.6",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "autoprefixer": "10.4.20",
     "eslint": "8.57.0",
     "eslint-config-next": "15.0.2",

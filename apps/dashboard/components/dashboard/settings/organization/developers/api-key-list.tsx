@@ -103,13 +103,13 @@ function ApiKeyListItem({
     <li
       role="listitem"
       className={cn(
-        'flex w-full min-w-0 items-center gap-4 px-4 py-3.5 sm:px-5',
+        'flex w-full min-w-0 items-center gap-3 px-4 py-3 sm:px-4',
         className
       )}
       {...other}
     >
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/5 text-primary shadow-[0_0_20px_-12px_rgb(220_20_60_/_0.5)]">
-        <KeyRoundIcon className="size-4" />
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
+        <KeyRoundIcon className="size-3.5" />
       </div>
 
       <div className="min-w-0 flex-1">

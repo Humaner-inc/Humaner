@@ -1,17 +1,76 @@
 'use client';
 
-import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { BrandStoriesSection } from '@/components/brand-stories-section';
-import { HeroBackground } from '@/components/hero-background';
+import { WaitlistHeroSection } from '@/components/hero/waitlist-hero-section';
+import { WaitlistHeader } from '@/components/waitlist-header';
+import {
+  BranchTrunk,
+  TRUNK_START_Y,
+  useBranchScrollTimeline
+} from '@/components/ui/branch-timeline';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
+const NODE_COUNT = 5;
+const STEP_COUNT = 4;
+const TRUNK_GAP_BELOW_DESCRIPTION = 12;
+
 export function WaitlistPage(): React.JSX.Element {
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const trunkAnchorRef = useRef<HTMLParagraphElement>(null);
+  const stepRefs = useRef<(HTMLElement | null)[]>([]);
+  const ctaRef = useRef<HTMLDivElement | null>(null);
+  const [trunkOriginY, setTrunkOriginY] = useState(0);
+  const [lightTrackPx, setLightTrackPx] = useState(0);
+
   const [email, setEmail] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const timeline = useBranchScrollTimeline({
+    nodeCount: NODE_COUNT,
+    stepCount: STEP_COUNT,
+    stepRefs,
+    timelineRef,
+    ctaRef,
+    trunkOriginY,
+    scrollDrivenFill: true
+  });
+
+  useEffect(() => {
+    const updateTrunkLayout = (): void => {
+      const container = timelineRef.current;
+      const anchor = trunkAnchorRef.current;
+      const hero = document.getElementById('hero');
+      if (!container || !anchor) return;
+
+      const containerTop = container.getBoundingClientRect().top;
+      const anchorBottom = anchor.getBoundingClientRect().bottom;
+      const originY = Math.max(
+        0,
+        anchorBottom - containerTop + TRUNK_GAP_BELOW_DESCRIPTION
+      );
+      setTrunkOriginY(originY);
+
+      if (hero) {
+        const heroBottom = hero.getBoundingClientRect().bottom;
+        setLightTrackPx(
+          Math.max(0, heroBottom - containerTop - originY - TRUNK_START_Y)
+        );
+      }
+    };
+
+    updateTrunkLayout();
+    window.addEventListener('scroll', updateTrunkLayout, { passive: true });
+    window.addEventListener('resize', updateTrunkLayout);
+
+    return () => {
+      window.removeEventListener('scroll', updateTrunkLayout);
+      window.removeEventListener('resize', updateTrunkLayout);
+    };
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -40,77 +99,48 @@ export function WaitlistPage(): React.JSX.Element {
     }
   };
 
+  const trunkFillPx = timeline.trunkFillPx;
+  const trunkTrackPx = timeline.trunkTrackPx;
+  const trunkExtentPx = timeline.trunkExtentPx;
+  const activeIndex = timeline.activeIndex;
+  const branchProgressValues =
+    timeline.branchProgress ?? Array.from({ length: NODE_COUNT }, () => 0);
+  const nodeFillValues =
+    timeline.nodeFillProgress ?? Array.from({ length: NODE_COUNT }, () => 0);
+  const rootNodeFill =
+    trunkFillPx > 0 && trunkExtentPx > 0 ? Math.min(1, trunkFillPx / 16) : 0;
+
   return (
     <div className="relative">
-      <section className="relative min-h-[100svh] overflow-hidden">
-        <HeroBackground />
+      <WaitlistHeader />
 
-        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-5xl flex-col items-center justify-center px-6 pb-16 pt-28 text-center sm:pt-32">
-          <header className="mb-10 flex justify-center sm:mb-12">
-            <div className="inline-flex items-center gap-3.5 sm:gap-4">
-              <Image
-                src="/humaner.svg"
-                alt=""
-                width={600}
-                height={600}
-                priority
-                unoptimized
-                className="h-14 w-auto brightness-0 invert sm:h-[4.25rem] lg:h-[4.75rem]"
-              />
-              <span className="font-display text-3xl tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-                Humaner
-              </span>
-            </div>
-          </header>
+      <div ref={timelineRef} className="relative">
+        <BranchTrunk
+          trunkTrackPx={trunkTrackPx}
+          trunkFillPx={trunkFillPx}
+          trunkExtentPx={trunkExtentPx}
+          rootNodeFill={rootNodeFill}
+          rootActive={activeIndex === 0}
+          tone="light"
+          lightTrackPx={lightTrackPx}
+          trunkOriginY={trunkOriginY}
+        />
 
-          <main className="flex w-full flex-col items-center">
-            <h1 className="max-w-4xl font-display text-[2.35rem] font-semibold leading-[1.06] tracking-tight text-white sm:text-5xl lg:text-[3.35rem]">
-              <span className="whitespace-nowrap">Customer support</span>
-              <br />
-              that feels human.
-            </h1>
+        <WaitlistHeroSection trunkAnchorRef={trunkAnchorRef} />
 
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
-              Built for developers. Designed for customers.
-            </p>
-          </main>
-
-          <a
-            href="#story"
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/35 transition-colors hover:text-white/60"
-            aria-label="Scroll to our story"
-          >
-            <ScrollHintIcon />
-          </a>
-        </div>
-      </section>
-
-      <BrandStoriesSection
-        email={email}
-        formState={formState}
-        errorMessage={errorMessage}
-        onEmailChange={setEmail}
-        onSubmit={handleSubmit}
-      />
+        <BrandStoriesSection
+          email={email}
+          formState={formState}
+          errorMessage={errorMessage}
+          onEmailChange={setEmail}
+          onSubmit={handleSubmit}
+          stepRefs={stepRefs}
+          ctaRef={ctaRef}
+          activeIndex={activeIndex}
+          branchProgressValues={branchProgressValues}
+          nodeFillValues={nodeFillValues}
+        />
+      </div>
     </div>
-  );
-}
-
-function ScrollHintIcon(): React.JSX.Element {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-6 animate-bounce"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M12 5V19M12 19L7 14M12 19L17 14"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

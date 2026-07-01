@@ -40,6 +40,9 @@ export type AgentOverviewItem = {
   openerStyle: OpenerStyle;
   allowTypos: boolean;
   fallbackMessage: string;
+  greetingMessage: string | null;
+  image: string | null;
+  showRole: boolean;
   metrics: AgentMetrics;
 };
 
@@ -66,6 +69,9 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           openerStyle: true,
           allowTypos: true,
           fallbackMessage: true,
+          greetingMessage: true,
+          image: true,
+          showRole: true,
           _count: { select: { chunks: true } },
           knowledgeSources: { select: { status: true } },
           conversations: {
@@ -121,6 +127,9 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           openerStyle: agent.openerStyle,
           allowTypos: agent.allowTypos,
           fallbackMessage: agent.fallbackMessage,
+          greetingMessage: agent.greetingMessage,
+          image: agent.image,
+          showRole: agent.showRole,
           metrics
         };
       });

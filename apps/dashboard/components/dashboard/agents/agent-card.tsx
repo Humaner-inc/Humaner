@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   AlertCircleIcon,
+  ArrowUpRightIcon,
   CheckIcon,
   CopyIcon,
   KeyRoundIcon,
@@ -15,7 +16,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteAgent } from '@/actions/agents/delete-agent';
-import { AgentMetricBars } from '@/components/dashboard/agents/agent-metric-bars';
+import { AgentAvatarUpload } from '@/components/dashboard/agents/agent-avatar-upload';
 import { EditAgentDialog } from '@/components/dashboard/agents/edit-agent-dialog';
 import {
   AlertDialog,
@@ -27,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -59,7 +59,12 @@ export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState(false);
+  const [avatarImage, setAvatarImage] = React.useState(agent.image);
   const [isDeleting, startDeleteTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setAvatarImage(agent.image);
+  }, [agent.image]);
 
   const handleCopyId = async (): Promise<void> => {
     await copyToClipboard(agent.publicId);
@@ -87,111 +92,101 @@ export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
 
   return (
     <>
-      <article className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md sm:flex-row">
-        <div className="relative h-36 shrink-0 overflow-hidden sm:h-auto sm:w-32">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={meta.image}
-            alt={meta.label}
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+      <article className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all hover:border-foreground/15 hover:shadow-md">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-3 top-3 size-8 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+            >
+              <MoreHorizontalIcon className="size-4" />
+              <span className="sr-only">Agent options</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+              <PencilIcon className="mr-2 size-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2Icon className="mr-2 size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex flex-col items-center text-center">
+          <AgentAvatarUpload
+            agentId={agent.id}
+            character={agent.character}
+            image={avatarImage}
+            size="card"
+            onImageChange={(image) => {
+              setAvatarImage(image);
+              router.refresh();
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent sm:bg-gradient-to-r sm:from-black/50 sm:via-transparent sm:to-transparent" />
-          <Badge
-            variant="secondary"
-            className="absolute left-2 top-2 bg-background/80 backdrop-blur-sm"
-          >
+
+          <h3 className="mt-4 max-w-full truncate font-display text-xl leading-tight tracking-tight">
+            {agent.name}
+          </h3>
+          {agent.showRole ? (
+            <p className="mt-1 max-w-full truncate text-sm text-muted-foreground">
+              {agent.role}
+            </p>
+          ) : null}
+          <span className="mt-2.5 inline-flex rounded-full border border-border/80 bg-muted/30 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
             {meta.label}
-          </Badge>
+          </span>
+
+          <button
+            type="button"
+            onClick={handleCopyId}
+            title={agent.publicId}
+            className="group/id mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-background/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+          >
+            <KeyRoundIcon className="size-3 shrink-0 opacity-70" />
+            <span className="truncate font-mono">
+              {formatAgentId(agent.publicId)}
+            </span>
+            <span className="shrink-0 opacity-60 transition-opacity group-hover/id:opacity-100">
+              {copiedId ? (
+                <CheckIcon className="size-3 text-emerald-500" />
+              ) : (
+                <CopyIcon className="size-3" />
+              )}
+            </span>
+          </button>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 space-y-1">
-              <h3 className="truncate font-display text-lg leading-none">
-                {agent.name}
-              </h3>
-              <p className="truncate text-sm text-muted-foreground">
-                {agent.role}
-              </p>
-              <button
-                type="button"
-                onClick={handleCopyId}
-                title={agent.publicId}
-                className="group/id inline-flex max-w-full items-center gap-1.5 rounded-md py-0.5 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <KeyRoundIcon className="size-3 shrink-0 opacity-70" />
-                <span className="truncate font-mono">
-                  {formatAgentId(agent.publicId)}
-                </span>
-                <span className="shrink-0 opacity-0 transition-opacity group-hover/id:opacity-100">
-                  {copiedId ? (
-                    <CheckIcon className="size-3 text-emerald-500" />
-                  ) : (
-                    <CopyIcon className="size-3" />
-                  )}
-                </span>
-              </button>
-            </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 shrink-0 text-muted-foreground"
-                >
-                  <MoreHorizontalIcon className="size-4" />
-                  <span className="sr-only">Agent options</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                  <PencilIcon className="mr-2 size-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2Icon className="mr-2 size-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        {agent.metrics.gaps.length > 0 ? (
+          <div className="mt-5 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+            <AlertCircleIcon className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="line-clamp-2 text-left text-[11px] leading-relaxed text-muted-foreground">
+              {agent.metrics.gaps[0]}
+            </p>
           </div>
+        ) : null}
 
-          <div className="mt-4 border-t pt-4">
-            <AgentMetricBars
-              satisfaction={agent.metrics.satisfaction}
-              expertise={agent.metrics.expertise}
-            />
-          </div>
-
-          {agent.metrics.gaps.length > 0 && (
-            <div className="group/gaps mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 transition-colors hover:bg-amber-500/10">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
-                <AlertCircleIcon className="size-3 shrink-0" />
-                Gaps
-              </div>
-              <p className="max-h-0 overflow-hidden text-xs leading-relaxed text-muted-foreground opacity-0 transition-all duration-200 group-hover/gaps:mt-1.5 group-hover/gaps:max-h-24 group-hover/gaps:opacity-100">
-                {agent.metrics.gaps[0]}
-              </p>
-            </div>
-          )}
-
-          <div className="mt-4 pt-1">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              <Link href={`${Routes.Knowledge}?agent=${agent.id}`}>
-                Manage knowledge
-              </Link>
-            </Button>
-          </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Link
+            href={`${Routes.Analytics}?agent=${agent.id}`}
+            className="inline-flex items-center justify-center gap-1 rounded-xl border border-border/80 py-2.5 text-sm font-medium transition-colors hover:border-foreground/20 hover:bg-muted/40"
+          >
+            Analytics
+          </Link>
+          <Link
+            href={`${Routes.Knowledge}?agent=${agent.id}`}
+            className="inline-flex items-center justify-center gap-1 rounded-xl border border-border/80 py-2.5 text-sm font-medium transition-colors hover:border-foreground/20 hover:bg-muted/40"
+          >
+            Knowledge
+            <ArrowUpRightIcon className="size-3.5 text-muted-foreground" />
+          </Link>
         </div>
       </article>
 

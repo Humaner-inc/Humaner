@@ -3,6 +3,7 @@
 import { forwardRef } from 'react';
 
 import { HighlightedEmailInput } from '@/components/highlighted-email-input';
+import { WaitlistSuccessState } from '@/components/waitlist-success-state';
 import { cn } from '@/lib/utils';
 
 export type FormState = 'idle' | 'loading' | 'success' | 'error';
@@ -29,14 +30,7 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
     buttonRef
   ) {
     if (formState === 'success') {
-      return (
-        <div className={cn('text-center', className)}>
-          <p className="text-sm font-medium text-white">You&apos;re on the list.</p>
-          <p className="mt-2 text-sm text-white/50">
-            We&apos;ll email you before launch so you can claim a Founding Member seat.
-          </p>
-        </div>
-      );
+      return <WaitlistSuccessState className={className} />;
     }
 
     return (
@@ -63,7 +57,7 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
             disabled={formState === 'loading'}
             className="group inline-flex h-9 shrink-0 items-center justify-center gap-0 rounded-md border border-transparent bg-[#f5f5f5] px-4 text-sm font-medium text-[#070607] shadow-sm transition-[gap] duration-200 hover:gap-1.5 hover:bg-[#f5f5f5]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {formState === 'loading' ? 'Joining…' : 'Join the waitlist'}
+            {formState === 'loading' ? 'Joining…' : 'Deploy early'}
             {formState !== 'loading' ? (
               <ArrowRightIcon className="size-0 shrink-0 opacity-0 transition-all duration-200 group-hover:size-4 group-hover:opacity-100" />
             ) : null}
