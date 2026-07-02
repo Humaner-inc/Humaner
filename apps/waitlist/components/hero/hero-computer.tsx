@@ -82,9 +82,9 @@ export function HeroComputer(): React.JSX.Element {
   }, [reduceMotion]);
 
   return (
-    <div className="relative ml-auto w-full max-w-[min(100%,20rem)] sm:max-w-sm lg:w-auto lg:max-w-none">
+    <div className="relative mx-auto w-full max-w-[min(100%,15rem)] sm:max-w-[17rem] lg:ml-auto lg:w-auto lg:max-w-none">
       <div
-        className="relative ml-auto overflow-hidden lg:h-[min(78vh,780px)]"
+        className="relative mx-auto overflow-hidden lg:ml-auto lg:h-[min(78vh,780px)]"
         style={{ aspectRatio: HERO_COMPUTER_CROP_ASPECT }}
       >
         <div

@@ -3,8 +3,7 @@
 import { forwardRef, type RefObject } from 'react';
 
 import {
-  BranchConnector,
-  MobileBranchProgress
+  BranchConnector
 } from '@/components/ui/branch-timeline';
 import { WaitlistEmailForm, type FormState } from '@/components/waitlist-email-form';
 import { WaitlistCtaReveal } from '@/components/waitlist-cta-reveal';
@@ -84,13 +83,6 @@ export function BrandStoriesSection({
   return (
     <section id="story" className="relative bg-foreground pt-24 sm:pt-32">
       <div className="relative mx-auto max-w-6xl px-6 pb-24 sm:pb-32">
-        <MobileBranchProgress
-          labels={[...stories.map((s) => s.stage), CTA_STAGE]}
-          activeIndex={activeIndex}
-          nodeFillValues={nodeFillValues}
-          className="lg:hidden"
-        />
-
         <div className="relative flex min-h-[50vh] items-center justify-center lg:pl-20">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="section-headline story-sentence">
@@ -174,10 +166,6 @@ const StoryBlock = forwardRef<HTMLElement, StoryBlockProps>(function StoryBlock(
         label={story.stage}
         tone="dark"
       />
-
-      <p className="absolute left-6 top-0 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45 lg:hidden">
-        {story.stage}
-      </p>
 
       {isLast ? (
         <WaitlistSupportPillars active={active} visible={visible} />

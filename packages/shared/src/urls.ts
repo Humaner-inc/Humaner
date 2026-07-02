@@ -25,6 +25,10 @@ export function getPricingUrl(): string {
   return `${getLandingUrl()}/pricing`;
 }
 
+export function getBookDemoUrl(): string {
+  return 'mailto:hello@humaner.io?subject=Book%20a%20demo';
+}
+
 export function getPrivacyUrl(): string {
   return `${getLandingUrl()}/privacy`;
 }

@@ -6,7 +6,7 @@ import { createTitle } from '@/lib/utils';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: createTitle('Join the waitlist'),
+  title: createTitle('Customer support that feels human.'),
   description:
     'Join the Humaner waitlist. Be first to cast customer agents that sound like your brand — not generic bots.',
   icons: {
