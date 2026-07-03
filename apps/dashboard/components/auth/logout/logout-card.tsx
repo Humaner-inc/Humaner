@@ -3,19 +3,15 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldIcon } from '@humaner/shared/icons';
+import { ShieldCheck } from '@humaner/shared/icons';
 
 import {
-  AuthInnerCard,
-  AuthInnerCardContent,
-  AuthInnerCardDescription,
-  AuthInnerCardFooter,
-  AuthInnerCardHeader,
-  AuthInnerCardTitle
-} from '@/components/auth/auth-inner-card';
-import { authInnerHighlightClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
-import { buttonVariants } from '@/components/ui/button';
-import type { CardProps } from '@/components/ui/card';
+  authHeadingClassName,
+  authInnerHighlightClassName,
+  authMutedTextClassName,
+  authOutlineButtonClassName
+} from '@/components/auth/auth-form-styles';
+import { Button } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +29,7 @@ function useCountdownRedirect(
     }
 
     const timer = setTimeout(() => {
-      setCountdown(countdown - 1);
+      setCountdown((current) => current - 1);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -42,40 +38,43 @@ function useCountdownRedirect(
   return countdown;
 }
 
-export function LogoutCard(props: CardProps): React.JSX.Element {
+export function LogoutCard(): React.JSX.Element {
   const countdown = useCountdownRedirect(10, Routes.Login);
+
   return (
-    <AuthInnerCard {...props}>
-      <AuthInnerCardHeader className="text-center">
-        <AuthInnerCardTitle>You've been logged out</AuthInnerCardTitle>
-        <AuthInnerCardDescription>We hope to see you again soon!</AuthInnerCardDescription>
-      </AuthInnerCardHeader>
-      <AuthInnerCardContent>
-        <div className={authInnerHighlightClassName}>
-          <div className="flex size-10 items-center justify-center rounded-full border border-[#070607]/10 bg-white/55 shadow-sm">
-            <ShieldIcon className="size-5 text-primary" />
-          </div>
-          <span className="text-sm font-medium">Secure logout</span>
-          <span className={cn('text-center text-xs', glassMutedTextClassName)}>
-            The session has ended.
-          </span>
-        </div>
-        <p className={cn('mt-4 text-center text-sm', glassMutedTextClassName)}>
-          You will be redirected in{' '}
-          <span className="font-medium text-[#070607]">{countdown}</span> seconds.
+    <div className="flex flex-col gap-6 text-center">
+      <div className="space-y-2">
+        <h1 className={cn(authHeadingClassName, 'text-4xl')}>
+          You&apos;ve been logged out
+        </h1>
+        <p className={authMutedTextClassName}>
+          We hope to see you again soon!
         </p>
-      </AuthInnerCardContent>
-      <AuthInnerCardFooter>
-        <Link
-          href={Routes.Login}
-          className={buttonVariants({
-            variant: 'default',
-            className: 'w-full'
-          })}
-        >
-          Back to log in
-        </Link>
-      </AuthInnerCardFooter>
-    </AuthInnerCard>
+      </div>
+
+      <div className={authInnerHighlightClassName}>
+        <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
+          <ShieldCheck className="size-5 text-[#dc143c]" />
+        </div>
+        <span className="text-sm font-medium text-[#f5f5f5]">Secure logout</span>
+        <span className={cn('text-center text-xs', authMutedTextClassName)}>
+          The session has ended.
+        </span>
+      </div>
+
+      <p className={cn('text-sm', authMutedTextClassName)}>
+        You will be redirected in{' '}
+        <span className="font-medium text-[#f5f5f5]">{countdown}</span> seconds.
+      </p>
+
+      <Button
+        type="button"
+        variant="ghost"
+        className={authOutlineButtonClassName}
+        asChild
+      >
+        <Link href={Routes.Login}>Back to log in</Link>
+      </Button>
+    </div>
   );
 }

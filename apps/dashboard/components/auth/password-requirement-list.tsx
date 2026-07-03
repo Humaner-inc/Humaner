@@ -17,7 +17,7 @@ export function PasswordRequirementList({
   const hasMinimumLength = passwordValidator.hasMinimumLength(password);
   const containsNumber = passwordValidator.containsNumber(password);
   return (
-    <ul className="list-none space-y-1 py-2">
+    <ul className="list-none space-y-1 pb-2">
       <li
         className={cn(
           'flex flex-row items-center px-4',

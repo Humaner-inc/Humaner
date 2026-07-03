@@ -75,9 +75,9 @@ export function HighlightedEmailInput({
     const next = event.target.value;
     const prevLength = prevLengthRef.current;
 
-    if (next.length > prevLength) {
+    if (next.length - prevLength > 1) {
       addHighlights(prevLength, next.length);
-    } else {
+    } else if (next.length < prevLength) {
       clearHighlights();
     }
 
@@ -99,7 +99,7 @@ export function HighlightedEmailInput({
               key={`${index}-${char}`}
               className={cn(
                 'text-white',
-                highlightedIndices.has(index) && 'email-char-highlight'
+                highlightedIndices.has(index) && 'paste-char-highlight'
               )}
             >
               {char}

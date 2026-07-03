@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 import { Routes } from '@/constants/routes';
@@ -16,34 +17,38 @@ function isChangeEmailRoute(): boolean {
   return !!pathname && pathname.startsWith(Routes.ChangeEmail);
 }
 
-function getAuthBackgroundImage(): string {
+function isLogoutRoute(): boolean {
   const pathname = getPathname();
-  if (pathname === Routes.Login || pathname === Routes.SignUp) {
-    return '/burgundy.png';
-  }
-  return '/no_screen.png';
+  return !!pathname && pathname.startsWith(Routes.Logout);
 }
 
 export default async function AuthLayout({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
-  if (!isChangeEmailRoute() && session) {
+  if (!isChangeEmailRoute() && !isLogoutRoute() && session) {
     return redirect(Routes.Home);
   }
-  const backgroundImage = getAuthBackgroundImage();
   return (
-    <div className="relative min-h-screen">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
-        role="img"
-        aria-label=""
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/25" />
-      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8">
+    <div className="relative flex min-h-screen bg-[#070607]">
+      {/* Left: auth form */}
+      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
         {children}
       </main>
+      {/* Right: image panel */}
+      <div className="relative hidden lg:block lg:w-1/2">
+        <div className="absolute inset-4 overflow-hidden rounded-2xl">
+          <Image
+            src="/lazy_work.png"
+            alt=""
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="50vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#070607]/30 via-transparent to-transparent" />
+        </div>
+      </div>
     </div>
   );
 }

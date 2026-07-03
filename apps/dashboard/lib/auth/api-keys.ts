@@ -65,13 +65,13 @@ export async function verifyApiKey(token: string) {
       errorMessage: 'API key not found or expired'
     } as ErrorResult;
   }
-  await prisma.apiKey.update({
-    where: { id: apiKey.id },
-    data: { lastUsedAt: now },
-    select: {
-      id: true // SELECT NONE
-    }
-  });
+  void prisma.apiKey
+    .update({
+      where: { id: apiKey.id },
+      data: { lastUsedAt: now },
+      select: { id: true }
+    })
+    .catch(() => {});
   return {
     success: true,
     id: apiKey.id,

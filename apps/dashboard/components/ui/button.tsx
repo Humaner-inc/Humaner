@@ -9,7 +9,7 @@ const neutralCtaClasses =
   'border border-transparent bg-[#070607] text-[#f5f5f5] shadow-sm hover:bg-[#070607]/90 dark:bg-[#f5f5f5] dark:text-[#070607] dark:hover:bg-[#f5f5f5]/90';
 
 const upgradeCtaClasses =
-  'border border-[#070607]/14 bg-[#f5f5f5] font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#f5f5f5]/22 dark:bg-[#f5f5f5]/14 dark:text-[#f5f5f5] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
+  'border border-[#070607]/14 bg-[#f5f5f5] font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#f5f5f5] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',

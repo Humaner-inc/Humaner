@@ -1,0 +1,58 @@
+import { Routes } from '@/constants/routes';
+
+const AUTH_CALLBACK_BLOCKLIST = new Set<string>([
+  Routes.Auth,
+  Routes.Login,
+  Routes.Logout,
+  Routes.SignUp,
+  Routes.AuthError,
+  Routes.Totp,
+  Routes.RecoveryCode,
+  Routes.ForgotPassword,
+  Routes.ForgotPasswordSuccess,
+  Routes.ResetPassword,
+  Routes.ResetPasswordExpired,
+  Routes.ResetPasswordSuccess,
+  Routes.VerifyEmail,
+  Routes.VerifyEmailExpired,
+  Routes.VerifyEmailSuccess,
+  Routes.ChangeEmail,
+  Routes.ChangeEmailInvalid,
+  Routes.ChangeEmailExpired
+]);
+
+function getCallbackPathname(callbackUrl: string): string | null {
+  try {
+    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+      return new URL(callbackUrl).pathname;
+    }
+
+    return callbackUrl.split('?')[0]?.split('#')[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isBlockedAuthCallbackUrl(callbackUrl: string): boolean {
+  const pathname = getCallbackPathname(callbackUrl);
+  if (!pathname) {
+    return true;
+  }
+
+  if (AUTH_CALLBACK_BLOCKLIST.has(pathname)) {
+    return true;
+  }
+
+  return pathname.startsWith(`${Routes.Auth}/`);
+}
+
+export function getSafeAuthCallbackUrl(
+  callbackUrl: string | undefined,
+  fallback: string = Routes.Home
+): string {
+  if (!callbackUrl || isBlockedAuthCallbackUrl(callbackUrl)) {
+    return fallback;
+  }
+
+  return callbackUrl;
+}

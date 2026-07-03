@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircleIcon,
   ArrowRightIcon,
+  CheckIcon,
   LockIcon,
   MailIcon
 } from '@humaner/shared/icons';
@@ -24,9 +26,9 @@ import {
   authMutedTextClassName,
   authOutlineButtonClassName,
   authHighlightButtonClassName,
-  glassAlertDestructiveClassName,
-  glassDestructiveMessageClassName,
-  glassHeadingClassName
+  authAlertDestructiveClassName,
+  authDestructiveMessageClassName,
+  authHeadingClassName
 } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -50,13 +52,17 @@ import {
 } from '@/schemas/auth/log-in-schema';
 
 export function LoginCard(): React.JSX.Element {
+  const router = useRouter();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [loginSuccess, setLoginSuccess] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string>();
   const [highlightInputs, setHighlightInputs] = React.useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = React.useState<
     string | undefined
   >();
-  const highlightTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
+  const highlightTimeoutRef = React.useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   const methods = useZodForm({
     schema: passThroughlogInSchema,
     mode: 'onSubmit',
@@ -65,7 +71,7 @@ export function LoginCard(): React.JSX.Element {
       password: ''
     }
   });
-  const canSubmit = !isLoading && !methods.formState.isSubmitting;
+  const canSubmit = !isLoading && !loginSuccess;
 
   React.useEffect(() => {
     return () => {
@@ -93,6 +99,8 @@ export function LoginCard(): React.JSX.Element {
       return;
     }
     setIsLoading(true);
+    setLoginSuccess(false);
+    setErrorMessage(undefined);
     const result = await logIn(values);
 
     if (result?.validationErrors?._errors) {
@@ -110,11 +118,25 @@ export function LoginCard(): React.JSX.Element {
       );
 
       setIsLoading(false);
-    } else if (result?.serverError) {
+      return;
+    }
+
+    if (result?.serverError) {
       setUnverifiedEmail(undefined);
       setErrorMessage(result.serverError);
       setIsLoading(false);
+      return;
     }
+
+    setIsLoading(false);
+    setLoginSuccess(true);
+
+    const redirectTo = result?.data?.redirectTo ?? Routes.Home;
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 550);
+    });
+    router.push(redirectTo);
+    router.refresh();
   };
   const handleSignInWithGoogle = async (): Promise<void> => {
     if (!canSubmit) {
@@ -140,8 +162,8 @@ export function LoginCard(): React.JSX.Element {
   };
   return (
     <div className="flex flex-col gap-6">
-      <div className="space-y-2">
-        <h1 className={cn(glassHeadingClassName, 'text-4xl')}>
+      <div className="space-y-2 text-center">
+        <h1 className={cn(authHeadingClassName, 'text-4xl')}>
           Welcome
         </h1>
         <p className={authMutedTextClassName}>
@@ -180,10 +202,10 @@ export function LoginCard(): React.JSX.Element {
                         className={cn('size-4 shrink-0', authInputAdornmentClassName)}
                       />
                     }
-                    disabled={methods.formState.isSubmitting}
+                    disabled={isLoading || loginSuccess}
                   />
                 </FormControl>
-                <FormMessage className={glassDestructiveMessageClassName} />
+                <FormMessage className={authDestructiveMessageClassName} />
               </FormItem>
             )}
           />
@@ -217,17 +239,17 @@ export function LoginCard(): React.JSX.Element {
                         className={cn('size-4 shrink-0', authInputAdornmentClassName)}
                       />
                     }
-                    disabled={methods.formState.isSubmitting}
+                    disabled={isLoading || loginSuccess}
                   />
                 </FormControl>
-                <FormMessage className={glassDestructiveMessageClassName} />
+                <FormMessage className={authDestructiveMessageClassName} />
               </FormItem>
             )}
           />
           {errorMessage && (
             <Alert
               variant="destructive"
-              className={glassAlertDestructiveClassName}
+              className={authAlertDestructiveClassName}
             >
               <div className="flex flex-row items-center gap-2">
                 <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -237,7 +259,7 @@ export function LoginCard(): React.JSX.Element {
                     <Link
                       className={cn(
                         buttonVariants({ variant: 'link' }),
-                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-800 underline'
+                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-300 underline'
                       )}
                       href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
                     >
@@ -254,20 +276,24 @@ export function LoginCard(): React.JSX.Element {
             variant="ghost"
             className={authHighlightButtonClassName}
             disabled={!canSubmit}
-            loading={methods.formState.isSubmitting}
+            loading={isLoading}
           >
-            Log in
+            {loginSuccess ? (
+              <CheckIcon className="size-4" strokeWidth={2.5} />
+            ) : (
+              'Log in'
+            )}
           </Button>
         </form>
       </FormProvider>
 
       <p className={authDividerClassName}>or</p>
 
-      <div className="flex flex-row gap-4">
+      <div className="flex flex-row gap-3">
         <Button
           type="button"
           variant="ghost"
-          className={authOutlineButtonClassName}
+          className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={!canSubmit}
           onClick={handleSignInWithGoogle}
         >
@@ -280,14 +306,13 @@ export function LoginCard(): React.JSX.Element {
         <Button
           type="button"
           variant="ghost"
-          className={authOutlineButtonClassName}
+          className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={!canSubmit}
           onClick={handleSignInWithGitHub}
         >
           <GitHubLogo
             width="20"
             height="20"
-            className="opacity-90"
           />
           GitHub
         </Button>

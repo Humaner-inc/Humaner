@@ -9,6 +9,42 @@ import { sendWelcomeEmail } from '@/lib/smtp/send-welcome-email';
 import { getUserImageUrl } from '@/lib/urls/get-user-image-url';
 import { OAuthIdentityProvider } from '@/types/identity-provider';
 
+function getOAuthProfileImageUrl(
+  provider: string,
+  profile: Record<string, unknown> | undefined,
+  user: User
+): string | null | undefined {
+  if (provider === OAuthIdentityProvider.Google) {
+    const picture =
+      (profile?.picture as string | undefined) ??
+      (profile?.image as string | undefined) ??
+      user.image;
+
+    if (typeof picture === 'string' && picture.includes('googleusercontent.com')) {
+      return picture.replace(/=s\d+-c$/, '=s256-c');
+    }
+
+    return picture;
+  }
+
+  if (provider === OAuthIdentityProvider.GitHub) {
+    const avatar =
+      (profile?.avatar_url as string | undefined) ??
+      (profile?.image as string | undefined) ??
+      user.image;
+
+    if (typeof avatar === 'string' && avatar.includes('avatars.githubusercontent.com')) {
+      const url = new URL(avatar);
+      url.searchParams.set('s', '256');
+      return url.toString();
+    }
+
+    return avatar;
+  }
+
+  return user.image;
+}
+
 export const events = {
   async signIn({ user, account, profile, isNewUser }) {
     if (user && user.id) {
@@ -16,6 +52,27 @@ export const events = {
         where: { id: user.id },
         data: { lastLogin: new Date() }
       });
+
+      if (
+        account?.provider === OAuthIdentityProvider.Google ||
+        account?.provider === OAuthIdentityProvider.GitHub
+      ) {
+        const existingUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { image: true }
+        });
+
+        if (!existingUser?.image) {
+          await tryCopyProfileImage(
+            user,
+            getOAuthProfileImageUrl(
+              account.provider,
+              profile as Record<string, unknown> | undefined,
+              user
+            )
+          );
+        }
+      }
 
       if (isNewUser && user.email) {
         if (!user.organizationId) {
@@ -26,7 +83,6 @@ export const events = {
         }
         if (account?.provider === OAuthIdentityProvider.Google) {
           await verifyEmail(user.email);
-          await tryCopyProfileImage(user, profile?.picture);
           if (user.name) {
             await sendWelcomeEmail({
               name: user.name,
@@ -36,10 +92,6 @@ export const events = {
         }
         if (account?.provider === OAuthIdentityProvider.GitHub) {
           await verifyEmail(user.email);
-          await tryCopyProfileImage(
-            user,
-            profile?.avatar_url ?? profile?.image ?? user.image
-          );
           if (user.name) {
             await sendWelcomeEmail({
               name: user.name,
@@ -57,7 +109,30 @@ export const events = {
       });
     }
   },
-  async linkAccount({ user, account }) {
+  async linkAccount({ user, account, profile }) {
+    if (
+      user?.id &&
+      account?.provider &&
+      (account.provider === OAuthIdentityProvider.Google ||
+        account.provider === OAuthIdentityProvider.GitHub)
+    ) {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { image: true }
+      });
+
+      if (!existingUser?.image) {
+        await tryCopyProfileImage(
+          user,
+          getOAuthProfileImageUrl(
+            account.provider,
+            profile as Record<string, unknown> | undefined,
+            user
+          )
+        );
+      }
+    }
+
     if (user && user.name && user.email && account && account.provider) {
       // Here we check if the user just has been created using an OAuth provider
       // - If yes -> No need to send out security alert

@@ -121,7 +121,12 @@
   body {
     @apply box-border bg-background text-foreground;
   }
-  /* Demo display font watermarks $, +, digits, etc. — route those glyphs to Georgia. */
+
+  ::selection {
+    background-color: rgb(220 20 60 / 0.22);
+    color: inherit;
+  }
+
   @font-face {
     font-family: 'Humaner Display Fallback';
     src: local('Georgia');
@@ -144,69 +149,178 @@
 
 @layer utilities {
   .min-h-screen {
-    min-height: 100vh; /* Fallback */
+    min-height: 100vh;
     min-height: 100dvh;
   }
   .h-screen {
-    height: 100vh; /* Fallback */
+    height: 100vh;
     height: 100dvh;
   }
 }
 
-/* Chrome, Safari, Edge, Opera */
+/* Number input spinners */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-/* Firefox */
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* OTP paste highlight */
+.paste-char-highlight {
+  border-radius: 0.1rem;
+  animation: paste-char-highlight 0.7s ease forwards;
+}
+
+@keyframes paste-char-highlight {
+  0% {
+    background-color: rgb(220 20 60 / 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paste-char-highlight {
+    animation: none;
+    background-color: transparent;
+  }
+}
+
+/* Auth input autofill — dark variant */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  -webkit-text-fill-color: #f5f5f5 !important;
+  caret-color: #f5f5f5;
+  transition: background-color 99999s ease-out 0s;
 }
 
 @keyframes auth-input-highlight {
   0%,
   100% {
-    border-color: rgb(255 255 255 / 0.3);
+    border-color: rgb(255 255 255 / 0.08);
     box-shadow: none;
   }
-
   45% {
-    border-color: rgb(255 255 255 / 0.9);
-    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18);
+    border-color: rgb(220 20 60 / 0.5);
+    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.1);
   }
-}
-
-.auth-input:-webkit-autofill,
-.auth-input:-webkit-autofill:hover,
-.auth-input:-webkit-autofill:focus,
-.auth-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px rgb(255 255 255 / 0.1) inset !important;
-  box-shadow: 0 0 0 1000px rgb(255 255 255 / 0.1) inset !important;
-  -webkit-text-fill-color: #fff !important;
-  caret-color: #fff;
-  transition: background-color 99999s ease-out 0s;
 }
 
 .auth-input--highlight {
   animation: auth-input-highlight 0.55s ease-out;
 }
 
-@keyframes onboarding-pan {
+/* Onboarding input autofill — prevent blue browser fill */
+.onboarding-input:-webkit-autofill,
+.onboarding-input:-webkit-autofill:hover,
+.onboarding-input:-webkit-autofill:focus,
+.onboarding-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #070607 !important;
+  caret-color: #070607;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.onboarding-root[data-onboarding-appearance='light'] .onboarding-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  -webkit-text-fill-color: #f5f5f5 !important;
+  caret-color: #f5f5f5;
+}
+
+@keyframes onboarding-input-highlight {
+  0%,
+  100% {
+    border-color: rgb(7 6 7 / 0.08);
+    box-shadow: none;
+  }
+  45% {
+    border-color: rgb(220 20 60 / 0.45);
+    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.08);
+  }
+}
+
+.onboarding-root[data-onboarding-appearance='light'] .onboarding-input--highlight {
+  animation: onboarding-input-highlight-inverted 0.55s ease-out;
+}
+
+@keyframes onboarding-input-highlight-inverted {
+  0%,
+  100% {
+    border-color: rgb(255 255 255 / 0.08);
+    box-shadow: none;
+  }
+  45% {
+    border-color: rgb(220 20 60 / 0.5);
+    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.1);
+  }
+}
+
+.onboarding-input--highlight {
+  animation: onboarding-input-highlight 0.55s ease-out;
+}
+
+/* ─── Onboarding scrollbar — thin, hugs card edge ─────────────────────────────── */
+.onboarding-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.onboarding-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+.onboarding-scroll::-webkit-scrollbar-thumb {
+  background: rgb(7 6 7 / 0.12);
+  border-radius: 3px;
+}
+.onboarding-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(7 6 7 / 0.2);
+}
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.12);
+}
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+.onboarding-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(7 6 7 / 0.12) transparent;
+}
+
+/* Onboarding glow animation (kept for backward compat) */
+@keyframes onboarding-glow {
   0% {
-    transform: scale(1.12) translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: scale(1.18) translate3d(-1.5%, -1%, 0);
+    transform: translate3d(-2%, 3%, 0) scale(1.05);
   }
   100% {
-    transform: scale(1.12) translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @layer utilities {
+  .animate-onboarding-glow {
+    animation: onboarding-glow 20s ease-in-out infinite;
+  }
   .animate-onboarding-pan {
-    animation: onboarding-pan 28s ease-in-out infinite;
+    animation: onboarding-glow 20s ease-in-out infinite;
   }
 }

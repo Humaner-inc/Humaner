@@ -20,9 +20,9 @@ import {
   authMutedTextClassName,
   authOutlineButtonClassName,
   authPrimaryButtonClassName,
-  glassAlertDestructiveClassName,
-  glassDestructiveMessageClassName,
-  glassHeadingClassName
+  authAlertDestructiveClassName,
+  authDestructiveMessageClassName,
+  authHeadingClassName
 } from '@/components/auth/auth-form-styles';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -83,8 +83,8 @@ export function SignUpCard(): React.JSX.Element {
   };
   return (
     <div className="flex flex-col gap-6">
-      <div className="space-y-2">
-        <h1 className={cn(glassHeadingClassName, 'text-4xl')}>
+      <div className="space-y-2 text-center">
+        <h1 className={cn(authHeadingClassName, 'text-4xl')}>
           Create account
         </h1>
         <p className={authMutedTextClassName}>
@@ -120,7 +120,7 @@ export function SignUpCard(): React.JSX.Element {
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className={glassDestructiveMessageClassName} />
+                <FormMessage className={authDestructiveMessageClassName} />
               </FormItem>
             )}
           />
@@ -141,11 +141,11 @@ export function SignUpCard(): React.JSX.Element {
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className={glassDestructiveMessageClassName} />
+                <FormMessage className={authDestructiveMessageClassName} />
               </FormItem>
             )}
           />
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-3">
             <FormField
               control={methods.control}
               name="password"
@@ -163,18 +163,18 @@ export function SignUpCard(): React.JSX.Element {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className={glassDestructiveMessageClassName} />
+                  <FormMessage className={authDestructiveMessageClassName} />
                 </FormItem>
               )}
             />
-            <div className="[&_.text-green-500]:text-emerald-600 [&_.text-muted-foreground]:text-[#070607]/55">
+            <div className="[&_.text-green-500]:text-emerald-400 [&_.text-muted-foreground]:text-white/40">
               <PasswordRequirementList password={password} />
             </div>
           </div>
           {errorMessage && (
             <Alert
               variant="destructive"
-              className={glassAlertDestructiveClassName}
+              className={authAlertDestructiveClassName}
             >
               <div className="flex flex-row items-center gap-2 text-sm">
                 <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -195,11 +195,11 @@ export function SignUpCard(): React.JSX.Element {
 
       <p className={authDividerClassName}>or</p>
 
-      <div className="flex flex-row gap-4">
+      <div className="flex flex-row gap-3">
         <Button
           type="button"
           variant="outline"
-          className={authOutlineButtonClassName}
+          className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={handleSignInWithGoogle}
         >
@@ -212,14 +212,13 @@ export function SignUpCard(): React.JSX.Element {
         <Button
           type="button"
           variant="outline"
-          className={authOutlineButtonClassName}
+          className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={handleSignInWithGitHub}
         >
           <GitHubLogo
             width="20"
             height="20"
-            className="opacity-90"
           />
           GitHub
         </Button>

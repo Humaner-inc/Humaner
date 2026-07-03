@@ -17,9 +17,9 @@ const InputWithAdornments = React.forwardRef<
     { className, startAdornment, endAdornment, containerClassName, ...other },
     ref
   ) => (
-    <div className={cn('relative inline-block h-9 w-full', containerClassName)}>
+    <div className={cn('relative w-full', containerClassName)}>
       {startAdornment && (
-        <span className="absolute left-3 top-1/2 flex -translate-y-1/2 text-muted-foreground">
+        <span className="pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-muted-foreground">
           {startAdornment}
         </span>
       )}
@@ -39,7 +39,7 @@ const InputWithAdornments = React.forwardRef<
         {...other}
       />
       {endAdornment && (
-        <span className="absolute left-auto right-3 top-1/2 flex -translate-y-1/2 text-muted-foreground">
+        <span className="absolute inset-y-0 right-3 z-10 flex items-center text-muted-foreground">
           {endAdornment}
         </span>
       )}

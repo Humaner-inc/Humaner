@@ -91,7 +91,7 @@ export function VerifyEmailCard({
             Enter the code we sent to your inbox.
           </AuthInnerCardDescription>
         </AuthInnerCardHeader>
-        <AuthInnerCardContent>
+        <AuthInnerCardContent className="mt-4">
           <form
             className="flex flex-col gap-4"
             onSubmit={methods.handleSubmit(onSubmit)}

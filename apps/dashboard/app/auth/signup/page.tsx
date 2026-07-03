@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function SignUpPage(): React.JSX.Element {
   return (
-    <AuthContainer showMockup>
+    <AuthContainer>
       <SignUpCard />
     </AuthContainer>
   );
