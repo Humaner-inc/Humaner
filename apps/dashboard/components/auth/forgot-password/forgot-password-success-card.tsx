@@ -2,17 +2,19 @@ import * as React from 'react';
 import Link from 'next/link';
 import { InfoIcon } from '@humaner/shared/icons';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 export type ForgotPasswordSuccessCardProps = CardProps & {
   email: string;
@@ -23,15 +25,15 @@ export function ForgotPasswordSuccessCard({
   ...other
 }: ForgotPasswordSuccessCardProps): React.JSX.Element {
   return (
-    <Card {...other}>
-      <CardHeader>
-        <CardTitle>Reset instructions sent</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...other}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Reset instructions sent</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           An email with a link and reset instructions is on its way to{' '}
-          <strong className="text-foreground">{email}</strong>.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+          <strong className="font-medium text-[#070607]">{email}</strong>.
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
         <Alert variant="info">
           <div className="flex flex-row items-start gap-2">
             <InfoIcon className="mt-0.5 size-[18px] shrink-0" />
@@ -42,15 +44,12 @@ export function ForgotPasswordSuccessCard({
             </AlertDescription>
           </div>
         </Alert>
-      </CardContent>
-      <CardFooter className="flex justify-center text-sm">
-        <Link
-          href={Routes.Login}
-          className="text-foreground underline"
-        >
+      </AuthInnerCardContent>
+      <AuthInnerCardFooter className="justify-center text-sm">
+        <Link href={Routes.Login} className={cn('underline', glassLinkClassName)}>
           Back to log in
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

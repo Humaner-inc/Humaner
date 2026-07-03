@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@humaner/react/demo-dock.css';
+
 @layer base {
   :root {
     --background: #070607;

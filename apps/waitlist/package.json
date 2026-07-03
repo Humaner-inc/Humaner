@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@humaner/react": "workspace:*",
     "@humaner/shared": "workspace:*",
     "@react-email/components": "0.0.26",
     "@react-email/render": "1.0.2",

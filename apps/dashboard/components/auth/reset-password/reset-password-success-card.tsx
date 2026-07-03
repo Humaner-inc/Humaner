@@ -2,33 +2,32 @@ import * as React from 'react';
 import Link from 'next/link';
 
 import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
+import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 export function ResetPasswordSuccessCard(props: CardProps): React.JSX.Element {
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Password updated</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...props}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Password updated</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           Your password has been successfully changed. Use your new password to
           log in.
-        </CardDescription>
-      </CardHeader>
-      <CardFooter className="flex justify-center text-sm">
-        <Link
-          href={Routes.Login}
-          className="text-foreground underline"
-        >
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardFooter className="justify-center text-sm">
+        <Link href={Routes.Login} className={cn('underline', glassLinkClassName)}>
           Back to log in
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

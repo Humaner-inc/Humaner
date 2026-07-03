@@ -7,11 +7,12 @@ import { cn } from '@/lib/utils';
 export const TRUNK_X = 12;
 export const PILL_X = 52;
 export const NODE_Y = 11;
+export const PILL_Y = NODE_Y + 14;
 export const TRUNK_START_Y = 28;
 export const SCROLL_ANCHOR_RATIO = 0.38;
 
 export function branchToPillPath(endX: number = PILL_X): string {
-  return `M ${TRUNK_X} ${NODE_Y} L ${endX} ${NODE_Y}`;
+  return `M ${TRUNK_X} ${NODE_Y} C ${TRUNK_X} ${NODE_Y + 10}, ${TRUNK_X + 16} ${PILL_Y}, ${endX} ${PILL_Y}`;
 }
 
 export type BranchTimelineState = {
@@ -437,7 +438,7 @@ export function BranchConnector({
           : 'border-foreground/12 text-foreground/40'
   );
 
-  const pillStyle = { left: PILL_X, top: NODE_Y } as const;
+  const pillStyle = { left: PILL_X, top: PILL_Y } as const;
 
   return (
     <div className="absolute left-0 top-0 hidden h-7 min-w-36 overflow-visible lg:block">
@@ -445,22 +446,22 @@ export function BranchConnector({
         aria-hidden
         className="pointer-events-none absolute left-0 top-0 z-0 overflow-visible"
         width={PILL_X + 8}
-        height="24"
-        viewBox={`0 0 ${PILL_X + 8} 24`}
+        height="32"
+        viewBox={`0 0 ${PILL_X + 8} 32`}
         fill="none"
       >
         <path
           d={branchToPillPath()}
           stroke={isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(6, 6, 7, 0.1)'}
           strokeWidth="2"
-          strokeLinecap="butt"
+          strokeLinecap="round"
           fill="none"
         />
         <path
           d={branchToPillPath()}
           stroke="#dc143c"
           strokeWidth="2"
-          strokeLinecap="butt"
+          strokeLinecap="round"
           pathLength={branchLength}
           strokeDasharray={branchLength}
           strokeDashoffset={dashOffset}
@@ -509,7 +510,7 @@ export function BranchNode({
   return (
     <span
       className={cn(
-        'relative block rounded-[2px] border-2 transition-[border-color,box-shadow] duration-150',
+        'relative block rounded-full border-2 transition-[border-color,box-shadow] duration-150',
         active ? 'size-3' : 'size-2.5',
         filled
           ? 'border-accent'
@@ -522,12 +523,12 @@ export function BranchNode({
     >
       <span
         className={cn(
-          'absolute inset-0 rounded-[1px]',
+          'absolute inset-0 rounded-full',
           isDark ? 'bg-foreground' : 'bg-foreground'
         )}
       />
       <span
-        className="absolute inset-0 rounded-[1px] bg-accent will-change-transform"
+        className="absolute inset-0 rounded-full bg-accent will-change-transform"
         style={{
           transform: `scale(${fill})`,
           transformOrigin: 'center'

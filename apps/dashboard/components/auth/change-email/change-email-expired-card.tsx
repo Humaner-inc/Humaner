@@ -2,35 +2,34 @@ import * as React from 'react';
 import Link from 'next/link';
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
+import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 export function ChangeEmailExpiredCard(props: CardProps): React.JSX.Element {
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Change request is expired</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...props}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Change request is expired</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           Sorry, your change email request is already expired! You need to
           request an email change again.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center text-sm text-muted-foreground">
-          <Link
-            href={Routes.Account}
-            className="underline"
-          >
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
+        <div className={cn('text-center text-sm', glassMutedTextClassName)}>
+          <Link href={Routes.Account} className={cn('underline', glassLinkClassName)}>
             Go to account settings
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </AuthInnerCardContent>
+    </AuthInnerCard>
   );
 }

@@ -7,16 +7,16 @@ import { type SubmitHandler } from 'react-hook-form';
 
 import { resetPassword } from '@/actions/auth/reset-password';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
+import {
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -64,15 +64,15 @@ export function ResetPasswordCard({
   };
   return (
     <FormProvider {...methods}>
-      <Card {...other}>
-        <CardHeader>
-          <CardTitle>Reset your password</CardTitle>
-          <CardDescription suppressHydrationWarning>
+      <AuthInnerCard {...other}>
+        <AuthInnerCardHeader>
+          <AuthInnerCardTitle>Reset your password</AuthInnerCardTitle>
+          <AuthInnerCardDescription suppressHydrationWarning>
             Use the form below to change your password. This request will expire
             in {expires ? formatDistanceToNow(expires) : ''}.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </AuthInnerCardDescription>
+        </AuthInnerCardHeader>
+        <AuthInnerCardContent>
           <form
             onSubmit={methods.handleSubmit(onSubmit)}
             className="flex flex-col gap-4"
@@ -119,8 +119,8 @@ export function ResetPasswordCard({
               Change password
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </AuthInnerCardContent>
+      </AuthInnerCard>
     </FormProvider>
   );
 }

@@ -2,36 +2,35 @@ import * as React from 'react';
 import Link from 'next/link';
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
+import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 export function ChangeEmailInvalidCard(props: CardProps): React.JSX.Element {
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Change request is invalid</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...props}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Change request is invalid</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           Sorry, but your email change request is not valid! This can occur if
           you submit several change requests, each of which invalidates the
           prior ones, or if you have already changed your email.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center text-sm text-muted-foreground">
-          <Link
-            href={Routes.Account}
-            className="underline"
-          >
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
+        <div className={cn('text-center text-sm', glassMutedTextClassName)}>
+          <Link href={Routes.Account} className={cn('underline', glassLinkClassName)}>
             Go to account settings
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </AuthInnerCardContent>
+    </AuthInnerCard>
   );
 }

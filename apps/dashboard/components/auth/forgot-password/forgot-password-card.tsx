@@ -7,17 +7,18 @@ import { AlertCircleIcon, MailIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 
 import { sendResetPasswordInstructions } from '@/actions/auth/send-reset-password-instructions';
+import {
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -29,6 +30,7 @@ import {
 import { InputWithAdornments } from '@/components/ui/input-with-adornments';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { cn } from '@/lib/utils';
 import {
   sendResetPasswordInstructionsSchema,
   type SendResetPasswordInstructionsSchema
@@ -60,15 +62,15 @@ export function ForgotPasswordCard(props: CardProps): React.JSX.Element {
     }
   };
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Forgot your password?</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...props}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Forgot your password?</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           No worries! We'll send you a link with instructions on how to reset
           your password.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
         <FormProvider {...methods}>
           <form
             onSubmit={methods.handleSubmit(onSubmit)}
@@ -114,16 +116,15 @@ export function ForgotPasswordCard(props: CardProps): React.JSX.Element {
             </Button>
           </form>
         </FormProvider>
-      </CardContent>
-      <CardFooter className="flex justify-center gap-1 text-sm text-muted-foreground">
+      </AuthInnerCardContent>
+      <AuthInnerCardFooter
+        className={cn('justify-center gap-1 text-sm', glassMutedTextClassName)}
+      >
         <span>Remembered your password?</span>
-        <Link
-          href={Routes.Login}
-          className="text-foreground underline"
-        >
+        <Link href={Routes.Login} className={cn('underline', glassLinkClassName)}>
           Log in
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

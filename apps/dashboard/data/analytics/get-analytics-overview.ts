@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getPlanForTier } from '@humaner/shared/plans';
+import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import { format, startOfDay, subDays } from 'date-fns';
 import { redirect } from 'next/navigation';
 
@@ -214,14 +214,18 @@ export async function getAnalyticsOverview(options?: {
       ? Math.round((outcomeCounts.satisfied / outcomeCounts.total) * 100)
       : 0;
 
-  const knowledgeGaps = extractKnowledgeGaps(gapConversations);
-  const unansweredCount = knowledgeGaps.reduce(
+  const tier = normalizeTier(organization?.tier ?? 'free');
+  const plan = getPlanForTier(tier);
+
+  // Content-gap detection is a Push (v2.0) capability. Lower tiers still see the
+  // unanswered count in analytics, but not the itemized gaps + suggested fixes.
+  const contentGapsEnabled = getPlanCapabilities(tier).contentGaps;
+  const detectedGaps = extractKnowledgeGaps(gapConversations);
+  const knowledgeGaps = contentGapsEnabled ? detectedGaps : [];
+  const unansweredCount = detectedGaps.reduce(
     (total, gap) => total + gap.count,
     0
   );
-
-  const tier = normalizeTier(organization?.tier ?? 'free');
-  const plan = getPlanForTier(tier);
   const messagesUsed = await getMessagesUsedThisMonth(organizationId);
 
   const totalMessages = await prisma.message.count({

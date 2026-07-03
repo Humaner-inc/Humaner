@@ -14,8 +14,8 @@ export function WaitlistHeroSection({
       id="hero"
       className="relative overflow-hidden bg-[#f5f5f5]"
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-1 px-6 pb-8 pt-32 sm:gap-2 sm:pt-36 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-12 lg:pb-24 lg:pt-32">
-        <div className="flex flex-col items-center text-center lg:justify-center lg:pr-8">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-6 pb-8 pt-32 sm:gap-2 sm:pt-36 lg:min-h-[100svh] lg:flex-row lg:items-center lg:justify-center lg:gap-12 lg:pb-24 lg:pt-32">
+        <div className="flex shrink-0 flex-col items-center text-center lg:justify-center">
           <h1 className="font-display text-[2.65rem] font-semibold leading-[1.06] tracking-tight sm:text-6xl lg:text-[4rem]">
             <span className="text-foreground">Customer support</span>
             <br />
@@ -30,7 +30,7 @@ export function WaitlistHeroSection({
           </p>
         </div>
 
-        <div className="relative flex w-full justify-center overflow-visible lg:w-auto lg:justify-end lg:justify-self-end lg:self-center">
+        <div className="relative flex w-full shrink-0 justify-center overflow-visible lg:w-auto lg:self-center">
           <HeroComputer />
         </div>
       </div>

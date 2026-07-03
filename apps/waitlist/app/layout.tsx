@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { HumanerDemoDock } from '@humaner/react';
 import { fellix, theSeasons } from '@/lib/fonts';
 import { createTitle } from '@/lib/utils';
 
@@ -27,6 +28,12 @@ export default function RootLayout({
         className={`${fellix.variable} ${theSeasons.variable} min-h-screen bg-foreground font-sans text-background antialiased`}
       >
         {children}
+        {process.env.NEXT_PUBLIC_DEMO_AGENT_ID && (
+          <HumanerDemoDock
+            agentId={process.env.NEXT_PUBLIC_DEMO_AGENT_ID}
+            baseUrl={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.humaner.io'}
+          />
+        )}
       </body>
     </html>
   );

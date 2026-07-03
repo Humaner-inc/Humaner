@@ -11,17 +11,18 @@ import {
 } from '@humaner/shared/icons';
 
 import { submitTotpCode } from '@/actions/auth/submit-totp-code';
+import {
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -95,14 +96,14 @@ export function TotpCodeCard({
   };
 
   return (
-    <Card {...other}>
-      <CardHeader>
-        <CardTitle>Authenticator code</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...other}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Authenticator code</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           Please enter the 6-digit code from your authenticator app.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
         <FormProvider {...methods}>
           <form
             className="flex flex-col gap-4"
@@ -154,7 +155,8 @@ export function TotpCodeCard({
                       <Link
                         className={cn(
                           buttonVariants({ variant: 'link' }),
-                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-foreground underline'
+                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                          glassLinkClassName
                         )}
                         href={Routes.Login}
                       >
@@ -178,14 +180,15 @@ export function TotpCodeCard({
             </Button>
           </form>
         </FormProvider>
-      </CardContent>
+      </AuthInnerCardContent>
       <Separator />
-      <CardFooter className="flex justify-center py-2">
+      <AuthInnerCardFooter className="justify-center gap-4 py-2">
         <Link
           href={Routes.Login}
           className={cn(
             buttonVariants({ variant: 'link', size: 'default' }),
-            'text-muted-foreground hover:text-primary hover:no-underline'
+            glassLinkClassName,
+            'hover:no-underline'
           )}
         >
           <ArrowLeftIcon className="mr-2 size-4 shrink-0" />
@@ -195,13 +198,14 @@ export function TotpCodeCard({
           href={`${Routes.RecoveryCode}?token=${encodeURIComponent(token)}&expiry=${encodeURIComponent(expiry)}`}
           className={cn(
             buttonVariants({ variant: 'link', size: 'default' }),
-            'text-muted-foreground hover:text-primary hover:no-underline'
+            glassLinkClassName,
+            'hover:no-underline'
           )}
         >
           <LockIcon className="mr-2 size-4 shrink-0" />
           Lost access
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

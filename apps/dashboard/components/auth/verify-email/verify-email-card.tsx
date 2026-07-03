@@ -8,16 +8,17 @@ import { toast } from 'sonner';
 
 import { resendEmailConfirmation } from '@/actions/auth/resend-email-confirmation';
 import { verifyEmailWithOtp } from '@/actions/auth/verify-email-with-otp';
-import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
+import { Button } from '@/components/ui/button';
+import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -31,6 +32,7 @@ import {
   InputOTPSlot
 } from '@/components/ui/input-otp';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { cn } from '@/lib/utils';
 import {
   verifyEmailWithOtpSchema,
   type VerifyEmailWithOtpSchema
@@ -82,14 +84,14 @@ export function VerifyEmailCard({
   };
   return (
     <FormProvider {...methods}>
-      <Card {...other}>
-        <CardHeader>
-          <CardTitle>Verify your email</CardTitle>
-          <CardDescription>
+      <AuthInnerCard {...other}>
+        <AuthInnerCardHeader>
+          <AuthInnerCardTitle>Verify your email</AuthInnerCardTitle>
+          <AuthInnerCardDescription>
             Enter the code we sent to your inbox.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </AuthInnerCardDescription>
+        </AuthInnerCardHeader>
+        <AuthInnerCardContent>
           <form
             className="flex flex-col gap-4"
             onSubmit={methods.handleSubmit(onSubmit)}
@@ -131,13 +133,13 @@ export function VerifyEmailCard({
               Verify
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center gap-1 text-sm text-muted-foreground">
+        </AuthInnerCardContent>
+        <AuthInnerCardFooter className={cn('justify-center gap-1 text-sm', glassMutedTextClassName)}>
           Didn't receive an email?
           <Button
             type="button"
             variant="link"
-            className="h-fit px-0.5 py-0 text-foreground underline"
+            className={cn('h-fit px-0.5 py-0 underline', glassLinkClassName)}
             disabled={
               methods.formState.isSubmitting || isResendingEmailVerification
             }
@@ -145,8 +147,8 @@ export function VerifyEmailCard({
           >
             Resend
           </Button>
-        </CardFooter>
-      </Card>
+        </AuthInnerCardFooter>
+      </AuthInnerCard>
     </FormProvider>
   );
 }

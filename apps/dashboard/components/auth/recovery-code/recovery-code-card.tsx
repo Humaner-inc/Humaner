@@ -5,17 +5,18 @@ import Link from 'next/link';
 import { AlertCircleIcon, ArrowLeftIcon, ArrowRightIcon } from '@humaner/shared/icons';
 
 import { submitRecoveryCode } from '@/actions/auth/submit-recovery-code';
+import {
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -85,15 +86,15 @@ export function RecoveryCodeCard({
   };
 
   return (
-    <Card {...other}>
-      <CardHeader>
-        <CardTitle>Recovery code</CardTitle>
-        <CardDescription>
+    <AuthInnerCard {...other}>
+      <AuthInnerCardHeader>
+        <AuthInnerCardTitle>Recovery code</AuthInnerCardTitle>
+        <AuthInnerCardDescription>
           Each recovery code can be used exactly once to grant access without
           your authenticator.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
         <FormProvider {...methods}>
           <form
             className="flex flex-col gap-4"
@@ -132,7 +133,8 @@ export function RecoveryCodeCard({
                       <Link
                         className={cn(
                           buttonVariants({ variant: 'link' }),
-                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-foreground underline'
+                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                          glassLinkClassName
                         )}
                         href={Routes.Login}
                       >
@@ -156,20 +158,21 @@ export function RecoveryCodeCard({
             </Button>
           </form>
         </FormProvider>
-      </CardContent>
+      </AuthInnerCardContent>
       <Separator />
-      <CardFooter className="flex justify-center py-2">
+      <AuthInnerCardFooter className="justify-center py-2">
         <Link
           href={`${Routes.Totp}?token=${encodeURIComponent(token)}&expiry=${encodeURIComponent(expiry)}`}
           className={cn(
             buttonVariants({ variant: 'link', size: 'default' }),
-            'text-muted-foreground hover:text-primary hover:no-underline'
+            glassLinkClassName,
+            'hover:no-underline'
           )}
         >
           <ArrowLeftIcon className="mr-2 size-4 shrink-0" />
           Go back
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

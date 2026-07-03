@@ -50,6 +50,24 @@ export const glassGhostButtonClassName =
 export const glassCardClassName =
   'rounded-lg border border-[#070607]/12 bg-white/40';
 
+/** Nested content inside AuthContainer — no second opaque card shell. */
+export const authInnerCardClassName =
+  'rounded-none border-0 bg-transparent text-[#070607] shadow-none';
+
+export const authInnerCardHeaderClassName = 'space-y-1.5 p-0';
+
+export const authInnerCardContentClassName = 'p-0';
+
+export const authInnerCardFooterClassName = 'p-0 pt-4';
+
+export const authInnerCardTitleClassName =
+  'font-display text-xl font-semibold leading-none tracking-tight text-[#070607]';
+
+export const authInnerCardDescriptionClassName = glassMutedTextClassName;
+
+export const authInnerHighlightClassName =
+  'flex flex-col items-center space-y-2 rounded-xl p-4 ' + glassCardClassName;
+
 export const glassSegmentSelectedClassName =
   'border-[#070607]/25 bg-white/70 ring-1 ring-[#070607]/15';
 

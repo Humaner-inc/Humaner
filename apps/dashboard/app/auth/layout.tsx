@@ -16,6 +16,14 @@ function isChangeEmailRoute(): boolean {
   return !!pathname && pathname.startsWith(Routes.ChangeEmail);
 }
 
+function getAuthBackgroundImage(): string {
+  const pathname = getPathname();
+  if (pathname === Routes.Login || pathname === Routes.SignUp) {
+    return '/burgundy.png';
+  }
+  return '/no_screen.png';
+}
+
 export default async function AuthLayout({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
@@ -23,11 +31,12 @@ export default async function AuthLayout({
   if (!isChangeEmailRoute() && session) {
     return redirect(Routes.Home);
   }
+  const backgroundImage = getAuthBackgroundImage();
   return (
     <div className="relative min-h-screen">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/no_screen.png)' }}
+        style={{ backgroundImage: `url(${backgroundImage})` }}
         role="img"
         aria-label=""
       />

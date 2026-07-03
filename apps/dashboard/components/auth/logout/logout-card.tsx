@@ -5,17 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShieldIcon } from '@humaner/shared/icons';
 
-import { buttonVariants } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  type CardProps
-} from '@/components/ui/card';
+  AuthInnerCard,
+  AuthInnerCardContent,
+  AuthInnerCardDescription,
+  AuthInnerCardFooter,
+  AuthInnerCardHeader,
+  AuthInnerCardTitle
+} from '@/components/auth/auth-inner-card';
+import { authInnerHighlightClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
+import { buttonVariants } from '@/components/ui/button';
+import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
+import { cn } from '@/lib/utils';
 
 function useCountdownRedirect(
   initialCountdown: number,
@@ -43,27 +45,27 @@ function useCountdownRedirect(
 export function LogoutCard(props: CardProps): React.JSX.Element {
   const countdown = useCountdownRedirect(10, Routes.Login);
   return (
-    <Card {...props}>
-      <CardHeader className="text-center">
-        <CardTitle>You've been logged out</CardTitle>
-        <CardDescription>We hope to see you again soon!</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center space-y-2 rounded-xl bg-muted p-4">
-          <div className="flex size-10 items-center justify-center rounded-full border bg-background shadow-sm">
+    <AuthInnerCard {...props}>
+      <AuthInnerCardHeader className="text-center">
+        <AuthInnerCardTitle>You've been logged out</AuthInnerCardTitle>
+        <AuthInnerCardDescription>We hope to see you again soon!</AuthInnerCardDescription>
+      </AuthInnerCardHeader>
+      <AuthInnerCardContent>
+        <div className={authInnerHighlightClassName}>
+          <div className="flex size-10 items-center justify-center rounded-full border border-[#070607]/10 bg-white/55 shadow-sm">
             <ShieldIcon className="size-5 text-primary" />
           </div>
           <span className="text-sm font-medium">Secure logout</span>
-          <span className="text-center text-xs text-muted-foreground">
+          <span className={cn('text-center text-xs', glassMutedTextClassName)}>
             The session has ended.
           </span>
         </div>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className={cn('mt-4 text-center text-sm', glassMutedTextClassName)}>
           You will be redirected in{' '}
-          <span className="font-medium">{countdown}</span> seconds.
+          <span className="font-medium text-[#070607]">{countdown}</span> seconds.
         </p>
-      </CardContent>
-      <CardFooter>
+      </AuthInnerCardContent>
+      <AuthInnerCardFooter>
         <Link
           href={Routes.Login}
           className={buttonVariants({
@@ -73,7 +75,7 @@ export function LogoutCard(props: CardProps): React.JSX.Element {
         >
           Back to log in
         </Link>
-      </CardFooter>
-    </Card>
+      </AuthInnerCardFooter>
+    </AuthInnerCard>
   );
 }

@@ -6,8 +6,16 @@ import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import {
+  getOrganizationCapabilities,
+  getOrganizationPlanName
+} from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
-import { GatewayError, NotFoundError } from '@/lib/validation/exceptions';
+import {
+  GatewayError,
+  NotFoundError,
+  PreConditionError
+} from '@/lib/validation/exceptions';
 import { runAgentEval } from '@/services/training/agent-eval';
 
 const QUESTION_COUNT_OPTIONS = [5, 25, 50, 100] as const;
@@ -30,6 +38,18 @@ export const runAgentTraining = pageActionClient('training')
   .metadata({ actionName: 'runAgentTraining' })
   .schema(runAgentTrainingSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
+    const capabilities = await getOrganizationCapabilities(
+      session.user.organizationId
+    );
+    if (!capabilities.autoTraining) {
+      const planName = await getOrganizationPlanName(
+        session.user.organizationId
+      );
+      throw new PreConditionError(
+        `Auto-training is not available on the ${planName} plan. Upgrade to Push to train from your own data.`
+      );
+    }
+
     const agent = await prisma.agent.findFirst({
       where: {
         id: parsedInput.agentId,
