@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function LoginPage(): Promise<React.JSX.Element> {
   return (
-    <AuthContainer>
+    <AuthContainer showLogo={false}>
       <LoginCard />
     </AuthContainer>
   );

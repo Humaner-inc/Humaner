@@ -5,27 +5,21 @@ import { toast } from 'sonner';
 
 import { resendEmailConfirmation } from '@/actions/auth/resend-email-confirmation';
 import {
-  AuthInnerCard,
-  AuthInnerCardDescription,
-  AuthInnerCardFooter,
-  AuthInnerCardHeader,
-  AuthInnerCardTitle
-} from '@/components/auth/auth-inner-card';
-import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
-import { Button } from '@/components/ui/button';
-import type { CardProps } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+  authOnboardingHeadingClassName,
+  authOnboardingLinkClassName,
+  authOnboardingMutedClassName
+} from '@/components/auth/auth-form-styles';
 
-export type VerifyEmailExpiredCardProps = CardProps & {
+export type VerifyEmailExpiredCardProps = {
   email: string;
 };
 
 export function VerifyEmailExpiredCard({
-  email,
-  ...other
+  email
 }: VerifyEmailExpiredCardProps): React.JSX.Element {
   const [isResendingEmailVerification, setIsResendingEmailVerification] =
     React.useState<boolean>(false);
+
   const handleResendEmailVerification = async (): Promise<void> => {
     setIsResendingEmailVerification(true);
     const result = await resendEmailConfirmation({ email });
@@ -36,29 +30,32 @@ export function VerifyEmailExpiredCard({
     }
     setIsResendingEmailVerification(false);
   };
+
   return (
-    <AuthInnerCard {...other}>
-      <AuthInnerCardHeader>
-        <AuthInnerCardTitle>Email verificatio is expired</AuthInnerCardTitle>
-        <AuthInnerCardDescription>
-          Sorry, your email verification is already expired! You need to request
-          a verification again.
-        </AuthInnerCardDescription>
-      </AuthInnerCardHeader>
-      <AuthInnerCardFooter
-        className={cn('justify-center gap-1 text-sm', glassMutedTextClassName)}
-      >
-        Didn't receive an email?
-        <Button
+    <div className="flex flex-col gap-5">
+      <div className="space-y-1.5">
+        <h1 className={authOnboardingHeadingClassName}>
+          Email verification expired
+        </h1>
+        <p className={authOnboardingMutedClassName}>
+          Sorry, your email verification has expired. Request a new code to
+          continue.
+        </p>
+      </div>
+
+      <p className={authOnboardingMutedClassName}>
+        Didn&apos;t receive an email?{' '}
+        <button
           type="button"
-          variant="link"
-          className={cn('h-fit px-0.5 py-0 underline', glassLinkClassName)}
+          className={authOnboardingLinkClassName}
           disabled={isResendingEmailVerification}
-          onClick={handleResendEmailVerification}
+          onClick={() => void handleResendEmailVerification()}
         >
-          Resend email verification
-        </Button>
-      </AuthInnerCardFooter>
-    </AuthInnerCard>
+          {isResendingEmailVerification
+            ? 'Sending…'
+            : 'Resend email verification'}
+        </button>
+      </p>
+    </div>
   );
 }

@@ -14,6 +14,8 @@ type TrainingMessage = {
     helpfulness: number;
     hallucination: number;
     passed: boolean;
+    escalated?: boolean;
+    notes?: string;
   };
 };
 
@@ -55,20 +57,42 @@ function ScoreBadge({
 }): React.JSX.Element | null {
   if (!score) return null;
 
+  const label = score.escalated
+    ? passed
+      ? '↗ Escalated · Right call'
+      : '↗ Escalated · Should have answered'
+    : passed
+      ? '✓ Passed'
+      : '✗ Failed';
+
+  // Surface whichever dimension actually decided the verdict — accuracy and
+  // helpfulness alone can look "fine" while persona or hallucination is what
+  // tipped it, which otherwise reads as an arbitrary call.
+  const hasHallucination = score.hallucination > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-[10px] ${
+      className={`mt-2 flex flex-col gap-1 rounded-lg px-2 py-1 text-[10px] ${
         passed
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
           : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
       }`}
     >
-      <span className="font-medium">{passed ? '✓ Passed' : '✗ Failed'}</span>
-      <span className="text-muted-foreground">
-        Acc: {score.accuracy}% | Help: {score.helpfulness}%
-      </span>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{label}</span>
+        <span className="text-muted-foreground">
+          Acc: {score.accuracy}% | Persona: {score.persona}% | Help:{' '}
+          {score.helpfulness}%
+          {hasHallucination && ` | Hallucination: ${score.hallucination}%`}
+        </span>
+      </div>
+      {score.notes && (
+        <span className="text-muted-foreground/80 italic">
+          &ldquo;{score.notes}&rdquo;
+        </span>
+      )}
     </motion.div>
   );
 }

@@ -33,6 +33,10 @@ export function getPrivacyUrl(): string {
   return `${getLandingUrl()}/privacy`;
 }
 
+export function getTermsUrl(): string {
+  return `${getLandingUrl()}/terms`;
+}
+
 export function getSecurityUrl(): string {
   return `${getLandingUrl()}/security`;
 }

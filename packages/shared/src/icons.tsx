@@ -14,6 +14,7 @@ import {
   BookTextIcon,
   BotIcon as BotIconSource,
   BoxesIcon,
+  BriefcaseBusinessIcon as BriefcaseBusinessIconSource,
   BrainIcon as BrainIconSource,
   CalendarCheckIcon,
   CartIcon,
@@ -117,6 +118,7 @@ export const BookOpenIcon = createAnimatedIcon(BookTextIcon);
 export const Bot = createAnimatedIcon(BotIconSource);
 export const BotIcon = createAnimatedIcon(BotIconSource);
 export const Brain = createAnimatedIcon(BrainIconSource);
+export const BriefcaseBusinessIcon = createAnimatedIcon(BriefcaseBusinessIconSource);
 export const Building2 = createAnimatedIcon(HomeIconSource);
 export const BuildingIcon = createAnimatedIcon(HomeIconSource);
 export const CalendarIcon = createAnimatedIcon(CalendarCheckIcon);

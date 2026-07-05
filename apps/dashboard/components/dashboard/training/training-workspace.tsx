@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
-const QUESTION_COUNT_OPTIONS = [5, 25, 50, 100] as const;
+const QUESTION_COUNT_OPTIONS = [5, 10, 25, 50] as const;
 type QuestionCount = (typeof QUESTION_COUNT_OPTIONS)[number];
 
 type KnowledgeGapItem = {
@@ -141,14 +141,32 @@ export function AgentAccuracyCard({
   );
 }
 
+export type TrainingModelInfo = {
+  /** e.g. "Humaner v1.0 light" */
+  label: string;
+  /** e.g. "Haiku 4.5" or "Sonnet 4.6" */
+  modelLabel: string;
+  planName: string;
+};
+
+export type TrainingQuotaInfo = {
+  freeQuota: number;
+  usedThisMonth: number;
+  freeRemaining: number;
+};
+
 type TrainAgentPanelProps = {
   isTraining: boolean;
   onRunTraining: (questionCount: QuestionCount) => Promise<void>;
+  modelInfo: TrainingModelInfo;
+  quota: TrainingQuotaInfo;
 };
 
 export function TrainAgentPanel({
   isTraining,
-  onRunTraining
+  onRunTraining,
+  modelInfo,
+  quota
 }: TrainAgentPanelProps): React.JSX.Element {
   const [isPending, startTransition] = React.useTransition();
   const [questionCount, setQuestionCount] = React.useState<QuestionCount>(25);
@@ -160,6 +178,8 @@ export function TrainAgentPanel({
   };
 
   const busy = isPending || isTraining;
+  const overageForSelection = Math.max(0, questionCount - quota.freeRemaining);
+  const quotaExhausted = quota.freeRemaining === 0;
 
   return (
     <Card>
@@ -168,6 +188,12 @@ export function TrainAgentPanel({
         <CardDescription>
           Test your agent against customer questions from your focus areas and knowledge base.
         </CardDescription>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="inline-flex items-center rounded-full border bg-muted/40 px-2 py-0.5 font-medium text-foreground">
+            {modelInfo.label}
+          </span>
+          <span>runs this simulation · {modelInfo.modelLabel}</span>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
@@ -184,6 +210,30 @@ export function TrainAgentPanel({
             </Button>
           ))}
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          {quotaExhausted ? (
+            <>
+              You&apos;ve used all {quota.freeQuota} free training questions this
+              month on the {modelInfo.planName} plan. This run will use{' '}
+              <span className="font-medium text-foreground">{questionCount}</span>{' '}
+              of your message quota instead.
+            </>
+          ) : overageForSelection > 0 ? (
+            <>
+              {quota.freeRemaining} free question{quota.freeRemaining === 1 ? '' : 's'}{' '}
+              left this month — the other{' '}
+              <span className="font-medium text-foreground">{overageForSelection}</span>{' '}
+              will be deducted from your {modelInfo.planName} message plan.
+            </>
+          ) : (
+            <>
+              {quota.freeRemaining} of {quota.freeQuota} free training questions left
+              this month on {modelInfo.planName}.
+            </>
+          )}
+        </p>
+
         <Button
           type="button"
           className="w-full"

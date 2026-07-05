@@ -102,7 +102,7 @@ export function UserSupportTicketsPanel({
   const list = (
     <div className="flex h-full min-h-0 flex-col md:w-72 md:shrink-0 md:border-r md:border-border/60">
       <div className="border-b border-border/60 px-4 py-3">
-        <p className="text-sm font-medium">My tickets</p>
+        <p className="text-sm font-medium">Account issues</p>
         <p className="text-xs text-muted-foreground">
           Reports you&apos;ve submitted via Help.
         </p>

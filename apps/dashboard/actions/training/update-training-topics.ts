@@ -13,7 +13,7 @@ const updateTrainingTopicsSchema = z.object({
   topics: z.array(z.string().trim().min(1).max(120)).max(20)
 });
 
-export const updateTrainingTopics = pageActionClient('training')
+export const updateTrainingTopics = pageActionClient('knowledge')
   .metadata({ actionName: 'updateTrainingTopics' })
   .schema(updateTrainingTopicsSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -41,6 +41,7 @@ export const updateTrainingTopics = pageActionClient('training')
     });
 
     revalidatePath(Routes.Training);
+    revalidatePath(Routes.Knowledge);
 
     return { topics };
   });

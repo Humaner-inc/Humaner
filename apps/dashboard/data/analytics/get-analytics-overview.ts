@@ -226,7 +226,7 @@ export async function getAnalyticsOverview(options?: {
     (total, gap) => total + gap.count,
     0
   );
-  const messagesUsed = await getMessagesUsedThisMonth(organizationId);
+  const messagesUsed = await getMessagesUsedThisMonth(organizationId, tier);
 
   const totalMessages = await prisma.message.count({
     where: { conversation: { agent: { organizationId, ...agentFilter } } }

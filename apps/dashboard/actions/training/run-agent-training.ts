@@ -4,12 +4,13 @@ import { revalidatePath } from 'next/cache';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
+import { getPlanForTier } from '@humaner/shared/plans';
+
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
-import {
-  getOrganizationCapabilities,
-  getOrganizationPlanName
-} from '@/lib/billing/capabilities';
+import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
+import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
+import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
 import {
   GatewayError,
@@ -18,7 +19,7 @@ import {
 } from '@/lib/validation/exceptions';
 import { runAgentEval } from '@/services/training/agent-eval';
 
-const QUESTION_COUNT_OPTIONS = [5, 25, 50, 100] as const;
+const QUESTION_COUNT_OPTIONS = [5, 10, 25, 50] as const;
 type QuestionCount = (typeof QUESTION_COUNT_OPTIONS)[number];
 
 const runAgentTrainingSchema = z.object({
@@ -28,32 +29,22 @@ const runAgentTrainingSchema = z.object({
     .refine(
       (n): n is QuestionCount =>
         QUESTION_COUNT_OPTIONS.includes(n as QuestionCount),
-      { message: 'Question count must be 5, 25, 50, or 100' }
+      { message: 'Question count must be 5, 10, 25, or 50' }
     )
     .optional()
     .default(25)
 });
 
-export const runAgentTraining = pageActionClient('training')
+export const runAgentTraining = pageActionClient('knowledge')
   .metadata({ actionName: 'runAgentTraining' })
   .schema(runAgentTrainingSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
-    const capabilities = await getOrganizationCapabilities(
-      session.user.organizationId
-    );
-    if (!capabilities.autoTraining) {
-      const planName = await getOrganizationPlanName(
-        session.user.organizationId
-      );
-      throw new PreConditionError(
-        `Auto-training is not available on the ${planName} plan. Upgrade to Push to train from your own data.`
-      );
-    }
+    const organizationId = session.user.organizationId;
 
     const agent = await prisma.agent.findFirst({
       where: {
         id: parsedInput.agentId,
-        organizationId: session.user.organizationId
+        organizationId
       },
       select: { id: true }
     });
@@ -62,14 +53,50 @@ export const runAgentTraining = pageActionClient('training')
       throw new NotFoundError('Agent not found');
     }
 
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId },
+      select: { tier: true }
+    });
+    const tier = organization?.tier ?? 'free';
+    const plan = getPlanForTier(tier);
+
+    const bypassLimits = await organizationBypassesPlanLimits(organizationId);
+
+    if (!bypassLimits) {
+      const [trainingUsed, messagesUsed] = await Promise.all([
+        getTrainingMessagesUsedThisMonth(organizationId),
+        getMessagesUsedThisMonth(organizationId, tier)
+      ]);
+
+      const freeRemaining = Math.max(
+        0,
+        plan.freeTrainingMessages - trainingUsed
+      );
+      const overageForThisRun = Math.max(
+        0,
+        parsedInput.questionCount - freeRemaining
+      );
+
+      if (
+        overageForThisRun > 0 &&
+        plan.overagePerMessage === null &&
+        messagesUsed + overageForThisRun > plan.includedMessages
+      ) {
+        throw new PreConditionError(
+          `You've used your ${plan.freeTrainingMessages} free training questions this month, and the ${plan.name} plan's message quota is exhausted. Upgrade to keep testing.`
+        );
+      }
+    }
+
     try {
       const result = await runAgentEval(
         parsedInput.agentId,
-        parsedInput.questionCount
+        parsedInput.questionCount,
+        tier
       );
 
       revalidatePath(Routes.Training);
-      revalidatePath(Routes.Agents);
+      revalidatePath(Routes.Knowledge);
 
       return result;
     } catch (error) {

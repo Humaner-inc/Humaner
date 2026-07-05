@@ -28,7 +28,7 @@ import {
   authHighlightButtonClassName,
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authHeadingClassName
+  authPageTitleClassName
 } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -163,8 +163,8 @@ export function LoginCard(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2 text-center">
-        <h1 className={cn(authHeadingClassName, 'text-4xl')}>
-          Welcome
+        <h1 className={authPageTitleClassName}>
+          Humaner
         </h1>
         <p className={authMutedTextClassName}>
           Enter your details below to sign into your account.

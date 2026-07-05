@@ -17,7 +17,7 @@ export function detectTransport(): NodeMailerTransport {
       secure: port === 465,
       tls: {
         ciphers: process.env.EMAIL_SERVER_CIPHERS,
-        rejectUnauthorized: false // true // isENVDev ? false : true,
+        rejectUnauthorized: process.env.NODE_ENV !== 'development'
       }
     };
   }

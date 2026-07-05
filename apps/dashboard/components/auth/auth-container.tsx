@@ -1,6 +1,7 @@
 import * as React from 'react';
-import Image from 'next/image';
 
+import { authLogoClassName } from '@/components/auth/auth-form-styles';
+import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 
 export type AuthContainerProps = React.PropsWithChildren & {
@@ -23,13 +24,9 @@ export function AuthContainer({
     <div className={cn('mx-auto w-full', maxWidthClass)}>
       {showLogo ? (
         <div className="mb-5 flex justify-center">
-          <Image
-            src="/favicon.svg"
-            alt=""
-            width={64}
-            height={64}
-            className="size-16"
-            priority
+          <Logo
+            hideSymbol
+            className={cn(authLogoClassName, '[&_span]:text-white')}
           />
         </div>
       ) : null}

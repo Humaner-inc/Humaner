@@ -7,7 +7,9 @@ import { toast } from 'sonner';
 import {
   AgentAccuracyCard,
   TrainAgentPanel,
-  TrainingInsightsPanel
+  TrainingInsightsPanel,
+  type TrainingModelInfo,
+  type TrainingQuotaInfo
 } from '@/components/dashboard/training/training-workspace';
 import {
   TrainingPreviewWidget,
@@ -31,9 +33,9 @@ type TrainingRunItem = {
   createdAt: string;
 };
 
-type QuestionCount = 5 | 25 | 50 | 100;
+type QuestionCount = 5 | 10 | 25 | 50;
 
-type TrainingPageClientProps = {
+export type KnowledgeTrainingSectionProps = {
   agent: {
     id: string;
     name: string;
@@ -58,6 +60,8 @@ type TrainingPageClientProps = {
   trainingHistory: TrainingRunItem[];
   gaps: KnowledgeGapItem[];
   organizationName: string;
+  modelInfo: TrainingModelInfo;
+  quota: TrainingQuotaInfo;
 };
 
 function applyTrainingEvent(
@@ -126,7 +130,9 @@ function applyTrainingEvent(
                   persona: event.score.persona,
                   helpfulness: event.score.helpfulness,
                   hallucination: event.score.hallucination,
-                  passed: event.score.passed
+                  passed: event.score.passed,
+                  escalated: event.score.escalated,
+                  notes: event.score.notes
                 }
               }
             : message
@@ -142,7 +148,7 @@ function applyTrainingEvent(
   }
 }
 
-export function TrainingPageClient({
+export function KnowledgeTrainingSection({
   agent,
   industryLabel,
   industryDescription,
@@ -153,8 +159,10 @@ export function TrainingPageClient({
   latestRun,
   trainingHistory,
   gaps,
-  organizationName
-}: TrainingPageClientProps): React.JSX.Element {
+  organizationName,
+  modelInfo,
+  quota
+}: KnowledgeTrainingSectionProps): React.JSX.Element {
   const router = useRouter();
   const [isTraining, setIsTraining] = React.useState(false);
   const [currentQuestion, setCurrentQuestion] = React.useState(0);
@@ -202,7 +210,10 @@ export function TrainingPageClient({
           throw new Error('Training ended before completion');
         }
 
-        const { result } = completed;
+        const { result } = completed as Extract<
+          TrainingProgressEvent,
+          { type: 'complete' }
+        >;
         toast.success(
           `${agent.name}: ${result.healthScore}/100 (${result.passed}/${result.totalQuestions} passed)`
         );
@@ -253,6 +264,8 @@ export function TrainingPageClient({
         <TrainAgentPanel
           isTraining={isTraining}
           onRunTraining={handleRunTraining}
+          modelInfo={modelInfo}
+          quota={quota}
         />
 
         <TrainingInsightsPanel

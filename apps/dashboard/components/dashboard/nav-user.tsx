@@ -90,7 +90,7 @@ function ProfileMenuContent({
           </>
         ) : null}
         <DropdownMenuItem onClick={onShowSupportTickets}>
-          My tickets
+          Account issues
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link

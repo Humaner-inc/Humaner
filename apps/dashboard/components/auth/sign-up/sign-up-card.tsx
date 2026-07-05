@@ -22,7 +22,7 @@ import {
   authPrimaryButtonClassName,
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authHeadingClassName
+  authPageTitleClassName
 } from '@/components/auth/auth-form-styles';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -84,8 +84,8 @@ export function SignUpCard(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2 text-center">
-        <h1 className={cn(authHeadingClassName, 'text-4xl')}>
-          Create account
+        <h1 className={authPageTitleClassName}>
+          Humaner
         </h1>
         <p className={authMutedTextClassName}>
           Already have an account?{' '}

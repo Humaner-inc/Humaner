@@ -148,7 +148,10 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const tier = normalizeTier(organization.tier);
   const plan = getPlanForTier(tier);
-  const messagesUsed = await getMessagesUsedThisMonth(session.user.organizationId);
+  const messagesUsed = await getMessagesUsedThisMonth(
+    session.user.organizationId,
+    tier
+  );
   const messageQuotaExhausted =
     plan.overagePerMessage === null &&
     plan.includedMessages > 0 &&

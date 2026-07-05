@@ -25,7 +25,7 @@ export const UserTicketsSheet = NiceModal.create<UserTicketsSheetProps>(() => {
         onAnimationEndCapture={modal.handleAnimationEndCapture}
       >
         <DialogHeader className="border-b px-6 py-4 text-left">
-          <DialogTitle>My support tickets</DialogTitle>
+          <DialogTitle>Account issues</DialogTitle>
           <DialogDescription>
             Follow the status of bugs and feedback you&apos;ve submitted.
           </DialogDescription>

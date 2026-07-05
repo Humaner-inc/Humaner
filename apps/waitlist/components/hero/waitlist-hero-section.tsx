@@ -26,7 +26,8 @@ export function WaitlistHeroSection({
             ref={trunkAnchorRef}
             className="mx-auto mt-4 max-w-md text-base leading-relaxed text-foreground/55 sm:mt-6 sm:text-lg"
           >
-            Built for developers. Designed for customers.
+             The support your customers love, 
+             <br/>the experience developers wanted.  
           </p>
         </div>
 

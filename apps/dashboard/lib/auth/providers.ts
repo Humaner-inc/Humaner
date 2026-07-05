@@ -316,7 +316,6 @@ export const providers = [
     name: IdentityProvider.Google,
     clientId: process.env.AUTH_GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET as string,
-    allowDangerousEmailAccountLinking: true,
     authorization: {
       params: {
         scope: 'openid email profile',
@@ -330,7 +329,6 @@ export const providers = [
     id: IdentityProvider.GitHub,
     name: IdentityProvider.GitHub,
     clientId: process.env.AUTH_GITHUB_CLIENT_ID as string,
-    clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET as string,
-    allowDangerousEmailAccountLinking: true
+    clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET as string
   })
 ] satisfies NextAuthConfig['providers'];

@@ -5,7 +5,6 @@ import {
   BookOpenIcon,
   ClockIcon,
   CreditCardIcon,
-  GraduationCapIcon,
   HeadsetIcon,
   HomeIcon,
   LockKeyholeIcon,
@@ -31,12 +30,6 @@ export const mainNavItems: NavItem[] = [
     href: Routes.Knowledge,
     icon: BookOpenIcon,
     pageKey: 'knowledge'
-  },
-  {
-    title: 'Training',
-    href: Routes.Training,
-    icon: GraduationCapIcon,
-    pageKey: 'training'
   },
   {
     title: 'Integrations',

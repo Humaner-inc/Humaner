@@ -3,6 +3,8 @@ import { getBaseUrl } from '@/lib/urls/get-base-url';
 const secure = new URL(getBaseUrl()).protocol === 'https:';
 
 export class AuthCookies {
+  public static isSecure = secure;
+
   public static CallbackUrl = secure
     ? '__Secure-authjs.callback-url'
     : 'authjs.callback-url';

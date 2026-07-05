@@ -2,7 +2,7 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 
-import { AuthContainer } from '@/components/auth/auth-container';
+import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { VerifyEmailCard } from '@/components/auth/verify-email/verify-email-card';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
@@ -20,8 +20,8 @@ export default async function VerifyEmailPage({
 }: NextPageProps): Promise<React.JSX.Element> {
   const { email } = await searchParamsCache.parse(searchParams);
   return (
-    <AuthContainer maxWidth="sm">
+    <AuthOnboardingCardShell>
       <VerifyEmailCard email={email} />
-    </AuthContainer>
+    </AuthOnboardingCardShell>
   );
 }

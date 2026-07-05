@@ -35,6 +35,9 @@ export const authDividerClassName =
 export const authHeadingClassName =
   'font-display font-semibold tracking-tight text-[#f5f5f5]';
 
+export const authPageTitleClassName =
+  'font-display text-5xl font-semibold tracking-tight text-[#f5f5f5] sm:text-6xl';
+
 export const authDestructiveMessageClassName = 'text-red-400';
 
 export const authAlertDestructiveClassName =
@@ -42,6 +45,25 @@ export const authAlertDestructiveClassName =
 
 export const authLogoClassName =
   'gap-3 [&_img]:h-12 [&_span]:text-2xl [&_span]:text-white sm:[&_img]:h-14 sm:[&_span]:text-3xl';
+
+export const authOnboardingCardClassName =
+  'overflow-hidden rounded-2xl border border-[#070607]/[0.06] bg-[#f5f5f5] p-5 text-[#070607] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.25)] sm:p-6';
+
+export const authOnboardingHeadingClassName =
+  'font-display text-xl font-semibold tracking-tight text-[#070607]';
+
+export const authOnboardingMutedClassName = 'text-sm leading-relaxed text-[#070607]/50';
+
+export const authOnboardingLinkClassName =
+  'font-medium text-[#070607] underline underline-offset-4 transition-colors hover:text-[#dc143c]';
+
+export const authOnboardingPrimaryButtonClassName =
+  'h-11 w-full rounded-lg border-0 bg-[#070607] font-medium text-[#f5f5f5] shadow-sm transition-all hover:bg-[#070607]/90 dark:bg-[#070607] dark:text-[#f5f5f5] dark:hover:bg-[#070607]/90';
+
+export const authOnboardingOtpSlotClassName =
+  'size-12 rounded-lg border border-[#070607]/[0.08] bg-white text-base font-semibold text-[#070607] shadow-none first:rounded-lg first:border last:rounded-lg';
+
+export const authOnboardingDestructiveClassName = 'text-sm text-red-600';
 
 // ─── Onboarding — light card on dark bg (default) ─────────────────────────────
 // When theme is inverted: card becomes #070607, bg becomes #f5f5f5

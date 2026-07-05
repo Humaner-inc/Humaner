@@ -61,7 +61,11 @@ export async function establishUserSession(
   cookieStore.set({
     name: AuthCookies.SessionToken,
     value: sessionToken,
-    expires: sessionExpiry
+    expires: sessionExpiry,
+    httpOnly: true,
+    secure: AuthCookies.isSecure,
+    sameSite: 'lax',
+    path: '/'
   });
 
   return {};
