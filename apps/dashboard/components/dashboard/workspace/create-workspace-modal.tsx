@@ -2,10 +2,12 @@
 
 import * as React from 'react';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
+import { InfoIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { createWorkspace } from '@/actions/workspaces/create-workspace';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -99,6 +101,16 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
             </FormItem>
           )}
         />
+
+        <Alert variant="info">
+          <div className="flex flex-row items-start gap-2">
+            <InfoIcon className="mt-0.5 size-[18px] shrink-0" />
+            <AlertDescription>
+              Creating a new workspace will share your account&apos;s plan and message
+              quota. If you need a separate billing for this business create a new account.
+            </AlertDescription>
+          </div>
+        </Alert>
       </form>
     );
 
@@ -135,8 +147,7 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
               <DialogHeader>
                 <DialogTitle>Create workspace</DialogTitle>
                 <DialogDescription>
-                  Add another business. We&apos;ll use the website to name and
-                  brand the workspace, then walk you through setup.
+                  Add another business organization below.
                 </DialogDescription>
               </DialogHeader>
               {renderForm}

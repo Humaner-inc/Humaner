@@ -8,6 +8,7 @@ import { getPlanForTier } from '@humaner/shared/plans';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { getAccountOrganizationIds } from '@/lib/billing/account-scope';
 import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
@@ -63,8 +64,9 @@ export const runAgentTraining = pageActionClient('knowledge')
     const bypassLimits = await organizationBypassesPlanLimits(organizationId);
 
     if (!bypassLimits) {
+      const accountOrganizationIds = await getAccountOrganizationIds(organizationId);
       const [trainingUsed, messagesUsed] = await Promise.all([
-        getTrainingMessagesUsedThisMonth(organizationId),
+        getTrainingMessagesUsedThisMonth(accountOrganizationIds),
         getMessagesUsedThisMonth(organizationId, tier)
       ]);
 

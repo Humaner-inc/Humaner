@@ -15,6 +15,9 @@ export type HandoffInboxTicket = {
   id: string;
   agentName: string;
   visitorEmail: string | null;
+  visitorFirstName: string | null;
+  visitorLastName: string | null;
+  visitorLeftAt: string | null;
   subject: string;
   summary: string;
   transcript: string;

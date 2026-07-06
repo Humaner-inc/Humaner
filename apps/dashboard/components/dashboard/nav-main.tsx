@@ -15,8 +15,11 @@ import {
   NavMenuIcon,
   useNavMenuIconAnimation
 } from '@/components/ui/nav-menu-icon';
-import { mainNavItems } from '@/constants/nav-items';
-import { filterNavItemsForProfile } from '@/lib/auth/workspace-access';
+import { adminNavItems, mainNavItems } from '@/constants/nav-items';
+import {
+  filterNavItemsForProfile,
+  isPlatformAdmin
+} from '@/lib/auth/workspace-access';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types/nav-item';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -65,7 +68,12 @@ function NavMainItem({
 
 export function NavMain({ profile, ...props }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
-  const items = filterNavItemsForProfile(mainNavItems, profile);
+  const items = [
+    ...filterNavItemsForProfile(mainNavItems, profile),
+    ...(isPlatformAdmin(profile)
+      ? filterNavItemsForProfile(adminNavItems, profile)
+      : [])
+  ];
 
   return (
     <SidebarGroup {...props}>

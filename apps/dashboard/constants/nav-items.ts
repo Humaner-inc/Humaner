@@ -56,16 +56,20 @@ export const mainNavItems: NavItem[] = [
     pageKey: 'human-desk'
   },
   {
-    title: 'Support tickets',
-    href: Routes.AdminTickets,
-    icon: MessageSquare,
-    adminOnly: true
-  },
-  {
     title: 'Settings',
     href: Routes.Settings,
     icon: SettingsIcon,
     pageKey: 'settings'
+  }
+];
+
+/** Platform-operator tools (Humaner staff). Never shown to regular users. */
+export const adminNavItems: NavItem[] = [
+  {
+    title: 'Support tickets',
+    href: Routes.AdminTickets,
+    icon: MessageSquare,
+    adminOnly: true
   }
 ];
 

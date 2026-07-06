@@ -13,21 +13,30 @@ import {
 } from '@/components/ui/command';
 import {
   accountNavItems,
+  adminNavItems,
   mainNavItems,
   organizationNavItems
 } from '@/constants/nav-items';
 import { useEnhancedModal } from '@/hooks/use-enhanced-modal';
-import { filterNavItemsForProfile } from '@/lib/auth/workspace-access';
+import {
+  filterNavItemsForProfile,
+  isPlatformAdmin
+} from '@/lib/auth/workspace-access';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type CommandMenuProps = NiceModalHocProps & {
   profile: ProfileDto;
 };
 
-const navigationGroups = [
+const navigationGroups = (profile: ProfileDto) => [
   {
     heading: 'Main Navigation',
-    items: mainNavItems
+    items: [
+      ...filterNavItemsForProfile(mainNavItems, profile),
+      ...(isPlatformAdmin(profile)
+        ? filterNavItemsForProfile(adminNavItems, profile)
+        : [])
+    ]
   },
   {
     heading: 'Account',
@@ -55,7 +64,7 @@ export const CommandMenu = NiceModal.create<CommandMenuProps>(({ profile }) => {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        {navigationGroups.map((group) => {
+        {navigationGroups(profile).map((group) => {
           const items = filterNavItemsForProfile(group.items, profile);
           if (items.length === 0) return null;
 
