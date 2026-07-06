@@ -217,7 +217,7 @@ export async function getAnalyticsOverview(options?: {
   const tier = normalizeTier(organization?.tier ?? 'free');
   const plan = getPlanForTier(tier);
 
-  // Content-gap detection is a Push (v2.0) capability. Lower tiers still see the
+  // Content-gap detection is a Frontier (v2.0) capability. Lower tiers still see the
   // unanswered count in analytics, but not the itemized gaps + suggested fixes.
   const contentGapsEnabled = getPlanCapabilities(tier).contentGaps;
   const detectedGaps = extractKnowledgeGaps(gapConversations);

@@ -6,13 +6,14 @@ import {
   WaitlistWelcomeEmail,
   type WaitlistWelcomeEmailData
 } from '@/emails/waitlist-welcome-email';
+import { createUnsubscribeUrl } from '@/lib/waitlist/create-unsubscribe-url';
 
 function getResendApiKey(): string | undefined {
   return process.env.EMAIL_RESEND_API_KEY ?? process.env.RESEND_API_KEY;
 }
 
 export async function sendWaitlistWelcomeEmail(
-  data: WaitlistWelcomeEmailData
+  data: Pick<WaitlistWelcomeEmailData, 'recipient'>
 ): Promise<void> {
   const apiKey = getResendApiKey();
   const from = process.env.EMAIL_SENDER;
@@ -21,7 +22,12 @@ export async function sendWaitlistWelcomeEmail(
     return;
   }
 
-  const component = WaitlistWelcomeEmail(data);
+  const emailData: WaitlistWelcomeEmailData = {
+    recipient: data.recipient,
+    unsubscribeUrl: createUnsubscribeUrl(data.recipient)
+  };
+
+  const component = WaitlistWelcomeEmail(emailData);
   const html = await render(component);
   const text = await render(component, { plainText: true });
   const resend = new Resend(apiKey);

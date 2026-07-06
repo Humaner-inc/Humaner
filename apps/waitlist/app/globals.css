@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import '@humaner/react/demo-dock.css';
+@import '@humaner/react/highlighted-text-field.css';
 
 @layer base {
   :root {
@@ -19,27 +20,6 @@
   ::selection {
     background-color: rgb(220 20 60 / 0.35);
     color: #f5f5f5;
-  }
-
-  .paste-char-highlight {
-    border-radius: 0.1rem;
-    animation: paste-char-highlight 0.7s ease forwards;
-  }
-
-  @keyframes paste-char-highlight {
-    0% {
-      background-color: rgb(255 255 255 / 0.18);
-    }
-    100% {
-      background-color: transparent;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .paste-char-highlight {
-      animation: none;
-      background-color: transparent;
-    }
   }
 
   @font-face {
@@ -146,27 +126,6 @@
       transition: none;
       opacity: 1;
       transform: none;
-    }
-  }
-
-  .paste-char-highlight {
-    border-radius: 0.1rem;
-    animation: paste-char-highlight 0.7s ease forwards;
-  }
-
-  @keyframes paste-char-highlight {
-    0% {
-      background-color: rgb(255 255 255 / 0.18);
-    }
-    100% {
-      background-color: transparent;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .paste-char-highlight {
-      animation: none;
-      background-color: transparent;
     }
   }
 

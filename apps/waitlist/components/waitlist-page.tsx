@@ -13,8 +13,8 @@ import {
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
-const NODE_COUNT = 3;
-const STEP_COUNT = 2;
+const NODE_COUNT = 5;
+const STEP_COUNT = 4;
 const TRUNK_GAP_BELOW_DESCRIPTION = 12;
 
 export function WaitlistPage(): React.JSX.Element {

@@ -1,5 +1,6 @@
 'use client';
 
+import { HighlightedTextInput, HighlightedTextarea } from '@humaner/react';
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { FileTextIcon, PlusIcon, UploadIcon, XIcon } from '@humaner/shared/icons';
@@ -20,6 +21,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+
+const highlightedInputClassName =
+  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+
+const highlightedTextareaClassName =
+  'flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 type SourceType = 'URL' | 'SITEMAP' | 'TEXT' | 'MARKDOWN';
 
@@ -207,7 +214,7 @@ export function AddSourceDialog({
                   </span>
                 )}
               </div>
-              <Textarea
+              <HighlightedTextarea
                 id="source-urls"
                 rows={5}
                 placeholder={
@@ -216,6 +223,8 @@ export function AddSourceDialog({
                 value={urls}
                 disabled={isPending}
                 onChange={(e) => setUrls(e.target.value)}
+                className={highlightedTextareaClassName}
+                mirrorClassName="px-3 py-2 text-foreground"
               />
               <p className="text-xs text-muted-foreground">
                 One URL per line — add as many as you need.
@@ -226,13 +235,15 @@ export function AddSourceDialog({
           {type === 'SITEMAP' && (
             <div className="space-y-2">
               <Label htmlFor="source-root">Root URL</Label>
-              <Input
+              <HighlightedTextInput
                 id="source-root"
                 placeholder="https://example.com"
                 value={url}
                 maxLength={2048}
                 disabled={isPending}
                 onChange={(e) => setUrl(e.target.value)}
+                className={highlightedInputClassName}
+                mirrorClassName="px-3 py-1 text-foreground"
               />
               <p className="text-xs text-muted-foreground">
                 We discover and crawl every page under this URL.

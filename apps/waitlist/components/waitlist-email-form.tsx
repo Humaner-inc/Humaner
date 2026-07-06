@@ -1,9 +1,13 @@
 'use client';
 
-import { forwardRef } from 'react';
+import {
+  CircleCheck,
+  Loader2Icon,
+  type AnimatedIconHandle
+} from '@humaner/shared/icons';
+import { forwardRef, useEffect, useRef } from 'react';
 
 import { HighlightedEmailInput } from '@/components/highlighted-email-input';
-import { WaitlistSuccessState } from '@/components/waitlist-success-state';
 import { cn } from '@/lib/utils';
 
 export type FormState = 'idle' | 'loading' | 'success' | 'error';
@@ -29,9 +33,19 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
     },
     buttonRef
   ) {
-    if (formState === 'success') {
-      return <WaitlistSuccessState className={className} />;
-    }
+    const checkRef = useRef<AnimatedIconHandle>(null);
+
+    useEffect(() => {
+      if (formState !== 'success') {
+        return;
+      }
+
+      const animationTimer = window.setTimeout(() => {
+        checkRef.current?.startAnimation();
+      }, 50);
+
+      return () => window.clearTimeout(animationTimer);
+    }, [formState]);
 
     return (
       <form className={cn('w-full', className)} onSubmit={onSubmit}>
@@ -39,7 +53,7 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
           Email
         </label>
 
-        <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-end sm:gap-5">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-5">
           <HighlightedEmailInput
             id="waitlist-email-section"
             name="email"
@@ -48,19 +62,38 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
             placeholder="your@company.com"
             autoComplete="email"
             required
-            disabled={formState === 'loading'}
+            disabled={formState === 'loading' || formState === 'success'}
           />
 
           <button
             ref={buttonRef}
             type="submit"
-            disabled={formState === 'loading'}
-            className="group inline-flex h-9 shrink-0 items-center justify-center gap-0 rounded-md border border-transparent bg-[#f5f5f5] px-4 text-sm font-medium text-[#070607] shadow-sm transition-[gap] duration-200 hover:gap-1.5 hover:bg-[#f5f5f5]/90 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={formState === 'loading' || formState === 'success'}
+            aria-busy={formState === 'loading'}
+            className={cn(
+              'group inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-[#f5f5f5] px-4 text-sm font-medium text-[#070607] shadow-sm transition-[gap] duration-200 hover:bg-[#f5f5f5]/90 disabled:cursor-not-allowed',
+              formState === 'loading' && 'disabled:opacity-50',
+              formState === 'success' && 'opacity-100',
+              formState === 'idle' && 'gap-0 hover:gap-1.5',
+              (formState === 'loading' || formState === 'success') && 'gap-2'
+            )}
           >
-            {formState === 'loading' ? 'Joining…' : 'Deploy early'}
-            {formState !== 'loading' ? (
-              <ArrowRightIcon className="size-0 shrink-0 opacity-0 transition-all duration-200 group-hover:size-4 group-hover:opacity-100" />
-            ) : null}
+            {formState === 'loading' ? (
+              <>
+                Joining…
+                <Loader2Icon className="size-4 animate-spin" aria-hidden />
+              </>
+            ) : formState === 'success' ? (
+              <>
+                <span className="sr-only">Joined</span>
+                <CircleCheck ref={checkRef} className="size-4 text-emerald-700" />
+              </>
+            ) : (
+              <>
+                Deploy early
+                <ArrowRightIcon className="size-0 shrink-0 opacity-0 transition-all duration-200 group-hover:size-4 group-hover:opacity-100" />
+              </>
+            )}
           </button>
         </div>
 

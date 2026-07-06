@@ -62,34 +62,48 @@ const platformPillars: PlatformPillar[] = [
   {
     id: 'agent-characters',
     title: 'Unique Agents',
-    tagline: 'Choose between unique personalities to represent who you are.',
+    tagline: 'That genuinely feel humans.',
     icon: UsersIcon
   },
   {
     id: 'live-knowledge',
-    title: 'Live Knowledge',
-    tagline: "Your customer's package shipped 30 seconds ago? It already knows.",
+    title: 'Auto-train',
+    tagline: "Train on human support to learn.",
     icon: Database
   },
   {
     id: 'cross-session-memory',
     title: 'Memory',
-    tagline: 'Your agents always remember customers, so they feel special.',
+    tagline: 'Remember your customers.',
     icon: Brain
   },
   {
     id: 'human-desk',
     title: 'Human Desk',
-    tagline: 'Manage escalation, tickets, and live support in one dashboard.',
+    tagline: 'Escalation, tickets, and live support.',
     icon: HeadsetIcon
   },
   {
     id: 'mult-org',
     title: 'Multi-Org',
-    tagline: 'Made to run multiple businesses within the same account.',
+    tagline: 'Manage multiple businesses.',
     icon: Layers
   }
 ];
+
+export function WaitlistFeaturePillars({
+  active
+}: {
+  active: boolean;
+}): React.JSX.Element {
+  return (
+    <div className="mt-12 grid grid-cols-1 gap-10 sm:mt-14 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-5 xl:gap-x-5">
+      {platformPillars.map((pillar) => (
+        <PlatformPillarCard key={pillar.id} pillar={pillar} dimmed={!active} />
+      ))}
+    </div>
+  );
+}
 
 type WaitlistSupportPillarsProps = {
   active: boolean;
@@ -116,12 +130,7 @@ export function WaitlistSupportPillars({
         To be remembered.
       </h2>
 
-
-      <div className="mt-12 grid grid-cols-1 gap-10 sm:mt-14 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-5 xl:gap-x-5">
-        {platformPillars.map((pillar) => (
-          <PlatformPillarCard key={pillar.id} pillar={pillar} dimmed={!active} />
-        ))}
-      </div>
+      <WaitlistFeaturePillars active={active} />
     </div>
   );
 }

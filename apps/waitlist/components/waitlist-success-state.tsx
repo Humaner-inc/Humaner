@@ -62,18 +62,14 @@ export function WaitlistSuccessState({
         className="mt-4 text-sm font-medium text-white"
         variants={fadeUpVariant(0.1)}
       >
-        Stay tuned
+        E-mail sent
       </motion.p>
 
       <motion.p
         className="mt-3 text-sm leading-relaxed text-white/55"
         variants={fadeUpVariant(0.22)}
       >
-        We&apos;re building exceptional customer support
-      </motion.p>
-
-      <motion.p className="mt-4 text-sm text-white/50" variants={fadeUpVariant(0.36)}>
-        We&apos;ll email you before launch so you can claim a Founding Member seat.
+        Stay tuned, we got something else for you.
       </motion.p>
     </motion.div>
   );
