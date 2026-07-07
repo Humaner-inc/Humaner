@@ -1,16 +1,18 @@
 import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text
-} from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
+  EmailButton,
+  EmailDivider,
+  EmailEyebrow,
+  EmailInlineLink,
+  EmailLayout,
+  EmailMuted,
+  EmailOrDivider,
+  EmailOtpGrid,
+  EmailText,
+  EmailTitle
+} from '@humaner/shared/email-ui';
+
+import { AppInfo } from '@/constants/app-info';
+import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type VerifyEmailAddressEmailData = {
   recipient: string;
@@ -20,48 +22,40 @@ export type VerifyEmailAddressEmailData = {
 };
 
 export const VerifyEmailAddressEmail = ({
-  name,
+  recipient,
   otp,
   verificationLink
 }: VerifyEmailAddressEmailData) => (
-  <Html>
-    <Head />
-    <Preview>Your Humaner verification code: {otp}</Preview>
-    <Tailwind>
-      <Body className="m-auto bg-white px-2 font-sans">
-        <Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]">
-          <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black">
-            Verify your email
-          </Heading>
-          <Text className="text-[14px] leading-[24px] text-black">
-            Hello {name},
-          </Text>
-          <Text className="text-[14px] leading-[24px] text-black">
-            Use this code to verify your email and continue setting up Humaner:
-          </Text>
-          <Section className="my-[32px] text-center">
-            <Text className="m-0 text-[36px] font-bold tracking-[10px] text-black">
-              {otp}
-            </Text>
-          </Section>
-          <Text className="text-center text-[14px] leading-[24px] text-[#666666]">
-            Or use the button below to open Humaner.
-          </Text>
-          <Section className="my-[24px] text-center">
-            <Button
-              className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
-              href={verificationLink}
-            >
-              Open Humaner
-            </Button>
-          </Section>
-          <Hr className="mx-0 my-[26px] w-full border border-solid border-[#eaeaea]" />
-          <Text className="text-[12px] leading-[24px] text-[#666666]">
-            If you didn&apos;t create a Humaner account, you can ignore this
-            email.
-          </Text>
-        </Container>
-      </Body>
-    </Tailwind>
-  </Html>
+  <EmailLayout
+    variant="onboarding"
+    preview={`Your ${AppInfo.APP_NAME} verification code`}
+    logoSrc={`${getBaseUrl()}/humaner.svg`}
+    logoAlt={AppInfo.APP_NAME}
+  >
+    <EmailEyebrow>Email verification</EmailEyebrow>
+    <EmailTitle align="left">Verify your email</EmailTitle>
+    <EmailText className="mt-2 text-[#070607]/50">
+      Enter the code we sent to{' '}
+      <span className="font-medium text-[#070607]">{recipient}</span>.
+    </EmailText>
+
+    <EmailOtpGrid code={otp} />
+
+    <EmailButton href={verificationLink} fullWidth>
+      Verify email
+    </EmailButton>
+
+    <EmailOrDivider />
+
+    <EmailText className="text-center text-[#070607]/50">
+      Prefer one tap?{' '}
+      <EmailInlineLink href={verificationLink}>Open Humaner</EmailInlineLink>
+    </EmailText>
+
+    <EmailDivider />
+    <EmailMuted>
+      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore
+      this email.
+    </EmailMuted>
+  </EmailLayout>
 );

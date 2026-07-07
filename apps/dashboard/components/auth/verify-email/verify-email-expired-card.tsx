@@ -5,10 +5,11 @@ import { toast } from 'sonner';
 
 import { resendEmailConfirmation } from '@/actions/auth/resend-email-confirmation';
 import {
-  authOnboardingHeadingClassName,
-  authOnboardingLinkClassName,
-  authOnboardingMutedClassName
+  authHeadingClassName,
+  authLinkClassName,
+  authMutedTextClassName
 } from '@/components/auth/auth-form-styles';
+import { cn } from '@/lib/utils';
 
 export type VerifyEmailExpiredCardProps = {
   email: string;
@@ -33,21 +34,21 @@ export function VerifyEmailExpiredCard({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="space-y-1.5">
-        <h1 className={authOnboardingHeadingClassName}>
+      <div className="space-y-1.5 text-center">
+        <h1 className={cn(authHeadingClassName, 'text-xl')}>
           Email verification expired
         </h1>
-        <p className={authOnboardingMutedClassName}>
+        <p className={authMutedTextClassName}>
           Sorry, your email verification has expired. Request a new code to
           continue.
         </p>
       </div>
 
-      <p className={authOnboardingMutedClassName}>
+      <p className={cn('text-center', authMutedTextClassName)}>
         Didn&apos;t receive an email?{' '}
         <button
           type="button"
-          className={authOnboardingLinkClassName}
+          className={authLinkClassName}
           disabled={isResendingEmailVerification}
           onClick={() => void handleResendEmailVerification()}
         >

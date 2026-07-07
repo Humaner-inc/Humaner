@@ -5,6 +5,8 @@
   ·
   <a href="https://humaner.io/resources/docs/integrations/api">API</a>
   ·
+  <a href="https://github.com/Humaner-inc/humaner">GitHub</a>
+  ·
   <a href="https://humaner.io/security">Security</a>
 </p>
 
@@ -48,7 +50,7 @@ Widget, React SDK, API routes, auth, and tenancy code are **source-available** i
 
 **Feature requests & bugs:** use the Feedback button in the dashboard sidebar (bottom left).
 
-**Security vulnerabilities:** we appreciate responsible, private disclosure. See [SECURITY.md](./SECURITY.md).
+**Security vulnerabilities:** we appreciate responsible, private disclosure. See [SECURITY.md](./SECURITY.md) · [Security framework](./Docs/SECURITY_FRAMEWORK.md) (published on the public mirror).
 
 ### Humaner API & SDK
 

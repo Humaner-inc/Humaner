@@ -1,15 +1,18 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
+import {
+  ctaPrimaryClassName,
+  ctaSecondaryOnLightClassName
+} from '@humaner/shared/cta';
 import { Loader2Icon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
-const neutralCtaClasses =
-  'border border-transparent bg-[#070607] text-[#f5f5f5] shadow-sm hover:bg-[#070607]/90 dark:bg-[#f5f5f5] dark:text-[#070607] dark:hover:bg-[#f5f5f5]/90';
+const neutralCtaClasses = ctaPrimaryClassName;
 
 const upgradeCtaClasses =
-  'border border-[#070607]/14 bg-[#f5f5f5] font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#f5f5f5] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
+  'border border-[#070607]/14 bg-[#fff8f2] font-mono font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
@@ -22,8 +25,7 @@ const buttonVariants = cva(
           'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline:
-          'border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground',
+        outline: ctaSecondaryOnLightClassName,
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',

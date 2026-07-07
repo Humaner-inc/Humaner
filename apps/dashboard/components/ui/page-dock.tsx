@@ -109,7 +109,7 @@ export function PageDockItem({
       </span>
       <span
         className={cn(
-          'mt-2.5 max-w-[5.5rem] truncate text-center text-[11px] font-medium transition-colors duration-300 sm:max-w-none sm:text-xs',
+          'mt-2.5 max-w-[5.5rem] truncate text-center font-mono text-[11px] font-medium transition-colors duration-300 sm:max-w-none sm:text-xs',
           isGlass
             ? isComingSoon
               ? isActive

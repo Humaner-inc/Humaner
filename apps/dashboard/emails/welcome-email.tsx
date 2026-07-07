@@ -1,16 +1,11 @@
 import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Preview,
-  Section,
-  Text
-} from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
+  EmailButton,
+  EmailDivider,
+  EmailLayout,
+  EmailMuted,
+  EmailText,
+  EmailTitle
+} from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
@@ -22,39 +17,23 @@ export type WelcomeEmailData = {
 };
 
 export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
-  <Html>
-    <Head />
-    <Preview>Welcome to {AppInfo.APP_NAME}!</Preview>
-    <Tailwind>
-      <Body className="m-auto bg-white px-2 font-sans">
-        <Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]">
-          <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black">
-            Welcome to {AppInfo.APP_NAME}!
-          </Heading>
-          <Text className="text-[14px] leading-[24px] text-black">
-            Hello {name},
-          </Text>
-          <Text className="text-[14px] leading-[24px] text-black">
-            Thank you for signing up! We're excited to have you on board. You're now  ready to explore Humaner possibilities.
-          </Text>
-          <Section className="my-[32px] text-center">
-            <Button
-              className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
-              href={`${getBaseUrl()}${Routes.Dashboard}`}
-            >
-              Get started
-            </Button>
-          </Section>
-          <Text className="text-[14px] leading-[24px] text-black">
-            If you have any questions or need assistance, please don't hesitate
-            to reach out to our support team.
-          </Text>
-          <Hr className="mx-0 my-[26px] w-full border border-solid border-[#eaeaea]" />
-          <Text className="text-[12px] leading-[24px] text-[#666666]">
-            You receive this email because you signed up on {AppInfo.APP_NAME}.
-          </Text>
-        </Container>
-      </Body>
-    </Tailwind>
-  </Html>
+  <EmailLayout preview={`Welcome to ${AppInfo.APP_NAME}!`}>
+    <EmailTitle>Welcome to {AppInfo.APP_NAME}!</EmailTitle>
+    <EmailText>Hello {name},</EmailText>
+    <EmailText>
+      Thank you for signing up! We&apos;re excited to have you on board.
+      You&apos;re now ready to explore Humaner possibilities.
+    </EmailText>
+    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>
+      Get started
+    </EmailButton>
+    <EmailText>
+      If you have any questions or need assistance, please don&apos;t hesitate
+      to reach out to our support team.
+    </EmailText>
+    <EmailDivider />
+    <EmailMuted>
+      You receive this email because you signed up on {AppInfo.APP_NAME}.
+    </EmailMuted>
+  </EmailLayout>
 );

@@ -49,7 +49,7 @@ export default async function UnsubscribePage({
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
         {state.status === 'success' ? (
           <>
-            <h1 className="font-display text-2xl text-[#f5f5f5]">
+            <h1 className="font-display text-2xl text-[#fff8f2]">
               You&apos;re unsubscribed
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-white/60">
@@ -61,7 +61,7 @@ export default async function UnsubscribePage({
 
         {state.status === 'missing' || state.status === 'invalid' ? (
           <>
-            <h1 className="font-display text-2xl text-[#f5f5f5]">
+            <h1 className="font-display text-2xl text-[#fff8f2]">
               Invalid unsubscribe link
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-white/60">
@@ -73,7 +73,7 @@ export default async function UnsubscribePage({
 
         {state.status === 'error' ? (
           <>
-            <h1 className="font-display text-2xl text-[#f5f5f5]">
+            <h1 className="font-display text-2xl text-[#fff8f2]">
               Something went wrong
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-white/60">

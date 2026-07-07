@@ -30,7 +30,7 @@ export function NotFoundPage({
   return (
     <div
       className={cn(
-        'relative flex min-h-screen flex-col bg-[#070607] text-[#f5f5f5] lg:flex-row',
+        'relative flex min-h-screen flex-col bg-[#070607] text-[#fff8f2] lg:flex-row',
         className
       )}
     >
@@ -56,7 +56,7 @@ export function NotFoundPage({
           <Button
             type="button"
             variant="ghost"
-            className={cn(authHighlightButtonClassName, 'mt-10 w-full max-w-xs hover:text-[#070607]')}
+            className={cn(authHighlightButtonClassName, 'mt-10 w-full max-w-xs')}
             onClick={() => router.back()}
           >
             Go back

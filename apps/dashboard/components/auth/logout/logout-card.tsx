@@ -56,7 +56,7 @@ export function LogoutCard(): React.JSX.Element {
         <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
           <ShieldCheck className="size-5 text-[#dc143c]" />
         </div>
-        <span className="text-sm font-medium text-[#f5f5f5]">Secure logout</span>
+        <span className="text-sm font-medium text-[#fff8f2]">Secure logout</span>
         <span className={cn('text-center text-xs', authMutedTextClassName)}>
           The session has ended.
         </span>
@@ -64,7 +64,7 @@ export function LogoutCard(): React.JSX.Element {
 
       <p className={cn('text-sm', authMutedTextClassName)}>
         You will be redirected in{' '}
-        <span className="font-medium text-[#f5f5f5]">{countdown}</span> seconds.
+        <span className="font-medium text-[#fff8f2]">{countdown}</span> seconds.
       </p>
 
       <Button

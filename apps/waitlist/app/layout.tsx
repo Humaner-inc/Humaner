@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { HumanerDemoDock } from '@humaner/react';
-import { fellix, theSeasons } from '@/lib/fonts';
+import { fellix, humanerMono, theSeasons } from '@/lib/fonts';
 import { createTitle } from '@/lib/utils';
 
 import './globals.css';
@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fellix.variable} ${theSeasons.variable} min-h-screen bg-foreground font-sans text-background antialiased`}
+        className={`${fellix.variable} ${theSeasons.variable} ${humanerMono.variable} min-h-screen bg-foreground font-sans text-background antialiased`}
       >
         {children}
         {process.env.NEXT_PUBLIC_DEMO_AGENT_ID && (

@@ -6,7 +6,7 @@ import type { Metadata, Viewport } from 'next';
 import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { AppInfo } from '@/constants/app-info';
-import { fellix, theSeasons } from '@/lib/fonts';
+import { fellix, humanerMono, theSeasons } from '@/lib/fonts';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export const viewport: Viewport = {
@@ -42,7 +42,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`size-full min-h-screen ${fellix.variable} ${theSeasons.variable}`}
+      className={`size-full min-h-screen ${fellix.variable} ${theSeasons.variable} ${humanerMono.variable}`}
       suppressHydrationWarning
     >
       <body className="size-full font-sans">

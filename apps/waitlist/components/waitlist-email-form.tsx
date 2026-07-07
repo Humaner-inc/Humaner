@@ -1,5 +1,6 @@
 'use client';
 
+import { ctaPrimaryClassName } from '@humaner/shared/cta';
 import {
   CircleCheck,
   Loader2Icon,
@@ -71,7 +72,8 @@ export const WaitlistEmailForm = forwardRef<HTMLButtonElement, WaitlistEmailForm
             disabled={formState === 'loading' || formState === 'success'}
             aria-busy={formState === 'loading'}
             className={cn(
-              'group inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-[#f5f5f5] px-4 text-sm font-medium text-[#070607] shadow-sm transition-[gap] duration-200 hover:bg-[#f5f5f5]/90 disabled:cursor-not-allowed',
+              ctaPrimaryClassName,
+              'group h-9 shrink-0 px-4 transition-[gap] duration-200',
               formState === 'loading' && 'disabled:opacity-50',
               formState === 'success' && 'opacity-100',
               formState === 'idle' && 'gap-0 hover:gap-1.5',

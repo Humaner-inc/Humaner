@@ -40,3 +40,7 @@ export function getTermsUrl(): string {
 export function getSecurityUrl(): string {
   return `${getLandingUrl()}/security`;
 }
+
+export function getContactUrl(): string {
+  return `${getLandingUrl()}/contact`;
+}

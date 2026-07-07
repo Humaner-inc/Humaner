@@ -6,7 +6,7 @@ const config: Config = {
     extend: {
       colors: {
         background: '#070607',
-        foreground: '#f5f5f5',
+        foreground: '#fff8f2',
         accent: {
           DEFAULT: '#dc143c',
           foreground: '#ffffff'
@@ -14,7 +14,7 @@ const config: Config = {
         fracture: '#dc143c',
         brand: {
           DEFAULT: '#6b2d3a',
-          foreground: '#f5f5f5'
+          foreground: '#fff8f2'
         },
         muted: {
           DEFAULT: 'rgb(255 255 255 / 0.08)',

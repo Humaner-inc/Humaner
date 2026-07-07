@@ -10,12 +10,12 @@ import {
 } from 'react';
 
 export const BRAND_WORDMARK_DEFAULT = 'Humaner';
-export const BRAND_WORDMARK_HOVER = 'ἄνθρωπος';
+export const BRAND_WORDMARK_HOVER = 'Humaner';
 
-/** Lighter serif for Greek — display font only ships one weight and reads bold. */
+/** Mono UI on hover — pairs with display `font-display` at rest. */
 const HOVER_TYPOGRAPHY: CSSProperties = {
-  fontFamily: 'Georgia, "Times New Roman", Times, serif',
-  fontWeight: 400,
+  fontFamily: 'var(--font-humaner-mono), ui-monospace, monospace',
+  fontWeight: 500,
   fontSynthesis: 'none',
   letterSpacing: '0.02em'
 };
@@ -72,11 +72,25 @@ function morphText(progress: number, from: string, to: string): string {
     return to;
   }
 
+  const sameText = from === to;
   const length = Math.max(from.length, to.length);
   const chars: string[] = [];
 
   for (let i = 0; i < length; i++) {
     const local = charLocal(progress, i, length);
+
+    if (sameText) {
+      // Font-only morph — always run the pixel pass even when glyphs match.
+      if (local <= 0 || local >= 1) {
+        chars.push(from[i] ?? '');
+      } else if (local < 0.62) {
+        chars.push(pixelFor(i));
+      } else {
+        chars.push(from[i] ?? pixelFor(i));
+      }
+      continue;
+    }
+
     const resolved = resolveChar(local, i, from[i], to[i]);
     if (resolved) {
       chars.push(resolved);
@@ -84,6 +98,18 @@ function morphText(progress: number, from: string, to: string): string {
   }
 
   return chars.join('');
+}
+
+function hoverTypographyActive(progress: number, target: number): boolean {
+  const settled = Math.abs(progress - target) <= 0.01;
+
+  if (settled) {
+    return target >= 1;
+  }
+
+  // Entering hover: keep display type until the pixel pass finishes.
+  // Leaving hover: keep mono until the reverse pixel pass finishes.
+  return target < 1;
 }
 
 export type BrandWordmarkProps = HTMLAttributes<HTMLSpanElement> & {
@@ -158,16 +184,19 @@ export function BrandWordmark({
 
       const settled = Math.abs(progressRef.current - target) <= 0.01;
 
+      const eased = easeOutQuart(progressRef.current);
+
       if (settled) {
         progressRef.current = target;
         setDisplayText(target >= 1 ? to : from);
-        setUseHoverTypography(target >= 1);
+        setUseHoverTypography(hoverTypographyActive(progressRef.current, target));
         stopAnimation();
         return;
       }
 
-      setDisplayText(
-        morphText(easeOutQuart(progressRef.current), from, to)
+      setDisplayText(morphText(eased, from, to));
+      setUseHoverTypography(
+        hoverTypographyActive(progressRef.current, targetRef.current)
       );
       frameRef.current = requestAnimationFrame(tick);
     },
@@ -176,13 +205,11 @@ export function BrandWordmark({
 
   const startAnimation = useCallback(
     (nextTarget: number): void => {
-      if (nextTarget >= 1) {
-        setUseHoverTypography(true);
-      }
-
       if (progressRef.current === nextTarget) {
         setDisplayText(nextTarget >= 1 ? to : from);
-        setUseHoverTypography(nextTarget >= 1);
+        setUseHoverTypography(
+          hoverTypographyActive(progressRef.current, nextTarget)
+        );
         return;
       }
 

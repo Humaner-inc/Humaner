@@ -6,7 +6,8 @@ module.exports = {
     './components/**/*.{ts,tsx}',
     './constants/**/*.{ts,tsx}',
     './emails/**/*.{ts,tsx}',
-    './hooks/**/*.{ts,tsx}'
+    './hooks/**/*.{ts,tsx}',
+    '../../packages/shared/src/**/*.{ts,tsx}'
   ],
   theme: {
     container: {
@@ -18,8 +19,10 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-fellix)', 'system-ui', 'sans-serif'],
-        display: ['Humaner Display Fallback', 'var(--font-the-seasons)', 'Georgia', 'serif']
+        sans: ['var(--font-humaner-mono)', 'ui-monospace', 'monospace'],
+        display: ['Humaner Display Fallback', 'var(--font-the-seasons)', 'Georgia', 'serif'],
+        mono: ['var(--font-humaner-mono)', 'ui-monospace', 'monospace'],
+        fellix: ['var(--font-fellix)', 'system-ui', 'sans-serif']
       },
       colors: {
         border: 'hsl(var(--border))',

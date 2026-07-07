@@ -10,12 +10,12 @@ import { toast } from 'sonner';
 import { resendEmailConfirmation } from '@/actions/auth/resend-email-confirmation';
 import { verifyEmailWithOtp } from '@/actions/auth/verify-email-with-otp';
 import {
-  authOnboardingDestructiveClassName,
-  authOnboardingHeadingClassName,
-  authOnboardingLinkClassName,
-  authOnboardingMutedClassName,
-  authOnboardingOtpSlotClassName,
-  authOnboardingPrimaryButtonClassName
+  authDestructiveMessageClassName,
+  authHeadingClassName,
+  authLinkClassName,
+  authMutedTextClassName,
+  authOtpSlotClassName,
+  authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
 import { Button } from '@/components/ui/button';
 import {
@@ -94,12 +94,12 @@ export function VerifyEmailCard({
     <FormProvider {...methods}>
       <div className={cn('flex flex-col gap-5', className)}>
         <div className="space-y-1.5 text-center">
-          <h1 className={authOnboardingHeadingClassName}>Verify your email</h1>
-          <p className={authOnboardingMutedClassName}>
+          <h1 className={cn(authHeadingClassName, 'text-xl')}>Verify your email</h1>
+          <p className={authMutedTextClassName}>
             {email ? (
               <>
                 Enter the code we sent to{' '}
-                <span className="font-medium text-[#070607]">{email}</span>.
+                <span className="font-medium text-[#fff8f2]">{email}</span>.
               </>
             ) : (
               'Enter the code we sent to your inbox.'
@@ -128,50 +128,32 @@ export function VerifyEmailCard({
                     <InputOTPGroup className="justify-center gap-2.5">
                       <InputOTPSlot
                         index={0}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                       <InputOTPSlot
                         index={1}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                       <InputOTPSlot
                         index={2}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                       <InputOTPSlot
                         index={3}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                       <InputOTPSlot
                         index={4}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                       <InputOTPSlot
                         index={5}
-                        className={cn(
-                          authOnboardingOtpSlotClassName,
-                          'ring-[#dc143c]/40'
-                        )}
+                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
                       />
                     </InputOTPGroup>
                   </InputOTP>
                 </FormControl>
-                <FormMessage className={authOnboardingDestructiveClassName} />
+                <FormMessage className={authDestructiveMessageClassName} />
               </FormItem>
             )}
           />
@@ -179,7 +161,7 @@ export function VerifyEmailCard({
           <Button
             type="submit"
             variant="ghost"
-            className={authOnboardingPrimaryButtonClassName}
+            className={authPrimaryButtonClassName}
             disabled={!canSubmit}
             loading={isVerifying}
           >
@@ -191,12 +173,12 @@ export function VerifyEmailCard({
           </Button>
         </form>
 
-        <p className={cn('text-center', authOnboardingMutedClassName)}>
+        <p className={cn('text-center', authMutedTextClassName)}>
           Didn&apos;t receive an email?{' '}
           <button
             type="button"
             className={cn(
-              authOnboardingLinkClassName,
+              authLinkClassName,
               'disabled:pointer-events-none disabled:opacity-50'
             )}
             disabled={

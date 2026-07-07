@@ -12,7 +12,7 @@ export function WaitlistHeroSection({
   return (
     <section
       id="hero"
-      className="relative overflow-hidden bg-[#f5f5f5]"
+      className="relative overflow-hidden bg-[#fff8f2]"
     >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-1 px-6 pb-8 pt-32 sm:gap-2 sm:pt-36 lg:min-h-[100svh] lg:flex-row lg:items-center lg:justify-center lg:gap-12 lg:pb-24 lg:pt-32">
         <div className="flex shrink-0 flex-col items-center text-center lg:justify-center">

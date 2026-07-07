@@ -150,7 +150,7 @@ function PlatformPillarCard({
       )}
     >
       <PillarIcon id={pillar.id} icon={pillar.icon} />
-      <h3 className="mt-5 font-display text-lg font-semibold leading-snug text-[#f5f5f5] sm:text-xl">
+      <h3 className="mt-5 font-display text-lg font-semibold leading-snug text-[#fff8f2] sm:text-xl">
         {pillar.title}
       </h3>
       <p className="mt-2.5 max-w-[15rem] text-sm leading-relaxed text-white/55 sm:max-w-[11rem] sm:text-[0.9375rem]">
