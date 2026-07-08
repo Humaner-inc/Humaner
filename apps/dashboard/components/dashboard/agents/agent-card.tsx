@@ -13,6 +13,7 @@ import {
   PencilIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
+import type { PersonalityAccess } from '@humaner/shared/plans';
 import { toast } from 'sonner';
 
 import { deleteAgent } from '@/actions/agents/delete-agent';
@@ -42,6 +43,7 @@ import { CHARACTER_META } from '@/lib/character-presets';
 
 export type AgentCardProps = {
   agent: AgentOverviewItem;
+  personalityAccess?: PersonalityAccess;
 };
 
 function formatAgentId(publicId: string): string {
@@ -52,7 +54,10 @@ function formatAgentId(publicId: string): string {
   return `${publicId.slice(0, 8)}…${publicId.slice(-4)}`;
 }
 
-export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
+export function AgentCard({
+  agent,
+  personalityAccess = 'all'
+}: AgentCardProps): React.JSX.Element {
   const router = useRouter();
   const meta = CHARACTER_META[agent.character];
   const copyToClipboard = useCopyToClipboard();
@@ -192,6 +197,7 @@ export function AgentCard({ agent }: AgentCardProps): React.JSX.Element {
 
       <EditAgentDialog
         agent={agent}
+        personalityAccess={personalityAccess}
         open={editOpen}
         onOpenChange={setEditOpen}
       />

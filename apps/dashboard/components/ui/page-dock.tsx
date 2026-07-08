@@ -67,7 +67,7 @@ export function PageDockItem({
         {isGlass ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-2xl bg-[#060707]"
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-muted dark:bg-[#060707]"
           />
         ) : null}
         <span
@@ -77,11 +77,11 @@ export function PageDockItem({
               ? cn(
                   isComingSoon
                     ? isActive
-                      ? 'border-white/12 bg-black/30'
-                      : 'border-white/8 bg-black/25 group-hover:border-white/12 group-hover:bg-black/30'
+                      ? 'border-border bg-secondary dark:border-white/12 dark:bg-black/30'
+                      : 'border-border/70 bg-muted group-hover:border-border group-hover:bg-secondary dark:border-white/8 dark:bg-black/25 dark:group-hover:border-white/12 dark:group-hover:bg-black/30'
                     : isActive
-                      ? 'border-white/24 bg-black/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
-                      : 'border-white/16 bg-black/40 group-hover:border-white/22 group-hover:bg-black/50'
+                      ? 'border-foreground/15 bg-card shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(220_20_60_/_0.1)] dark:border-white/24 dark:bg-black/55 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                      : 'border-border/80 bg-muted group-hover:border-foreground/12 group-hover:bg-secondary dark:border-white/16 dark:bg-black/40 dark:group-hover:border-white/22 dark:group-hover:bg-black/50'
                 )
               : cn(
                   'relative',
@@ -97,7 +97,7 @@ export function PageDockItem({
               className={cn(
                 'pointer-events-none absolute inset-0',
                 isGlass
-                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
+                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(220_20_60_/_0.1),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
                   : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(220_20_60_/_0.18),transparent_68%)]'
               )}
             />
@@ -109,7 +109,7 @@ export function PageDockItem({
       </span>
       <span
         className={cn(
-          'mt-2.5 max-w-[5.5rem] truncate text-center font-mono text-[11px] font-medium transition-colors duration-300 sm:max-w-none sm:text-xs',
+          'mt-2.5 max-w-[5.5rem] truncate text-center font-sans text-[11px] font-medium transition-colors duration-300 sm:max-w-none sm:text-xs',
           isGlass
             ? isComingSoon
               ? isActive

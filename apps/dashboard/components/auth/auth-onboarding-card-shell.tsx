@@ -1,10 +1,6 @@
 import * as React from 'react';
 
-import {
-  authGlassCardClassName,
-  authGlassCardGlowClassName,
-  authLogoClassName
-} from '@/components/auth/auth-form-styles';
+import { authLogoClassName } from '@/components/auth/auth-form-styles';
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 
@@ -32,10 +28,7 @@ export function AuthOnboardingCardShell({
           />
         </div>
       ) : null}
-      <div className={authGlassCardClassName}>
-        <div aria-hidden className={authGlassCardGlowClassName} />
-        <div className="relative z-10">{children}</div>
-      </div>
+      {children}
     </div>
   );
 }

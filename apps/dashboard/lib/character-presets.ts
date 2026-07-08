@@ -5,6 +5,7 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
+import type { PersonalityAccess } from '@humaner/shared/plans';
 
 export type CharacterMeta = {
   id: CharacterType;
@@ -32,16 +33,43 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     example:
       'Thank you for reaching out. To resolve this, please navigate to Settings, select Account, and click Reset. The change takes effect immediately.'
   },
-  SHARP: {
-    id: 'SHARP',
-    label: 'Sharp',
+  EFFICIENT: {
+    id: 'EFFICIENT',
+    label: 'Efficient',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
     image: '/caracters/gradient_2.png',
     example: 'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
+  },
+  CUSTOM: {
+    id: 'CUSTOM',
+    label: 'Custom',
+    tagline: 'Your own voice. Write the character prompt from scratch.',
+    image: '/caracters/gradient_4.jpg',
+    example:
+      'Define how your agent speaks — tone, style, boundaries — in your own words.'
   }
 };
 
-export const CHARACTER_LIST: CharacterMeta[] = Object.values(CHARACTER_META);
+/** Onboarding and other flows outside /dashboard — presets only, no Custom. */
+export const STANDARD_CHARACTER_LIST: CharacterMeta[] = [
+  CHARACTER_META.CASUAL,
+  CHARACTER_META.CORPORATE,
+  CHARACTER_META.EFFICIENT
+];
+
+/** Full personality list for /dashboard agent create & edit. */
+export const DASHBOARD_CHARACTER_LIST: CharacterMeta[] =
+  Object.values(CHARACTER_META);
+
+export function getSelectableCharacters(
+  access: PersonalityAccess
+): CharacterMeta[] {
+  if (access === 'all') {
+    return DASHBOARD_CHARACTER_LIST;
+  }
+
+  return [CHARACTER_META.CORPORATE];
+}
 
 type Option<T extends string> = {
   value: T;

@@ -9,6 +9,7 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
+import type { PersonalityAccess } from '@humaner/shared/plans';
 import { toast } from 'sonner';
 
 import { updateAgent } from '@/actions/agents/update-agent';
@@ -29,8 +30,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { AgentListItem } from '@/data/agents/get-agents';
 import {
-  CHARACTER_LIST,
-  CHARACTER_META
+  CHARACTER_META,
+  getSelectableCharacters
 } from '@/lib/character-presets';
 import {
   DEFAULT_AGENT_ROLE,
@@ -42,12 +43,14 @@ import { cn } from '@/lib/utils';
 
 export type EditAgentDialogProps = {
   agent: AgentListItem;
+  personalityAccess?: PersonalityAccess;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
 export function EditAgentDialog({
   agent,
+  personalityAccess = 'all',
   open,
   onOpenChange
 }: EditAgentDialogProps): React.JSX.Element {
@@ -75,11 +78,18 @@ export function EditAgentDialog({
       : (agent.greetingMessage ?? '')
   );
   const [showRole, setShowRole] = React.useState(agent.showRole);
+  const [customCharacterPrompt, setCustomCharacterPrompt] = React.useState(
+    agent.customCharacterPrompt ?? ''
+  );
   const [avatarImage, setAvatarImage] = React.useState(agent.image);
 
   const greetingPlaceholder = React.useMemo(
     () => getGreetingPlaceholder(character, name),
     [character, name]
+  );
+  const selectableCharacters = React.useMemo(
+    () => getSelectableCharacters(personalityAccess),
+    [personalityAccess]
   );
 
   React.useEffect(() => {
@@ -107,10 +117,22 @@ export function EditAgentDialog({
         : (agent.greetingMessage ?? '')
     );
     setShowRole(agent.showRole);
+    setCustomCharacterPrompt(agent.customCharacterPrompt ?? '');
     setAvatarImage(agent.image);
   }, [agent, open]);
 
-  const canSubmit = name.trim().length > 0;
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    if (!selectableCharacters.some((item) => item.id === character)) {
+      setCharacter(selectableCharacters[0]?.id ?? 'CORPORATE');
+    }
+  }, [character, open, selectableCharacters]);
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    (character !== 'CUSTOM' || customCharacterPrompt.trim().length > 0);
 
   const handleSave = (): void => {
     if (!canSubmit) {
@@ -122,6 +144,8 @@ export function EditAgentDialog({
         name,
         role: role.trim() || undefined,
         character,
+        customCharacterPrompt:
+          character === 'CUSTOM' ? customCharacterPrompt : undefined,
         verbosity,
         formality,
         emojiMode,
@@ -176,8 +200,8 @@ export function EditAgentDialog({
 
           <div>
             <Label className="mb-2 block">Personality</Label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {CHARACTER_LIST.map((item) => (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {selectableCharacters.map((item) => (
                 <button
                   key={item.id}
                   type="button"
@@ -208,9 +232,30 @@ export function EditAgentDialog({
                 </button>
               ))}
             </div>
-            <p className="mt-2 rounded-md bg-secondary/50 p-2.5 text-xs italic text-muted-foreground">
-              &ldquo;{CHARACTER_META[character].example}&rdquo;
-            </p>
+            {character === 'CUSTOM' ? (
+              <div className="mt-4 space-y-2">
+                <Label htmlFor={`edit-agent-custom-prompt-${agent.id}`}>
+                  Character prompt
+                </Label>
+                <Textarea
+                  id={`edit-agent-custom-prompt-${agent.id}`}
+                  rows={6}
+                  placeholder="Describe how your agent should speak — tone, style, boundaries, and any rules you want it to follow."
+                  value={customCharacterPrompt}
+                  maxLength={8000}
+                  disabled={isPending}
+                  onChange={(e) => setCustomCharacterPrompt(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                This replaces the personality presets. Your agent still
+                uses Humaner intelligence.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 rounded-md bg-secondary/50 p-2.5 text-xs italic text-muted-foreground">
+                &ldquo;{CHARACTER_META[character].example}&rdquo;
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2 sm:items-center">
@@ -239,20 +284,22 @@ export function EditAgentDialog({
             />
           </div>
 
-          <AgentPersonalityTuning
-            character={character}
-            verbosity={verbosity}
-            formality={formality}
-            emojiMode={emojiMode}
-            openerStyle={openerStyle}
-            allowTypos={allowTypos}
-            disabled={isPending}
-            onVerbosityChange={setVerbosity}
-            onFormalityChange={setFormality}
-            onEmojiModeChange={setEmojiMode}
-            onOpenerStyleChange={setOpenerStyle}
-            onAllowTyposChange={setAllowTypos}
-          />
+          {character !== 'CUSTOM' ? (
+            <AgentPersonalityTuning
+              character={character}
+              verbosity={verbosity}
+              formality={formality}
+              emojiMode={emojiMode}
+              openerStyle={openerStyle}
+              allowTypos={allowTypos}
+              disabled={isPending}
+              onVerbosityChange={setVerbosity}
+              onFormalityChange={setFormality}
+              onEmojiModeChange={setEmojiMode}
+              onOpenerStyleChange={setOpenerStyle}
+              onAllowTyposChange={setAllowTypos}
+            />
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor={`edit-agent-greeting-${agent.id}`}>

@@ -39,7 +39,7 @@ export function WaitlistCtaReveal({
 
   return (
     <div
-      className={cn('waitlist-cta mx-auto w-full max-w-lg text-center', className)}
+      className={cn('waitlist-cta mx-auto w-full max-w-2xl text-center', className)}
       data-open={open ? 'true' : 'false'}
     >
       <div className="waitlist-cta__headline-wrap">
@@ -61,10 +61,13 @@ export function WaitlistCtaReveal({
           <WaitlistSuccessState />
         </div>
       ) : (
-        <p className="waitlist-cta__sub mx-auto mt-4 max-w-sm text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-base">
-          Being early will grant exclusive benefits.
-          <br />
-          Benefits others will have to pay for.
+        <p className="waitlist-cta__sub mx-auto mt-4 text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-base">
+          <span className="block sm:whitespace-nowrap">
+            Being early will grant exclusive benefits.
+          </span>
+          <span className="block sm:whitespace-nowrap">
+            Benefits others will have to pay for.
+          </span>
         </p>
       )}
 

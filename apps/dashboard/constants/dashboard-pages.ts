@@ -7,6 +7,7 @@ export const DASHBOARD_PAGE_KEYS = [
   'integrations',
   'analytics',
   'history',
+  'desk',
   'human-desk',
   'settings'
 ] as const;
@@ -20,13 +21,14 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
   integrations: 'Integrations',
   analytics: 'Analytics',
   history: 'History',
+  desk: 'Desk',
   'human-desk': 'Human Desk',
   settings: 'Settings'
 };
 
 export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
   'overview',
-  'human-desk'
+  'desk'
 ];
 
 export const OWNER_ONLY_ROUTE_PREFIXES = [
@@ -49,6 +51,7 @@ const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'integrations', prefix: Routes.Integrations },
   { key: 'analytics', prefix: Routes.Analytics },
   { key: 'history', prefix: Routes.History },
+  { key: 'desk', prefix: Routes.Desk },
   { key: 'human-desk', prefix: Routes.HumanDesk },
   { key: 'settings', prefix: Routes.Settings }
 ];

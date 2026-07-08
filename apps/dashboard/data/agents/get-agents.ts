@@ -26,6 +26,7 @@ export type AgentListItem = {
   name: string;
   role: string;
   character: CharacterType;
+  customCharacterPrompt: string | null;
   industry: IndustryType;
   verbosity: Verbosity;
   formality: Formality;
@@ -53,6 +54,7 @@ export async function getAgents(): Promise<AgentListItem[]> {
           name: true,
           role: true,
           character: true,
+          customCharacterPrompt: true,
           industry: true,
           verbosity: true,
           formality: true,

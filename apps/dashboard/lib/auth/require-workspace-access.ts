@@ -86,6 +86,15 @@ export function canAccessPageKey(
     return true;
   }
 
+  // Desk replaced Human Desk in nav; keep legacy page keys interchangeable.
+  if (pageKey === 'desk' && context.allowedPages.includes('human-desk')) {
+    return true;
+  }
+
+  if (pageKey === 'human-desk' && context.allowedPages.includes('desk')) {
+    return true;
+  }
+
   return false;
 }
 

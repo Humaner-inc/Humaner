@@ -8,7 +8,7 @@ import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { assignHandoffTicketSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const assignHandoffTicket = pageActionClient('human-desk')
+export const assignHandoffTicket = pageActionClient('desk')
   .metadata({ actionName: 'assignHandoffTicket' })
   .schema(assignHandoffTicketSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -58,5 +58,6 @@ export const assignHandoffTicket = pageActionClient('human-desk')
       }
     });
 
-    revalidatePath(Routes.HumanDesk);
+    revalidatePath(Routes.Desk);
+    revalidatePath(Routes.DeskHuman);
   });

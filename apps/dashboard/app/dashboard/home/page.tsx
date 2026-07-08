@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
-import { getPlanForTier } from '@humaner/shared/plans';
+import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import { BarChart3Icon, BlocksIcon, BookOpenIcon } from '@humaner/shared/icons';
 
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
@@ -43,6 +43,9 @@ export default async function HomePage(): Promise<React.JSX.Element> {
   ]);
 
   const plan = getPlanForTier(organization?.tier ?? 'free');
+  const personalityAccess = getPlanCapabilities(
+    organization?.tier ?? 'free'
+  ).personalities;
   const agentLimit = getEffectiveAgentLimit(plan, bypassLimits);
   const atLimit = hasReachedAgentLimit(agents.length, plan, bypassLimits);
 
@@ -66,7 +69,10 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                   : `${agents.length} of ${agentLimit} agent${agentLimit === 1 ? '' : 's'} on the ${plan.name} plan.`}
               </p>
             </div>
-            <CreateAgentDialog disabled={atLimit} />
+            <CreateAgentDialog
+              disabled={atLimit}
+              personalityAccess={personalityAccess}
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -74,9 +80,15 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               <AgentCard
                 key={agent.id}
                 agent={agent}
+                personalityAccess={personalityAccess}
               />
             ))}
-            {!atLimit && <CreateAgentDialog asCard />}
+            {!atLimit && (
+              <CreateAgentDialog
+                asCard
+                personalityAccess={personalityAccess}
+              />
+            )}
           </div>
 
           {atLimit && (

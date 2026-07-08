@@ -14,6 +14,8 @@ import { getProfile } from '@/data/account/get-profile';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
+import { OrgModeProvider } from '@/hooks/use-org-mode';
+
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -40,7 +42,8 @@ export default async function DashboardLayout({
       organization: {
         select: {
           completedOnboarding: true,
-          dataImprovementConsent: true
+          dataImprovementConsent: true,
+          targetAudience: true
         }
       }
     }
@@ -62,31 +65,32 @@ export default async function DashboardLayout({
     userFromDb!.organization!.dataImprovementConsent === null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <DataImprovementConsentGate
-        privacyPolicyUrl={getPrivacyUrl()}
-        showPrompt={showDataImprovementPrompt}
-      />
-      <SidebarProvider>
-        <SidebarRenderer
-          profile={profile}
-          workspaces={workspaces}
-          messageUsage={messageUsage}
+    <OrgModeProvider targetAudience={userFromDb!.organization!.targetAudience}>
+      <div className="flex h-screen overflow-hidden bg-background text-foreground">
+        <DataImprovementConsentGate
+          privacyPolicyUrl={getPrivacyUrl()}
+          showPrompt={showDataImprovementPrompt}
         />
-        {/* Set max-width so full-width tables can overflow horizontally correctly */}
-        <SidebarInset
-          id="skip"
-          className="min-h-0 min-w-0 flex-1"
-        >
-          <DashboardTopNav
+        <SidebarProvider>
+          <SidebarRenderer
             profile={profile}
-            notifications={notifications}
+            workspaces={workspaces}
+            messageUsage={messageUsage}
           />
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <PageAccessGate profile={profile}>{children}</PageAccessGate>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+          <SidebarInset
+            id="skip"
+            className="min-h-0 min-w-0 flex-1"
+          >
+            <DashboardTopNav
+              profile={profile}
+              notifications={notifications}
+            />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <PageAccessGate profile={profile}>{children}</PageAccessGate>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+    </OrgModeProvider>
   );
 }

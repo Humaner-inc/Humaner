@@ -2,14 +2,14 @@ import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import {
-  ctaPrimaryClassName,
-  ctaSecondaryOnLightClassName
+  ctaPrimaryOnLightClassName,
+  ctaSecondaryAdaptiveClassName
 } from '@humaner/shared/cta';
 import { Loader2Icon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
-const neutralCtaClasses = ctaPrimaryClassName;
+const neutralCtaClasses = `${ctaPrimaryOnLightClassName} dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-[#d9d4cd] dark:hover:text-[#070607]`;
 
 const upgradeCtaClasses =
   'border border-[#070607]/14 bg-[#fff8f2] font-mono font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
@@ -25,7 +25,7 @@ const buttonVariants = cva(
           'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline: ctaSecondaryOnLightClassName,
+        outline: ctaSecondaryAdaptiveClassName,
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',

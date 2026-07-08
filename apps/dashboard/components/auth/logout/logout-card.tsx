@@ -7,7 +7,6 @@ import { ShieldCheck } from '@humaner/shared/icons';
 
 import {
   authHeadingClassName,
-  authInnerHighlightClassName,
   authMutedTextClassName,
   authOutlineButtonClassName
 } from '@/components/auth/auth-form-styles';
@@ -52,7 +51,7 @@ export function LogoutCard(): React.JSX.Element {
         </p>
       </div>
 
-      <div className={authInnerHighlightClassName}>
+      <div className="flex flex-col items-center gap-2">
         <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
           <ShieldCheck className="size-5 text-[#dc143c]" />
         </div>

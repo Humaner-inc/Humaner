@@ -83,9 +83,9 @@ export function AgentAccuracyCard({
       <CardContent className="space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className={`font-display text-5xl leading-none ${scoreTone}`}>
+            <p className={`font-mono text-5xl leading-none tabular-nums ${scoreTone}`}>
               {Math.round(displayScore)}
-              <span className="ml-1 text-lg text-muted-foreground">/ 100</span>
+              <span className="ml-1 font-mono text-lg tabular-nums text-muted-foreground">/ 100</span>
             </p>
             {latestRun && (
               <p className="mt-2 text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ export function AgentAccuracyCard({
             )}
           </div>
           {latestRun && (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-right text-xs text-muted-foreground">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-right font-mono text-xs tabular-nums text-muted-foreground">
               <span>Persona {Math.round(latestRun.personaAvg)}%</span>
               <span>Helpful {Math.round(latestRun.helpfulnessAvg)}%</span>
               <span>

@@ -13,6 +13,8 @@ export const EMAIL_COLORS = {
 export const EMAIL_FONTS = {
   /** The Seasons is not web-hosted; Georgia matches the display serif feel. */
   display: "Georgia, 'Times New Roman', Times, serif",
+  /** Fellix is not web-hosted in email; system sans mirrors body copy role. */
+  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
 } as const;
 

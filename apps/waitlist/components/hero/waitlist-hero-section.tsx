@@ -24,7 +24,7 @@ export function WaitlistHeroSection({
 
           <p
             ref={trunkAnchorRef}
-            className="mx-auto mt-4 max-w-md text-base leading-relaxed text-foreground/55 sm:mt-6 sm:text-lg"
+            className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-foreground/55 sm:mt-6 sm:text-base"
           >
              The support your customers love, 
              <br/>the experience developers wanted.  

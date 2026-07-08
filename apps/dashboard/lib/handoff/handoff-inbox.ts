@@ -17,6 +17,7 @@ export type HandoffInboxTicket = {
   visitorEmail: string | null;
   visitorFirstName: string | null;
   visitorLastName: string | null;
+  visitorCompany: string | null;
   visitorLeftAt: string | null;
   subject: string;
   summary: string;
@@ -25,6 +26,10 @@ export type HandoffInboxTicket = {
   source: HandoffTicketSource;
   status: HandoffTicketStatus;
   urgency: HandoffTicketUrgency;
+  routedTo: 'ai' | 'human' | null;
+  clusterId: string | null;
+  runbookId: string | null;
+  resolvedAt: string | null;
   assignee: HandoffInboxAssignee | null;
   assignedAt: string | null;
   createdAt: string;

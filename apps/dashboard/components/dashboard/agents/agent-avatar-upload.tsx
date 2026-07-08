@@ -174,7 +174,7 @@ export function AgentAvatarUpload({
               type="button"
               variant="outline"
               size="icon"
-              className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full bg-background"
+              className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full bg-background text-foreground shadow-sm dark:border-white/25 dark:bg-[#1c1c1c] dark:text-white dark:hover:bg-[#262626] dark:hover:text-white"
               onClick={handleRemoveImage}
             >
               <TrashIcon className="size-4 shrink-0" />

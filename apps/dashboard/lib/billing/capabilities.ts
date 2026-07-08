@@ -1,5 +1,6 @@
 import 'server-only';
 
+import type { CharacterType } from '@prisma/client';
 import {
   getPlanCapabilities,
   getPlanForTier,
@@ -21,6 +22,16 @@ export async function getOrganizationCapabilities(
   });
 
   return getPlanCapabilities(organization?.tier ?? 'free');
+}
+
+/** Enforce plan personality access when persisting agent character settings. */
+export function resolveAllowedAgentCharacter(
+  character: CharacterType,
+  capabilities: PlanCapabilities
+): CharacterType {
+  return capabilities.personalities === 'all' || character === 'CORPORATE'
+    ? character
+    : 'CORPORATE';
 }
 
 /** Human-readable plan name for upgrade prompts. */

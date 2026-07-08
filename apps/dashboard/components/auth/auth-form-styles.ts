@@ -1,6 +1,7 @@
 /**
  * Humaner auth + onboarding design tokens.
  * Auth: dark solid. Onboarding: light card on dark bg (invertible via theme).
+ * Body copy uses Fellix (font-sans); labels and CTAs use mono.
  */
 
 import {

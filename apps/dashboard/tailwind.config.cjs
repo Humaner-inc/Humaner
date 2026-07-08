@@ -19,7 +19,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-humaner-mono)', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-fellix)', 'system-ui', 'sans-serif'],
         display: ['Humaner Display Fallback', 'var(--font-the-seasons)', 'Georgia', 'serif'],
         mono: ['var(--font-humaner-mono)', 'ui-monospace', 'monospace'],
         fellix: ['var(--font-fellix)', 'system-ui', 'sans-serif']

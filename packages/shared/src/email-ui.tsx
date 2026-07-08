@@ -80,7 +80,7 @@ export function EmailLayout({
       </Head>
       <Preview>{preview}</Preview>
       <Tailwind>
-        <Body className={bodyClass} style={{ fontFamily: EMAIL_FONTS.mono }}>
+        <Body className={bodyClass} style={{ fontFamily: EMAIL_FONTS.sans }}>
           <Container className={containerClass}>
             {variant === 'onboarding' ? (
               <Section className="mb-6">
@@ -149,7 +149,7 @@ export function EmailText({
   return (
     <Text
       className={className ? `${EMAIL_TEXT_CLASS} ${className}` : EMAIL_TEXT_CLASS}
-      style={{ fontFamily: EMAIL_FONTS.mono }}
+      style={{ fontFamily: EMAIL_FONTS.sans }}
     >
       {children}
     </Text>
@@ -164,7 +164,7 @@ export function EmailMuted({
   return (
     <Text
       className={EMAIL_MUTED_CLASS}
-      style={{ fontFamily: EMAIL_FONTS.mono }}
+      style={{ fontFamily: EMAIL_FONTS.sans }}
     >
       {children}
     </Text>
@@ -212,7 +212,7 @@ export function EmailInlineLink({
     <Link
       href={href}
       className={EMAIL_LINK_CLASS}
-      style={{ fontFamily: EMAIL_FONTS.mono }}
+      style={{ fontFamily: EMAIL_FONTS.sans }}
     >
       {children}
     </Link>

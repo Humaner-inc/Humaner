@@ -54,7 +54,7 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="group/industry flex items-center gap-1">
       <Badge
         variant="secondary"
         className="gap-1.5 px-2.5 py-1"
@@ -76,10 +76,12 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 gap-1.5 px-2 text-xs"
+            className="h-7 gap-1.5 overflow-hidden px-2 text-xs"
           >
-            <PencilIcon className="size-3.5" />
-            Change
+            <PencilIcon className="size-0 shrink-0 -translate-x-1 opacity-0 transition-all duration-200 group-hover/industry:size-3.5 group-hover/industry:translate-x-0 group-hover/industry:opacity-100" />
+            <span className="transition-transform duration-200 group-hover/industry:-translate-x-0.5">
+              Change
+            </span>
           </Button>
         </DialogTrigger>
         <DialogContent>

@@ -112,7 +112,7 @@ export function SidebarMessageUsage({
       >
         <div className="overflow-hidden">
           <div className="flex justify-center px-0.5">
-            <span className="text-center text-[10px] font-medium leading-tight tabular-nums text-muted-foreground">
+            <span className="text-center font-mono text-[9px] font-medium leading-tight tabular-nums text-muted-foreground">
               {usage.messagesUsed.toLocaleString()}
               <span className="text-muted-foreground/70">
                 /{usage.includedMessages.toLocaleString()}
@@ -137,7 +137,9 @@ export function SidebarMessageUsage({
           )}
         >
           <span className="text-muted-foreground">Messages this month</span>
-          <span className="shrink-0 font-medium tabular-nums">{usageLabel}</span>
+          <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
+            {usageLabel}
+          </span>
         </div>
         <SidebarUsageProgress
           expanded={!isCollapsed}

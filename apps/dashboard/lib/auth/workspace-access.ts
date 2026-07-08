@@ -27,7 +27,19 @@ export function canAccessPage(
     return true;
   }
 
-  return profile.allowedPages.includes(pageKey);
+  if (profile.allowedPages.includes(pageKey)) {
+    return true;
+  }
+
+  if (pageKey === 'desk' && profile.allowedPages.includes('human-desk')) {
+    return true;
+  }
+
+  if (pageKey === 'human-desk' && profile.allowedPages.includes('desk')) {
+    return true;
+  }
+
+  return false;
 }
 
 export function canAccessPathname(

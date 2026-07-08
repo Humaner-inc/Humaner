@@ -59,7 +59,7 @@ export function DashboardOverviewStrip({
           <span className="font-display text-base text-foreground">
             {plan.name}
           </span>
-          <span className="text-muted-foreground">
+          <span className="font-mono tabular-nums text-muted-foreground">
             {' '}
             · {plan.modelLabel} · {plan.includedMessages.toLocaleString()}{' '}
             messages/mo

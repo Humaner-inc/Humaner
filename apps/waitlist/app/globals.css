@@ -49,6 +49,12 @@
 }
 
 @layer utilities {
+  .tabular-nums {
+    @apply font-mono;
+  }
+}
+
+@layer utilities {
   .section-headline {
     @apply font-display text-[2rem] font-semibold leading-[1.25] tracking-tight sm:text-[2.75rem] lg:text-5xl;
     padding-bottom: 0.2em;

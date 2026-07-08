@@ -33,6 +33,7 @@ export type AgentOverviewItem = {
   name: string;
   role: string;
   character: CharacterType;
+  customCharacterPrompt: string | null;
   industry: IndustryType;
   verbosity: Verbosity;
   formality: Formality;
@@ -62,6 +63,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           name: true,
           role: true,
           character: true,
+          customCharacterPrompt: true,
           industry: true,
           verbosity: true,
           formality: true,
@@ -120,6 +122,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           name: agent.name,
           role: agent.role,
           character: agent.character,
+          customCharacterPrompt: agent.customCharacterPrompt,
           industry: agent.industry,
           verbosity: agent.verbosity,
           formality: agent.formality,

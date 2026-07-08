@@ -149,7 +149,7 @@ const StoryBeat = forwardRef<HTMLElement, StoryBeatProps>(function StoryBeat(
 
       <div
         className={cn(
-          'mx-auto w-full max-w-3xl px-2 text-center transition-all duration-700 ease-out sm:px-4',
+          'mx-auto w-full max-w-4xl px-2 text-center transition-all duration-700 ease-out sm:px-4',
           visible
             ? 'translate-y-0 opacity-100 blur-0'
             : 'translate-y-8 opacity-0 blur-[6px]'
@@ -165,7 +165,7 @@ const StoryBeat = forwardRef<HTMLElement, StoryBeatProps>(function StoryBeat(
         </p>
 
         {subline ? (
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/55 sm:mt-8 sm:text-lg sm:leading-relaxed">
+          <p className="mx-auto mt-6 max-w-4xl text-sm leading-relaxed text-white/55 sm:mt-8 sm:text-base sm:leading-relaxed sm:whitespace-nowrap">
             {subline}
           </p>
         ) : null}

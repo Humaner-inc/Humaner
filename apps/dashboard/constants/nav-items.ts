@@ -10,6 +10,7 @@ import {
   LockKeyholeIcon,
   MessageSquare,
   SettingsIcon,
+  SquareDashedKanbanIcon,
   StoreIcon,
   UserIcon,
   UserPlus2Icon
@@ -50,10 +51,10 @@ export const mainNavItems: NavItem[] = [
     pageKey: 'history'
   },
   {
-    title: 'Human Desk',
-    href: Routes.HumanDesk,
-    icon: HeadsetIcon,
-    pageKey: 'human-desk'
+    title: 'Desk',
+    href: Routes.Desk,
+    icon: SquareDashedKanbanIcon,
+    pageKey: 'desk'
   },
   {
     title: 'Settings',

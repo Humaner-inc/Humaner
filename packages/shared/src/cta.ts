@@ -12,9 +12,9 @@
 export const CTA_BASE =
   'inline-flex items-center justify-center rounded-md font-mono text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-50';
 
-/** Pill Dashboard nav CTA — sans, rounded-full (docs / vision topbars). */
+/** Pill Dashboard nav CTA — mono, rounded-full (docs / vision topbars). */
 export const CTA_DASHBOARD_BASE =
-  'inline-flex items-center justify-center rounded-full text-sm font-medium transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex items-center justify-center rounded-full font-mono text-sm font-medium transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50';
 
 /** White pill on dark surfaces. */
 export const ctaDashboardOnDarkClassName = `${CTA_DASHBOARD_BASE} bg-white px-3.5 py-1.5 text-black`;
@@ -35,6 +35,9 @@ export const ctaPrimaryOnLightClassName = `${CTA_BASE} bg-[#070607] px-4 py-2 te
 export const ctaSecondaryOnDarkClassName = `${CTA_BASE} border border-white/20 bg-white/[0.04] px-4 py-2 text-white/80 hover:border-white/30 hover:bg-white/[0.08] hover:text-white`;
 
 export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]/25 bg-[#070607]/[0.04] px-4 py-2 text-[#070607]/80 hover:border-[#070607]/40 hover:bg-[#070607]/[0.08] hover:text-[#070607]`;
+
+/** Outline CTA that inverts for dashboard light/dark shells. */
+export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/20 dark:bg-white/[0.04] dark:text-white/80 dark:hover:border-white/30 dark:hover:bg-white/[0.08] dark:hover:text-white`;
 
 /** Crimson deploy CTA — roadmap close, branch terminus. */
 export const ctaAccentClassName = `${CTA_BASE} bg-accent px-6 py-3 text-sm text-[#fff8f2] hover:bg-accent/90 hover:text-[#fff8f2]`;

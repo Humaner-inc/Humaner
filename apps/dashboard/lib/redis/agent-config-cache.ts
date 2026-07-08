@@ -26,6 +26,7 @@ const agentSelect = {
   name: true,
   role: true,
   character: true,
+  customCharacterPrompt: true,
   industry: true,
   verbosity: true,
   formality: true,
