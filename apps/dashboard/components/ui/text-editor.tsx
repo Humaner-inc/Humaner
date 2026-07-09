@@ -42,6 +42,7 @@ import {
   $isRootOrShadowRoot,
   FORMAT_TEXT_COMMAND,
   LexicalEditor,
+  LexicalNode,
   LineBreakNode,
   SELECTION_CHANGE_COMMAND
 } from 'lexical';
@@ -168,7 +169,7 @@ function ToolbarPlugin(): React.JSX.Element {
       let element =
         anchorNode.getKey() === 'root'
           ? anchorNode
-          : $findMatchingParent(anchorNode, (e) => {
+          : $findMatchingParent(anchorNode, (e: LexicalNode) => {
               const parent = e.getParent();
               return parent !== null && $isRootOrShadowRoot(parent);
             });

@@ -1,5 +1,7 @@
 import type { LucideIcon } from '@humaner/shared/icons';
 
+import type { DashboardPageKey } from '@/constants/dashboard-pages';
+
 export type NavItem = {
   title: string;
   href: string;
@@ -10,6 +12,6 @@ export type NavItem = {
   /** Workspace owner / payer only. */
   ownerOnly?: boolean;
   /** Teammate page access key. */
-  pageKey?: string;
+  pageKey?: DashboardPageKey;
   icon: LucideIcon;
 };

@@ -1,3 +1,5 @@
+import type { MessageRole } from '@prisma/client';
+
 export type ConversationOutcome =
   | 'satisfied'
   | 'unsolved'
@@ -5,7 +7,7 @@ export type ConversationOutcome =
   | 'open';
 
 type ConversationMessage = {
-  role: 'USER' | 'ASSISTANT';
+  role: MessageRole;
   unanswered: boolean;
 };
 

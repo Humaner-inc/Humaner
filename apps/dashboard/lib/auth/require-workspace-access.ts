@@ -54,7 +54,7 @@ export function canAccessPathWithContext(
     case 'owner':
       return context.workspaceRole === WorkspaceRole.OWNER;
     case 'platform-admin':
-      return context.role === Role.ADMIN;
+      return false;
     case 'page':
       return canAccessPageKey(context, resolved.pageKey);
     default:

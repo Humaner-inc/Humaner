@@ -67,7 +67,7 @@ export const events = {
             user,
             getOAuthProfileImageUrl(
               account.provider,
-              profile as Record<string, unknown> | undefined,
+              profile as unknown as Record<string, unknown> | undefined,
               user
             )
           );
@@ -126,7 +126,7 @@ export const events = {
           user,
           getOAuthProfileImageUrl(
             account.provider,
-            profile as Record<string, unknown> | undefined,
+            profile as unknown as Record<string, unknown> | undefined,
             user
           )
         );

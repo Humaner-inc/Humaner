@@ -3,6 +3,7 @@ import 'server-only';
 import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import { format, startOfDay, subDays } from 'date-fns';
 import { redirect } from 'next/navigation';
+import type { MessageRole } from '@prisma/client';
 
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
@@ -79,7 +80,7 @@ function extractKnowledgeGaps(
     updatedAt: Date;
     agent: { id: string; name: string };
     messages: Array<{
-      role: 'USER' | 'ASSISTANT';
+      role: MessageRole;
       content: string;
       unanswered: boolean;
       createdAt: Date;
