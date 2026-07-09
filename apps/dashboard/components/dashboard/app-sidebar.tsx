@@ -71,7 +71,7 @@ export function AppSidebar({
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden">
+      <SidebarContent className="overflow-hidden group-data-[collapsible=icon]:hidden">
         <ScrollArea
           verticalScrollBar
           className="h-full [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:flex-col"
@@ -83,7 +83,7 @@ export function AppSidebar({
           />
         </ScrollArea>
       </SidebarContent>
-      <div className="border-t border-sidebar-border/60">
+      <div className="mt-auto border-t border-sidebar-border/60">
         <SidebarMessageUsage
           usage={messageUsage}
           className="pt-2"

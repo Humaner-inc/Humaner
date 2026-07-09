@@ -5,6 +5,7 @@ import { WorkspaceRole } from '@prisma/client';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
+import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
@@ -22,6 +23,7 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { createTitle } from '@/lib/utils';
+import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 
 export const metadata: Metadata = {
   title: createTitle('Dashboard')
@@ -69,6 +71,36 @@ export default async function DashboardLayout({
     userFromDb!.organization!.dataImprovementConsent === null;
 
   const accentColor = userFromDb!.organization!.accentColor ?? undefined;
+  const humanerAgentPublicId = getHumanerAgentPublicId();
+
+  const dashboardShell = (
+    <>
+      <SidebarRenderer
+        profile={profile}
+        workspaces={workspaces}
+        messageUsage={messageUsage}
+        orgTier={userFromDb!.organization!.tier ?? 'free'}
+        agents={agents.map((a) => ({
+          id: a.id,
+          name: a.name,
+          image: a.image,
+          isPaused: a.isPaused
+        }))}
+      />
+      <SidebarInset
+        id="skip"
+        className="min-h-0 min-w-0 flex-1"
+      >
+        <DashboardTopNav
+          profile={profile}
+          notifications={notifications}
+        />
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <PageAccessGate profile={profile}>{children}</PageAccessGate>
+        </div>
+      </SidebarInset>
+    </>
+  );
 
   return (
     <OrgModeProvider targetAudience={userFromDb!.organization!.targetAudience}>
@@ -81,30 +113,16 @@ export default async function DashboardLayout({
           showPrompt={showDataImprovementPrompt}
         />
         <SidebarProvider>
-          <SidebarRenderer
-            profile={profile}
-            workspaces={workspaces}
-            messageUsage={messageUsage}
-            orgTier={userFromDb!.organization!.tier ?? 'free'}
-            agents={agents.map((a) => ({
-              id: a.id,
-              name: a.name,
-              image: a.image,
-              isPaused: a.isPaused
-            }))}
-          />
-          <SidebarInset
-            id="skip"
-            className="min-h-0 min-w-0 flex-1"
-          >
-            <DashboardTopNav
-              profile={profile}
-              notifications={notifications}
-            />
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <PageAccessGate profile={profile}>{children}</PageAccessGate>
-            </div>
-          </SidebarInset>
+          {humanerAgentPublicId ? (
+            <HumanerChatProvider
+              agentPublicId={humanerAgentPublicId}
+              widgetColor={accentColor}
+            >
+              {dashboardShell}
+            </HumanerChatProvider>
+          ) : (
+            dashboardShell
+          )}
         </SidebarProvider>
       </div>
     </OrgModeProvider>

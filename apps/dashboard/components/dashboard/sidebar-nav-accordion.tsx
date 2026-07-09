@@ -1,0 +1,106 @@
+'use client';
+
+import * as React from 'react';
+import { usePathname } from 'next/navigation';
+
+import { isOrganizationPath } from '@/constants/organization-nav-items';
+import { isIntegrationsPath } from '@/constants/integration-nav-items';
+import { isDeskPath } from '@/constants/desk-nav-items';
+import { isSettingsPath } from '@/constants/settings-nav-items';
+
+export const SIDEBAR_DRAWER_IDS = {
+  org: 'org',
+  integrations: 'integrations',
+  desk: 'desk',
+  settings: 'settings',
+  agent: (agentId: string) => `agent:${agentId}`
+} as const;
+
+type SidebarNavAccordionContextValue = {
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+};
+
+const SidebarNavAccordionContext =
+  React.createContext<SidebarNavAccordionContextValue | null>(null);
+
+export function getActiveSidebarDrawerId(
+  pathname: string,
+  agents: { id: string }[]
+): string | null {
+  if (isOrganizationPath(pathname)) return SIDEBAR_DRAWER_IDS.org;
+  if (isIntegrationsPath(pathname)) return SIDEBAR_DRAWER_IDS.integrations;
+  if (isDeskPath(pathname)) return SIDEBAR_DRAWER_IDS.desk;
+  if (isSettingsPath(pathname)) return SIDEBAR_DRAWER_IDS.settings;
+
+  const agent = agents.find((item) =>
+    pathname.startsWith(`/dashboard/agents/${item.id}`)
+  );
+  if (agent) return SIDEBAR_DRAWER_IDS.agent(agent.id);
+
+  return null;
+}
+
+export type SidebarNavAccordionProviderProps = {
+  agents: { id: string }[];
+  children: React.ReactNode;
+};
+
+export function SidebarNavAccordionProvider({
+  agents,
+  children
+}: SidebarNavAccordionProviderProps): React.JSX.Element {
+  const pathname = usePathname();
+  const [openId, setOpenId] = React.useState<string | null>(() =>
+    getActiveSidebarDrawerId(pathname, agents)
+  );
+
+  React.useEffect(() => {
+    const activeId = getActiveSidebarDrawerId(pathname, agents);
+    if (activeId) {
+      setOpenId(activeId);
+    }
+  }, [pathname, agents]);
+
+  const value = React.useMemo(
+    () => ({ openId, setOpenId }),
+    [openId]
+  );
+
+  return (
+    <SidebarNavAccordionContext.Provider value={value}>
+      {children}
+    </SidebarNavAccordionContext.Provider>
+  );
+}
+
+export function useSidebarNavDrawer(drawerId: string): {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+} {
+  const context = React.useContext(SidebarNavAccordionContext);
+
+  if (!context) {
+    throw new Error(
+      'useSidebarNavDrawer must be used within SidebarNavAccordionProvider'
+    );
+  }
+
+  const { openId, setOpenId } = context;
+  const open = openId === drawerId;
+
+  const onOpenChange = React.useCallback(
+    (next: boolean) => {
+      if (next) {
+        setOpenId(drawerId);
+        return;
+      }
+      if (openId === drawerId) {
+        setOpenId(null);
+      }
+    },
+    [drawerId, openId, setOpenId]
+  );
+
+  return { open, onOpenChange };
+}

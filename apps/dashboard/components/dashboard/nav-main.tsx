@@ -22,6 +22,7 @@ import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
 import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
+import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
 import { Routes } from '@/constants/routes';
 import {
   canAccessPage,
@@ -91,7 +92,7 @@ export function NavMain({
   ];
 
   return (
-    <>
+    <SidebarNavAccordionProvider agents={agents}>
       <NavOrganizationTree />
       {canAccessPage(profile, 'integrations') ? <NavIntegrationsTree orgTier={orgTier} /> : null}
       {canAccessPage(profile, 'desk') ? <NavDeskTree orgTier={orgTier} /> : null}
@@ -115,6 +116,6 @@ export function NavMain({
       ) : null}
       <SidebarSeparator className="my-2" />
       <NavAgentTree agents={agents} />
-    </>
+    </SidebarNavAccordionProvider>
   );
 }

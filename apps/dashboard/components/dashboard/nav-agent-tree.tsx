@@ -3,14 +3,17 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDownIcon, PlusIcon } from '@humaner/shared/icons';
+import { PlusIcon } from '@humaner/shared/icons';
 
 import { SidebarBranchIcon } from '@/components/dashboard/sidebar-branch-icon';
 import {
   SIDEBAR_HEAD_TITLE_CLASS,
+  SidebarAgentHead,
   SidebarBranchItem,
   SidebarBranchLabel,
-  SidebarBranchNav
+  SidebarBranchNav,
+  SIDEBAR_TREE_TRIGGER_CLASS,
+  SidebarTreeDisclosureIcon
 } from '@/components/dashboard/sidebar-branch-nav';
 import {
   AGENT_NAV_TABS,
@@ -28,6 +31,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar';
+import {
+  SIDEBAR_DRAWER_IDS,
+  useSidebarNavDrawer
+} from '@/components/dashboard/sidebar-nav-accordion';
 import { cn } from '@/lib/utils';
 
 export type SidebarAgent = {
@@ -46,44 +53,34 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
   const activeTab = getActiveAgentTab(pathname);
   const inAgent = pathname.startsWith(`/dashboard/agents/${agent.id}`);
   const activeIndex = AGENT_NAV_TABS.findIndex((tab) => tab.id === activeTab);
-  const [open, setOpen] = React.useState(inAgent);
-
-  React.useEffect(() => {
-    if (inAgent) setOpen(true);
-  }, [inAgent]);
+  const { open, onOpenChange } = useSidebarNavDrawer(
+    SIDEBAR_DRAWER_IDS.agent(agent.id)
+  );
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={onOpenChange}>
       <SidebarMenuItem className="relative">
         <CollapsibleTrigger asChild>
           <SidebarMenuButton
             tooltip={agent.name}
             isActive={inAgent}
-            className="group/agent pr-8"
+            className={cn('group/agent', SIDEBAR_TREE_TRIGGER_CLASS)}
           >
+            <SidebarTreeDisclosureIcon open={open} />
             <Link
               href={agentPersonaRoute(agent.id)}
-              className="flex min-w-0 flex-1 items-center"
+              className="flex min-w-0 flex-1 items-center group-data-[collapsible=icon]:flex-none"
               onClick={(event) => event.stopPropagation()}
             >
-              <span
-                className={cn(
-                  SIDEBAR_HEAD_TITLE_CLASS,
-                  agent.isPaused && 'opacity-60'
-                )}
-              >
-                {agent.name}
-              </span>
+              <SidebarAgentHead
+                name={agent.name}
+                image={agent.image}
+                isPaused={agent.isPaused}
+              />
             </Link>
-            <ChevronDownIcon
-              className={cn(
-                'absolute right-2 size-4 text-muted-foreground transition-transform',
-                open && 'rotate-180'
-              )}
-            />
           </SidebarMenuButton>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <CollapsibleContent className="group-data-[collapsible=icon]:overflow-visible">
           <SidebarBranchNav activeIndex={inAgent ? activeIndex : -1}>
             {AGENT_NAV_TABS.map((tab) => {
               const isActive = inAgent && activeTab === tab.id;
@@ -93,6 +90,7 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
                   key={tab.id}
                   asChild
                   isActive={isActive}
+                  tooltip={tab.label}
                 >
                   <Link href={tab.href(agent.id)}>
                     <SidebarBranchIcon icon={tab.icon} />
@@ -119,8 +117,12 @@ export function NavAgentTree({ agents }: NavAgentTreeProps): React.JSX.Element {
       <SidebarMenu>
         {agents.length === 0 ? (
           <SidebarMenuItem>
-            <SidebarMenuButton disabled className="font-mono text-xs uppercase text-muted-foreground">
-              No agents yet
+            <SidebarMenuButton
+              disabled
+              className="font-mono text-xs uppercase text-muted-foreground group-data-[collapsible=icon]:justify-center"
+            >
+              <span className="group-data-[collapsible=icon]:hidden">No agents yet</span>
+              <span className="hidden group-data-[collapsible=icon]:block">—</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ) : (
@@ -135,11 +137,17 @@ export function NavAgentTree({ agents }: NavAgentTreeProps): React.JSX.Element {
           <SidebarMenuButton
             asChild
             isActive={onNewAgent}
-            className="text-muted-foreground"
+            tooltip="New agent"
+            className="text-muted-foreground group-data-[collapsible=icon]:justify-center"
           >
-            <Link href={Routes.AgentNew} className="flex min-w-0 items-center gap-2">
+            <Link
+              href={Routes.AgentNew}
+              className="flex min-w-0 items-center gap-2 group-data-[collapsible=icon]:justify-center"
+            >
               <PlusIcon className="size-3.5 shrink-0" strokeWidth={1.5} />
-              <span className={SIDEBAR_HEAD_TITLE_CLASS}>New agent</span>
+              <span className={cn(SIDEBAR_HEAD_TITLE_CLASS, 'group-data-[collapsible=icon]:hidden')}>
+                New agent
+              </span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
