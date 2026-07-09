@@ -1,12 +1,9 @@
 import {
   EmailButton,
   EmailDivider,
-  EmailEyebrow,
-  EmailInlineLink,
   EmailLayout,
   EmailMuted,
-  EmailOrDivider,
-  EmailOtpGrid,
+  EmailOtp,
   EmailText,
   EmailTitle
 } from '@humaner/shared/email-ui';
@@ -22,40 +19,29 @@ export type VerifyEmailAddressEmailData = {
 };
 
 export const VerifyEmailAddressEmail = ({
-  recipient,
+  name,
   otp,
   verificationLink
 }: VerifyEmailAddressEmailData) => (
   <EmailLayout
-    variant="onboarding"
-    preview={`Your ${AppInfo.APP_NAME} verification code`}
+    preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}
     logoSrc={`${getBaseUrl()}/humaner.svg`}
     logoAlt={AppInfo.APP_NAME}
   >
-    <EmailEyebrow>Email verification</EmailEyebrow>
-    <EmailTitle align="left">Verify your email</EmailTitle>
-    <EmailText className="mt-2 text-[#070607]/50">
-      Enter the code we sent to{' '}
-      <span className="font-medium text-[#070607]">{recipient}</span>.
+    <EmailTitle>Verify your email</EmailTitle>
+    <EmailText>Hello {name},</EmailText>
+    <EmailText>
+      Use this code to verify your email and continue setting up {AppInfo.APP_NAME}:
     </EmailText>
-
-    <EmailOtpGrid code={otp} />
-
-    <EmailButton href={verificationLink} fullWidth>
-      Verify email
-    </EmailButton>
-
-    <EmailOrDivider />
-
-    <EmailText className="text-center text-[#070607]/50">
-      Prefer one tap?{' '}
-      <EmailInlineLink href={verificationLink}>Open Humaner</EmailInlineLink>
-    </EmailText>
-
+    <EmailOtp code={otp} />
+    <EmailMuted center>
+      Or use the button below to open {AppInfo.APP_NAME}.
+    </EmailMuted>
+    <EmailButton href={verificationLink}>Open {AppInfo.APP_NAME}</EmailButton>
     <EmailDivider />
     <EmailMuted>
-      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore
-      this email.
+      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore this
+      email.
     </EmailMuted>
   </EmailLayout>
 );

@@ -36,7 +36,7 @@ const runAgentTrainingSchema = z.object({
     .default(25)
 });
 
-export const runAgentTraining = pageActionClient('knowledge')
+export const runAgentTraining = pageActionClient('agents')
   .metadata({ actionName: 'runAgentTraining' })
   .schema(runAgentTrainingSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

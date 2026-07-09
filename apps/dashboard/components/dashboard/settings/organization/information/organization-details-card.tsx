@@ -2,9 +2,12 @@
 
 import * as React from 'react';
 import { type SubmitHandler } from 'react-hook-form';
+import type { IndustryType, TargetAudience } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { updateOrganizationDetails } from '@/actions/organization/update-organization-details';
+import { AudienceTag } from '@/components/dashboard/home/audience-tag';
+import { IndustryTag } from '@/components/dashboard/home/industry-tag';
 import { BusinessLogo } from '@/components/dashboard/business-logo';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,10 +35,14 @@ import type { OrganizationDetailsDto } from '@/types/dtos/organization-details-d
 
 export type OrganizationDetailsCardProps = CardProps & {
   details: OrganizationDetailsDto;
+  industry?: IndustryType | null;
+  targetAudience?: TargetAudience | null;
 };
 
 export function OrganizationDetailsCard({
   details,
+  industry = null,
+  targetAudience = null,
   ...props
 }: OrganizationDetailsCardProps): React.JSX.Element {
   const methods = useZodForm({
@@ -79,11 +86,18 @@ export function OrganizationDetailsCard({
                   size={96}
                 />
               </div>
-              <div>
-                <p className="text-sm font-medium">Brand logo</p>
-                <p className="text-xs text-muted-foreground">
-                  Auto-detected from your website and used across your dashboard.
-                </p>
+              <div className="min-w-0 flex-1 space-y-2">
+                <div>
+                  <p className="text-sm font-medium">Brand logo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Auto-detected from your website and used across your
+                    dashboard.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <IndustryTag industry={industry} />
+                  <AudienceTag targetAudience={targetAudience} />
+                </div>
               </div>
             </div>
             <FormField

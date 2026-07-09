@@ -1,16 +1,8 @@
 import {
-  BarChart3Icon,
   BellIcon,
-  BlocksIcon,
-  BookOpenIcon,
-  ClockIcon,
   CreditCardIcon,
-  HeadsetIcon,
-  HomeIcon,
   LockKeyholeIcon,
   MessageSquare,
-  SettingsIcon,
-  SquareDashedKanbanIcon,
   StoreIcon,
   UserIcon,
   UserPlus2Icon
@@ -19,50 +11,7 @@ import {
 import { Routes } from '@/constants/routes';
 import type { NavItem } from '@/types/nav-item';
 
-export const mainNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: Routes.Home,
-    icon: HomeIcon,
-    pageKey: 'overview'
-  },
-  {
-    title: 'Knowledge',
-    href: Routes.Knowledge,
-    icon: BookOpenIcon,
-    pageKey: 'knowledge'
-  },
-  {
-    title: 'Integrations',
-    href: Routes.Integrations,
-    icon: BlocksIcon,
-    pageKey: 'integrations'
-  },
-  {
-    title: 'Analytics',
-    href: Routes.Analytics,
-    icon: BarChart3Icon,
-    pageKey: 'analytics'
-  },
-  {
-    title: 'History',
-    href: Routes.History,
-    icon: ClockIcon,
-    pageKey: 'history'
-  },
-  {
-    title: 'Desk',
-    href: Routes.Desk,
-    icon: SquareDashedKanbanIcon,
-    pageKey: 'desk'
-  },
-  {
-    title: 'Settings',
-    href: Routes.Settings,
-    icon: SettingsIcon,
-    pageKey: 'settings'
-  }
-];
+export const mainNavItems: NavItem[] = [];
 
 /** Platform-operator tools (Humaner staff). Never shown to regular users. */
 export const adminNavItems: NavItem[] = [

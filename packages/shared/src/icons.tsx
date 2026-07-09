@@ -96,6 +96,7 @@ import {
 import { createAnimatedIcon, type AnimatedIconHandle, type LucideIcon } from './icon-utils';
 
 export type { AnimatedIconHandle, LucideIcon };
+export { createAnimatedIcon } from './icon-utils';
 
 export const ActivityIcon = createAnimatedIcon(ActivityIconSource);
 export const AlertCircleIcon = createAnimatedIcon(BadgeAlertIcon);

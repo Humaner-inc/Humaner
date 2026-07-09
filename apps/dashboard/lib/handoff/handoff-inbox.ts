@@ -21,6 +21,8 @@ export type HandoffInboxTicket = {
   visitorLeftAt: string | null;
   subject: string;
   summary: string;
+  whySummary: string | null;
+  howSummary: string | null;
   transcript: string;
   note: string | null;
   source: HandoffTicketSource;

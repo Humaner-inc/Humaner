@@ -1,15 +1,19 @@
 import * as React from 'react';
-import type { IndustryType } from '@prisma/client';
+import type { IndustryType, TargetAudience } from '@prisma/client';
 import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
 import Link from 'next/link';
 
+import { AudienceTag } from '@/components/dashboard/home/audience-tag';
 import { IndustryTag } from '@/components/dashboard/home/industry-tag';
 import { Button } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 
 export type DashboardOverviewStripProps = {
+  organizationName: string;
+  logoUrl?: string | null;
   industry: IndustryType | null;
+  targetAudience: TargetAudience | null;
   tier: string;
   className?: string;
 };
@@ -28,7 +32,10 @@ const TIER_BANNER_GLOW: Partial<Record<ReturnType<typeof normalizePlanTier>, str
 };
 
 export function DashboardOverviewStrip({
+  organizationName,
+  logoUrl,
   industry,
+  targetAudience,
   tier,
   className
 }: DashboardOverviewStripProps): React.JSX.Element {
@@ -42,7 +49,7 @@ export function DashboardOverviewStrip({
   return (
     <section
       className={cn(
-        'relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6',
+        'relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6',
         className
       )}
     >
@@ -50,20 +57,46 @@ export function DashboardOverviewStrip({
         <div aria-hidden className={cn('pointer-events-none absolute inset-0', tierGlow)} />
       ) : null}
 
-      <div className="relative flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        <IndustryTag industry={industry} />
+      <div className="relative min-w-0 space-y-3">
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt=""
+              className="size-10 shrink-0 rounded-lg object-cover"
+            />
+          )}
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Organization
+            </p>
+            <h1 className="mt-1 font-display text-2xl leading-tight tracking-tight">
+              {organizationName}
+            </h1>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <IndustryTag industry={industry} />
+          <AudienceTag targetAudience={targetAudience} />
+        </div>
       </div>
 
       <div className="relative flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:justify-end">
         <div className="min-w-0 text-sm leading-snug">
-          <span className="font-display text-base text-foreground">
-            {plan.name}
-          </span>
-          <span className="font-mono tabular-nums text-muted-foreground">
-            {' '}
-            · {plan.modelLabel} · {plan.includedMessages.toLocaleString()}{' '}
-            messages/mo
-          </span>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Plan
+          </p>
+          <p className="mt-1">
+            <span className="font-display text-base text-foreground">
+              {plan.name}
+            </span>
+            <span className="font-mono tabular-nums text-muted-foreground">
+              {' '}
+              · {plan.modelLabel} · {plan.includedMessages.toLocaleString()}{' '}
+              messages/mo
+            </span>
+          </p>
         </div>
         {isManagePlanLink ? (
           <Link

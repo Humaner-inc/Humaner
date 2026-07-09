@@ -13,7 +13,7 @@ const updateTrainingTopicsSchema = z.object({
   topics: z.array(z.string().trim().min(1).max(120)).max(20)
 });
 
-export const updateTrainingTopics = pageActionClient('knowledge')
+export const updateTrainingTopics = pageActionClient('agents')
   .metadata({ actionName: 'updateTrainingTopics' })
   .schema(updateTrainingTopicsSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

@@ -39,13 +39,25 @@ const TYPE_OPTIONS: { value: SourceType; label: string }[] = [
 
 export type AddSourceDialogProps = {
   agentId: string;
+  hideTrigger?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  textPrefill?: { title: string; content?: string };
+  onSourceAdded?: () => void;
 };
 
 export function AddSourceDialog({
-  agentId
+  agentId,
+  hideTrigger = false,
+  open: controlledOpen,
+  onOpenChange,
+  textPrefill,
+  onSourceAdded
 }: AddSourceDialogProps): React.JSX.Element {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [isPending, startTransition] = React.useTransition();
 
   const [type, setType] = React.useState<SourceType>('URL');
@@ -82,6 +94,13 @@ export function AddSourceDialog({
     setContent('');
     setMdFiles([]);
   };
+
+  React.useEffect(() => {
+    if (!open || !textPrefill) return;
+    setType('TEXT');
+    setTitle(textPrefill.title);
+    setContent(textPrefill.content ?? '');
+  }, [open, textPrefill]);
 
   const handleMdFiles = async (files: FileList | null): Promise<void> => {
     if (!files) return;
@@ -133,6 +152,7 @@ export function AddSourceDialog({
         );
         setOpen(false);
         reset();
+        onSourceAdded?.();
         router.refresh();
         return;
       }
@@ -160,6 +180,7 @@ export function AddSourceDialog({
       );
       setOpen(false);
       reset();
+      onSourceAdded?.();
       router.refresh();
     });
   };
@@ -169,12 +190,14 @@ export function AddSourceDialog({
       open={open}
       onOpenChange={setOpen}
     >
+      {hideTrigger ? null : (
       <DialogTrigger asChild>
         <Button type="button">
           <PlusIcon className="mr-1.5 size-4" />
           Add source
         </Button>
       </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Add a source</DialogTitle>

@@ -17,16 +17,19 @@ export type WelcomeEmailData = {
 };
 
 export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
-  <EmailLayout preview={`Welcome to ${AppInfo.APP_NAME}!`}>
+  <EmailLayout
+    preview={`Welcome to ${AppInfo.APP_NAME}!`}
+    logoSrc={`${getBaseUrl()}/humaner.svg`}
+    logoAlt={AppInfo.APP_NAME}
+  >
     <EmailTitle>Welcome to {AppInfo.APP_NAME}!</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
-      Thank you for signing up! We&apos;re excited to have you on board.
-      You&apos;re now ready to explore Humaner possibilities.
+      Thank you for signing up! We&apos;re excited to have you on board. Your
+      account has been successfully created, and you&apos;re ready to start
+      exploring our platform.
     </EmailText>
-    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>
-      Get started
-    </EmailButton>
+    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>Get started</EmailButton>
     <EmailText>
       If you have any questions or need assistance, please don&apos;t hesitate
       to reach out to our support team.

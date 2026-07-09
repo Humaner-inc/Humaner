@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { toDeskRoutedTo } from '@/lib/desk/routed-to';
 import { prisma } from '@/lib/db/prisma';
 import {
   resolveHandoffIntegrationProfile,
@@ -63,6 +64,8 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         visitorLeftAt: true,
         subject: true,
         summary: true,
+        whySummary: true,
+        howSummary: true,
         transcript: true,
         note: true,
         source: true,
@@ -132,12 +135,14 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       visitorLeftAt: ticket.visitorLeftAt?.toISOString() ?? null,
       subject: ticket.subject,
       summary: ticket.summary,
+      whySummary: ticket.whySummary ?? null,
+      howSummary: ticket.howSummary ?? null,
       transcript: ticket.transcript,
       note: ticket.note,
       source: ticket.source,
       status: ticket.status as HandoffTicketStatus,
       urgency: ticket.urgency as HandoffTicketUrgency,
-      routedTo: ticket.routedTo as ('ai' | 'human' | null),
+      routedTo: toDeskRoutedTo(ticket.routedTo),
       clusterId: ticket.clusterId,
       runbookId: ticket.runbookId,
       resolvedAt: ticket.resolvedAt?.toISOString() ?? null,

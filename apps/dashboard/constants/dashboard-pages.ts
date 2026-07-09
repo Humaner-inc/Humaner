@@ -3,9 +3,7 @@ import { Routes } from '@/constants/routes';
 export const DASHBOARD_PAGE_KEYS = [
   'overview',
   'agents',
-  'knowledge',
   'integrations',
-  'analytics',
   'history',
   'desk',
   'human-desk',
@@ -15,11 +13,9 @@ export const DASHBOARD_PAGE_KEYS = [
 export type DashboardPageKey = (typeof DASHBOARD_PAGE_KEYS)[number];
 
 export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
-  overview: 'Dashboard',
+  overview: 'Organization',
   agents: 'Agents',
-  knowledge: 'Knowledge',
   integrations: 'Integrations',
-  analytics: 'Analytics',
   history: 'History',
   desk: 'Desk',
   'human-desk': 'Human Desk',
@@ -28,6 +24,7 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
 
 export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
   'overview',
+  'agents',
   'desk'
 ];
 
@@ -46,10 +43,7 @@ export const ACCOUNT_ROUTE_PREFIXES = [
 
 const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'overview', prefix: Routes.Home },
-  { key: 'overview', prefix: Routes.Agents },
-  { key: 'knowledge', prefix: Routes.Knowledge },
   { key: 'integrations', prefix: Routes.Integrations },
-  { key: 'analytics', prefix: Routes.Analytics },
   { key: 'history', prefix: Routes.History },
   { key: 'desk', prefix: Routes.Desk },
   { key: 'human-desk', prefix: Routes.HumanDesk },
@@ -76,6 +70,10 @@ export function resolvePathAccess(pathname: string): ResolvedPathAccess {
 
   if (ACCOUNT_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return { type: 'account' };
+  }
+
+  if (/^\/dashboard\/agents(\/|$)/.test(pathname)) {
+    return { type: 'page', pageKey: 'agents' };
   }
 
   for (const entry of PAGE_KEY_ROUTE_PREFIXES) {

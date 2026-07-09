@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   type SidebarGroupProps
 } from '@/components/ui/sidebar';
 import {
@@ -16,7 +17,14 @@ import {
   useNavMenuIconAnimation
 } from '@/components/ui/nav-menu-icon';
 import { adminNavItems, mainNavItems } from '@/constants/nav-items';
+import { NavAgentTree, type SidebarAgent } from '@/components/dashboard/nav-agent-tree';
+import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
+import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
+import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
+import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
+import { Routes } from '@/constants/routes';
 import {
+  canAccessPage,
   filterNavItemsForProfile,
   isPlatformAdmin
 } from '@/lib/auth/workspace-access';
@@ -26,6 +34,8 @@ import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type NavMainProps = SidebarGroupProps & {
   profile: ProfileDto;
+  agents: SidebarAgent[];
+  orgTier: string;
 };
 
 function NavMainItem({
@@ -66,7 +76,12 @@ function NavMainItem({
   );
 }
 
-export function NavMain({ profile, ...props }: NavMainProps): React.JSX.Element {
+export function NavMain({
+  profile,
+  agents,
+  orgTier,
+  ...props
+}: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
   const items = [
     ...filterNavItemsForProfile(mainNavItems, profile),
@@ -76,16 +91,30 @@ export function NavMain({ profile, ...props }: NavMainProps): React.JSX.Element 
   ];
 
   return (
-    <SidebarGroup {...props}>
-      <SidebarMenu>
-        {items.map((item) => (
-          <NavMainItem
-            key={item.href}
-            item={item}
-            isActive={pathname.startsWith(item.href)}
-          />
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      <NavOrganizationTree />
+      {canAccessPage(profile, 'integrations') ? <NavIntegrationsTree orgTier={orgTier} /> : null}
+      {canAccessPage(profile, 'desk') ? <NavDeskTree orgTier={orgTier} /> : null}
+      <NavSettingsTree profile={profile} />
+      {items.length > 0 ? (
+        <SidebarGroup {...props}>
+          <SidebarMenu>
+            {items.map((item) => (
+              <NavMainItem
+                key={item.href}
+                item={item}
+                isActive={
+                  item.href === Routes.Home
+                    ? pathname === Routes.Home
+                    : pathname.startsWith(item.href)
+                }
+              />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ) : null}
+      <SidebarSeparator className="my-2" />
+      <NavAgentTree agents={agents} />
+    </>
   );
 }

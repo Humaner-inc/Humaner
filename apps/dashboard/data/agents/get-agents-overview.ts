@@ -44,6 +44,7 @@ export type AgentOverviewItem = {
   greetingMessage: string | null;
   image: string | null;
   showRole: boolean;
+  isPaused: boolean;
   metrics: AgentMetrics;
 };
 
@@ -74,6 +75,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           greetingMessage: true,
           image: true,
           showRole: true,
+          isPaused: true,
           _count: { select: { chunks: true } },
           knowledgeSources: { select: { status: true } },
           conversations: {
@@ -133,13 +135,15 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           greetingMessage: agent.greetingMessage,
           image: agent.image,
           showRole: agent.showRole,
+          isPaused: agent.isPaused,
           metrics
         };
       });
     },
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Agents,
-      session.user.organizationId
+      session.user.organizationId,
+      'overview'
     ),
     {
       revalidate: defaultRevalidateTimeInSeconds,

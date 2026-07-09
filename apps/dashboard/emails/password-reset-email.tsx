@@ -9,6 +9,7 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
+import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type PasswordResetEmailData = {
   recipient: string;
@@ -20,7 +21,11 @@ export const PasswordResetEmail = ({
   name,
   resetPasswordLink
 }: PasswordResetEmailData) => (
-  <EmailLayout preview={`${AppInfo.APP_NAME} reset your password`}>
+  <EmailLayout
+    preview={`${AppInfo.APP_NAME} reset your password`}
+    logoSrc={`${getBaseUrl()}/humaner.svg`}
+    logoAlt={AppInfo.APP_NAME}
+  >
     <EmailTitle>Reset instructions</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
@@ -30,9 +35,7 @@ export const PasswordResetEmail = ({
     <EmailButton href={resetPasswordLink}>Reset password</EmailButton>
     <EmailText>
       or copy and paste this URL into your browser:{' '}
-      <EmailInlineLink href={resetPasswordLink}>
-        {resetPasswordLink}
-      </EmailInlineLink>
+      <EmailInlineLink href={resetPasswordLink}>{resetPasswordLink}</EmailInlineLink>
     </EmailText>
     <EmailDivider />
     <EmailMuted>

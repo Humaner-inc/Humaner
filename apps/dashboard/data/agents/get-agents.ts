@@ -37,6 +37,7 @@ export type AgentListItem = {
   greetingMessage: string | null;
   image: string | null;
   showRole: boolean;
+  isPaused: boolean;
 };
 
 export async function getAgents(): Promise<AgentListItem[]> {
@@ -64,14 +65,16 @@ export async function getAgents(): Promise<AgentListItem[]> {
           fallbackMessage: true,
           greetingMessage: true,
           image: true,
-          showRole: true
+          showRole: true,
+          isPaused: true
         },
         orderBy: { createdAt: 'desc' }
       });
     },
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Agents,
-      session.user.organizationId
+      session.user.organizationId,
+      'list'
     ),
     {
       revalidate: defaultRevalidateTimeInSeconds,

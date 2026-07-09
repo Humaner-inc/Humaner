@@ -24,15 +24,13 @@ export const WaitlistWelcomeEmail = (data: WaitlistWelcomeEmailData) => (
     <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
     <EmailText>Glad you&apos;re here early.</EmailText>
     <EmailText>
-      Hope this email sounds Human enouhg for you.
-      <br />
-      (even adding some typos to bring the feel you&apos;ll experience with
-      Humaner.)
+      Hope this email sounds Human enouhg for you. (even added typo I know, you
+      can do it with {AppInfo.APP_NAME} agents too! But dont tell others yet.)
     </EmailText>
     <EmailText>
-      Customer support is back in the game. Humaner have one goal in mind:
-      redefining the good old days when support meant something and offering
-      exceptional care your customers deserve in the age of AI.
+      We want to give Customer Support the attention and the tools it deserves.{' '}
+      {AppInfo.APP_NAME} have one goal in mind: allowing businesses to offer
+      exceptional support in the AI era.
     </EmailText>
     <EmailText>
       Stay tuned, we will thank you with more than words for being here first.
@@ -43,7 +41,9 @@ export const WaitlistWelcomeEmail = (data: WaitlistWelcomeEmailData) => (
       Alexandre
     </EmailText>
     <EmailDivider />
-    <EmailMuted>You receive this email because you joined Humaner.</EmailMuted>
+    <EmailMuted>
+      You receive this email because you joined the {AppInfo.APP_NAME} waitlist.
+    </EmailMuted>
     {data.unsubscribeUrl ? (
       <Section className="mt-3 text-center">
         <EmailInlineLink href={data.unsubscribeUrl}>Unsubscribe</EmailInlineLink>

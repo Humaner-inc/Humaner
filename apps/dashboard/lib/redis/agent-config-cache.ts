@@ -10,6 +10,7 @@ const CACHE_TTL_SECONDS = 3_600;
 export type CachedChatAgent = SystemPromptAgent & {
   id: string;
   publicId: string;
+  isPaused: boolean;
   allowedDomains: string[];
   organizationId: string;
   organization: {
@@ -35,6 +36,7 @@ const agentSelect = {
   allowTypos: true,
   forbiddenTopics: true,
   fallbackMessage: true,
+  isPaused: true,
   allowedDomains: true,
   organizationId: true,
   organization: {

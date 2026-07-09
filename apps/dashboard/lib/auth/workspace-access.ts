@@ -31,6 +31,14 @@ export function canAccessPage(
     return true;
   }
 
+  if (pageKey === 'agents' && profile.allowedPages.includes('overview')) {
+    return true;
+  }
+
+  if (pageKey === 'overview' && profile.allowedPages.includes('agents')) {
+    return true;
+  }
+
   if (pageKey === 'desk' && profile.allowedPages.includes('human-desk')) {
     return true;
   }

@@ -133,18 +133,13 @@ const nextConfig = {
         permanent: false
       },
       {
-        source: '/dashboard/agents',
-        destination: '/dashboard/home',
-        permanent: true
-      },
-      {
-        source: '/dashboard/agents/:path*',
-        destination: '/dashboard/home',
-        permanent: true
-      },
-      {
         source: '/dashboard/settings/organization',
         destination: '/dashboard/settings/organization/information',
+        permanent: false
+      },
+      {
+        source: '/dashboard/agents/:agentId/personality',
+        destination: '/dashboard/agents/:agentId/persona',
         permanent: false
       }
     ];

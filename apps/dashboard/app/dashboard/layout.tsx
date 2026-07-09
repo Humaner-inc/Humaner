@@ -10,6 +10,7 @@ import { DataImprovementConsentGate } from '@/components/dashboard/data-improvem
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
+import { getAgents } from '@/data/agents/get-agents';
 import { getProfile } from '@/data/account/get-profile';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
@@ -43,7 +44,9 @@ export default async function DashboardLayout({
         select: {
           completedOnboarding: true,
           dataImprovementConsent: true,
-          targetAudience: true
+          targetAudience: true,
+          tier: true,
+          accentColor: true
         }
       }
     }
@@ -56,6 +59,7 @@ export default async function DashboardLayout({
   }
 
   const profile = await getProfile();
+  const agents = await getAgents();
   const workspaces = await getWorkspaceSwitcherData();
   const messageUsage = await getSidebarMessageUsage();
   const { items: notifications } = await getDashboardNotifications();
@@ -64,9 +68,14 @@ export default async function DashboardLayout({
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.organization!.dataImprovementConsent === null;
 
+  const accentColor = userFromDb!.organization!.accentColor ?? undefined;
+
   return (
     <OrgModeProvider targetAudience={userFromDb!.organization!.targetAudience}>
-      <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <div
+        className="flex h-screen overflow-hidden bg-background text-foreground"
+        style={accentColor ? { '--accent-color': accentColor } as React.CSSProperties : undefined}
+      >
         <DataImprovementConsentGate
           privacyPolicyUrl={getPrivacyUrl()}
           showPrompt={showDataImprovementPrompt}
@@ -76,6 +85,13 @@ export default async function DashboardLayout({
             profile={profile}
             workspaces={workspaces}
             messageUsage={messageUsage}
+            orgTier={userFromDb!.organization!.tier ?? 'free'}
+            agents={agents.map((a) => ({
+              id: a.id,
+              name: a.name,
+              image: a.image,
+              isPaused: a.isPaused
+            }))}
           />
           <SidebarInset
             id="skip"

@@ -25,7 +25,10 @@ export enum Routes {
 
   Dashboard = '/dashboard',
   Home = '/dashboard/home',
-  Agents = '/dashboard/home',
+  OrganizationTeam = '/dashboard/home/team',
+  OrganizationWorkspace = '/dashboard/home/workspace',
+  Agents = '/dashboard/agents',
+  AgentNew = '/dashboard/agents/new',
   Knowledge = '/dashboard/knowledge',
   Integrations = '/dashboard/integrations',
   Analytics = '/dashboard/analytics',
@@ -59,4 +62,41 @@ export enum Routes {
   InvitationLogOutToAccept = '/invitations/log-out-to-accept',
 
   Onboarding = '/onboarding'
+}
+
+export function agentPersonaRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/persona`;
+}
+
+/** @deprecated Use {@link agentPersonaRoute} */
+export function agentPersonalityRoute(agentId: string): string {
+  return agentPersonaRoute(agentId);
+}
+
+export function agentOverviewRoute(agentId: string): string {
+  return agentPersonaRoute(agentId);
+}
+
+export function agentKnowledgeRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/knowledge`;
+}
+
+export function agentRunbooksRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/runbooks`;
+}
+
+export function agentEscalationRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/escalation`;
+}
+
+export function agentAnalyticsRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/analytics`;
+}
+
+export function agentHistoryRoute(agentId: string): string {
+  return `/dashboard/agents/${agentId}/history`;
+}
+
+export function integrationChannelRoute(channelId: string): string {
+  return `/dashboard/integrations/${channelId}`;
 }

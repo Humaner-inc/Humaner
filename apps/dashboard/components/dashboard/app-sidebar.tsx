@@ -21,17 +21,22 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
+import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 
 export type AppSidebarProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   messageUsage: SidebarMessageUsageDto;
+  agents: SidebarAgent[];
+  orgTier: string;
 };
 
 export function AppSidebar({
   profile,
   workspaces,
-  messageUsage
+  messageUsage,
+  agents,
+  orgTier
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const xlUp = useMediaQuery(MediaQueries.XlUp, { ssr: true, fallback: true });
@@ -71,7 +76,11 @@ export function AppSidebar({
           verticalScrollBar
           className="h-full [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:flex-col"
         >
-          <NavMain profile={profile} />
+          <NavMain
+            profile={profile}
+            agents={agents}
+            orgTier={orgTier}
+          />
         </ScrollArea>
       </SidebarContent>
       <div className="border-t border-sidebar-border/60">

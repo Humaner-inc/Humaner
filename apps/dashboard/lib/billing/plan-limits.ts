@@ -41,8 +41,9 @@ export function getEffectiveMemberLimit(
   return bypassLimits ? UNLIMITED_MEMBERS : plan.members;
 }
 
+/** Live (non-paused) agents count toward the plan slot limit — like Supabase projects. */
 export function hasReachedAgentLimit(
-  agentCount: number,
+  liveAgentCount: number,
   plan: PlanDefinition,
   bypassLimits: boolean
 ): boolean {
@@ -50,7 +51,7 @@ export function hasReachedAgentLimit(
     return false;
   }
 
-  return agentCount >= plan.agents;
+  return liveAgentCount >= plan.agents;
 }
 
 export function hasReachedMemberLimit(
@@ -63,4 +64,10 @@ export function hasReachedMemberLimit(
   }
 
   return seatCount >= plan.members;
+}
+
+export async function getLiveAgentCount(organizationId: string): Promise<number> {
+  return prisma.agent.count({
+    where: { organizationId, isPaused: false }
+  });
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import {
   BotIcon,
@@ -10,13 +11,22 @@ import {
   Layers,
   SearchIcon
 } from '@humaner/shared/icons';
+import { toast } from 'sonner';
+
+import { escalateTicket } from '@/actions/desk/escalate-ticket';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { TicketList } from '@/components/dashboard/desk/ticket-list';
+import {
+  TicketFilterNav,
+  matchesTicketFilter,
+  type TicketFilterId
+} from '@/components/dashboard/desk/ticket-filter-nav';
 import type { HandoffTicketItem } from '@/data/handoff/get-handoff-tickets';
+import { useOrgMode } from '@/hooks/use-org-mode';
 import { cn } from '@/lib/utils';
 
 export type AIDeskClientProps = {
@@ -25,18 +35,38 @@ export type AIDeskClientProps = {
   currentUserId: string;
 };
 
-type FilterMode = 'all' | 'resolved' | 'pending' | 'escalated';
+type FilterMode = TicketFilterId;
 
 export function AIDeskClient({
   tickets,
   teamMembers,
   currentUserId
 }: AIDeskClientProps): React.JSX.Element {
+  const router = useRouter();
+  const { labels } = useOrgMode();
   const [search, setSearch] = React.useState('');
   const [filterMode, setFilterMode] = React.useState<FilterMode>('all');
+  const [escalatingId, setEscalatingId] = React.useState<string | null>(null);
+  const [isPending, startTransition] = React.useTransition();
+
+  const handleEscalate = (ticketId: string): void => {
+    setEscalatingId(ticketId);
+    startTransition(async () => {
+      const result = await escalateTicket({ ticketId });
+      if (result?.serverError) {
+        toast.error(result.serverError);
+      } else {
+        toast.success('Ticket escalated to Human Desk');
+        router.refresh();
+      }
+      setEscalatingId(null);
+    });
+  };
 
   const filteredTickets = React.useMemo(() => {
-    let result = tickets;
+    let result = tickets.filter((ticket) =>
+      matchesTicketFilter(ticket, filterMode, currentUserId)
+    );
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -48,20 +78,8 @@ export function AIDeskClient({
       );
     }
 
-    switch (filterMode) {
-      case 'resolved':
-        result = result.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED');
-        break;
-      case 'pending':
-        result = result.filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
-        break;
-      case 'escalated':
-        result = result.filter((t) => t.routedTo === 'human');
-        break;
-    }
-
     return result;
-  }, [tickets, search, filterMode]);
+  }, [tickets, search, filterMode, currentUserId]);
 
   const resolvedCount = tickets.filter(
     (t) => t.status === 'RESOLVED' || t.status === 'CLOSED'
@@ -88,7 +106,7 @@ export function AIDeskClient({
         <div>
           <h2 className="font-display text-2xl leading-none">AI Desk</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tickets handled autonomously using clusters and runbooks.
+            Tickets handled autonomously using {labels.clusters.toLowerCase()} and {labels.runbooks.toLowerCase()}.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -118,7 +136,13 @@ export function AIDeskClient({
         />
       </div>
 
-      {/* Filters + search */}
+      <TicketFilterNav
+        value={filterMode}
+        onChange={setFilterMode}
+        className="mb-1"
+      />
+
+      {/* Search */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -129,25 +153,14 @@ export function AIDeskClient({
             className="h-9 pl-9"
           />
         </div>
-        <div className="flex gap-1.5">
-          {(['all', 'pending', 'resolved', 'escalated'] as const).map((mode) => (
-            <Button
-              key={mode}
-              size="sm"
-              variant={filterMode === mode ? 'default' : 'outline'}
-              onClick={() => setFilterMode(mode)}
-              className="capitalize"
-            >
-              {mode}
-            </Button>
-          ))}
-        </div>
       </div>
 
       {/* Ticket list with grouping */}
       <TicketList
         tickets={filteredTickets}
         variant="ai"
+        onEscalate={handleEscalate}
+        escalatingTicketId={isPending ? escalatingId : null}
       />
     </div>
   );

@@ -25,7 +25,11 @@ export type SetSupportEmailSchema = z.infer<typeof setSupportEmailSchema>;
 
 export const updateHandoffTicketStatusSchema = z.object({
   id: z.string().uuid('A valid ticket is required.'),
-  status: z.nativeEnum(HandoffTicketStatus)
+  status: z.nativeEnum(HandoffTicketStatus),
+  resolutionPattern: z.string().trim().max(255).optional(),
+  issueType: z.string().trim().max(128).optional(),
+  resolutionSolution: z.string().trim().max(8000).optional(),
+  feedCluster: z.boolean().optional()
 });
 
 export type UpdateHandoffTicketStatusSchema = z.infer<

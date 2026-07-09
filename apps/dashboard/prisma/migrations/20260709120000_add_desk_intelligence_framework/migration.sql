@@ -1,11 +1,14 @@
 -- CreateEnum
 CREATE TYPE "EscalationMode" AS ENUM ('live', 'priority', 'standard', 'selfResolving');
 
+-- CreateEnum
+CREATE TYPE "HandoffRoutedTo" AS ENUM ('ai', 'human');
+
 -- AlterTable
 ALTER TABLE "Agent" ADD COLUMN "aiDeskEnabled" BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
-ALTER TABLE "HandoffTicket" ADD COLUMN "routedTo" VARCHAR(16);
+ALTER TABLE "HandoffTicket" ADD COLUMN "routedTo" "HandoffRoutedTo";
 ALTER TABLE "HandoffTicket" ADD COLUMN "clusterId" UUID;
 ALTER TABLE "HandoffTicket" ADD COLUMN "runbookId" UUID;
 ALTER TABLE "HandoffTicket" ADD COLUMN "resolvedAt" TIMESTAMP(3);
@@ -105,6 +108,12 @@ CREATE INDEX "IX_ClusterEntry_clusterId" ON "ClusterEntry"("clusterId");
 
 -- CreateIndex
 CREATE INDEX "IX_HandoffTicket_routedTo" ON "HandoffTicket"("routedTo");
+
+-- CreateIndex
+CREATE INDEX "IX_ClusterEntry_ticketId" ON "ClusterEntry"("ticketId");
+
+-- AddForeignKey
+ALTER TABLE "ClusterEntry" ADD CONSTRAINT "ClusterEntry_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "HandoffTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TeamMemberProfile" ADD CONSTRAINT "TeamMemberProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
