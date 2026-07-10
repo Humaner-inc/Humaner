@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import {
   AuthInnerCard,
   AuthInnerCardDescription,
@@ -8,7 +9,6 @@ import {
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
-import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';

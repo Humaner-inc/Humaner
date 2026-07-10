@@ -6,19 +6,17 @@ import { usePathname } from 'next/navigation';
 
 import { SidebarBranchIcon } from '@/components/dashboard/sidebar-branch-icon';
 import {
+  SIDEBAR_TREE_TRIGGER_CLASS,
   SidebarBranchItem,
   SidebarBranchLabel,
   SidebarBranchNav,
-  SIDEBAR_TREE_TRIGGER_CLASS,
   SidebarHeadTitle,
   SidebarTreeDisclosureIcon
 } from '@/components/dashboard/sidebar-branch-nav';
 import {
-  SETTINGS_NAV_TABS,
-  getActiveSettingsTab,
-  isSettingsPath
-} from '@/constants/settings-nav-items';
-import { Routes } from '@/constants/routes';
+  SIDEBAR_DRAWER_IDS,
+  useSidebarNavDrawer
+} from '@/components/dashboard/sidebar-nav-accordion';
 import {
   Collapsible,
   CollapsibleContent,
@@ -30,11 +28,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar';
-import { isWorkspaceOwner } from '@/lib/auth/workspace-access';
+import { Routes } from '@/constants/routes';
 import {
-  SIDEBAR_DRAWER_IDS,
-  useSidebarNavDrawer
-} from '@/components/dashboard/sidebar-nav-accordion';
+  getActiveSettingsTab,
+  isSettingsPath,
+  SETTINGS_NAV_TABS
+} from '@/constants/settings-nav-items';
+import { isWorkspaceOwner } from '@/lib/auth/workspace-access';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
@@ -49,7 +49,9 @@ export function NavSettingsTree({
   const activeTab = getActiveSettingsTab(pathname);
   const inSettings = isSettingsPath(pathname);
   const isOwner = isWorkspaceOwner(profile);
-  const { open, onOpenChange } = useSidebarNavDrawer(SIDEBAR_DRAWER_IDS.settings);
+  const { open, onOpenChange } = useSidebarNavDrawer(
+    SIDEBAR_DRAWER_IDS.settings
+  );
 
   const visibleTabs = React.useMemo(
     () => SETTINGS_NAV_TABS.filter((tab) => !tab.ownerOnly || isOwner),
@@ -60,7 +62,10 @@ export function NavSettingsTree({
   return (
     <SidebarGroup className="py-0">
       <SidebarMenu>
-        <Collapsible open={open} onOpenChange={onOpenChange}>
+        <Collapsible
+          open={open}
+          onOpenChange={onOpenChange}
+        >
           <SidebarMenuItem className="relative">
             <CollapsibleTrigger asChild>
               <SidebarMenuButton

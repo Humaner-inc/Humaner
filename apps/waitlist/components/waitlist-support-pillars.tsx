@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useId } from 'react';
+import { useId } from "react";
 
 import {
   Brain,
@@ -8,17 +8,17 @@ import {
   HeadsetIcon,
   Layers,
   UsersIcon,
-  type LucideIcon
-} from '@humaner/shared/icons';
+  type LucideIcon,
+} from "@humaner/shared/icons";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 type PillarId =
-  | 'agent-characters'
-  | 'live-knowledge'
-  | 'cross-session-memory'
-  | 'human-desk'
-  | 'mult-org';
+  | "agent-characters"
+  | "live-knowledge"
+  | "cross-session-memory"
+  | "human-desk"
+  | "mult-org";
 
 type PlatformPillar = {
   id: PillarId;
@@ -31,68 +31,68 @@ const pillarGradients: Record<
   PillarId,
   { from: string; to: string; glow: string }
 > = {
-  'agent-characters': {
-    from: '#faf6f4',
-    to: '#6b2d3a',
-    glow: 'rgb(107 45 58 / 0.24)'
+  "agent-characters": {
+    from: "#faf6f4",
+    to: "#6b2d3a",
+    glow: "rgb(107 45 58 / 0.24)",
   },
-  'live-knowledge': {
-    from: '#faf6f4',
-    to: '#dc143c',
-    glow: 'rgb(220 20 60 / 0.22)'
+  "live-knowledge": {
+    from: "#faf6f4",
+    to: "#e1ccaf",
+    glow: "rgb(220 20 60 / 0.22)",
   },
-  'cross-session-memory': {
-    from: '#f5f0f2',
-    to: '#6b2d3a',
-    glow: 'rgb(107 45 58 / 0.24)'
+  "cross-session-memory": {
+    from: "#f5f0f2",
+    to: "#6b2d3a",
+    glow: "rgb(107 45 58 / 0.24)",
   },
-  'human-desk': {
-    from: '#f7f7f7',
-    to: '#b83a4f',
-    glow: 'rgb(184 58 79 / 0.2)'
+  "human-desk": {
+    from: "#f7f7f7",
+    to: "#b83a4f",
+    glow: "rgb(184 58 79 / 0.2)",
   },
-  'mult-org': {
-    from: '#ece8e4',
-    to: '#8b3a48',
-    glow: 'rgb(139 58 72 / 0.2)'
-  }
+  "mult-org": {
+    from: "#ece8e4",
+    to: "#8b3a48",
+    glow: "rgb(139 58 72 / 0.2)",
+  },
 };
 
 const platformPillars: PlatformPillar[] = [
   {
-    id: 'agent-characters',
-    title: 'Unique Agents',
-    tagline: 'That genuinely feel humans.',
-    icon: UsersIcon
+    id: "agent-characters",
+    title: "Unique Agents",
+    tagline: "That genuinely feel humans.",
+    icon: UsersIcon,
   },
   {
-    id: 'live-knowledge',
-    title: 'Auto-train',
+    id: "live-knowledge",
+    title: "Auto-train",
     tagline: "Train on human support to learn.",
-    icon: Database
+    icon: Database,
   },
   {
-    id: 'cross-session-memory',
-    title: 'Memory',
-    tagline: 'Remember your customers.',
-    icon: Brain
+    id: "cross-session-memory",
+    title: "Memory",
+    tagline: "Remember your customers.",
+    icon: Brain,
   },
   {
-    id: 'human-desk',
-    title: 'Human Desk',
-    tagline: 'Escalation, tickets, and live support.',
-    icon: HeadsetIcon
+    id: "human-desk",
+    title: "Human Desk",
+    tagline: "Escalation, tickets, and live support.",
+    icon: HeadsetIcon,
   },
   {
-    id: 'mult-org',
-    title: 'Multi-Org',
-    tagline: 'Manage multiple businesses.',
-    icon: Layers
-  }
+    id: "mult-org",
+    title: "Multi-Org",
+    tagline: "Manage multiple businesses.",
+    icon: Layers,
+  },
 ];
 
 export function WaitlistFeaturePillars({
-  active
+  active,
 }: {
   active: boolean;
 }): React.JSX.Element {
@@ -112,19 +112,21 @@ type WaitlistSupportPillarsProps = {
 
 export function WaitlistSupportPillars({
   active,
-  visible
+  visible,
 }: WaitlistSupportPillarsProps): React.JSX.Element {
   return (
     <div
       className={cn(
-        'mx-auto w-full max-w-5xl px-2 text-center transition-all duration-700 ease-out sm:px-4',
-        visible ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-8 opacity-0 blur-[6px]'
+        "mx-auto w-full max-w-5xl px-2 text-center transition-all duration-700 ease-out sm:px-4",
+        visible
+          ? "translate-y-0 opacity-100 blur-0"
+          : "translate-y-8 opacity-0 blur-[6px]",
       )}
     >
       <h2
         className={cn(
-          'section-headline',
-          active ? 'story-sentence' : 'story-sentence--muted'
+          "section-headline",
+          active ? "story-sentence" : "story-sentence--muted",
         )}
       >
         To be remembered.
@@ -137,7 +139,7 @@ export function WaitlistSupportPillars({
 
 function PlatformPillarCard({
   pillar,
-  dimmed
+  dimmed,
 }: {
   pillar: PlatformPillar;
   dimmed: boolean;
@@ -145,8 +147,8 @@ function PlatformPillarCard({
   return (
     <article
       className={cn(
-        'flex flex-col items-center text-center transition-opacity duration-500',
-        dimmed && 'opacity-55'
+        "flex flex-col items-center text-center transition-opacity duration-500",
+        dimmed && "opacity-55",
       )}
     >
       <PillarIcon id={pillar.id} icon={pillar.icon} />
@@ -162,13 +164,13 @@ function PlatformPillarCard({
 
 function PillarIcon({
   id,
-  icon: Icon
+  icon: Icon,
 }: {
   id: PillarId;
   icon: LucideIcon;
 }): React.JSX.Element {
   const reactId = useId();
-  const gradId = `waitlist-pillar-grad-${id}${reactId.replace(/:/g, '')}`;
+  const gradId = `waitlist-pillar-grad-${id}${reactId.replace(/:/g, "")}`;
   const tone = pillarGradients[id];
 
   return (
@@ -177,15 +179,15 @@ function PillarIcon({
         aria-hidden
         className="pointer-events-none absolute -inset-3 rounded-[1.35rem] opacity-70 blur-2xl"
         style={{
-          background: `radial-gradient(circle, ${tone.glow}, transparent 72%)`
+          background: `radial-gradient(circle, ${tone.glow}, transparent 72%)`,
         }}
       />
 
       <div
         className={cn(
-          'relative flex size-12 items-center justify-center overflow-hidden rounded-2xl',
-          'border border-white/[0.12] bg-[#101010]',
-          'shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]'
+          "relative flex size-12 items-center justify-center overflow-hidden rounded-2xl",
+          "border border-white/[0.12] bg-[#101010]",
+          "shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]",
         )}
         aria-hidden
       >

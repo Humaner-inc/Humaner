@@ -1,11 +1,11 @@
 import 'server-only';
 
-import type { CharacterType } from '@prisma/client';
 import {
   getPlanCapabilities,
   getPlanForTier,
   type PlanCapabilities
 } from '@humaner/shared/plans';
+import type { CharacterType } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
 

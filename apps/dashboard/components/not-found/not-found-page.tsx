@@ -5,11 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import {
-  authHighlightButtonClassName
-} from '@/components/auth/auth-form-styles';
-import { Logo } from '@/components/ui/logo';
+import { authHighlightButtonClassName } from '@/components/auth/auth-form-styles';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/ui/logo';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 
@@ -56,7 +54,10 @@ export function NotFoundPage({
           <Button
             type="button"
             variant="ghost"
-            className={cn(authHighlightButtonClassName, 'mt-10 w-full max-w-xs')}
+            className={cn(
+              authHighlightButtonClassName,
+              'mt-10 w-full max-w-xs'
+            )}
             onClick={() => router.back()}
           >
             Go back
@@ -65,7 +66,7 @@ export function NotFoundPage({
       </main>
 
       <aside className="relative order-first h-[min(42vh,22rem)] w-full shrink-0 lg:order-last lg:h-auto lg:w-1/2">
-        <div className="absolute inset-x-4 inset-y-4 overflow-hidden rounded-2xl bg-[#070607] lg:inset-4">
+        <div className="absolute inset-4 overflow-hidden rounded-2xl bg-[#070607] lg:inset-4">
           <Image
             src="/404.png"
             alt=""

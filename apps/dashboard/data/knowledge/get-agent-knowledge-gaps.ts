@@ -1,10 +1,11 @@
 import 'server-only';
 
-import { prisma } from '@/lib/db/prisma';
-import { dedupedAuth } from '@/lib/auth';
-import { checkSession } from '@/lib/auth/session';
-import { getLoginRedirect } from '@/lib/auth/redirect';
 import { redirect } from 'next/navigation';
+
+import { dedupedAuth } from '@/lib/auth';
+import { getLoginRedirect } from '@/lib/auth/redirect';
+import { checkSession } from '@/lib/auth/session';
+import { prisma } from '@/lib/db/prisma';
 
 export type AgentKnowledgeGapItem = {
   id: string;

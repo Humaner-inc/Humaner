@@ -1,4 +1,10 @@
 import * as React from 'react';
+import {
+  BoldIcon,
+  ChevronsUpDownIcon,
+  ItalicIcon,
+  UnderlineIcon
+} from '@humaner/shared/icons';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
 import { LinkNode } from '@lexical/link';
@@ -46,12 +52,6 @@ import {
   LineBreakNode,
   SELECTION_CHANGE_COMMAND
 } from 'lexical';
-import {
-  BoldIcon,
-  ChevronsUpDownIcon,
-  ItalicIcon,
-  UnderlineIcon
-} from '@humaner/shared/icons';
 
 import { Button } from '@/components/ui/button';
 import {

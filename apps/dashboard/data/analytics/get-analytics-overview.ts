@@ -1,9 +1,9 @@
 import 'server-only';
 
-import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
-import { format, startOfDay, subDays } from 'date-fns';
 import { redirect } from 'next/navigation';
+import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import type { MessageRole } from '@prisma/client';
+import { format, startOfDay, subDays } from 'date-fns';
 
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
@@ -108,7 +108,11 @@ function extractKnowledgeGaps(
         continue;
       }
 
-      if (message.role === 'ASSISTANT' && message.unanswered && lastUserQuestion) {
+      if (
+        message.role === 'ASSISTANT' &&
+        message.unanswered &&
+        lastUserQuestion
+      ) {
         const key = `${conversation.agent.id}:${lastUserQuestion.toLowerCase()}`;
         const existing = grouped.get(key);
 

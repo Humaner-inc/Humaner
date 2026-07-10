@@ -1,9 +1,10 @@
 'use client';
 
-import { BrandWordmark } from '@humaner/shared/brand-wordmark';
-import Image from 'next/image';
 import * as React from 'react';
+import Image from 'next/image';
+import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 
+import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
@@ -15,13 +16,10 @@ import {
   SidebarHeader,
   useSidebar
 } from '@/components/ui/sidebar';
-import { MediaQueries } from '@/constants/media-queries';
 import { AppInfo } from '@/constants/app-info';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
-import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 
 export type AppSidebarProps = {
   profile: ProfileDto;
@@ -39,18 +37,14 @@ export function AppSidebar({
   orgTier
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
-  const xlUp = useMediaQuery(MediaQueries.XlUp, { ssr: true, fallback: true });
-  const isCollapsed = !sidebar.isMobile && !sidebar.open;
+  const isCollapsed = !sidebar.open;
   const [brandHovered, setBrandHovered] = React.useState(false);
-  React.useEffect(() => {
-    sidebar.setOpen(xlUp);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [xlUp]);
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-2 py-2">
+      <SidebarHeader className="shrink-0 p-2">
         <div className="flex h-10 w-full items-center justify-center overflow-hidden">
-          {isCollapsed && xlUp ? (
+          {isCollapsed ? (
             <Image
               src="/favicon.svg"
               alt=""
@@ -64,7 +58,7 @@ export function AppSidebar({
               active={brandHovered}
               onMouseEnter={() => setBrandHovered(true)}
               onMouseLeave={() => setBrandHovered(false)}
-              className="truncate text-center font-display text-lg font-semibold tracking-tight text-foreground"
+              className="truncate text-center font-display text-lg font-semibold tracking-tight text-sidebar-foreground"
             >
               {AppInfo.APP_NAME}
             </BrandWordmark>

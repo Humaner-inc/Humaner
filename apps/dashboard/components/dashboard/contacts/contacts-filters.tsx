@@ -1,7 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { BuildingIcon, GridIcon, SearchIcon, UserIcon } from '@humaner/shared/icons';
+import {
+  BuildingIcon,
+  GridIcon,
+  SearchIcon,
+  UserIcon
+} from '@humaner/shared/icons';
 import { useQueryState } from 'nuqs';
 
 import { searchParams } from '@/components/dashboard/contacts/contacts-search-params';

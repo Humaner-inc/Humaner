@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useState, type ReactNode } from 'react';
+import Image from "next/image";
+import { useEffect, useState, type ReactNode } from "react";
 
-import { WaitlistSuccessState } from '@/components/waitlist-success-state';
-import type { FormState } from '@/components/waitlist-email-form';
-import { cn } from '@/lib/utils';
+import { WaitlistSuccessState } from "@/components/waitlist-success-state";
+import type { FormState } from "@/components/waitlist-email-form";
+import { cn } from "@/lib/utils";
 
 type WaitlistCtaRevealProps = {
   open: boolean;
@@ -20,12 +20,12 @@ export function WaitlistCtaReveal({
   open,
   formState,
   children,
-  className
+  className,
 }: WaitlistCtaRevealProps): React.JSX.Element {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    if (formState !== 'success') {
+    if (formState !== "success") {
       setShowSuccess(false);
       return;
     }
@@ -39,8 +39,11 @@ export function WaitlistCtaReveal({
 
   return (
     <div
-      className={cn('waitlist-cta mx-auto w-full max-w-2xl text-center', className)}
-      data-open={open ? 'true' : 'false'}
+      className={cn(
+        "waitlist-cta mx-auto w-full max-w-2xl text-center",
+        className,
+      )}
+      data-open={open ? "true" : "false"}
     >
       <div className="waitlist-cta__headline-wrap">
         <Image
@@ -71,7 +74,9 @@ export function WaitlistCtaReveal({
         </p>
       )}
 
-      {!showSuccess ? <div className="waitlist-cta__form">{children}</div> : null}
+      {!showSuccess ? (
+        <div className="waitlist-cta__form">{children}</div>
+      ) : null}
     </div>
   );
 }

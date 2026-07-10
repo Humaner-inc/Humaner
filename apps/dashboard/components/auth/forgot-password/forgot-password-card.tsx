@@ -8,6 +8,10 @@ import { type SubmitHandler } from 'react-hook-form';
 
 import { sendResetPasswordInstructions } from '@/actions/auth/send-reset-password-instructions';
 import {
+  glassLinkClassName,
+  glassMutedTextClassName
+} from '@/components/auth/auth-form-styles';
+import {
   AuthInnerCard,
   AuthInnerCardContent,
   AuthInnerCardDescription,
@@ -15,7 +19,6 @@ import {
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
-import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CardProps } from '@/components/ui/card';
@@ -121,7 +124,10 @@ export function ForgotPasswordCard(props: CardProps): React.JSX.Element {
         className={cn('justify-center gap-1 text-sm', glassMutedTextClassName)}
       >
         <span>Remembered your password?</span>
-        <Link href={Routes.Login} className={cn('underline', glassLinkClassName)}>
+        <Link
+          href={Routes.Login}
+          className={cn('underline', glassLinkClassName)}
+        >
           Log in
         </Link>
       </AuthInnerCardFooter>

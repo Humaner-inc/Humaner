@@ -5,6 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import {
+  NavAgentTree,
+  type SidebarAgent
+} from '@/components/dashboard/nav-agent-tree';
+import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
+import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
+import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
+import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
+import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
+import {
+  NavMenuIcon,
+  useNavMenuIconAnimation
+} from '@/components/ui/nav-menu-icon';
+import {
   SidebarGroup,
   SidebarMenu,
   SidebarMenuButton,
@@ -12,17 +25,7 @@ import {
   SidebarSeparator,
   type SidebarGroupProps
 } from '@/components/ui/sidebar';
-import {
-  NavMenuIcon,
-  useNavMenuIconAnimation
-} from '@/components/ui/nav-menu-icon';
 import { adminNavItems, mainNavItems } from '@/constants/nav-items';
-import { NavAgentTree, type SidebarAgent } from '@/components/dashboard/nav-agent-tree';
-import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
-import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
-import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
-import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
-import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
 import { Routes } from '@/constants/routes';
 import {
   canAccessPage,
@@ -30,8 +33,8 @@ import {
   isPlatformAdmin
 } from '@/lib/auth/workspace-access';
 import { cn } from '@/lib/utils';
-import type { NavItem } from '@/types/nav-item';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
+import type { NavItem } from '@/types/nav-item';
 
 export type NavMainProps = SidebarGroupProps & {
   profile: ProfileDto;
@@ -94,8 +97,12 @@ export function NavMain({
   return (
     <SidebarNavAccordionProvider agents={agents}>
       <NavOrganizationTree />
-      {canAccessPage(profile, 'integrations') ? <NavIntegrationsTree orgTier={orgTier} /> : null}
-      {canAccessPage(profile, 'desk') ? <NavDeskTree orgTier={orgTier} /> : null}
+      {canAccessPage(profile, 'integrations') ? (
+        <NavIntegrationsTree orgTier={orgTier} />
+      ) : null}
+      {canAccessPage(profile, 'desk') ? (
+        <NavDeskTree orgTier={orgTier} />
+      ) : null}
       <NavSettingsTree profile={profile} />
       {items.length > 0 ? (
         <SidebarGroup {...props}>

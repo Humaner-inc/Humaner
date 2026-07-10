@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { format, formatDistanceToNow } from 'date-fns';
 import { ClockIcon, MoreHorizontalIcon } from '@humaner/shared/icons';
+import { format, formatDistanceToNow } from 'date-fns';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

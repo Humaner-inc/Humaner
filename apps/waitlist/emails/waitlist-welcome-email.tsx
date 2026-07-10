@@ -3,12 +3,12 @@ import {
   EmailInlineLink,
   EmailLayout,
   EmailMuted,
-  EmailText
-} from '@humaner/shared/email-ui';
-import { Section } from '@react-email/components';
+  EmailText,
+} from "@humaner/shared/email-ui";
+import { Section } from "@react-email/components";
 
-import { AppInfo } from '@/constants/app-info';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
+import { AppInfo } from "@/constants/app-info";
+import { getBaseUrl } from "@/lib/urls/get-base-url";
 
 export type WaitlistWelcomeEmailData = {
   recipient: string;
@@ -28,7 +28,7 @@ export const WaitlistWelcomeEmail = (data: WaitlistWelcomeEmailData) => (
       can do it with {AppInfo.APP_NAME} agents too! But dont tell others yet.)
     </EmailText>
     <EmailText>
-      We want to give Customer Support the attention and the tools it deserves.{' '}
+      We want to give Customer Support the attention and the tools it deserves.{" "}
       {AppInfo.APP_NAME} have one goal in mind: allowing businesses to offer
       exceptional support in the AI era.
     </EmailText>
@@ -46,7 +46,9 @@ export const WaitlistWelcomeEmail = (data: WaitlistWelcomeEmailData) => (
     </EmailMuted>
     {data.unsubscribeUrl ? (
       <Section className="mt-3 text-center">
-        <EmailInlineLink href={data.unsubscribeUrl}>Unsubscribe</EmailInlineLink>
+        <EmailInlineLink href={data.unsubscribeUrl}>
+          Unsubscribe
+        </EmailInlineLink>
       </Section>
     ) : null}
   </EmailLayout>

@@ -2,13 +2,13 @@ import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { WorkspaceAccentSection } from '@/components/dashboard/organization/workspace-accent-section';
+import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { SectionPage } from '@/components/ui/section-shell';
+import { getOrganizationDetails } from '@/data/organization/get-organization-details';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { getOrganizationDetails } from '@/data/organization/get-organization-details';
 import { prisma } from '@/lib/db/prisma';
 import { createTitle } from '@/lib/utils';
 

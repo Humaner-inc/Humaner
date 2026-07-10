@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircleIcon,
   CheckIcon,
@@ -36,15 +36,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { CHARACTER_META } from '@/lib/character-presets';
-import { cn } from '@/lib/utils';
 import {
   agentAnalyticsRoute,
   agentKnowledgeRoute,
   agentPersonaRoute
 } from '@/constants/routes';
+import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { CHARACTER_META } from '@/lib/character-presets';
+import { cn } from '@/lib/utils';
 
 export type AgentCardProps = {
   agent: AgentOverviewItem;
@@ -67,13 +67,29 @@ function PauseGlyph({ className }: { className?: string }): React.JSX.Element {
       aria-hidden
       className={className}
     >
-      <rect x="6" y="5" width="4" height="14" rx="1" />
-      <rect x="14" y="5" width="4" height="14" rx="1" />
+      <rect
+        x="6"
+        y="5"
+        width="4"
+        height="14"
+        rx="1"
+      />
+      <rect
+        x="14"
+        y="5"
+        width="4"
+        height="14"
+        rx="1"
+      />
     </svg>
   );
 }
 
-function AgentStatusBadge({ isPaused }: { isPaused: boolean }): React.JSX.Element {
+function AgentStatusBadge({
+  isPaused
+}: {
+  isPaused: boolean;
+}): React.JSX.Element {
   if (isPaused) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">

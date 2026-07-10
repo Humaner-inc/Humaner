@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { runAgentEval } from '@/services/training/agent-eval';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
-
 import { getPlanForTier } from '@humaner/shared/plans';
+import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
@@ -18,7 +18,6 @@ import {
   NotFoundError,
   PreConditionError
 } from '@/lib/validation/exceptions';
-import { runAgentEval } from '@/services/training/agent-eval';
 
 const QUESTION_COUNT_OPTIONS = [5, 10, 25, 50] as const;
 type QuestionCount = (typeof QUESTION_COUNT_OPTIONS)[number];
@@ -64,7 +63,8 @@ export const runAgentTraining = pageActionClient('agents')
     const bypassLimits = await organizationBypassesPlanLimits(organizationId);
 
     if (!bypassLimits) {
-      const accountOrganizationIds = await getAccountOrganizationIds(organizationId);
+      const accountOrganizationIds =
+        await getAccountOrganizationIds(organizationId);
       const [trainingUsed, messagesUsed] = await Promise.all([
         getTrainingMessagesUsedThisMonth(accountOrganizationIds),
         getMessagesUsedThisMonth(organizationId, tier)

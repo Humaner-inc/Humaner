@@ -1,15 +1,15 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { purgeVisitorMemory } from '@/services/agent-memory';
+import { invalidateLangCacheForAgent } from '@/services/langcache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { invalidateAgentConfigCache } from '@/lib/redis/agent-config-cache';
 import { NotFoundError } from '@/lib/validation/exceptions';
-import { purgeVisitorMemory } from '@/services/agent-memory';
 import { deleteAgentSchema } from '@/schemas/agents/delete-agent-schema';
-import { invalidateLangCacheForAgent } from '@/services/langcache';
 
 export const deleteAgent = pageActionClient('agents')
   .metadata({ actionName: 'deleteAgent' })

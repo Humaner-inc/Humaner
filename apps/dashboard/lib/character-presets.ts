@@ -1,3 +1,4 @@
+import type { PersonalityAccess } from '@humaner/shared/plans';
 import type {
   CharacterType,
   EmojiMode,
@@ -5,7 +6,6 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
-import type { PersonalityAccess } from '@humaner/shared/plans';
 
 export type CharacterMeta = {
   id: CharacterType;
@@ -38,7 +38,8 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     label: 'Efficient',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
     image: '/caracters/gradient_2.png',
-    example: 'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
+    example:
+      'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
   },
   CUSTOM: {
     id: 'CUSTOM',

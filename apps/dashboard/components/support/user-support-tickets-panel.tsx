@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
 import { ArrowLeftIcon } from '@humaner/shared/icons';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 import { addSupportTicketMessage } from '@/actions/support-tickets/add-support-ticket-message';
@@ -165,7 +165,7 @@ export function UserSupportTicketsPanel({
 
   const detailPanel = (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 border-b border-border/60 px-3 py-3 md:px-4">
+      <div className="flex items-center gap-2 border-b border-border/60 p-3 md:px-4">
         <Button
           type="button"
           variant="ghost"
@@ -179,7 +179,9 @@ export function UserSupportTicketsPanel({
         <div className="min-w-0 flex-1">
           {detail ? (
             <>
-              <h2 className="truncate text-base font-semibold">{detail.title}</h2>
+              <h2 className="truncate text-base font-semibold">
+                {detail.title}
+              </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Opened {format(new Date(detail.createdAt), 'MMM d, yyyy')} ·{' '}
                 {reportBugTabLabel(detail.contextTab)}
@@ -321,7 +323,10 @@ export function UserSupportTicketsPanel({
           <div className="flex min-h-0 flex-1 flex-col">{detailPanel}</div>
         )}
       </div>
-      <div className="hidden min-h-0 flex-1 md:flex">{list}{detailPanel}</div>
+      <div className="hidden min-h-0 flex-1 md:flex">
+        {list}
+        {detailPanel}
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { revalidatePath } from 'next/cache';
+import { runAgentEval } from '@/services/training/agent-eval';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
-
 import { getPlanForTier } from '@humaner/shared/plans';
+import { z } from 'zod';
 
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
@@ -13,7 +13,6 @@ import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
 import type { TrainingProgressEvent } from '@/lib/training/training-progress';
-import { runAgentEval } from '@/services/training/agent-eval';
 
 export const maxDuration = 300;
 
@@ -61,7 +60,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = runTrainingSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json({ error: 'Invalid training request' }, { status: 400 });
+    return Response.json(
+      { error: 'Invalid training request' },
+      { status: 400 }
+    );
   }
 
   const agent = await prisma.agent.findFirst({
@@ -87,7 +89,8 @@ export async function POST(request: Request): Promise<Response> {
   const bypassLimits = await organizationBypassesPlanLimits(organizationId);
 
   if (!bypassLimits) {
-    const accountOrganizationIds = await getAccountOrganizationIds(organizationId);
+    const accountOrganizationIds =
+      await getAccountOrganizationIds(organizationId);
     const [trainingUsed, messagesUsed] = await Promise.all([
       getTrainingMessagesUsedThisMonth(accountOrganizationIds),
       getMessagesUsedThisMonth(organizationId, tier)

@@ -2,13 +2,16 @@ import * as React from 'react';
 import Link from 'next/link';
 
 import {
+  glassLinkClassName,
+  glassMutedTextClassName
+} from '@/components/auth/auth-form-styles';
+import {
   AuthInnerCard,
   AuthInnerCardContent,
   AuthInnerCardDescription,
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
-import { glassLinkClassName, glassMutedTextClassName } from '@/components/auth/auth-form-styles';
 import type { CardProps } from '@/components/ui/card';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
@@ -25,7 +28,10 @@ export function ChangeEmailExpiredCard(props: CardProps): React.JSX.Element {
       </AuthInnerCardHeader>
       <AuthInnerCardContent>
         <div className={cn('text-center text-sm', glassMutedTextClassName)}>
-          <Link href={Routes.Account} className={cn('underline', glassLinkClassName)}>
+          <Link
+            href={Routes.Account}
+            className={cn('underline', glassLinkClassName)}
+          >
             Go to account settings
           </Link>
         </div>

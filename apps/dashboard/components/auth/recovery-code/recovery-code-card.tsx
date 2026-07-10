@@ -2,9 +2,14 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { AlertCircleIcon, ArrowLeftIcon, ArrowRightIcon } from '@humaner/shared/icons';
+import {
+  AlertCircleIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon
+} from '@humaner/shared/icons';
 
 import { submitRecoveryCode } from '@/actions/auth/submit-recovery-code';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import {
   AuthInnerCard,
   AuthInnerCardContent,
@@ -13,7 +18,6 @@ import {
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
-import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import type { CardProps } from '@/components/ui/card';

@@ -1,6 +1,6 @@
 # Development
 
-This repo is Humaner's **integration layer** | Dashboard UI, widget, React SDK, and API routes. 
+This repo is Humaner's **integration layer** | Dashboard UI, widget, React SDK, and API routes.
 **Agent intelligence** (Humaner v1.0 / v2.0 / v3.0) runs on Humaner's hosted runtime.
 
 Most integrators embed the widget, install `@humaner/react`, or call `app.humaner.io`.
@@ -12,14 +12,14 @@ This guide is for **Humaner team members**, **security evaluators** reading auth
 
 ## What you can run locally
 
-| Surface | Local? | Notes |
-|---|---|---|
-| Landing (`apps/landing`) | ✅ | Marketing + docs site |
-| Dashboard UI (`apps/dashboard`) | ✅ | Auth, settings, desk, billing UI |
-| Widget iframe + `widget.js` | ✅ | Point embed at `localhost:3001` |
-| `@humaner/react` | ✅ | `baseUrl="http://localhost:3001"` |
-| API routes (`/api/v1/*`) | ✅ | Requires your own keys + Redis (see below) |
-| Agent test harness (`apps/test`) | ✅ | Sandbox against local or hosted API |
+| Surface                          | Local? | Notes                                      |
+| -------------------------------- | ------ | ------------------------------------------ |
+| Landing (`apps/landing`)         | ✅     | Marketing + docs site                      |
+| Dashboard UI (`apps/dashboard`)  | ✅     | Auth, settings, desk, billing UI           |
+| Widget iframe + `widget.js`      | ✅     | Point embed at `localhost:3001`            |
+| `@humaner/react`                 | ✅     | `baseUrl="http://localhost:3001"`          |
+| API routes (`/api/v1/*`)         | ✅     | Requires your own keys + Redis (see below) |
+| Agent test harness (`apps/test`) | ✅     | Sandbox against local or hosted API        |
 
 ## What you cannot self-host today
 
@@ -57,11 +57,11 @@ pnpm --filter @humaner/dashboard exec prisma migrate dev
 pnpm dev
 ```
 
-| App | URL | Command |
-|---|---|---|
-| Landing | http://localhost:3000 | `pnpm dev:landing` |
-| Dashboard | http://localhost:3001 | `pnpm dev:dashboard` |
-| Test harness | http://localhost:3003 | `pnpm dev:test` |
+| App          | URL                   | Command              |
+| ------------ | --------------------- | -------------------- |
+| Landing      | http://localhost:3000 | `pnpm dev:landing`   |
+| Dashboard    | http://localhost:3001 | `pnpm dev:dashboard` |
+| Test harness | http://localhost:3003 | `pnpm dev:test`      |
 
 ```bash
 pnpm build       # production build
@@ -102,10 +102,10 @@ Publish flow and npm release steps are documented when the package goes public.
 
 ## Deploy split
 
-| Domain | App | Vercel root |
-|---|---|---|
-| humaner.io | `apps/landing` | landing |
-| app.humaner.io | `apps/dashboard` | dashboard |
+| Domain         | App              | Vercel root |
+| -------------- | ---------------- | ----------- |
+| humaner.io     | `apps/landing`   | landing     |
+| app.humaner.io | `apps/dashboard` | dashboard   |
 
 Set `NEXT_PUBLIC_LANDING_URL` and `NEXT_PUBLIC_APP_URL` in each project.
 
@@ -118,7 +118,6 @@ Full list with links lives in the [README Built with section](./README.md#built-
 - **App:** Next.js 15, React 19, Prisma, Turborepo, pnpm
 - **AI:** Anthropic (Chat) · OpenAI (embeddings) · Firecrawl (KB ingestion)
 - **Data:** PostgreSQL (Supabase) · Redis Iris + Upstash + Redis Cloud
-- **Services:** Polar · Resend · Vercel 
+- **Services:** Polar · Resend · Vercel
 
 ---
-

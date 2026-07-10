@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
+import { MoreHorizontalIcon } from '@humaner/shared/icons';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -17,7 +18,6 @@ import {
   VisibilityState,
   type Row
 } from '@tanstack/react-table';
-import { MoreHorizontalIcon } from '@humaner/shared/icons';
 import { useQueryStates } from 'nuqs';
 
 import { ContactsBulkActions } from '@/components/dashboard/contacts/contacts-bulk-actions';

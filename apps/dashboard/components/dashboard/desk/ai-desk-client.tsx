@@ -2,29 +2,18 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { formatDistanceToNow } from 'date-fns';
-import {
-  BotIcon,
-  CheckIcon,
-  CircleAlert,
-  ClockIcon,
-  Layers,
-  SearchIcon
-} from '@humaner/shared/icons';
+import { BotIcon, SearchIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { escalateTicket } from '@/actions/desk/escalate-ticket';
-
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Input } from '@/components/ui/input';
-import { TicketList } from '@/components/dashboard/desk/ticket-list';
 import {
-  TicketFilterNav,
   matchesTicketFilter,
+  TicketFilterNav,
   type TicketFilterId
 } from '@/components/dashboard/desk/ticket-filter-nav';
+import { TicketList } from '@/components/dashboard/desk/ticket-list';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
 import type { HandoffTicketItem } from '@/data/handoff/get-handoff-tickets';
 import { useOrgMode } from '@/hooks/use-org-mode';
 import { cn } from '@/lib/utils';
@@ -39,7 +28,7 @@ type FilterMode = TicketFilterId;
 
 export function AIDeskClient({
   tickets,
-  teamMembers,
+  teamMembers: _teamMembers,
   currentUserId
 }: AIDeskClientProps): React.JSX.Element {
   const router = useRouter();
@@ -106,13 +95,16 @@ export function AIDeskClient({
         <div>
           <h2 className="font-display text-2xl leading-none">AI Desk</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tickets handled autonomously using {labels.clusters.toLowerCase()} and {labels.runbooks.toLowerCase()}.
+            Tickets handled autonomously using {labels.clusters.toLowerCase()}{' '}
+            and {labels.runbooks.toLowerCase()}.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5">
             <span className="text-xs text-muted-foreground">Resolution</span>
-            <span className="font-mono text-sm font-semibold">{resolutionRate}%</span>
+            <span className="font-mono text-sm font-semibold">
+              {resolutionRate}%
+            </span>
           </div>
         </div>
       </div>

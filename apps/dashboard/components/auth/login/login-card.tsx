@@ -18,16 +18,16 @@ import { continueWithGitHub } from '@/actions/auth/continue-with-github';
 import { continueWithGoogle } from '@/actions/auth/continue-with-google';
 import { logIn } from '@/actions/auth/log-in';
 import {
+  authAlertDestructiveClassName,
+  authDestructiveMessageClassName,
   authDividerClassName,
+  authHighlightButtonClassName,
   authInputAdornmentClassName,
   authInputClassName,
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
-  authHighlightButtonClassName,
-  authAlertDestructiveClassName,
-  authDestructiveMessageClassName,
   authPageTitleClassName
 } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -163,9 +163,7 @@ export function LoginCard(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2 text-center">
-        <h1 className={authPageTitleClassName}>
-          Humaner
-        </h1>
+        <h1 className={authPageTitleClassName}>Humaner</h1>
         <p className={authMutedTextClassName}>
           Enter your details below to sign into your account.
         </p>
@@ -199,7 +197,10 @@ export function LoginCard(): React.JSX.Element {
                     )}
                     startAdornment={
                       <MailIcon
-                        className={cn('size-4 shrink-0', authInputAdornmentClassName)}
+                        className={cn(
+                          'size-4 shrink-0',
+                          authInputAdornmentClassName
+                        )}
                       />
                     }
                     disabled={isLoading || loginSuccess}
@@ -236,7 +237,10 @@ export function LoginCard(): React.JSX.Element {
                     )}
                     startAdornment={
                       <LockIcon
-                        className={cn('size-4 shrink-0', authInputAdornmentClassName)}
+                        className={cn(
+                          'size-4 shrink-0',
+                          authInputAdornmentClassName
+                        )}
                       />
                     }
                     disabled={isLoading || loginSuccess}
@@ -279,7 +283,10 @@ export function LoginCard(): React.JSX.Element {
             loading={isLoading}
           >
             {loginSuccess ? (
-              <CheckIcon className="size-4" strokeWidth={2.5} />
+              <CheckIcon
+                className="size-4"
+                strokeWidth={2.5}
+              />
             ) : (
               'Log in'
             )}

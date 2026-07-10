@@ -1,29 +1,28 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { WorkspaceRole } from '@prisma/client';
 import { getPrivacyUrl } from '@humaner/shared/urls';
+import { WorkspaceRole } from '@prisma/client';
 
-import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
+import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
-import { getAgents } from '@/data/agents/get-agents';
 import { getProfile } from '@/data/account/get-profile';
+import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
-
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { createTitle } from '@/lib/utils';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
+import { createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: createTitle('Dashboard')
@@ -106,7 +105,11 @@ export default async function DashboardLayout({
     <OrgModeProvider targetAudience={userFromDb!.organization!.targetAudience}>
       <div
         className="flex h-screen overflow-hidden bg-background text-foreground"
-        style={accentColor ? { '--accent-color': accentColor } as React.CSSProperties : undefined}
+        style={
+          accentColor
+            ? ({ '--accent-color': accentColor } as React.CSSProperties)
+            : undefined
+        }
       >
         <DataImprovementConsentGate
           privacyPolicyUrl={getPrivacyUrl()}

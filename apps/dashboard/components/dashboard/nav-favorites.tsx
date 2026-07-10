@@ -19,7 +19,11 @@ import {
   SortableContext,
   useSortable
 } from '@dnd-kit/sortable';
-import { ChevronRightIcon, GripVerticalIcon, StarOffIcon } from '@humaner/shared/icons';
+import {
+  ChevronRightIcon,
+  GripVerticalIcon,
+  StarOffIcon
+} from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { removeFavorite } from '@/actions/favorites/remove-favorite';

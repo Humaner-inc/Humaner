@@ -43,7 +43,8 @@ export const ESCALATION_MODE_B2C_NOTES: Record<EscalationMode, string> = {
   LIVE: 'Widget visitors expecting instant help on transactional issues.',
   PRIORITY: 'Refund and order disputes after the bot tried live data.',
   STANDARD: 'Policy and product questions that can wait until the next shift.',
-  SELF_RESOLVING: 'Turn repeat gaps into knowledge — shrinks queue volume over time.'
+  SELF_RESOLVING:
+    'Turn repeat gaps into knowledge — shrinks queue volume over time.'
 };
 
 export const ESCALATION_MODE_B2B_NOTES: Record<EscalationMode, string> = {

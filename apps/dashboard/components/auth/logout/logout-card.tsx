@@ -46,16 +46,16 @@ export function LogoutCard(): React.JSX.Element {
         <h1 className={cn(authHeadingClassName, 'text-4xl')}>
           You&apos;ve been logged out
         </h1>
-        <p className={authMutedTextClassName}>
-          We hope to see you again soon!
-        </p>
+        <p className={authMutedTextClassName}>We hope to see you again soon!</p>
       </div>
 
       <div className="flex flex-col items-center gap-2">
         <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
-          <ShieldCheck className="size-5 text-[#dc143c]" />
+          <ShieldCheck className="size-5 text-[#e1ccaf]" />
         </div>
-        <span className="text-sm font-medium text-[#fff8f2]">Secure logout</span>
+        <span className="text-sm font-medium text-[#fff8f2]">
+          Secure logout
+        </span>
         <span className={cn('text-center text-xs', authMutedTextClassName)}>
           The session has ended.
         </span>

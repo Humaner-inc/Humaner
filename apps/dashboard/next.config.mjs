@@ -18,7 +18,7 @@ const svgLoader = {
           name: 'preset-default',
           params: {
             overrides: {
-              removeViewBox: false, // Preserve the viewBox attribute
+              removeViewBox: false // Preserve the viewBox attribute
             }
           }
         }

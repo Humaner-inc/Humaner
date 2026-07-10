@@ -1,12 +1,8 @@
 'use client';
 
-import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
-import {
-  TriangleAlertIcon,
-  UploadIcon,
-  XIcon
-} from '@humaner/shared/icons';
 import * as React from 'react';
+import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
+import { TriangleAlertIcon, UploadIcon, XIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

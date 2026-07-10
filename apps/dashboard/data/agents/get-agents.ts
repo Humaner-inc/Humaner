@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache as cache } from 'next/cache';
+import { redirect } from 'next/navigation';
 import type {
   CharacterType,
   EmojiMode,
@@ -8,8 +10,6 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
-import { unstable_cache as cache } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import {
   Caching,

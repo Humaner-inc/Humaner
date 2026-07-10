@@ -1,15 +1,18 @@
-'use client';
+"use client";
 
-import { forwardRef, type ReactNode, type RefObject } from 'react';
+import { forwardRef, type ReactNode, type RefObject } from "react";
 
-import { BranchConnector } from '@/components/ui/branch-timeline';
-import { WaitlistEmailForm, type FormState } from '@/components/waitlist-email-form';
-import { WaitlistCtaReveal } from '@/components/waitlist-cta-reveal';
-import { WaitlistFeaturePillars } from '@/components/waitlist-support-pillars';
-import { useInView } from '@/hooks/use-in-view';
-import { cn } from '@/lib/utils';
+import { BranchConnector } from "@/components/ui/branch-timeline";
+import {
+  WaitlistEmailForm,
+  type FormState,
+} from "@/components/waitlist-email-form";
+import { WaitlistCtaReveal } from "@/components/waitlist-cta-reveal";
+import { WaitlistFeaturePillars } from "@/components/waitlist-support-pillars";
+import { useInView } from "@/hooks/use-in-view";
+import { cn } from "@/lib/utils";
 
-const STAGES = ['past', 'present', 'frontier', 'future', 'access'] as const;
+const STAGES = ["past", "present", "frontier", "future", "access"] as const;
 
 type BrandStoriesSectionProps = {
   email: string;
@@ -34,7 +37,7 @@ export function BrandStoriesSection({
   ctaRef,
   activeIndex,
   branchProgressValues,
-  nodeFillValues
+  nodeFillValues,
 }: BrandStoriesSectionProps): React.JSX.Element {
   const ctaInView = useInView(ctaRef, { threshold: 0.25 });
 
@@ -46,7 +49,7 @@ export function BrandStoriesSection({
     active: activeIndex === index,
     visible: activeIndex >= index,
     branchProgress: branchProgressValues[index] ?? 0,
-    nodeFillProgress: nodeFillValues[index] ?? 0
+    nodeFillProgress: nodeFillValues[index] ?? 0,
   });
 
   const setStepRef = (index: number) => (element: HTMLElement | null) => {
@@ -129,9 +132,9 @@ const StoryBeat = forwardRef<HTMLElement, StoryBeatProps>(function StoryBeat(
     nodeFillProgress,
     headline,
     subline,
-    children
+    children,
   },
-  ref
+  ref,
 ) {
   return (
     <article
@@ -149,16 +152,16 @@ const StoryBeat = forwardRef<HTMLElement, StoryBeatProps>(function StoryBeat(
 
       <div
         className={cn(
-          'mx-auto w-full max-w-4xl px-2 text-center transition-all duration-700 ease-out sm:px-4',
+          "mx-auto w-full max-w-4xl px-2 text-center transition-all duration-700 ease-out sm:px-4",
           visible
-            ? 'translate-y-0 opacity-100 blur-0'
-            : 'translate-y-8 opacity-0 blur-[6px]'
+            ? "translate-y-0 opacity-100 blur-0"
+            : "translate-y-8 opacity-0 blur-[6px]",
         )}
       >
         <p
           className={cn(
-            'font-display text-[1.75rem] font-semibold leading-[1.25] tracking-tight sm:text-4xl sm:leading-[1.22] lg:text-[2.65rem] lg:leading-[1.2]',
-            active ? 'story-sentence' : 'story-sentence--muted'
+            "font-display text-[1.75rem] font-semibold leading-[1.25] tracking-tight sm:text-4xl sm:leading-[1.22] lg:text-[2.65rem] lg:leading-[1.2]",
+            active ? "story-sentence" : "story-sentence--muted",
           )}
         >
           {headline}
@@ -187,7 +190,7 @@ const StoryCtaEnd = function StoryCtaEnd({
   errorMessage,
   onEmailChange,
   onSubmit,
-  ctaInView
+  ctaInView,
 }: {
   ctaRef: RefObject<HTMLDivElement | null>;
   active: boolean;
@@ -215,7 +218,11 @@ const StoryCtaEnd = function StoryCtaEnd({
           tone="dark"
         />
 
-        <WaitlistCtaReveal open={joinOpen} formState={formState} className="pt-7 sm:pt-8">
+        <WaitlistCtaReveal
+          open={joinOpen}
+          formState={formState}
+          className="pt-7 sm:pt-8"
+        >
           <WaitlistEmailForm
             email={email}
             formState={formState}

@@ -77,16 +77,16 @@ export function PageDockItem({
               ? cn(
                   isComingSoon
                     ? isActive
-                      ? 'border-border bg-secondary dark:border-white/12 dark:bg-black/30'
-                      : 'border-border/70 bg-muted group-hover:border-border group-hover:bg-secondary dark:border-white/8 dark:bg-black/25 dark:group-hover:border-white/12 dark:group-hover:bg-black/30'
+                      ? 'dark:border-white/12 border-border bg-secondary dark:bg-black/30'
+                      : 'dark:border-white/8 dark:group-hover:border-white/12 border-border/70 bg-muted group-hover:border-border group-hover:bg-secondary dark:bg-black/25 dark:group-hover:bg-black/30'
                     : isActive
-                      ? 'border-foreground/15 bg-card shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(220_20_60_/_0.1)] dark:border-white/24 dark:bg-black/55 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
-                      : 'border-border/80 bg-muted group-hover:border-foreground/12 group-hover:bg-secondary dark:border-white/16 dark:bg-black/40 dark:group-hover:border-white/22 dark:group-hover:bg-black/50'
+                      ? 'dark:border-white/24 border-foreground/15 bg-card shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(225_204_175_/_0.1)] dark:bg-black/55 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                      : 'group-hover:border-foreground/12 dark:border-white/16 dark:group-hover:border-white/22 border-border/80 bg-muted group-hover:bg-secondary dark:bg-black/40 dark:group-hover:bg-black/50'
                 )
               : cn(
                   'relative',
                   isActive
-                    ? 'border-primary/30 bg-muted shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06),0_0_24px_-10px_rgb(220_20_60_/_0.35)]'
+                    ? 'border-primary/30 bg-muted shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06),0_0_24px_-10px_rgb(225_204_175_/_0.35)]'
                     : 'border-transparent bg-transparent group-hover:border-border/60 group-hover:bg-muted/40'
                 )
           )}
@@ -97,8 +97,8 @@ export function PageDockItem({
               className={cn(
                 'pointer-events-none absolute inset-0',
                 isGlass
-                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(220_20_60_/_0.1),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
-                  : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(220_20_60_/_0.18),transparent_68%)]'
+                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.1),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
+                  : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.18),transparent_68%)]'
               )}
             />
           ) : null}
@@ -114,10 +114,10 @@ export function PageDockItem({
             ? isComingSoon
               ? isActive
                 ? 'text-muted-foreground dark:text-white/55'
-                : 'text-muted-foreground/55 group-hover:text-muted-foreground dark:text-white/32 dark:group-hover:text-white/45'
+                : 'dark:text-white/32 text-muted-foreground/55 group-hover:text-muted-foreground dark:group-hover:text-white/45'
               : isActive
                 ? 'text-foreground dark:text-white'
-                : 'text-muted-foreground group-hover:text-foreground dark:text-white/48 dark:group-hover:text-white/72'
+                : 'dark:text-white/48 dark:group-hover:text-white/72 text-muted-foreground group-hover:text-foreground'
             : isActive
               ? 'text-foreground'
               : 'text-muted-foreground group-hover:text-foreground'
@@ -134,7 +134,9 @@ export function PageDockItem({
         href={href}
         className={cn(
           'group relative flex shrink-0 flex-col items-center',
-          isComingSoon && !isActive && 'opacity-50 transition-opacity duration-300 hover:opacity-65'
+          isComingSoon &&
+            !isActive &&
+            'opacity-50 transition-opacity duration-300 hover:opacity-65'
         )}
         aria-current={isActive ? 'page' : undefined}
       >
@@ -148,7 +150,9 @@ export function PageDockItem({
       type="button"
       className={cn(
         'group relative flex shrink-0 flex-col items-center',
-        isComingSoon && !isActive && 'opacity-50 transition-opacity duration-300 hover:opacity-65'
+        isComingSoon &&
+          !isActive &&
+          'opacity-50 transition-opacity duration-300 hover:opacity-65'
       )}
       disabled={disabled}
       aria-current={isActive ? 'page' : undefined}

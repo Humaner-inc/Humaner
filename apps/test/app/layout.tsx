@@ -1,15 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
-import './globals.css';
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Velvet & Vine — Humaner integration demo',
+  title: "Velvet & Vine — Humaner integration demo",
   description:
-    'Demo landing page for testing Humaner widget embeds and custom REST API chat locally.'
+    "Demo landing page for testing Humaner widget embeds and custom REST API chat locally.",
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>): React.JSX.Element {

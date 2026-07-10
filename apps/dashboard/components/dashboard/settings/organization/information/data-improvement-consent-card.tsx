@@ -66,7 +66,10 @@ export function DataImprovementConsentCard({
       <CardContent className="space-y-4">
         <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-4">
           <div className="space-y-1">
-            <Label htmlFor="data-improvement-consent" className="text-base">
+            <Label
+              htmlFor="data-improvement-consent"
+              className="text-base"
+            >
               Allow data use for improvements
             </Label>
             <p className="text-sm text-muted-foreground">
@@ -95,8 +98,8 @@ export function DataImprovementConsentCard({
         ) : null}
         {consent === null && isOwner ? (
           <p className="text-sm text-amber-600 dark:text-amber-500">
-            You have not answered the data improvement prompt yet. It will appear
-            on your next dashboard visit, or choose below.
+            You have not answered the data improvement prompt yet. It will
+            appear on your next dashboard visit, or choose below.
           </p>
         ) : null}
       </CardContent>

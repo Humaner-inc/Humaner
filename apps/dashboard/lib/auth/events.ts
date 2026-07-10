@@ -20,7 +20,10 @@ function getOAuthProfileImageUrl(
       (profile?.image as string | undefined) ??
       user.image;
 
-    if (typeof picture === 'string' && picture.includes('googleusercontent.com')) {
+    if (
+      typeof picture === 'string' &&
+      picture.includes('googleusercontent.com')
+    ) {
       return picture.replace(/=s\d+-c$/, '=s256-c');
     }
 
@@ -33,7 +36,10 @@ function getOAuthProfileImageUrl(
       (profile?.image as string | undefined) ??
       user.image;
 
-    if (typeof avatar === 'string' && avatar.includes('avatars.githubusercontent.com')) {
+    if (
+      typeof avatar === 'string' &&
+      avatar.includes('avatars.githubusercontent.com')
+    ) {
       const url = new URL(avatar);
       url.searchParams.set('s', '256');
       return url.toString();

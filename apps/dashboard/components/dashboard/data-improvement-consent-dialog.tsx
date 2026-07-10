@@ -47,17 +47,23 @@ export function DataImprovementConsentDialog({
 
   return (
     <Dialog open={open}>
-      <DialogContent className="sm:max-w-lg" preventDismiss>
+      <DialogContent
+        className="sm:max-w-lg"
+        preventDismiss
+      >
         <DialogHeader>
           <DialogTitle>Help us improve Humaner</DialogTitle>
           <DialogDescription asChild>
             <div className="space-y-3 pt-1 text-sm text-muted-foreground">
               <p>
-                Humaner may use your data to train and improve agents capabilities.
+                Humaner may use your data to train and improve agents
+                capabilities.
               </p>
               <p>
                 This is optional. Agents work fully regardless of your choice.
-                <br/>We do not sell your data and do not use your content for anything else.
+                <br />
+                We do not sell your data and do not use your content for
+                anything else.
               </p>
               <p>
                 You remain responsible for informing your end-customers in your

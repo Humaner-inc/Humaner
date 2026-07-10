@@ -25,7 +25,7 @@ We want Customer Support to mean something again. Humaner is the frontier betwee
 - **Human desk** for escalations, ticketing and live support within the same dashboard.
 - **Training loop** across the help desk to learn from human behavior and content gaps.
 
-### Open integration layer 
+### Open integration layer
 
 Widget, React SDK, API routes, auth, and tenancy code are **source-available** in this repo so integrators can inspect how embeds and API keys work. **Agent intelligence** (Humaner v1.0 / v2.0 / v3.0) runs on Humaner's hosted runtime — not something you self-host today.
 
@@ -56,12 +56,12 @@ Widget, React SDK, API routes, auth, and tenancy code are **source-available** i
 
 Integrate Humaner on your site, app, or backend in minutes:
 
-| Surface | Docs | Source in repo |
-|---|---|---|
-| Widget embed | [integrations/widget](https://humaner.io/resources/docs/integrations/widget) | `apps/dashboard/public/widget.js` |
-| React component | [integrations/react](https://humaner.io/resources/docs/integrations/react) | [`packages/react`](./packages/react) |
-| REST API (Frontier+) | [integrations/api](https://humaner.io/resources/docs/integrations/api) | `apps/dashboard/app/api/v1/` |
-| Webhooks | [integrations/webhooks](https://humaner.io/resources/docs/integrations/webhooks) | dashboard webhook handlers |
+| Surface              | Docs                                                                             | Source in repo                       |
+| -------------------- | -------------------------------------------------------------------------------- | ------------------------------------ |
+| Widget embed         | [integrations/widget](https://humaner.io/resources/docs/integrations/widget)     | `apps/dashboard/public/widget.js`    |
+| React component      | [integrations/react](https://humaner.io/resources/docs/integrations/react)       | [`packages/react`](./packages/react) |
+| REST API (Frontier+) | [integrations/api](https://humaner.io/resources/docs/integrations/api)           | `apps/dashboard/app/api/v1/`         |
+| Webhooks             | [integrations/webhooks](https://humaner.io/resources/docs/integrations/webhooks) | dashboard webhook handlers           |
 
 **Quick embed:**
 
@@ -76,9 +76,9 @@ Integrate Humaner on your site, app, or backend in minutes:
 **Quick React:**
 
 ```tsx
-import { HumanerChat } from '@humaner/react';
+import { HumanerChat } from "@humaner/react";
 
-<HumanerChat agentId="YOUR_AGENT_PUBLIC_ID" position="bottom-right" />
+<HumanerChat agentId="YOUR_AGENT_PUBLIC_ID" position="bottom-right" />;
 ```
 
 ```bash

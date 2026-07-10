@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ActivityIcon as ActivityIconSource,
@@ -90,13 +90,17 @@ import {
   ArrowLeftIcon as ArrowLeftIconSource,
   ArrowRightIcon as ArrowRightIconSource,
   ArrowUpIcon as ArrowUpIconSource,
-  ArrowUpRightIcon as ArrowUpRightIconSource
-} from 'lucide-animated';
+  ArrowUpRightIcon as ArrowUpRightIconSource,
+} from "lucide-animated";
 
-import { createAnimatedIcon, type AnimatedIconHandle, type LucideIcon } from './icon-utils';
+import {
+  createAnimatedIcon,
+  type AnimatedIconHandle,
+  type LucideIcon,
+} from "./icon-utils";
 
 export type { AnimatedIconHandle, LucideIcon };
-export { createAnimatedIcon } from './icon-utils';
+export { createAnimatedIcon } from "./icon-utils";
 
 export const ActivityIcon = createAnimatedIcon(ActivityIconSource);
 export const AlertCircleIcon = createAnimatedIcon(BadgeAlertIcon);
@@ -119,7 +123,9 @@ export const BookOpenIcon = createAnimatedIcon(BookTextIcon);
 export const Bot = createAnimatedIcon(BotIconSource);
 export const BotIcon = createAnimatedIcon(BotIconSource);
 export const Brain = createAnimatedIcon(BrainIconSource);
-export const BriefcaseBusinessIcon = createAnimatedIcon(BriefcaseBusinessIconSource);
+export const BriefcaseBusinessIcon = createAnimatedIcon(
+  BriefcaseBusinessIconSource,
+);
 export const Building2 = createAnimatedIcon(HomeIconSource);
 export const BuildingIcon = createAnimatedIcon(HomeIconSource);
 export const CalendarIcon = createAnimatedIcon(CalendarCheckIcon);
@@ -203,7 +209,9 @@ export const SettingsIcon = createAnimatedIcon(SettingsIconSource);
 export const ShieldCheck = createAnimatedIcon(ShieldCheckIconSource);
 export const ShieldIcon = createAnimatedIcon(ShieldCheckIconSource);
 export const ShoppingBag = createAnimatedIcon(CartIcon);
-export const SlidersHorizontal = createAnimatedIcon(SlidersHorizontalIconSource);
+export const SlidersHorizontal = createAnimatedIcon(
+  SlidersHorizontalIconSource,
+);
 export const SmileIcon = createAnimatedIcon(SmileIconSource);
 export const Sparkles = createAnimatedIcon(SparklesIconSource);
 export const SquareDashedKanbanIcon = createAnimatedIcon(FolderKanbanIcon);

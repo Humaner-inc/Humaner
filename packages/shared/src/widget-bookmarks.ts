@@ -1,10 +1,10 @@
 export const WIDGET_BOOKMARK_ICON_IDS = [
-  'book',
-  'chart',
-  'link',
-  'doc',
-  'help',
-  'external'
+  "book",
+  "chart",
+  "link",
+  "doc",
+  "help",
+  "external",
 ] as const;
 
 export type WidgetBookmarkIconId = (typeof WIDGET_BOOKMARK_ICON_IDS)[number];
@@ -19,12 +19,12 @@ export const WIDGET_BOOKMARK_ICON_META: Record<
   WidgetBookmarkIconId,
   { label: string }
 > = {
-  book: { label: 'Book' },
-  chart: { label: 'Chart' },
-  link: { label: 'Link' },
-  doc: { label: 'Document' },
-  help: { label: 'Help' },
-  external: { label: 'External' }
+  book: { label: "Book" },
+  chart: { label: "Chart" },
+  link: { label: "Link" },
+  doc: { label: "Document" },
+  help: { label: "Help" },
+  external: { label: "External" },
 };
 
 export const MAX_WIDGET_BOOKMARKS = 6;
@@ -39,10 +39,10 @@ function normalizeBookmarkUrl(raw: string): string | null {
     return null;
   }
   try {
-    const url = trimmed.includes('://')
+    const url = trimmed.includes("://")
       ? new URL(trimmed)
       : new URL(`https://${trimmed}`);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
       return null;
     }
     return url.toString();
@@ -60,18 +60,18 @@ export function parseWidgetBookmarks(value: unknown): WidgetBookmark[] {
   const bookmarks: WidgetBookmark[] = [];
 
   for (const item of value) {
-    if (!item || typeof item !== 'object') {
+    if (!item || typeof item !== "object") {
       continue;
     }
 
     const record = item as Record<string, unknown>;
-    const label = typeof record.label === 'string' ? record.label.trim() : '';
+    const label = typeof record.label === "string" ? record.label.trim() : "";
     const icon =
-      typeof record.icon === 'string' && isWidgetBookmarkIconId(record.icon)
+      typeof record.icon === "string" && isWidgetBookmarkIconId(record.icon)
         ? record.icon
-        : 'link';
+        : "link";
     const url =
-      typeof record.url === 'string' ? normalizeBookmarkUrl(record.url) : null;
+      typeof record.url === "string" ? normalizeBookmarkUrl(record.url) : null;
 
     if (!label || !url || label.length > 32) {
       continue;

@@ -47,7 +47,7 @@ export function AuthAppMockup(): React.JSX.Element {
           alt=""
           width={160}
           height={52}
-          className="h-11 w-auto shrink-0 brightness-0 invert opacity-90 sm:h-12"
+          className="h-11 w-auto shrink-0 opacity-90 brightness-0 invert sm:h-12"
         />
       </div>
     </div>

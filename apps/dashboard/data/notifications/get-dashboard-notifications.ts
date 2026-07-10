@@ -1,15 +1,15 @@
 import 'server-only';
 
+import { redirect } from 'next/navigation';
 import { getPlanForTier } from '@humaner/shared/plans';
 import { subDays } from 'date-fns';
-import { redirect } from 'next/navigation';
 
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
+import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
 import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
@@ -35,9 +35,7 @@ const HANDOFF_URGENCY_LABELS: Record<string, string> = {
   HIGH: 'High urgency'
 };
 
-function severityRank(
-  severity: DashboardNotification['severity']
-): number {
+function severityRank(severity: DashboardNotification['severity']): number {
   switch (severity) {
     case 'critical':
       return 0;
@@ -233,7 +231,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       id: 'billing-missing-customer',
       kind: 'billing',
       title: 'Billing setup incomplete',
-      description: 'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
+      description:
+        'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
       href: Routes.Billing,
       severity: 'warning',
       tag: 'Billing',
@@ -243,26 +242,25 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   if (organization.humanDeskEnabled) {
     for (const ticket of handoffTickets) {
-    const statusLabel =
-      HANDOFF_STATUS_LABELS[ticket.status] ?? ticket.status;
-    const urgencyLabel =
-      HANDOFF_URGENCY_LABELS[ticket.urgency] ?? ticket.urgency;
+      const statusLabel = HANDOFF_STATUS_LABELS[ticket.status] ?? ticket.status;
+      const urgencyLabel =
+        HANDOFF_URGENCY_LABELS[ticket.urgency] ?? ticket.urgency;
 
-    items.push({
-      id: `human-desk-${ticket.id}`,
-      kind: 'human_desk',
-      title: ticket.subject,
-      description: `${ticket.agent.name} · ${ticket.summary}`,
-      href: Routes.HumanDesk,
-      severity:
-        ticket.urgency === 'HIGH'
-          ? 'critical'
-          : ticket.status === 'OPEN'
-            ? 'warning'
-            : 'info',
-      tag: `${statusLabel} · ${urgencyLabel}`,
-      createdAt: ticket.createdAt.toISOString()
-    });
+      items.push({
+        id: `human-desk-${ticket.id}`,
+        kind: 'human_desk',
+        title: ticket.subject,
+        description: `${ticket.agent.name} · ${ticket.summary}`,
+        href: Routes.HumanDesk,
+        severity:
+          ticket.urgency === 'HIGH'
+            ? 'critical'
+            : ticket.status === 'OPEN'
+              ? 'warning'
+              : 'info',
+        tag: `${statusLabel} · ${urgencyLabel}`,
+        createdAt: ticket.createdAt.toISOString()
+      });
     }
   }
 
@@ -285,7 +283,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     });
   }
 
-  const conversationHighlights = detectConversationHighlights(recentConversations);
+  const conversationHighlights =
+    detectConversationHighlights(recentConversations);
 
   for (const highlight of conversationHighlights) {
     items.push({

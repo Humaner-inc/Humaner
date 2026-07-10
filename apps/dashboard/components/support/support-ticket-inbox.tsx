@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
 import { ArrowLeftIcon } from '@humaner/shared/icons';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 import { addSupportTicketMessage } from '@/actions/support-tickets/add-support-ticket-message';
@@ -36,12 +36,7 @@ import {
 } from '@/lib/support-ticket-labels';
 import { cn } from '@/lib/utils';
 
-const STATUS_VALUES = [
-  'OPEN',
-  'IN_PROGRESS',
-  'RESOLVED',
-  'CLOSED'
-] as const;
+const STATUS_VALUES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const;
 
 export type SupportTicketInboxListRow = {
   id: string;
@@ -166,7 +161,7 @@ export function SupportTicketInbox({
 
   const list = (
     <div className="flex h-full min-h-0 flex-col border-border/60 md:border-r">
-      <div className="flex items-center justify-between gap-2 border-b border-border/60 px-2 py-2 sm:px-3">
+      <div className="flex items-center justify-between gap-2 border-b border-border/60 p-2 sm:px-3">
         <p className="min-w-0 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Inbox
         </p>
@@ -210,7 +205,9 @@ export function SupportTicketInbox({
                   {ticket.requesterName ? (
                     <span className="text-[11px] text-muted-foreground">
                       {ticket.requesterName}
-                      {ticket.requesterEmail ? ` · ${ticket.requesterEmail}` : ''}
+                      {ticket.requesterEmail
+                        ? ` · ${ticket.requesterEmail}`
+                        : ''}
                     </span>
                   ) : null}
                   <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -237,7 +234,7 @@ export function SupportTicketInbox({
 
   const detailPanel = (
     <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="flex items-center gap-2 border-b border-border/60 px-2 py-2 md:px-3">
+      <div className="flex items-center gap-2 border-b border-border/60 p-2 md:px-3">
         <Button
           type="button"
           variant="ghost"
@@ -358,7 +355,9 @@ export function SupportTicketInbox({
                         {message.isStaff ? 'Humaner team' : 'You'} ·{' '}
                         {format(new Date(message.createdAt), 'MMM d, HH:mm')}
                       </p>
-                      <p className="mt-1.5 whitespace-pre-wrap">{message.body}</p>
+                      <p className="mt-1.5 whitespace-pre-wrap">
+                        {message.body}
+                      </p>
                     </div>
                   );
                 })}

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from "react";
 
 type UseInViewOptions = {
   threshold?: number;
@@ -9,7 +9,7 @@ type UseInViewOptions = {
 
 export function useInView<T extends Element>(
   ref: RefObject<T | null>,
-  { threshold = 0.35, rootMargin = '0px' }: UseInViewOptions = {}
+  { threshold = 0.35, rootMargin = "0px" }: UseInViewOptions = {},
 ): boolean {
   const [inView, setInView] = useState(false);
 
@@ -21,7 +21,7 @@ export function useInView<T extends Element>(
       ([entry]) => {
         setInView(entry.isIntersecting);
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     observer.observe(element);

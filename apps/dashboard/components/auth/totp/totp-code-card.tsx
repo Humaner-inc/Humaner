@@ -2,15 +2,16 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import {
   AlertCircleIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   LockIcon
 } from '@humaner/shared/icons';
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
 
 import { submitTotpCode } from '@/actions/auth/submit-totp-code';
+import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import {
   AuthInnerCard,
   AuthInnerCardContent,
@@ -19,7 +20,6 @@ import {
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
-import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import type { CardProps } from '@/components/ui/card';

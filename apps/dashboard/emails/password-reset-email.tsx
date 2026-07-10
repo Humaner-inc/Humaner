@@ -35,13 +35,15 @@ export const PasswordResetEmail = ({
     <EmailButton href={resetPasswordLink}>Reset password</EmailButton>
     <EmailText>
       or copy and paste this URL into your browser:{' '}
-      <EmailInlineLink href={resetPasswordLink}>{resetPasswordLink}</EmailInlineLink>
+      <EmailInlineLink href={resetPasswordLink}>
+        {resetPasswordLink}
+      </EmailInlineLink>
     </EmailText>
     <EmailDivider />
     <EmailMuted>
-      If you don&apos;t want to change your password or didn&apos;t request this,
-      just ignore and delete this message. To keep your account secure, please
-      don&apos;t forward this email to anyone.
+      If you don&apos;t want to change your password or didn&apos;t request
+      this, just ignore and delete this message. To keep your account secure,
+      please don&apos;t forward this email to anyone.
     </EmailMuted>
   </EmailLayout>
 );

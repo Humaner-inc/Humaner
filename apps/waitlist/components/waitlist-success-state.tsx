@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { CircleCheck, type AnimatedIconHandle } from '@humaner/shared/icons';
-import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { CircleCheck, type AnimatedIconHandle } from "@humaner/shared/icons";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useEffect, useRef } from "react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 function fadeUpVariant(delay: number): Variants {
   return {
@@ -15,9 +15,9 @@ function fadeUpVariant(delay: number): Variants {
       transition: {
         delay,
         duration: 0.55,
-        ease: [0.22, 1, 0.36, 1] as const
-      }
-    }
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    },
   };
 }
 
@@ -26,7 +26,7 @@ type WaitlistSuccessStateProps = {
 };
 
 export function WaitlistSuccessState({
-  className
+  className,
 }: WaitlistSuccessStateProps): React.JSX.Element {
   const reduceMotion = useReducedMotion();
   const checkRef = useRef<AnimatedIconHandle>(null);
@@ -41,14 +41,14 @@ export function WaitlistSuccessState({
 
   return (
     <motion.div
-      className={cn('text-center', className)}
-      initial={reduceMotion ? false : 'hidden'}
+      className={cn("text-center", className)}
+      initial={reduceMotion ? false : "hidden"}
       animate="show"
       variants={{
         hidden: {},
         show: {
-          transition: { staggerChildren: 0.12, delayChildren: 0.05 }
-        }
+          transition: { staggerChildren: 0.12, delayChildren: 0.05 },
+        },
       }}
     >
       <motion.div

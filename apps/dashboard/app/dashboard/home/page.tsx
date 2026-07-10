@@ -14,7 +14,7 @@ import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-ov
 import { QuickLinkCard } from '@/components/dashboard/home/quick-link-card';
 import { Button } from '@/components/ui/button';
 import { SectionPage } from '@/components/ui/section-shell';
-import { Routes, integrationChannelRoute } from '@/constants/routes';
+import { integrationChannelRoute, Routes } from '@/constants/routes';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
 import { dedupedAuth } from '@/lib/auth';
 import {
@@ -116,13 +116,17 @@ export default async function HomePage(): Promise<React.JSX.Element> {
 
           {atLimit && (
             <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-              You&apos;ve reached your plan&apos;s live agent limit. Pause an agent
-              or upgrade to create more.
+              You&apos;ve reached your plan&apos;s live agent limit. Pause an
+              agent or upgrade to create more.
             </p>
           )}
 
           <div className="flex justify-center">
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+            >
               <Link href={Routes.Agents}>Manage all agents</Link>
             </Button>
           </div>

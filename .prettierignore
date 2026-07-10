@@ -1,0 +1,8 @@
+node_modules
+.next
+**/.next
+**/node_modules
+apps/dashboard/lib/generated
+**/*.lock
+pnpm-lock.yaml
+package-lock.json

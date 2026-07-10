@@ -1,10 +1,10 @@
 import 'server-only';
 
+import { purgeVisitorMemory } from '@/services/agent-memory';
 import { subDays } from 'date-fns';
 
 import { getMessageRetentionDays } from '@/lib/data-retention/constants';
 import { prisma } from '@/lib/db/prisma';
-import { purgeVisitorMemory } from '@/services/agent-memory';
 
 const BATCH_SIZE = 200;
 

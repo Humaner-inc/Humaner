@@ -8,21 +8,21 @@ function getAudienceId(): string | undefined {
 
 async function resendRequest(
   path: string,
-  init: RequestInit
+  init: RequestInit,
 ): Promise<Response> {
   const apiKey = getResendApiKey();
 
   if (!apiKey) {
-    throw new Error('Resend API key is not configured.');
+    throw new Error("Resend API key is not configured.");
   }
 
   return fetch(`https://api.resend.com${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      ...init.headers
-    }
+      "Content-Type": "application/json",
+      ...init.headers,
+    },
   });
 }
 
@@ -34,11 +34,11 @@ export async function addToResendAudience(email: string): Promise<void> {
   }
 
   const response = await resendRequest(`/audiences/${audienceId}/contacts`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       email,
-      unsubscribed: false
-    })
+      unsubscribed: false,
+    }),
   });
 
   if (!response.ok) {
@@ -49,18 +49,15 @@ export async function addToResendAudience(email: string): Promise<void> {
 
 async function patchResendContact(
   path: string,
-  email: string
-): Promise<'updated' | 'not_found'> {
-  const response = await resendRequest(
-    `${path}/${encodeURIComponent(email)}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify({ unsubscribed: true })
-    }
-  );
+  email: string,
+): Promise<"updated" | "not_found"> {
+  const response = await resendRequest(`${path}/${encodeURIComponent(email)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ unsubscribed: true }),
+  });
 
   if (response.status === 404) {
-    return 'not_found';
+    return "not_found";
   }
 
   if (!response.ok) {
@@ -68,27 +65,27 @@ async function patchResendContact(
     throw new Error(`Resend API error: ${response.status} ${body}`);
   }
 
-  return 'updated';
+  return "updated";
 }
 
 export async function unsubscribeWaitlistContact(
-  email: string
+  email: string,
 ): Promise<{ audienceUpdated: boolean; globalUpdated: boolean }> {
   const audienceId = getAudienceId();
 
   if (!getResendApiKey()) {
-    throw new Error('Resend API key is not configured.');
+    throw new Error("Resend API key is not configured.");
   }
 
   const [audienceResult, globalResult] = await Promise.all([
     audienceId
       ? patchResendContact(`/audiences/${audienceId}/contacts`, email)
-      : Promise.resolve('not_found' as const),
-    patchResendContact('/contacts', email)
+      : Promise.resolve("not_found" as const),
+    patchResendContact("/contacts", email),
   ]);
 
   return {
-    audienceUpdated: audienceResult === 'updated',
-    globalUpdated: globalResult === 'updated'
+    audienceUpdated: audienceResult === "updated",
+    globalUpdated: globalResult === "updated",
   };
 }

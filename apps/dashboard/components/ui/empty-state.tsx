@@ -26,7 +26,9 @@ const EmptyState = React.forwardRef<EmptyStateElement, EmptyStateProps>(
         {icon}
         <div className="mx-auto flex max-w-sm flex-col gap-2 text-balance text-center">
           <p className="font-mono text-base font-semibold">{title}</p>
-          <p className="font-sans text-sm text-muted-foreground">{description}</p>
+          <p className="font-sans text-sm text-muted-foreground">
+            {description}
+          </p>
         </div>
         {children}
       </div>

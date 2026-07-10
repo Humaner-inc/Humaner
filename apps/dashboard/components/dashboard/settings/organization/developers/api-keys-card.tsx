@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-
 import { PlusIcon } from '@humaner/shared/icons';
 
 import { ApiKeyList } from '@/components/dashboard/settings/organization/developers/api-key-list';

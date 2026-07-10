@@ -1,5 +1,5 @@
-import { getBaseUrl } from '@/lib/urls/get-base-url';
-import { createUnsubscribeToken } from '@/lib/waitlist/unsubscribe-token';
+import { getBaseUrl } from "@/lib/urls/get-base-url";
+import { createUnsubscribeToken } from "@/lib/waitlist/unsubscribe-token";
 
 export function createUnsubscribeUrl(email: string): string | null {
   const token = createUnsubscribeToken(email);
@@ -10,7 +10,7 @@ export function createUnsubscribeUrl(email: string): string | null {
 
   const params = new URLSearchParams({
     email,
-    token
+    token,
   });
 
   return `${getBaseUrl()}/unsubscribe?${params.toString()}`;

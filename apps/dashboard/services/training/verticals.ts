@@ -119,7 +119,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
         'Can I return an item I bought on sale?',
         'I want to exchange for a different size but my size is out of stock',
         "My discount code isn't working",
-        "I placed two orders, can you combine shipping?",
+        'I placed two orders, can you combine shipping?',
         'The tracking number shows no updates for a week'
       ],
       trap: [
@@ -210,7 +210,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
     questionCategories: {
       common: [
         'How do I enroll in a course?',
-        "What are the prerequisites for this program?",
+        'What are the prerequisites for this program?',
         'When does the next cohort start?',
         'How much is tuition?',
         'Do you offer payment plans?',
@@ -347,7 +347,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
         'Your facility is DISGUSTING and nobody cleans anything',
         "I've been trying to cancel for months and you keep charging me!",
         'I slipped on wet floor in the locker room',
-        "The trainer you assigned me made inappropriate comments",
+        'The trainer you assigned me made inappropriate comments',
         "I'm going to post reviews everywhere about this terrible experience"
       ]
     },
@@ -436,7 +436,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = {
         'Can I request an early check-in?'
       ],
       edge: [
-        "My flight was cancelled, what are my options?",
+        'My flight was cancelled, what are my options?',
         'I need to change the name on my booking',
         'The room you gave me is not what I booked',
         "I'm traveling with a pet, what are your policies?",
@@ -522,7 +522,9 @@ export function getVerticalIcon(industry: IndustryType): string {
   return VERTICAL_CONFIGS[industry].icon;
 }
 
-export function getVerticalPersonaPreset(industry: IndustryType): PersonaPreset {
+export function getVerticalPersonaPreset(
+  industry: IndustryType
+): PersonaPreset {
   return VERTICAL_CONFIGS[industry].personaPreset;
 }
 

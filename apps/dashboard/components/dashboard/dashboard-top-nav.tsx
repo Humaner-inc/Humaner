@@ -1,14 +1,14 @@
 'use client';
 
-import { BellIcon, InfoIcon } from '@humaner/shared/icons';
 import * as React from 'react';
+import { BellIcon, InfoIcon } from '@humaner/shared/icons';
 
 import { AskHumanerButton } from '@/components/dashboard/ask-humaner/ask-humaner-button';
 import { HelpDrawer } from '@/components/dashboard/help-drawer';
 import { NavUser } from '@/components/dashboard/nav-user';
 import { NotificationsDrawer } from '@/components/dashboard/notifications-drawer';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useDashboardNotifications } from '@/hooks/use-dashboard-notifications';
 import { cn } from '@/lib/utils';
 import type { DashboardNotification } from '@/types/dashboard-notification';
@@ -27,12 +27,8 @@ export function DashboardTopNav({
 }: DashboardTopNavProps): React.JSX.Element {
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
-  const {
-    visibleNotifications,
-    unreadCount,
-    markSeen,
-    dismissAll
-  } = useDashboardNotifications(notifications);
+  const { visibleNotifications, unreadCount, markSeen, dismissAll } =
+    useDashboardNotifications(notifications);
 
   return (
     <>
@@ -42,7 +38,10 @@ export function DashboardTopNav({
           className
         )}
       >
-        <div aria-hidden className="min-w-0" />
+        <div
+          aria-hidden
+          className="min-w-0"
+        />
         <div className="justify-self-center">
           <AskHumanerButton />
         </div>

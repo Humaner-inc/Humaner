@@ -1,9 +1,9 @@
 'use client';
 
-import type { Variants } from 'motion/react';
-import { motion, useAnimation } from 'motion/react';
 import type { HTMLAttributes } from 'react';
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import type { Variants } from 'motion/react';
+import { motion, useAnimation } from 'motion/react';
 
 import { cn } from '@/lib/utils';
 
@@ -82,7 +82,11 @@ const ContrastIcon = forwardRef<ContrastIconHandle, ContrastIconProps>(
           width={size}
           xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="12" cy="12" r="10" />
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
           <motion.path
             animate={controls}
             d="M12 18a6 6 0 0 0 0-12v12z"

@@ -3,9 +3,7 @@ import type { NextRequest } from 'next/server';
 
 function getSessionCookieName(request: NextRequest): string {
   const isSecure = request.nextUrl.protocol === 'https:';
-  return isSecure
-    ? '__Secure-authjs.session-token'
-    : 'authjs.session-token';
+  return isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token';
 }
 
 export function middleware(request: NextRequest): NextResponse {

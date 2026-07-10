@@ -6,10 +6,7 @@ import { WorkspaceRole } from '@prisma/client';
 import { authActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
-import {
-  ForbiddenError,
-  NotFoundError
-} from '@/lib/validation/exceptions';
+import { ForbiddenError, NotFoundError } from '@/lib/validation/exceptions';
 import { updateDataImprovementConsentSchema } from '@/schemas/organization/update-data-improvement-consent-schema';
 
 export const updateDataImprovementConsent = authActionClient

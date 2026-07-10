@@ -23,7 +23,7 @@ export const authSurfaceClassName =
   'overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0b0c] text-[#fff8f2]';
 
 export const authInputClassName =
-  'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fff8f2] shadow-none placeholder:text-white/30 selection:bg-[#dc143c]/15 selection:text-white focus-visible:border-[#dc143c]/40 focus-visible:ring-1 focus-visible:ring-[#dc143c]/20';
+  'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fff8f2] shadow-none placeholder:text-white/30 selection:bg-[#e1ccaf]/15 selection:text-white focus-visible:border-[#e1ccaf]/40 focus-visible:ring-1 focus-visible:ring-[#e1ccaf]/20';
 
 export const authInputAdornmentClassName = 'text-white/40';
 
@@ -72,7 +72,7 @@ export const authOnboardingHeadingClassName =
 export const authOnboardingMutedClassName = uiOnboardingMutedClassName;
 
 export const authOnboardingLinkClassName =
-  'font-medium text-[#070607] underline underline-offset-4 transition-colors hover:text-[#dc143c]';
+  'font-medium text-[#070607] underline underline-offset-4 transition-colors hover:text-[#e1ccaf]';
 
 export const authOnboardingPrimaryButtonClassName = `${ctaPrimaryClassName} h-11 w-full`;
 
@@ -91,7 +91,7 @@ export const onboardingSurfaceClassName =
   'overflow-hidden rounded-2xl border border-[#070607]/[0.06] bg-[#fff8f2] text-[#070607] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.2)]';
 
 export const onboardingInputClassName =
-  'h-10 rounded-lg border border-[#070607]/[0.08] bg-white text-[#070607] text-sm shadow-none placeholder:text-[#070607]/35 selection:bg-[#dc143c]/12 selection:text-[#070607] focus-visible:border-[#dc143c]/50 focus-visible:ring-1 focus-visible:ring-[#dc143c]/20';
+  'h-10 rounded-lg border border-[#070607]/[0.08] bg-white text-[#070607] text-sm shadow-none placeholder:text-[#070607]/35 selection:bg-[#e1ccaf]/12 selection:text-[#070607] focus-visible:border-[#e1ccaf]/50 focus-visible:ring-1 focus-visible:ring-[#e1ccaf]/20';
 
 export const onboardingLabelClassName = uiOnboardingLabelClassName;
 
@@ -104,17 +104,17 @@ export const onboardingCardClassName =
   'rounded-lg border border-[#070607]/[0.06] bg-[#070607]/[0.02]';
 
 export const onboardingRadioCardClassName =
-  'border border-[#070607]/[0.08] bg-[#070607]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#070607]/[0.15] hover:bg-[#070607]/[0.04] data-[state=checked]:border-[#dc143c]/40 data-[state=checked]:bg-[#dc143c]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#dc143c]/25';
+  'border border-[#070607]/[0.08] bg-[#070607]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#070607]/[0.15] hover:bg-[#070607]/[0.04] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
 
 export const onboardingRadioCardCheckClassName =
-  'border-[#070607]/15 bg-[#070607]/[0.02] group-data-[state=checked]:border-[#dc143c] group-data-[state=checked]:bg-[#dc143c]';
+  'border-[#070607]/15 bg-[#070607]/[0.02] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
 
 /** Mirror of onboarding radio cards for inverted (dark card) appearance */
 export const onboardingRadioCardClassNameInverted =
-  'border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#dc143c]/40 data-[state=checked]:bg-[#dc143c]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#dc143c]/25';
+  'border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
 
 export const onboardingRadioCardCheckClassNameInverted =
-  'border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#dc143c] group-data-[state=checked]:bg-[#dc143c]';
+  'border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
 
 export const onboardingOutlineButtonClassName = `${ctaSecondaryOnLightClassName} h-10 px-4`;
 
@@ -165,13 +165,14 @@ export const glassAlertDestructiveClassName = authAlertDestructiveClassName;
 export const glassGhostButtonClassName = onboardingGhostButtonClassName;
 export const glassCardClassName = onboardingCardClassName;
 export const glassSegmentSelectedClassName =
-  'border-[#dc143c]/40 bg-[#dc143c]/[0.06] ring-1 ring-[#dc143c]/25';
+  'border-[#e1ccaf]/40 bg-[#e1ccaf]/[0.06] ring-1 ring-[#e1ccaf]/25';
 export const glassSegmentUnselectedClassName =
   'border-[#070607]/[0.06] bg-white hover:bg-[#070607]/[0.02]';
 export const glassRadioCardClassName = onboardingRadioCardClassName;
 export const glassRadioCardCheckClassName = onboardingRadioCardCheckClassName;
 export const glassLogoClassName = authLogoClassName;
-export const glassOutlineButtonCompactClassName = onboardingOutlineButtonClassName;
+export const glassOutlineButtonCompactClassName =
+  onboardingOutlineButtonClassName;
 
 export const authSurfaceCompactClassName = onboardingSurfaceClassName;
 export const authInputCompactClassName = onboardingInputClassName;

@@ -1,9 +1,10 @@
 'use server';
 
+import { z } from 'zod';
+
 import { authActionClient } from '@/actions/safe-action';
 import { prisma } from '@/lib/db/prisma';
 import { sortSupportTicketsInboxOrder } from '@/lib/support-ticket-labels';
-import { z } from 'zod';
 
 export type MySupportTicketListRow = {
   id: string;

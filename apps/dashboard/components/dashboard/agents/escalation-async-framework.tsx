@@ -4,13 +4,13 @@ import * as React from 'react';
 import { ClockIcon, Sparkles } from '@humaner/shared/icons';
 
 import { Badge } from '@/components/ui/badge';
+import { useOrgMode } from '@/hooks/use-org-mode';
 import {
   ESCALATION_ASYNC_TIERS,
   ESCALATION_MODE_B2B_NOTES,
   ESCALATION_MODE_B2C_NOTES
 } from '@/lib/desk/escalation-async-framework';
 import type { EscalationPolicyItem } from '@/lib/desk/types';
-import { useOrgMode } from '@/hooks/use-org-mode';
 import { cn } from '@/lib/utils';
 
 export type EscalationAsyncFrameworkProps = {
@@ -22,7 +22,8 @@ export function EscalationAsyncFramework({
 }: EscalationAsyncFrameworkProps): React.JSX.Element {
   const { isB2B, isB2C, mode } = useOrgMode();
   const activeModes = new Set(policies.map((policy) => policy.mode));
-  const modeNotes = isB2B && !isB2C ? ESCALATION_MODE_B2B_NOTES : ESCALATION_MODE_B2C_NOTES;
+  const modeNotes =
+    isB2B && !isB2C ? ESCALATION_MODE_B2B_NOTES : ESCALATION_MODE_B2C_NOTES;
 
   return (
     <section className="space-y-3 rounded-xl border bg-muted/20 p-5">
@@ -41,7 +42,10 @@ export function EscalationAsyncFramework({
                 : ' high-volume widget traffic resolves fast without burning agent capacity.'}
           </p>
         </div>
-        <Badge variant="outline" className="capitalize">
+        <Badge
+          variant="outline"
+          className="capitalize"
+        >
           {mode === 'hybrid' ? 'B2C + B2B' : mode}
         </Badge>
       </div>
@@ -71,7 +75,10 @@ export function EscalationAsyncFramework({
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{tier.label}</span>
                       {isActive ? (
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px]"
+                        >
                           Active
                         </Badge>
                       ) : null}

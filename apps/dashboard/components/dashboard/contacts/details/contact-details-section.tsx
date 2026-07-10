@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { ContactRecord } from '@prisma/client';
-import { IdCardIcon } from '@radix-ui/react-icons';
 import {
   LayoutListIcon,
   MailIcon,
@@ -12,6 +10,8 @@ import {
   TrashIcon,
   UploadIcon
 } from '@humaner/shared/icons';
+import { ContactRecord } from '@prisma/client';
+import { IdCardIcon } from '@radix-ui/react-icons';
 import { FormProvider, type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

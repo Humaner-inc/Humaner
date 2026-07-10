@@ -1,8 +1,8 @@
 import 'server-only';
 
+import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 import { prisma } from '@/lib/db/prisma';
 import { cacheDelete, cacheGet, cacheSet } from '@/lib/redis/upstash';
-import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
 const CACHE_PREFIX = 'agent:chat:';
 const CACHE_TTL_SECONDS = 3_600;

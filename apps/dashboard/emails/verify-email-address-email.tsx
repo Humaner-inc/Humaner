@@ -31,7 +31,8 @@ export const VerifyEmailAddressEmail = ({
     <EmailTitle>Verify your email</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
-      Use this code to verify your email and continue setting up {AppInfo.APP_NAME}:
+      Use this code to verify your email and continue setting up{' '}
+      {AppInfo.APP_NAME}:
     </EmailText>
     <EmailOtp code={otp} />
     <EmailMuted center>
@@ -40,8 +41,8 @@ export const VerifyEmailAddressEmail = ({
     <EmailButton href={verificationLink}>Open {AppInfo.APP_NAME}</EmailButton>
     <EmailDivider />
     <EmailMuted>
-      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore this
-      email.
+      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore
+      this email.
     </EmailMuted>
   </EmailLayout>
 );

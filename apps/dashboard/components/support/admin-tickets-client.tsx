@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 
-import type { AdminSupportTicketListRow } from '@/data/support-tickets/get-admin-tickets-list';
 import { SupportTicketInbox } from '@/components/support/support-ticket-inbox';
+import type { AdminSupportTicketListRow } from '@/data/support-tickets/get-admin-tickets-list';
 
 export type AdminTicketsClientProps = {
   initialTickets: AdminSupportTicketListRow[];

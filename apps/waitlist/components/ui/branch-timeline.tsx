@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from "react";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export const TRUNK_X = 12;
 export const PILL_X = 52;
@@ -43,7 +43,7 @@ export function useBranchScrollTimeline({
   timelineRef,
   ctaRef,
   trunkOriginY = 0,
-  scrollDrivenFill = false
+  scrollDrivenFill = false,
 }: UseBranchScrollTimelineOptions): BranchTimelineState {
   const [timeline, setTimeline] = useState<BranchTimelineState>({
     trunkFillPx: 0,
@@ -52,7 +52,7 @@ export function useBranchScrollTimeline({
     ctaTailProgress: 0,
     activeIndex: 0,
     branchProgress: Array.from({ length: nodeCount }, () => 0),
-    nodeFillProgress: Array.from({ length: nodeCount }, () => 0)
+    nodeFillProgress: Array.from({ length: nodeCount }, () => 0),
   });
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export function useBranchScrollTimeline({
 
     const getTrunkExtentPx = (
       container: HTMLDivElement,
-      containerRect: DOMRect
+      containerRect: DOMRect,
     ): number => {
       const ctaOffset = getCtaNodeOffsetPx(containerRect);
       if (ctaOffset !== null) return ctaOffset;
@@ -86,7 +86,10 @@ export function useBranchScrollTimeline({
       const cta = ctaRef?.current;
       if (cta) {
         const ctaRect = cta.getBoundingClientRect();
-        return Math.max(0, ctaRect.top - containerRect.top + NODE_Y - trunkStart);
+        return Math.max(
+          0,
+          ctaRect.top - containerRect.top + NODE_Y - trunkStart,
+        );
       }
 
       return Math.max(0, container.offsetHeight - trunkStart);
@@ -95,7 +98,7 @@ export function useBranchScrollTimeline({
     const computeProgress = (
       containerRect: DOMRect,
       trunkFillPx: number,
-      anchorY: number
+      anchorY: number,
     ): {
       activeIndex: number;
       branchProgress: number[];
@@ -120,7 +123,7 @@ export function useBranchScrollTimeline({
         if (nodeViewportY <= anchorY) activeIndex = index;
 
         nodeFillProgress.push(
-          distPastNode > 0 ? Math.min(1, distPastNode / 10) : 0
+          distPastNode > 0 ? Math.min(1, distPastNode / 10) : 0,
         );
 
         return distPastNode > 0 ? Math.min(1, distPastNode / 24) : 0;
@@ -140,7 +143,7 @@ export function useBranchScrollTimeline({
 
       let trunkFillPx = Math.max(
         0,
-        Math.min(trunkExtentPx, anchorY - containerRect.top - trunkStart)
+        Math.min(trunkExtentPx, anchorY - containerRect.top - trunkStart),
       );
 
       const trunkTrackPx = trunkExtentPx;
@@ -156,11 +159,11 @@ export function useBranchScrollTimeline({
         if (ctaVisible) {
           const joinReveal = Math.min(
             1,
-            Math.max(0, (viewportHeight * 0.72 - ctaRect.top) / 160)
+            Math.max(0, (viewportHeight * 0.72 - ctaRect.top) / 160),
           );
           trunkFillPx = Math.max(
             trunkFillPx,
-            Math.min(trunkExtentPx, ctaNodeOffsetPx + joinReveal * 28)
+            Math.min(trunkExtentPx, ctaNodeOffsetPx + joinReveal * 28),
           );
         }
       }
@@ -168,17 +171,19 @@ export function useBranchScrollTimeline({
       let { activeIndex, branchProgress, nodeFillProgress } = computeProgress(
         containerRect,
         trunkFillPx,
-        anchorY
+        anchorY,
       );
 
       const activeElement = getNode(activeIndex);
       if (!scrollDrivenFill && activeElement) {
         const activeTop =
-          activeElement.getBoundingClientRect().top - containerRect.top + NODE_Y;
+          activeElement.getBoundingClientRect().top -
+          containerRect.top +
+          NODE_Y;
         const fillForActive = activeTop - trunkStart;
         trunkFillPx = Math.max(
           trunkFillPx,
-          Math.min(trunkExtentPx, fillForActive)
+          Math.min(trunkExtentPx, fillForActive),
         );
       }
 
@@ -191,11 +196,11 @@ export function useBranchScrollTimeline({
         if (ctaVisible) {
           const joinReveal = Math.min(
             1,
-            Math.max(0, (viewportHeight * 0.72 - ctaRect.top) / 160)
+            Math.max(0, (viewportHeight * 0.72 - ctaRect.top) / 160),
           );
           trunkFillPx = Math.max(
             trunkFillPx,
-            Math.min(trunkExtentPx, ctaNodeOffsetPx + joinReveal * 28)
+            Math.min(trunkExtentPx, ctaNodeOffsetPx + joinReveal * 28),
           );
           if (joinReveal > 0.08) {
             activeIndex = Math.max(activeIndex, stepCount);
@@ -206,7 +211,7 @@ export function useBranchScrollTimeline({
       ({ activeIndex, branchProgress, nodeFillProgress } = computeProgress(
         containerRect,
         trunkFillPx,
-        anchorY
+        anchorY,
       ));
 
       if (cta && ctaNodeOffsetPx !== null) {
@@ -229,12 +234,12 @@ export function useBranchScrollTimeline({
         const sameBranches =
           prevBranches.length === branchProgress.length &&
           prevBranches.every(
-            (value, i) => Math.abs(value - branchProgress[i]) < 0.02
+            (value, i) => Math.abs(value - branchProgress[i]) < 0.02,
           );
         const sameNodeFills =
           prevFills.length === nodeFillProgress.length &&
           prevFills.every(
-            (value, i) => Math.abs(value - nodeFillProgress[i]) < 0.02
+            (value, i) => Math.abs(value - nodeFillProgress[i]) < 0.02,
           );
 
         if (
@@ -256,7 +261,7 @@ export function useBranchScrollTimeline({
           ctaTailProgress,
           activeIndex,
           branchProgress,
-          nodeFillProgress
+          nodeFillProgress,
         };
       });
     };
@@ -267,15 +272,23 @@ export function useBranchScrollTimeline({
     };
 
     updateTimeline();
-    window.addEventListener('scroll', onScrollOrResize, { passive: true });
-    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', onScrollOrResize);
-      window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
     };
-  }, [ctaRef, nodeCount, scrollDrivenFill, stepCount, stepRefs, timelineRef, trunkOriginY]);
+  }, [
+    ctaRef,
+    nodeCount,
+    scrollDrivenFill,
+    stepCount,
+    stepRefs,
+    timelineRef,
+    trunkOriginY,
+  ]);
 
   return timeline;
 }
@@ -286,20 +299,20 @@ export function BranchTrunk({
   trunkExtentPx,
   rootNodeFill,
   rootActive,
-  tone = 'dark',
+  tone = "dark",
   lightTrackPx = 0,
-  trunkOriginY = 0
+  trunkOriginY = 0,
 }: {
   trunkTrackPx: number;
   trunkFillPx: number;
   trunkExtentPx: number;
   rootNodeFill: number;
   rootActive: boolean;
-  tone?: 'light' | 'dark';
+  tone?: "light" | "dark";
   lightTrackPx?: number;
   trunkOriginY?: number;
 }): React.JSX.Element {
-  const lightTone = tone === 'light';
+  const lightTone = tone === "light";
   const lightSegmentPx = Math.max(0, Math.min(lightTrackPx, trunkTrackPx));
   const darkSegmentPx = Math.max(0, trunkTrackPx - lightSegmentPx);
 
@@ -309,15 +322,15 @@ export function BranchTrunk({
       className="pointer-events-none absolute inset-x-0 z-10 hidden lg:block"
       style={{
         top: trunkOriginY,
-        height: trunkTrackPx > 0 ? trunkTrackPx + TRUNK_START_Y : undefined
+        height: trunkTrackPx > 0 ? trunkTrackPx + TRUNK_START_Y : undefined,
       }}
     >
       <div className="mx-auto h-full max-w-6xl px-6">
         <div className="relative h-full w-20">
           <p
             className={cn(
-              'font-mono text-[10px] uppercase tracking-[0.2em]',
-              lightTone ? 'text-foreground/35' : 'text-white/35'
+              "font-mono text-[10px] uppercase tracking-[0.2em]",
+              lightTone ? "text-foreground/35" : "text-white/35",
             )}
           >
             main
@@ -326,15 +339,19 @@ export function BranchTrunk({
             className="absolute top-[1.375rem] z-10 -translate-x-1/2 -translate-y-1/2"
             style={{ left: TRUNK_X }}
           >
-            <BranchNode fillProgress={rootNodeFill} active={rootActive} tone={tone} />
+            <BranchNode
+              fillProgress={rootNodeFill}
+              active={rootActive}
+              tone={tone}
+            />
           </div>
           {lightSegmentPx > 0 ? (
             <div
               className="absolute w-0.5 bg-foreground/10"
               style={{
                 left: TRUNK_X,
-                top: '1.75rem',
-                height: lightSegmentPx
+                top: "1.75rem",
+                height: lightSegmentPx,
               }}
             />
           ) : null}
@@ -344,7 +361,7 @@ export function BranchTrunk({
               style={{
                 left: TRUNK_X,
                 top: `calc(1.75rem + ${lightSegmentPx}px)`,
-                height: darkSegmentPx
+                height: darkSegmentPx,
               }}
             />
           ) : null}
@@ -352,8 +369,8 @@ export function BranchTrunk({
             className="absolute w-0.5 bg-accent will-change-[height]"
             style={{
               left: TRUNK_X,
-              top: '1.75rem',
-              height: trunkFillPx
+              top: "1.75rem",
+              height: trunkFillPx,
             }}
           />
         </div>
@@ -366,7 +383,7 @@ export function MobileBranchProgress({
   labels,
   activeIndex,
   nodeFillValues,
-  className
+  className,
 }: {
   labels: string[];
   activeIndex: number;
@@ -374,7 +391,7 @@ export function MobileBranchProgress({
   className?: string;
 }): React.JSX.Element {
   return (
-    <div aria-hidden className={cn('mb-12 flex items-center gap-0', className)}>
+    <div aria-hidden className={cn("mb-12 flex items-center gap-0", className)}>
       {labels.map((label, index) => {
         const fill = nodeFillValues[index] ?? 0;
         const isActive = index === activeIndex;
@@ -391,8 +408,8 @@ export function MobileBranchProgress({
             {index < labels.length - 1 ? (
               <span
                 className={cn(
-                  'mx-1 h-px flex-1 transition-colors duration-150',
-                  isPassed || fill >= 1 ? 'bg-accent' : 'bg-white/10'
+                  "mx-1 h-px flex-1 transition-colors duration-150",
+                  isPassed || fill >= 1 ? "bg-accent" : "bg-white/10",
                 )}
               />
             ) : null}
@@ -409,33 +426,33 @@ export function BranchConnector({
   branchProgress,
   nodeFillProgress,
   label,
-  tone = 'dark'
+  tone = "dark",
 }: {
   active: boolean;
   passed: boolean;
   branchProgress: number;
   nodeFillProgress: number;
   label: string;
-  tone?: 'light' | 'dark';
+  tone?: "light" | "dark";
 }): React.JSX.Element {
   const branchLength = PILL_X - TRUNK_X;
   const drawProgress = passed ? 1 : branchProgress;
   const dashOffset = branchLength * (1 - drawProgress);
-  const isDark = tone === 'dark';
+  const isDark = tone === "dark";
 
   const pillClass = cn(
-    'absolute z-10 -translate-y-1/2 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide',
+    "absolute z-10 -translate-y-1/2 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide",
     isDark
       ? active
-        ? 'border-white/50 bg-white/10 text-white'
+        ? "border-white/50 bg-white/10 text-white"
         : passed || drawProgress > 0.6
-          ? 'border-white/30 text-white/75'
-          : 'border-white/15 text-white/40'
+          ? "border-white/30 text-white/75"
+          : "border-white/15 text-white/40"
       : active
-        ? 'border-foreground/20 bg-foreground/[0.04] text-foreground'
+        ? "border-foreground/20 bg-foreground/[0.04] text-foreground"
         : passed || drawProgress > 0.6
-          ? 'border-foreground/14 text-foreground/70'
-          : 'border-foreground/12 text-foreground/40'
+          ? "border-foreground/14 text-foreground/70"
+          : "border-foreground/12 text-foreground/40",
   );
 
   const pillStyle = { left: PILL_X, top: PILL_Y } as const;
@@ -452,14 +469,14 @@ export function BranchConnector({
       >
         <path
           d={branchToPillPath()}
-          stroke={isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(6, 6, 7, 0.1)'}
+          stroke={isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(6, 6, 7, 0.1)"}
           strokeWidth="2"
           strokeLinecap="round"
           fill="none"
         />
         <path
           d={branchToPillPath()}
-          stroke="#dc143c"
+          stroke="#e1ccaf"
           strokeWidth="2"
           strokeLinecap="round"
           pathLength={branchLength}
@@ -483,7 +500,7 @@ export function BranchConnector({
 
       <span
         aria-hidden
-        className={cn(pillClass, 'pointer-events-none whitespace-nowrap')}
+        className={cn(pillClass, "pointer-events-none whitespace-nowrap")}
         style={pillStyle}
       >
         {label}
@@ -495,43 +512,43 @@ export function BranchConnector({
 export function BranchNode({
   active = false,
   fillProgress,
-  tone = 'dark',
-  className
+  tone = "dark",
+  className,
 }: {
   active?: boolean;
   fillProgress: number;
-  tone?: 'light' | 'dark';
+  tone?: "light" | "dark";
   className?: string;
 }): React.JSX.Element {
-  const isDark = tone === 'dark';
+  const isDark = tone === "dark";
   const fill = Math.max(0, Math.min(1, fillProgress));
   const filled = fill >= 0.98;
 
   return (
     <span
       className={cn(
-        'relative block rounded-full border-2 transition-[border-color,box-shadow] duration-150',
-        active ? 'size-3' : 'size-2.5',
+        "relative block rounded-full border-2 transition-[border-color,box-shadow] duration-150",
+        active ? "size-3" : "size-2.5",
         filled
-          ? 'border-accent'
+          ? "border-accent"
           : isDark
-            ? 'border-white/25'
-            : 'border-foreground/15',
-        active && 'shadow-[0_0_0_5px_rgb(220_20_60_/_0.2)]',
-        className
+            ? "border-white/25"
+            : "border-foreground/15",
+        active && "shadow-[0_0_0_5px_rgb(225_204_175_/_0.2)]",
+        className,
       )}
     >
       <span
         className={cn(
-          'absolute inset-0 rounded-full',
-          isDark ? 'bg-foreground' : 'bg-foreground'
+          "absolute inset-0 rounded-full",
+          isDark ? "bg-foreground" : "bg-foreground",
         )}
       />
       <span
         className="absolute inset-0 rounded-full bg-accent will-change-transform"
         style={{
           transform: `scale(${fill})`,
-          transformOrigin: 'center'
+          transformOrigin: "center",
         }}
       />
     </span>

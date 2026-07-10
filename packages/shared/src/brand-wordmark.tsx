@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   useCallback,
@@ -6,27 +6,27 @@ import {
   useRef,
   useState,
   type HTMLAttributes,
-  type CSSProperties
-} from 'react';
+  type CSSProperties,
+} from "react";
 
-export const BRAND_WORDMARK_DEFAULT = 'Humaner';
-export const BRAND_WORDMARK_HOVER = 'Humaner';
+export const BRAND_WORDMARK_DEFAULT = "Humaner";
+export const BRAND_WORDMARK_HOVER = "Humaner";
 
 /** Mono UI on hover — pairs with display `font-display` at rest. */
 const HOVER_TYPOGRAPHY: CSSProperties = {
-  fontFamily: 'var(--font-humaner-mono), ui-monospace, monospace',
+  fontFamily: "var(--font-humaner-mono), ui-monospace, monospace",
   fontWeight: 500,
-  fontSynthesis: 'none',
-  letterSpacing: '0.02em'
+  fontSynthesis: "none",
+  letterSpacing: "0.02em",
 };
 
 /** Fast, letter-synced pixel pass — one block per glyph, left to right. */
 const MORPH_MS = 220;
-const PIXEL = ['▓', '█', '▒', '░'] as const;
+const PIXEL = ["▓", "█", "▒", "░"] as const;
 const CHAR_SPREAD = 1.15;
 
 function pixelFor(index: number): string {
-  return PIXEL[index % PIXEL.length] ?? '▓';
+  return PIXEL[index % PIXEL.length] ?? "▓";
 }
 
 function easeOutQuart(value: number): number {
@@ -41,14 +41,14 @@ function resolveChar(
   local: number,
   index: number,
   fromChar: string | undefined,
-  toChar: string | undefined
+  toChar: string | undefined,
 ): string {
   if (local <= 0) {
-    return fromChar ?? '';
+    return fromChar ?? "";
   }
 
   if (local >= 1) {
-    return toChar ?? '';
+    return toChar ?? "";
   }
 
   // Source → single pixel tick → target (deterministic, no random noise)
@@ -82,7 +82,7 @@ function morphText(progress: number, from: string, to: string): string {
     if (sameText) {
       // Font-only morph — always run the pixel pass even when glyphs match.
       if (local <= 0 || local >= 1) {
-        chars.push(from[i] ?? '');
+        chars.push(from[i] ?? "");
       } else if (local < 0.62) {
         chars.push(pixelFor(i));
       } else {
@@ -97,7 +97,7 @@ function morphText(progress: number, from: string, to: string): string {
     }
   }
 
-  return chars.join('');
+  return chars.join("");
 }
 
 function hoverTypographyActive(progress: number, target: number): boolean {
@@ -137,12 +137,7 @@ export function BrandWordmark({
 
   if (!interactive) {
     return (
-      <span
-        className={className}
-        style={style}
-        aria-label={from}
-        {...props}
-      >
+      <span className={className} style={style} aria-label={from} {...props}>
         {from}
       </span>
     );
@@ -189,18 +184,20 @@ export function BrandWordmark({
       if (settled) {
         progressRef.current = target;
         setDisplayText(target >= 1 ? to : from);
-        setUseHoverTypography(hoverTypographyActive(progressRef.current, target));
+        setUseHoverTypography(
+          hoverTypographyActive(progressRef.current, target),
+        );
         stopAnimation();
         return;
       }
 
       setDisplayText(morphText(eased, from, to));
       setUseHoverTypography(
-        hoverTypographyActive(progressRef.current, targetRef.current)
+        hoverTypographyActive(progressRef.current, targetRef.current),
       );
       frameRef.current = requestAnimationFrame(tick);
     },
-    [from, stopAnimation, to]
+    [from, stopAnimation, to],
   );
 
   const startAnimation = useCallback(
@@ -208,7 +205,7 @@ export function BrandWordmark({
       if (progressRef.current === nextTarget) {
         setDisplayText(nextTarget >= 1 ? to : from);
         setUseHoverTypography(
-          hoverTypographyActive(progressRef.current, nextTarget)
+          hoverTypographyActive(progressRef.current, nextTarget),
         );
         return;
       }
@@ -217,7 +214,7 @@ export function BrandWordmark({
       stopAnimation();
       frameRef.current = requestAnimationFrame(tick);
     },
-    [from, stopAnimation, tick, to]
+    [from, stopAnimation, tick, to],
   );
 
   const startAnimationRef = useRef(startAnimation);
@@ -237,11 +234,11 @@ export function BrandWordmark({
     <span
       className={className}
       style={{
-        display: 'inline-block',
-        verticalAlign: 'baseline',
-        whiteSpace: 'nowrap',
+        display: "inline-block",
+        verticalAlign: "baseline",
+        whiteSpace: "nowrap",
         ...(useHoverTypography ? HOVER_TYPOGRAPHY : {}),
-        ...style
+        ...style,
       }}
       onMouseEnter={(event) => {
         if (!isControlled) {

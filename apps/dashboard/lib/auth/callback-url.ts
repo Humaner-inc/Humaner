@@ -23,7 +23,10 @@ const AUTH_CALLBACK_BLOCKLIST = new Set<string>([
 
 function getCallbackPathname(callbackUrl: string): string | null {
   try {
-    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+    if (
+      callbackUrl.startsWith('http://') ||
+      callbackUrl.startsWith('https://')
+    ) {
       return new URL(callbackUrl).pathname;
     }
 

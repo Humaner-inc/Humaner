@@ -35,6 +35,11 @@ export function toHostname(value: string): string | null {
       : new URL(`https://${trimmed}`);
     return url.hostname.replace(/^www\./, '');
   } catch {
-    return trimmed.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] || null;
+    return (
+      trimmed
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0] || null
+    );
   }
 }

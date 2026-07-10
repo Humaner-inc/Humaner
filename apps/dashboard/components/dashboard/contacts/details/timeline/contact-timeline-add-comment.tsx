@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import { SmileIcon } from '@humaner/shared/icons';
 import EmojiPicker, {
   EmojiStyle,
   SkinTones,
   Theme,
   type EmojiClickData
 } from 'emoji-picker-react';
-import { SmileIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

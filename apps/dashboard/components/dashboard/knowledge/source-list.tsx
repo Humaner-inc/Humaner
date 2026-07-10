@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import type { SourceType } from '@prisma/client';
 import {
   FileTextIcon,
   GlobeIcon,
@@ -10,6 +9,7 @@ import {
   PlugIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
+import type { SourceType } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { deleteKnowledgeSource } from '@/actions/knowledge/delete-knowledge-source';

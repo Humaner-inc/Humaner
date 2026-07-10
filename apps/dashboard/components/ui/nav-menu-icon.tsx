@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-
 import type { AnimatedIconHandle, LucideIcon } from '@humaner/shared/icons';
 
 export type NavMenuIconProps = {
@@ -51,7 +50,11 @@ export function NavMenuIcon({
 }): React.JSX.Element {
   return (
     <Icon
-      ref={disableAnimation ? undefined : (iconRef as React.Ref<AnimatedIconHandle>)}
+      ref={
+        disableAnimation
+          ? undefined
+          : (iconRef as React.Ref<AnimatedIconHandle>)
+      }
       className={className}
       animateOnHover={false}
     />

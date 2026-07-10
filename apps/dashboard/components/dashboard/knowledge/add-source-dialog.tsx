@@ -1,9 +1,14 @@
 'use client';
 
-import { HighlightedTextInput, HighlightedTextarea } from '@humaner/react';
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { FileTextIcon, PlusIcon, UploadIcon, XIcon } from '@humaner/shared/icons';
+import { HighlightedTextarea, HighlightedTextInput } from '@humaner/react';
+import {
+  FileTextIcon,
+  PlusIcon,
+  UploadIcon,
+  XIcon
+} from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { addKnowledgeSource } from '@/actions/knowledge/add-knowledge-source';
@@ -65,7 +70,9 @@ export function AddSourceDialog({
   const [urls, setUrls] = React.useState('');
   const [url, setUrl] = React.useState('');
   const [content, setContent] = React.useState('');
-  const [mdFiles, setMdFiles] = React.useState<{ name: string; content: string }[]>([]);
+  const [mdFiles, setMdFiles] = React.useState<
+    { name: string; content: string }[]
+  >([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const parsedUrls = urls
@@ -106,7 +113,8 @@ export function AddSourceDialog({
     if (!files) return;
     const results: { name: string; content: string }[] = [];
     for (const file of Array.from(files)) {
-      if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown')) continue;
+      if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown'))
+        continue;
       const text = await file.text();
       if (text.trim()) {
         results.push({
@@ -191,16 +199,18 @@ export function AddSourceDialog({
       onOpenChange={setOpen}
     >
       {hideTrigger ? null : (
-      <DialogTrigger asChild>
-        <Button type="button">
-          <PlusIcon className="mr-1.5 size-4" />
-          Add source
-        </Button>
-      </DialogTrigger>
+        <DialogTrigger asChild>
+          <Button type="button">
+            <PlusIcon className="mr-1.5 size-4" />
+            Add source
+          </Button>
+        </DialogTrigger>
       )}
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl">Add a source</DialogTitle>
+          <DialogTitle className="font-display text-2xl">
+            Add a source
+          </DialogTitle>
           <DialogDescription>
             Scrape a page, crawl a whole site, drop .md files, or paste text.
             Sources are chunked and embedded for grounded answers.

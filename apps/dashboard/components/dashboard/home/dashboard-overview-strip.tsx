@@ -1,7 +1,7 @@
 import * as React from 'react';
-import type { IndustryType, TargetAudience } from '@prisma/client';
-import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
 import Link from 'next/link';
+import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
+import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { AudienceTag } from '@/components/dashboard/home/audience-tag';
 import { IndustryTag } from '@/components/dashboard/home/industry-tag';
@@ -23,7 +23,9 @@ export type DashboardOverviewStripProps = {
  * Classic (`free`) stays plain; paid tiers blend the same neutral grey into
  * a brand color — cobalt for Refined, the crimson accent for Frontier/Humaner.
  */
-const TIER_BANNER_GLOW: Partial<Record<ReturnType<typeof normalizePlanTier>, string>> = {
+const TIER_BANNER_GLOW: Partial<
+  Record<ReturnType<typeof normalizePlanTier>, string>
+> = {
   grow: 'bg-[linear-gradient(110deg,transparent_0%,transparent_35%,rgb(0_71_171_/_0.16)_100%)] dark:bg-[linear-gradient(110deg,transparent_0%,transparent_35%,rgb(0_71_171_/_0.28)_100%)]',
   scale:
     'bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.14)_100%)] dark:bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.24)_100%)]',
@@ -49,12 +51,15 @@ export function DashboardOverviewStrip({
   return (
     <section
       className={cn(
-        'relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6',
+        'relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6',
         className
       )}
     >
       {tierGlow ? (
-        <div aria-hidden className={cn('pointer-events-none absolute inset-0', tierGlow)} />
+        <div
+          aria-hidden
+          className={cn('pointer-events-none absolute inset-0', tierGlow)}
+        />
       ) : null}
 
       <div className="relative min-w-0 space-y-3">

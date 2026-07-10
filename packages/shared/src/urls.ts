@@ -1,5 +1,5 @@
-const DEFAULT_LANDING_URL = 'http://localhost:3000';
-const DEFAULT_APP_URL = 'http://localhost:3001';
+const DEFAULT_LANDING_URL = "http://localhost:3000";
+const DEFAULT_APP_URL = "http://localhost:3001";
 
 export function getLandingUrl(): string {
   return process.env.NEXT_PUBLIC_LANDING_URL ?? DEFAULT_LANDING_URL;
@@ -26,7 +26,7 @@ export function getPricingUrl(): string {
 }
 
 export function getBookDemoUrl(): string {
-  return 'mailto:hello@humaner.io?subject=Book%20a%20demo';
+  return "mailto:hello@humaner.io?subject=Book%20a%20demo";
 }
 
 export function getPrivacyUrl(): string {

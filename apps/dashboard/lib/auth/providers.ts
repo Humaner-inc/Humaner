@@ -2,10 +2,10 @@ import { Authenticator } from '@otplib/core';
 import { createDigest, createRandomBytes } from '@otplib/plugin-crypto';
 import { keyDecoder, keyEncoder } from '@otplib/plugin-thirty-two';
 import { isBefore, isValid } from 'date-fns';
-import { type NextAuthConfig, type User } from 'next-auth';
+import { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
 import GitHubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
 
 import { symmetricDecrypt, symmetricEncrypt } from '@/lib/auth/encryption';
 import { verifyPassword } from '@/lib/auth/password';

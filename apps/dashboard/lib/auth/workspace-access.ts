@@ -1,13 +1,15 @@
 import { Role, WorkspaceRole } from '@prisma/client';
 
 import {
-  type DashboardPageKey,
-  resolvePathAccess
+  resolvePathAccess,
+  type DashboardPageKey
 } from '@/constants/dashboard-pages';
-import type { NavItem } from '@/types/nav-item';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
+import type { NavItem } from '@/types/nav-item';
 
-export function isWorkspaceOwner(profile: Pick<ProfileDto, 'workspaceRole'>): boolean {
+export function isWorkspaceOwner(
+  profile: Pick<ProfileDto, 'workspaceRole'>
+): boolean {
   return profile.workspaceRole === WorkspaceRole.OWNER;
 }
 
@@ -82,10 +84,7 @@ export function filterNavItemsForProfile(
   return items.filter((item) => canAccessNavItem(profile, item));
 }
 
-export function canAccessNavItem(
-  profile: ProfileDto,
-  item: NavItem
-): boolean {
+export function canAccessNavItem(profile: ProfileDto, item: NavItem): boolean {
   if (item.adminOnly && !isPlatformAdmin(profile)) {
     return false;
   }

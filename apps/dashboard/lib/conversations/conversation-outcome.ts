@@ -17,12 +17,13 @@ type HandoffTicketRef = {
 
 const ACTIVE_HANDOFF_STATUSES = new Set(['OPEN', 'IN_PROGRESS']);
 
-export const CONVERSATION_OUTCOME_LABELS: Record<ConversationOutcome, string> = {
-  satisfied: 'Resolved',
-  unsolved: 'Unresolved',
-  escalated: 'Escalated',
-  open: 'Open'
-};
+export const CONVERSATION_OUTCOME_LABELS: Record<ConversationOutcome, string> =
+  {
+    satisfied: 'Resolved',
+    unsolved: 'Unresolved',
+    escalated: 'Escalated',
+    open: 'Open'
+  };
 
 export type ConversationOutcomeCounts = {
   total: number;
@@ -98,15 +99,11 @@ export function formatSatisfactionDetail(
     return 'No conversations yet';
   }
 
-  const parts = [
-    `${counts.satisfied} of ${counts.total} issues solved`
-  ];
+  const parts = [`${counts.satisfied} of ${counts.total} issues solved`];
 
   const issues: string[] = [];
   if (counts.unsolved > 0) {
-    issues.push(
-      `${counts.unsolved} unresolved`
-    );
+    issues.push(`${counts.unsolved} unresolved`);
   }
   if (counts.escalated > 0) {
     issues.push(`${counts.escalated} escalated`);

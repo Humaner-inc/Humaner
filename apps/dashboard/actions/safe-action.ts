@@ -8,11 +8,11 @@ import { z } from 'zod';
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
-import { checkSession } from '@/lib/auth/session';
 import {
   canAccessPageKey,
   getUserAccessContext
 } from '@/lib/auth/require-workspace-access';
+import { checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
 import {
   ForbiddenError,

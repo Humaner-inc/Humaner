@@ -60,7 +60,9 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
         : 'No conversations yet';
 
   if (outcomeCounts.total === 0 && input.totalAssistantMessages === 0) {
-    gaps.push('No chat history yet. Gaps will appear after first conversations.');
+    gaps.push(
+      'No chat history yet. Gaps will appear after first conversations.'
+    );
   } else if (input.unansweredMessages > 0) {
     gaps.push(
       `${input.unansweredMessages} unanswered question${input.unansweredMessages === 1 ? '' : 's'} — add knowledge to close gaps.`
@@ -80,7 +82,9 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
   }
   let knowledgeScore = 0;
   if (input.readySources === 0) {
-    gaps.push('No trained knowledge — add URLs or docs so this agent can answer.');
+    gaps.push(
+      'No trained knowledge — add URLs or docs so this agent can answer.'
+    );
   } else {
     knowledgeScore = 25 + Math.min(input.readySources, 3) * 5;
     knowledgeScore += Math.min(input.chunkCount, 20) * 1.5;

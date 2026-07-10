@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { formatDistanceToNow } from 'date-fns';
 import { CircleAlert, Plus, X } from '@humaner/shared/icons';
+import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 import { updateTrainingTopics } from '@/actions/training/update-training-topics';
@@ -83,9 +83,13 @@ export function AgentAccuracyCard({
       <CardContent className="space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className={`font-mono text-5xl leading-none tabular-nums ${scoreTone}`}>
+            <p
+              className={`font-mono text-5xl tabular-nums leading-none ${scoreTone}`}
+            >
               {Math.round(displayScore)}
-              <span className="ml-1 font-mono text-lg tabular-nums text-muted-foreground">/ 100</span>
+              <span className="ml-1 font-mono text-lg tabular-nums text-muted-foreground">
+                / 100
+              </span>
             </p>
             {latestRun && (
               <p className="mt-2 text-sm text-muted-foreground">
@@ -117,7 +121,9 @@ export function AgentAccuracyCard({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium">Knowledge gaps</p>
-            <span className="text-xs text-muted-foreground">{gaps.length} open</span>
+            <span className="text-xs text-muted-foreground">
+              {gaps.length} open
+            </span>
           </div>
           {gaps.length === 0 ? (
             <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
@@ -186,7 +192,8 @@ export function TrainAgentPanel({
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Run simulation</CardTitle>
         <CardDescription>
-          Test your agent against customer questions from your focus areas and knowledge base.
+          Test your agent against customer questions from your focus areas and
+          knowledge base.
         </CardDescription>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span className="inline-flex items-center rounded-full border bg-muted/40 px-2 py-0.5 font-medium text-foreground">
@@ -214,22 +221,26 @@ export function TrainAgentPanel({
         <p className="text-xs text-muted-foreground">
           {quotaExhausted ? (
             <>
-              You&apos;ve used all {quota.freeQuota} free training questions this
-              month on the {modelInfo.planName} plan. This run will use{' '}
-              <span className="font-medium text-foreground">{questionCount}</span>{' '}
+              You&apos;ve used all {quota.freeQuota} free training questions
+              this month on the {modelInfo.planName} plan. This run will use{' '}
+              <span className="font-medium text-foreground">
+                {questionCount}
+              </span>{' '}
               of your message quota instead.
             </>
           ) : overageForSelection > 0 ? (
             <>
-              {quota.freeRemaining} free question{quota.freeRemaining === 1 ? '' : 's'}{' '}
-              left this month — the other{' '}
-              <span className="font-medium text-foreground">{overageForSelection}</span>{' '}
+              {quota.freeRemaining} free question
+              {quota.freeRemaining === 1 ? '' : 's'} left this month — the other{' '}
+              <span className="font-medium text-foreground">
+                {overageForSelection}
+              </span>{' '}
               will be deducted from your {modelInfo.planName} message plan.
             </>
           ) : (
             <>
-              {quota.freeRemaining} of {quota.freeQuota} free training questions left
-              this month on {modelInfo.planName}.
+              {quota.freeRemaining} of {quota.freeQuota} free training questions
+              left this month on {modelInfo.planName}.
             </>
           )}
         </p>
@@ -241,7 +252,9 @@ export function TrainAgentPanel({
           loading={busy}
           onClick={handleTrain}
         >
-          {busy ? 'Running simulation…' : `Train with ${questionCount} questions`}
+          {busy
+            ? 'Running simulation…'
+            : `Train with ${questionCount} questions`}
         </Button>
       </CardContent>
     </Card>
@@ -315,10 +328,12 @@ export function TrainingInsightsPanel({
       {hasSuggestedTopics && (
         <div className="absolute right-0 top-0 z-10 flex max-w-[min(100%,16rem)] items-start gap-1.5 rounded-bl-lg border-b border-l bg-background/95 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
           <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-          <span className="leading-snug">Suggested from your knowledge base</span>
+          <span className="leading-snug">
+            Suggested from your knowledge base
+          </span>
         </div>
       )}
-      <CardHeader className={hasSuggestedTopics ? 'pr-44 pb-3' : 'pb-3'}>
+      <CardHeader className={hasSuggestedTopics ? 'pb-3 pr-44' : 'pb-3'}>
         <CardTitle className="text-base">{organizationName} context</CardTitle>
         <CardDescription>
           {industryLabel} · {industryDescription}
@@ -330,7 +345,8 @@ export function TrainingInsightsPanel({
           <div className="flex flex-wrap gap-2">
             {topics.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Add topics your customers ask about — e.g. shipping, refunds, class bookings.
+                Add topics your customers ask about — e.g. shipping, refunds,
+                class bookings.
               </p>
             ) : (
               topics.map((topic) => (
@@ -398,7 +414,8 @@ export function TrainingInsightsPanel({
                     })}
                   </span>
                   <span className="font-medium">
-                    {Math.round(run.accuracyAvg)}% · {run.passed}/{run.totalQuestions}
+                    {Math.round(run.accuracyAvg)}% · {run.passed}/
+                    {run.totalQuestions}
                   </span>
                 </li>
               ))}

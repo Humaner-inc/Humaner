@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { ArrowDownIcon, ArrowUpIcon } from '@humaner/shared/icons';
 import {
   CaretSortIcon,
   CheckIcon,
@@ -18,7 +19,6 @@ import {
   Table as ReactTable,
   Row
 } from '@tanstack/react-table';
-import { ArrowDownIcon, ArrowUpIcon } from '@humaner/shared/icons';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

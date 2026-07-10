@@ -1,9 +1,9 @@
 'use client';
 
-import type { Transition } from 'motion/react';
-import { motion, useAnimation } from 'motion/react';
 import type { HTMLAttributes } from 'react';
 import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import type { Transition } from 'motion/react';
+import { motion, useAnimation } from 'motion/react';
 
 import { cn } from '@/lib/utils';
 
@@ -77,7 +77,11 @@ const CircleChevronUpIcon = forwardRef<
         width={size}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="12" cy="12" r="10" />
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+        />
         <motion.path
           animate={controls}
           d="m8 14 4-4 4 4"

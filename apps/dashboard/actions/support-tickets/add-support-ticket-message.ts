@@ -5,10 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { authActionClient } from '@/actions/safe-action';
 import { isAdmin } from '@/lib/auth/permissions';
 import { prisma } from '@/lib/db/prisma';
-import {
-  ForbiddenError,
-  NotFoundError
-} from '@/lib/validation/exceptions';
+import { ForbiddenError, NotFoundError } from '@/lib/validation/exceptions';
 import { addSupportTicketMessageSchema } from '@/schemas/support/support-ticket-schemas';
 
 export const addSupportTicketMessage = authActionClient

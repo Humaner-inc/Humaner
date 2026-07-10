@@ -1,8 +1,8 @@
 'use client';
 
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
-import { ContactRecord } from '@prisma/client';
 import { BuildingIcon, UserIcon } from '@humaner/shared/icons';
+import { ContactRecord } from '@prisma/client';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

@@ -1,8 +1,8 @@
 import 'server-only';
 
-import type { SourceType, SyncStatus } from '@prisma/client';
 import { unstable_cache as cache } from 'next/cache';
 import { redirect } from 'next/navigation';
+import type { SourceType, SyncStatus } from '@prisma/client';
 
 import {
   Caching,

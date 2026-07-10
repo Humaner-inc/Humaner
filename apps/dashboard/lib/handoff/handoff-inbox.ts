@@ -177,7 +177,8 @@ export function countHandoffInboxTickets(
   return {
     active: activeTickets.length,
     unassigned: activeTickets.filter((ticket) => !ticket.assignee).length,
-    mine: activeTickets.filter((ticket) => ticket.assignee?.id === currentUserId)
-      .length
+    mine: activeTickets.filter(
+      (ticket) => ticket.assignee?.id === currentUserId
+    ).length
   };
 }

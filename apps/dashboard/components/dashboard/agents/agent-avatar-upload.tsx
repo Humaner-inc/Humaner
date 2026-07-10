@@ -3,6 +3,7 @@
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
 import { TrashIcon } from '@humaner/shared/icons';
+import type { CharacterType } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { updateAgentImage } from '@/actions/agents/update-agent-image';
@@ -17,7 +18,6 @@ import {
 } from '@/components/ui/tooltip';
 import { MAX_IMAGE_SIZE } from '@/constants/limits';
 import { CHARACTER_META } from '@/lib/character-presets';
-import type { CharacterType } from '@prisma/client';
 import { cn } from '@/lib/utils';
 import { FileUploadAction } from '@/types/file-upload-action';
 
@@ -119,7 +119,9 @@ export function AgentAvatarUpload({
 
   const avatarSize = size === 'card' ? 'size-[4.5rem]' : 'size-24';
   const dropzoneSize =
-    size === 'card' ? 'size-[4.5rem] p-0' : 'size-24 min-h-24 max-h-24 w-24 p-0';
+    size === 'card'
+      ? 'size-[4.5rem] p-0'
+      : 'size-24 min-h-24 max-h-24 w-24 p-0';
 
   return (
     <div className={cn('relative inline-flex', avatarSize)}>
@@ -143,7 +145,10 @@ export function AgentAvatarUpload({
           onDrop={handleDrop}
           borderRadius="full"
           src={currentImage ?? undefined}
-          className={cn(dropzoneSize, 'border-0 bg-transparent shadow-none hover:bg-transparent')}
+          className={cn(
+            dropzoneSize,
+            'border-0 bg-transparent shadow-none hover:bg-transparent'
+          )}
         >
           <Avatar className={cn(avatarSize, 'rounded-full')}>
             {currentImage ? (

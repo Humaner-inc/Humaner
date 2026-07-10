@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import type { IndustryType } from '@prisma/client';
 import { AlertTriangleIcon, PencilIcon } from '@humaner/shared/icons';
+import type { IndustryType } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { updateOrganizationIndustry } from '@/actions/organization/update-organization-industry';
@@ -47,7 +47,9 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
         toast.error("Couldn't update industry");
         return;
       }
-      toast.success('Industry updated — agents re-anchored to the new vertical');
+      toast.success(
+        'Industry updated — agents re-anchored to the new vertical'
+      );
       setOpen(false);
       router.refresh();
     });

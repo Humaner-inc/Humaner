@@ -3,9 +3,9 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
-import { isOrganizationPath } from '@/constants/organization-nav-items';
-import { isIntegrationsPath } from '@/constants/integration-nav-items';
 import { isDeskPath } from '@/constants/desk-nav-items';
+import { isIntegrationsPath } from '@/constants/integration-nav-items';
+import { isOrganizationPath } from '@/constants/organization-nav-items';
 import { isSettingsPath } from '@/constants/settings-nav-items';
 
 export const SIDEBAR_DRAWER_IDS = {
@@ -62,10 +62,7 @@ export function SidebarNavAccordionProvider({
     }
   }, [pathname, agents]);
 
-  const value = React.useMemo(
-    () => ({ openId, setOpenId }),
-    [openId]
-  );
+  const value = React.useMemo(() => ({ openId, setOpenId }), [openId]);
 
   return (
     <SidebarNavAccordionContext.Provider value={value}>

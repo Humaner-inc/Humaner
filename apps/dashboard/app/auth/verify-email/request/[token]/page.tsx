@@ -6,8 +6,8 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 import { Routes } from '@/constants/routes';
 import { completeEmailVerification } from '@/lib/auth/complete-email-verification';
 import { prisma } from '@/lib/db/prisma';
-import { NotFoundError } from '@/lib/validation/exceptions';
 import { createTitle } from '@/lib/utils';
+import { NotFoundError } from '@/lib/validation/exceptions';
 import type { NextPageProps } from '@/types/next-page-props';
 
 const paramsCache = createSearchParamsCache({

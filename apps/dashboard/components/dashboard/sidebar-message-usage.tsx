@@ -85,7 +85,9 @@ export function SidebarMessageUsage({
         className={cn(
           'grid transition-[grid-template-rows,opacity]',
           SIDEBAR_TRANSITION_CLASS,
-          showUpgradeCta ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          showUpgradeCta
+            ? 'grid-rows-[1fr] opacity-100'
+            : 'grid-rows-[0fr] opacity-0'
         )}
         aria-hidden={!showUpgradeCta}
       >
@@ -106,13 +108,15 @@ export function SidebarMessageUsage({
         className={cn(
           'grid transition-[grid-template-rows,opacity]',
           SIDEBAR_TRANSITION_CLASS,
-          isCollapsed ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          isCollapsed
+            ? 'grid-rows-[1fr] opacity-100'
+            : 'grid-rows-[0fr] opacity-0'
         )}
         aria-hidden={!isCollapsed}
       >
         <div className="overflow-hidden">
           <div className="flex justify-center px-0.5">
-            <span className="text-center font-mono text-[9px] font-medium leading-tight tabular-nums text-muted-foreground">
+            <span className="text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
               {usage.messagesUsed.toLocaleString()}
               <span className="text-muted-foreground/70">
                 /{usage.includedMessages.toLocaleString()}

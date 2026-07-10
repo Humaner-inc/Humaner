@@ -1,12 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { AlertCircleIcon, LockIcon } from '@humaner/shared/icons';
+import { formatDistanceToNow } from 'date-fns';
 import { type SubmitHandler } from 'react-hook-form';
 
 import { resetPassword } from '@/actions/auth/reset-password';
-import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
 import {
   AuthInnerCard,
   AuthInnerCardContent,
@@ -14,6 +13,7 @@ import {
   AuthInnerCardHeader,
   AuthInnerCardTitle
 } from '@/components/auth/auth-inner-card';
+import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CardProps } from '@/components/ui/card';

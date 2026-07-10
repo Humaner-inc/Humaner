@@ -29,7 +29,9 @@ export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
       account has been successfully created, and you&apos;re ready to start
       exploring our platform.
     </EmailText>
-    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>Get started</EmailButton>
+    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>
+      Get started
+    </EmailButton>
     <EmailText>
       If you have any questions or need assistance, please don&apos;t hesitate
       to reach out to our support team.

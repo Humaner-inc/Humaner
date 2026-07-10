@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { CopyIcon, InfoIcon } from '@humaner/shared/icons';
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 

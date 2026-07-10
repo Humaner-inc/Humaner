@@ -1,7 +1,7 @@
 'use server';
 
-import { actionClient } from '@/actions/safe-action';
 import { clearAuthCallbackUrl } from '@/actions/auth/clear-auth-callback-url';
+import { actionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { signOut } from '@/lib/auth';
 import { logOutSchema } from '@/schemas/auth/log-out-schema';

@@ -59,7 +59,9 @@ export const SETTINGS_NAV_TABS: SettingsNavTab[] = [
   }
 ];
 
-export function getActiveSettingsTab(pathname: string): SettingsNavTabId | null {
+export function getActiveSettingsTab(
+  pathname: string
+): SettingsNavTabId | null {
   for (const tab of SETTINGS_NAV_TABS) {
     if (pathname.startsWith(tab.href)) {
       return tab.id;

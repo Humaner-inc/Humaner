@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 
 export default async function LoginPage(): Promise<React.JSX.Element> {
   return (
-    <AuthOnboardingCardShell showLogo={false} maxWidth="sm">
+    <AuthOnboardingCardShell
+      showLogo={false}
+      maxWidth="sm"
+    >
       <LoginCard />
     </AuthOnboardingCardShell>
   );

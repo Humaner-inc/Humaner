@@ -41,7 +41,12 @@ Never speculate on stock availability unless your knowledge base explicitly cove
       'Size guide',
       'Contact / escalation info'
     ],
-    legalPages: ['Terms of Sale', 'Refund & Returns Policy', 'Privacy Policy', 'Shipping Policy']
+    legalPages: [
+      'Terms of Sale',
+      'Refund & Returns Policy',
+      'Privacy Policy',
+      'Shipping Policy'
+    ]
   },
   EDUCATION: {
     id: 'EDUCATION',
@@ -49,7 +54,10 @@ Never speculate on stock availability unless your knowledge base explicitly cove
     description: 'SaaS and online courses',
     iconKey: 'graduation-cap',
     defaultCharacter: 'CORPORATE',
-    forbiddenTopics: ['Academic integrity advice', 'Recommending competing courses'],
+    forbiddenTopics: [
+      'Academic integrity advice',
+      'Recommending competing courses'
+    ],
     promptFragment: `You handle student and prospective student support for an education or training business.
 Priority topics: course content, enrollment process, pricing, access, and policies.
 Tone: encouraging and clear — many users are new to the subject or feeling uncertain.
@@ -62,7 +70,12 @@ For access/technical issues, collect basic info (browser, device) before suggest
       'Platform access / login help',
       'Instructor or contact info'
     ],
-    legalPages: ['Terms of Enrollment', 'Refund & Cancellation Policy', 'Privacy Policy', 'Code of Conduct']
+    legalPages: [
+      'Terms of Enrollment',
+      'Refund & Cancellation Policy',
+      'Privacy Policy',
+      'Code of Conduct'
+    ]
   },
   FITNESS: {
     id: 'FITNESS',
@@ -70,7 +83,11 @@ For access/technical issues, collect basic info (browser, device) before suggest
     description: 'Care and fitness',
     iconKey: 'heart-pulse',
     defaultCharacter: 'CASUAL',
-    forbiddenTopics: ['Medical advice', 'Injury diagnosis', 'Nutrition prescriptions'],
+    forbiddenTopics: [
+      'Medical advice',
+      'Injury diagnosis',
+      'Nutrition prescriptions'
+    ],
     promptFragment: `You handle member support for a fitness or wellness business.
 Priority topics: memberships, bookings, cancellations, policies, and general facility info.
 Energy: match the brand — if their agents are CASUAL, be upbeat and motivating.
@@ -83,7 +100,12 @@ If a member asks something medical, acknowledge warmly and direct to a qualified
       'Trainer/coach bios',
       'Facility location & hours'
     ],
-    legalPages: ['Membership Terms', 'Cancellation & Freeze Policy', 'Privacy Policy', 'Health & Liability Waiver']
+    legalPages: [
+      'Membership Terms',
+      'Cancellation & Freeze Policy',
+      'Privacy Policy',
+      'Health & Liability Waiver'
+    ]
   },
   TRAVEL: {
     id: 'TRAVEL',
@@ -104,7 +126,12 @@ Never speculate on availability or pricing not present in your knowledge base.`,
       'FAQ for common disruptions',
       'Contact escalation info'
     ],
-    legalPages: ['Booking Terms & Conditions', 'Cancellation & Refund Policy', 'Privacy Policy', 'Guest Liability Terms']
+    legalPages: [
+      'Booking Terms & Conditions',
+      'Cancellation & Refund Policy',
+      'Privacy Policy',
+      'Guest Liability Terms'
+    ]
   }
 };
 

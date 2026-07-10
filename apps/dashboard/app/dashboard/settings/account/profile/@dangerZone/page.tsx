@@ -6,7 +6,5 @@ import { getPersonalDetails } from '@/data/account/get-personal-details';
 export default async function DangerZonePage(): Promise<React.JSX.Element> {
   const personalDetails = await getPersonalDetails();
 
-  return (
-    <DangerZoneCard email={personalDetails.email ?? ''} />
-  );
+  return <DangerZoneCard email={personalDetails.email ?? ''} />;
 }

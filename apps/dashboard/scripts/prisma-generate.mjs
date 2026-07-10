@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -36,14 +35,20 @@ if (result.status === 0) {
 
 if (output.includes('EPERM') && output.includes('query_engine')) {
   console.error('');
-  console.error('Prisma generate failed: the query engine file is locked on Windows.');
+  console.error(
+    'Prisma generate failed: the query engine file is locked on Windows.'
+  );
   console.error('');
   console.error('Stop anything using Prisma Client, then retry:');
-  console.error('  1. Stop the dashboard dev server (Ctrl+C in the terminal running pnpm dev)');
+  console.error(
+    '  1. Stop the dashboard dev server (Ctrl+C in the terminal running pnpm dev)'
+  );
   console.error('  2. Close Prisma Studio if open');
   console.error('  3. Run: pnpm run db:generate');
   console.error('');
-  console.error('Your database schema may already be synced — only client regeneration is blocked.');
+  console.error(
+    'Your database schema may already be synced — only client regeneration is blocked.'
+  );
 }
 
 process.exit(result.status ?? 1);

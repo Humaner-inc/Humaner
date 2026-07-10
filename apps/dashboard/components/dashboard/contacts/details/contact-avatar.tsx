@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ContactRecord } from '@prisma/client';
 import { BuildingIcon, UserIcon } from '@humaner/shared/icons';
+import { ContactRecord } from '@prisma/client';
 
 import {
   Avatar,

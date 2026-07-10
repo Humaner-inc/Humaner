@@ -20,10 +20,13 @@ export const addKnowledgeSourceSchema = z
       .max(20000, 'Maximum 20000 characters allowed.')
       .optional()
   })
-  .refine((data) => data.type !== 'URL' || (data.urls && data.urls.length > 0), {
-    message: 'Add at least one URL.',
-    path: ['urls']
-  })
+  .refine(
+    (data) => data.type !== 'URL' || (data.urls && data.urls.length > 0),
+    {
+      message: 'Add at least one URL.',
+      path: ['urls']
+    }
+  )
   .refine((data) => data.type !== 'SITEMAP' || !!data.url, {
     message: 'A root URL is required to crawl a site.',
     path: ['url']

@@ -13,16 +13,16 @@ import { continueWithGitHub } from '@/actions/auth/continue-with-github';
 import { continueWithGoogle } from '@/actions/auth/continue-with-google';
 import { signUp } from '@/actions/auth/sign-up';
 import {
+  authAlertDestructiveClassName,
+  authDestructiveMessageClassName,
   authDividerClassName,
   authInputClassName,
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
-  authPrimaryButtonClassName,
-  authAlertDestructiveClassName,
-  authDestructiveMessageClassName,
-  authPageTitleClassName
+  authPageTitleClassName,
+  authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -84,9 +84,7 @@ export function SignUpCard(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2 text-center">
-        <h1 className={authPageTitleClassName}>
-          Humaner
-        </h1>
+        <h1 className={authPageTitleClassName}>Humaner</h1>
         <p className={authMutedTextClassName}>
           Already have an account?{' '}
           <Link
@@ -224,7 +222,12 @@ export function SignUpCard(): React.JSX.Element {
         </Button>
       </div>
 
-      <p className={cn(authMutedTextClassName, 'text-center text-xs leading-relaxed')}>
+      <p
+        className={cn(
+          authMutedTextClassName,
+          'text-center text-xs leading-relaxed'
+        )}
+      >
         By signing up, you agree to our{' '}
         <Link
           href="#"

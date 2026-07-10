@@ -77,7 +77,7 @@ export function LeadGenerationCard({
                 </span>
                 <span
                   suppressHydrationWarning
-                  className="font-mono text-lg font-bold leading-none tabular-nums sm:text-3xl"
+                  className="font-mono text-lg font-bold tabular-nums leading-none sm:text-3xl"
                 >
                   {total[value as keyof typeof total].toLocaleString()}
                 </span>

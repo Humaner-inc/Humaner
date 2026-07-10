@@ -24,8 +24,16 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-export function AuthInnerCard({ className, ...props }: CardProps): React.JSX.Element {
-  return <Card className={cn(authInnerCardClassName, className)} {...props} />;
+export function AuthInnerCard({
+  className,
+  ...props
+}: CardProps): React.JSX.Element {
+  return (
+    <Card
+      className={cn(authInnerCardClassName, className)}
+      {...props}
+    />
+  );
 }
 
 export function AuthInnerCardHeader({
@@ -33,7 +41,10 @@ export function AuthInnerCardHeader({
   ...props
 }: CardHeaderProps): React.JSX.Element {
   return (
-    <CardHeader className={cn(authInnerCardHeaderClassName, className)} {...props} />
+    <CardHeader
+      className={cn(authInnerCardHeaderClassName, className)}
+      {...props}
+    />
   );
 }
 
@@ -42,7 +53,10 @@ export function AuthInnerCardTitle({
   ...props
 }: CardTitleProps): React.JSX.Element {
   return (
-    <CardTitle className={cn(authInnerCardTitleClassName, className)} {...props} />
+    <CardTitle
+      className={cn(authInnerCardTitleClassName, className)}
+      {...props}
+    />
   );
 }
 
@@ -63,7 +77,10 @@ export function AuthInnerCardContent({
   ...props
 }: CardContentProps): React.JSX.Element {
   return (
-    <CardContent className={cn(authInnerCardContentClassName, className)} {...props} />
+    <CardContent
+      className={cn(authInnerCardContentClassName, className)}
+      {...props}
+    />
   );
 }
 
@@ -72,6 +89,9 @@ export function AuthInnerCardFooter({
   ...props
 }: CardFooterProps): React.JSX.Element {
   return (
-    <CardFooter className={cn(authInnerCardFooterClassName, className)} {...props} />
+    <CardFooter
+      className={cn(authInnerCardFooterClassName, className)}
+      {...props}
+    />
   );
 }

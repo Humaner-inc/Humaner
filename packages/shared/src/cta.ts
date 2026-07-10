@@ -10,11 +10,11 @@
  */
 
 export const CTA_BASE =
-  'inline-flex items-center justify-center rounded-md font-mono text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-50';
+  "inline-flex items-center justify-center rounded-md font-mono text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-50";
 
 /** Pill Dashboard nav CTA — mono, rounded-full (docs / vision topbars). */
 export const CTA_DASHBOARD_BASE =
-  'inline-flex items-center justify-center rounded-full font-mono text-sm font-medium transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50';
+  "inline-flex items-center justify-center rounded-full font-mono text-sm font-medium transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50";
 
 /** White pill on dark surfaces. */
 export const ctaDashboardOnDarkClassName = `${CTA_DASHBOARD_BASE} bg-white px-3.5 py-1.5 text-black`;
@@ -22,8 +22,10 @@ export const ctaDashboardOnDarkClassName = `${CTA_DASHBOARD_BASE} bg-white px-3.
 /** Inverted pill on light surfaces (e.g. vision hero). */
 export const ctaDashboardOnLightClassName = `${CTA_DASHBOARD_BASE} bg-foreground px-3.5 py-1.5 text-[#fff8f2]`;
 
-export function getCtaDashboardClassName(surface: 'light' | 'dark'): string {
-  return surface === 'dark' ? ctaDashboardOnDarkClassName : ctaDashboardOnLightClassName;
+export function getCtaDashboardClassName(surface: "light" | "dark"): string {
+  return surface === "dark"
+    ? ctaDashboardOnDarkClassName
+    : ctaDashboardOnLightClassName;
 }
 
 /** Cream button — use on dark surfaces. */
@@ -39,12 +41,12 @@ export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]
 /** Outline CTA that inverts for dashboard light/dark shells. */
 export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/20 dark:bg-white/[0.04] dark:text-white/80 dark:hover:border-white/30 dark:hover:bg-white/[0.08] dark:hover:text-white`;
 
-/** Crimson deploy CTA — roadmap close, branch terminus. */
-export const ctaAccentClassName = `${CTA_BASE} bg-accent px-6 py-3 text-sm text-[#fff8f2] hover:bg-accent/90 hover:text-[#fff8f2]`;
+/** Accent deploy CTA — roadmap close, branch terminus. */
+export const ctaAccentClassName = `${CTA_BASE} bg-accent px-6 py-3 text-sm text-[#070607] hover:bg-accent/90 hover:text-[#070607]`;
 
 /**
  * Floating demo dock trigger — the landing page's core CTA.
- * Same language as `ctaPrimaryClassName` (mono, rounded-md) with a crimson
+ * Same language as `ctaPrimaryClassName` (mono, rounded-md) with an accent
  * glyph and floating-dock elevation. Inverts against the surface behind it:
  * cream pill over dark sections, black pill over light sections.
  */
@@ -58,39 +60,51 @@ export const ctaTryHumanerOnLightClassName = `${CTA_TRY_HUMANER_BASE} bg-[#07060
 
 export const ctaTryHumanerClassName = ctaTryHumanerOnDarkClassName;
 
-export function getCtaTryHumanerClassName(surface: 'light' | 'dark'): string {
-  return surface === 'dark'
+export function getCtaTryHumanerClassName(surface: "light" | "dark"): string {
+  return surface === "dark"
     ? ctaTryHumanerOnDarkClassName
     : ctaTryHumanerOnLightClassName;
 }
 
+export function getCtaTryHumanerIconClassName(
+  surface: "light" | "dark",
+): string {
+  return surface === "dark"
+    ? "flex size-4 shrink-0 items-center justify-center text-[#070607]"
+    : "flex size-4 shrink-0 items-center justify-center text-[#e1ccaf]";
+}
+
 export const ctaTryHumanerIconClassName =
-  'flex size-4 shrink-0 items-center justify-center text-[#dc143c]';
+  getCtaTryHumanerIconClassName("dark");
 
 const CTA_TRY_HUMANER_LABEL_BASE =
-  'font-mono text-xs font-medium uppercase tracking-[0.14em]';
+  "font-mono text-xs font-medium uppercase tracking-[0.14em]";
 
 export function getCtaTryHumanerLabelClassName(
-  surface: 'light' | 'dark'
+  surface: "light" | "dark",
 ): string {
-  return surface === 'dark'
+  return surface === "dark"
     ? `${CTA_TRY_HUMANER_LABEL_BASE} text-[#070607]`
     : `${CTA_TRY_HUMANER_LABEL_BASE} text-[#fff8f2]`;
 }
 
 export const ctaTryHumanerLabelClassName =
-  getCtaTryHumanerLabelClassName('dark');
+  getCtaTryHumanerLabelClassName("dark");
 
 export function getBranchTagClassName(
-  state: 'active' | 'engaged' | 'idle',
-  surface: 'light' | 'dark'
+  state: "active" | "engaged" | "idle",
+  surface: "light" | "dark",
 ): string {
-  if (state === 'active') {
-    return surface === 'dark' ? ctaPrimaryClassName : ctaPrimaryOnLightClassName;
+  if (state === "active") {
+    return surface === "dark"
+      ? ctaPrimaryClassName
+      : ctaPrimaryOnLightClassName;
   }
 
   const secondary =
-    surface === 'dark' ? ctaSecondaryOnDarkClassName : ctaSecondaryOnLightClassName;
+    surface === "dark"
+      ? ctaSecondaryOnDarkClassName
+      : ctaSecondaryOnLightClassName;
 
-  return state === 'idle' ? `${secondary} opacity-50` : secondary;
+  return state === "idle" ? `${secondary} opacity-50` : secondary;
 }

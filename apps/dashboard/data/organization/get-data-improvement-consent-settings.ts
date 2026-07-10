@@ -9,10 +9,10 @@ import {
   defaultRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
-import { getDataImprovementConsentState } from '@/lib/consent/data-improvement-consent';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { getDataImprovementConsentState } from '@/lib/consent/data-improvement-consent';
 import { prisma } from '@/lib/db/prisma';
 
 export type DataImprovementConsentSettings = {

@@ -1,9 +1,6 @@
 import * as React from 'react';
+import { BriefcaseBusinessIcon, UsersIcon } from '@humaner/shared/icons';
 import type { TargetAudience } from '@prisma/client';
-import {
-  BriefcaseBusinessIcon,
-  UsersIcon
-} from '@humaner/shared/icons';
 
 import { Badge } from '@/components/ui/badge';
 

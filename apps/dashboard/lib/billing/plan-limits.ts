@@ -66,7 +66,9 @@ export function hasReachedMemberLimit(
   return seatCount >= plan.members;
 }
 
-export async function getLiveAgentCount(organizationId: string): Promise<number> {
+export async function getLiveAgentCount(
+  organizationId: string
+): Promise<number> {
   return prisma.agent.count({
     where: { organizationId, isPaused: false }
   });

@@ -1,9 +1,10 @@
 'use client';
 
-import { BrandWordmark } from '@humaner/shared/brand-wordmark';
-import Image from 'next/image';
 import * as React from 'react';
 import { useState } from 'react';
+import Image from 'next/image';
+import { BrandWordmark } from '@humaner/shared/brand-wordmark';
+
 import { AppInfo } from '@/constants/app-info';
 import { cn } from '@/lib/utils';
 

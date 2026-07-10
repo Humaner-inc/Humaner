@@ -1,10 +1,7 @@
 import { Role } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import {
-  ForbiddenError,
-  NotFoundError
-} from '@/lib/validation/exceptions';
+import { ForbiddenError, NotFoundError } from '@/lib/validation/exceptions';
 
 /**
  * Platform operator flag (Humaner staff). Set manually in the database.

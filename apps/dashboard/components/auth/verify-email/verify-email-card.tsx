@@ -94,7 +94,9 @@ export function VerifyEmailCard({
     <FormProvider {...methods}>
       <div className={cn('flex flex-col gap-5', className)}>
         <div className="space-y-1.5 text-center">
-          <h1 className={cn(authHeadingClassName, 'text-xl')}>Verify your email</h1>
+          <h1 className={cn(authHeadingClassName, 'text-xl')}>
+            Verify your email
+          </h1>
           <p className={authMutedTextClassName}>
             {email ? (
               <>
@@ -128,27 +130,45 @@ export function VerifyEmailCard({
                     <InputOTPGroup className="justify-center gap-2.5">
                       <InputOTPSlot
                         index={0}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                       <InputOTPSlot
                         index={1}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                       <InputOTPSlot
                         index={2}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                       <InputOTPSlot
                         index={3}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                       <InputOTPSlot
                         index={4}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                       <InputOTPSlot
                         index={5}
-                        className={cn(authOtpSlotClassName, 'ring-[#dc143c]/40')}
+                        className={cn(
+                          authOtpSlotClassName,
+                          'ring-[#e1ccaf]/40'
+                        )}
                       />
                     </InputOTPGroup>
                   </InputOTP>
@@ -166,7 +186,10 @@ export function VerifyEmailCard({
             loading={isVerifying}
           >
             {verifySuccess ? (
-              <CheckIcon className="size-4" strokeWidth={2.5} />
+              <CheckIcon
+                className="size-4"
+                strokeWidth={2.5}
+              />
             ) : (
               'Verify'
             )}

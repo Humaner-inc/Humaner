@@ -10,10 +10,10 @@ import {
   Link,
   Preview,
   Section,
-  Text
-} from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
-import * as React from 'react';
+  Text,
+} from "@react-email/components";
+import { Tailwind } from "@react-email/tailwind";
+import * as React from "react";
 
 import {
   EMAIL_BODY_CLASS,
@@ -28,8 +28,8 @@ import {
   EMAIL_OTP_CLASS,
   EMAIL_OTP_SECTION_CLASS,
   EMAIL_TEXT_CLASS,
-  EMAIL_TITLE_CLASS
-} from './email-brand';
+  EMAIL_TITLE_CLASS,
+} from "./email-brand";
 
 export type EmailLayoutProps = {
   preview: string;
@@ -41,8 +41,8 @@ export type EmailLayoutProps = {
 export function EmailLayout({
   preview,
   logoSrc,
-  logoAlt = 'Humaner',
-  children
+  logoAlt = "Humaner",
+  children,
 }: EmailLayoutProps): React.JSX.Element {
   return (
     <Html>
@@ -68,7 +68,7 @@ export function EmailLayout({
 }
 
 export function EmailTitle({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }): React.JSX.Element {
@@ -77,13 +77,17 @@ export function EmailTitle({
 
 export function EmailText({
   children,
-  className
+  className,
 }: {
   children: React.ReactNode;
   className?: string;
 }): React.JSX.Element {
   return (
-    <Text className={className ? `${EMAIL_TEXT_CLASS} ${className}` : EMAIL_TEXT_CLASS}>
+    <Text
+      className={
+        className ? `${EMAIL_TEXT_CLASS} ${className}` : EMAIL_TEXT_CLASS
+      }
+    >
       {children}
     </Text>
   );
@@ -91,7 +95,7 @@ export function EmailText({
 
 export function EmailMuted({
   children,
-  center = false
+  center = false,
 }: {
   children: React.ReactNode;
   center?: boolean;
@@ -109,7 +113,7 @@ export function EmailDivider(): React.JSX.Element {
 
 export function EmailButton({
   href,
-  children
+  children,
 }: {
   href: string;
   children: React.ReactNode;
@@ -125,7 +129,7 @@ export function EmailButton({
 
 export function EmailInlineLink({
   href,
-  children
+  children,
 }: {
   href: string;
   children: React.ReactNode;
@@ -155,5 +159,5 @@ export {
   EMAIL_MUTED_CLASS,
   EMAIL_OTP_CLASS,
   EMAIL_TEXT_CLASS,
-  EMAIL_TITLE_CLASS
-} from './email-brand';
+  EMAIL_TITLE_CLASS,
+} from "./email-brand";

@@ -1,35 +1,35 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: '#070607',
-        foreground: '#fff8f2',
+        background: "#070607",
+        foreground: "#fff8f2",
         accent: {
-          DEFAULT: '#dc143c',
-          foreground: '#ffffff'
+          DEFAULT: "#e1ccaf",
+          foreground: "#070607",
         },
-        fracture: '#dc143c',
+        fracture: "#e1ccaf",
         brand: {
-          DEFAULT: '#6b2d3a',
-          foreground: '#fff8f2'
+          DEFAULT: "#6b2d3a",
+          foreground: "#fff8f2",
         },
         muted: {
-          DEFAULT: 'rgb(255 255 255 / 0.08)',
-          foreground: 'rgb(255 255 255 / 0.55)'
+          DEFAULT: "rgb(255 255 255 / 0.08)",
+          foreground: "rgb(255 255 255 / 0.55)",
         },
-        border: 'rgb(255 255 255 / 0.12)'
+        border: "rgb(255 255 255 / 0.12)",
       },
       fontFamily: {
-        sans: ['system-ui', 'sans-serif'],
-        display: ['Georgia', 'Times New Roman', 'serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
-      }
-    }
+        sans: ["system-ui", "sans-serif"],
+        display: ["Georgia", "Times New Roman", "serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

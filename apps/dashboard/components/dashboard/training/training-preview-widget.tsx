@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
 type TrainingMessage = {
   id: string;
@@ -89,7 +89,7 @@ function ScoreBadge({
         </span>
       </div>
       {score.notes && (
-        <span className="text-muted-foreground/80 italic">
+        <span className="italic text-muted-foreground/80">
           &ldquo;{score.notes}&rdquo;
         </span>
       )}
@@ -144,7 +144,7 @@ export function TrainingPreviewWidget({
 
       <div
         ref={scrollRef}
-        className="flex-1 space-y-3 overflow-y-auto bg-muted/30 px-4 py-4"
+        className="flex-1 space-y-3 overflow-y-auto bg-muted/30 p-4"
       >
         <AnimatePresence mode="popLayout">
           {messages.map((message) => (

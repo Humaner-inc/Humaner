@@ -62,9 +62,7 @@ export function resolvePathAccess(pathname: string): ResolvedPathAccess {
     return { type: 'platform-admin' };
   }
 
-  if (
-    OWNER_ONLY_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
-  ) {
+  if (OWNER_ONLY_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return { type: 'owner' };
   }
 

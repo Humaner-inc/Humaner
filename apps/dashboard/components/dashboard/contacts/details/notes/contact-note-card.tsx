@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { format } from 'date-fns';
 import { ClockIcon, MoreHorizontalIcon } from '@humaner/shared/icons';
+import { format } from 'date-fns';
 
 import { DeleteContactNoteModal } from '@/components/dashboard/contacts/details/notes/delete-contact-note-modal';
 import { EditContactNoteModal } from '@/components/dashboard/contacts/details/notes/edit-contact-note-modal';

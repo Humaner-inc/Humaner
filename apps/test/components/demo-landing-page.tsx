@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-import type { TestEnvConfig } from '@/lib/env';
-import { cn } from '@/lib/utils';
+import type { TestEnvConfig } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
-import { CustomChatWidget } from './custom-chat-widget';
-import { DevToolbar } from './dev-toolbar';
-import { LandingShell } from './landing-shell';
+import { CustomChatWidget } from "./custom-chat-widget";
+import { DevToolbar } from "./dev-toolbar";
+import { LandingShell } from "./landing-shell";
 
 export type DemoLandingPageProps = {
   config: TestEnvConfig;
 };
 
-type IntegrationMode = 'widget' | 'api';
+type IntegrationMode = "widget" | "api";
 
 const FEATURES = [
-  'Free shipping over $75',
-  '30-day hassle-free returns',
-  'Ships worldwide in 5–10 days'
+  "Free shipping over $75",
+  "30-day hassle-free returns",
+  "Ships worldwide in 5–10 days",
 ];
 
 export function DemoLandingPage({
-  config
+  config,
 }: DemoLandingPageProps): React.JSX.Element {
   const [integrationMode, setIntegrationMode] =
-    React.useState<IntegrationMode>('api');
+    React.useState<IntegrationMode>("api");
   const [selectedAgentId, setSelectedAgentId] = React.useState(
-    config.agents[0]?.id ?? ''
+    config.agents[0]?.id ?? "",
   );
   const [widgetLoaded, setWidgetLoaded] = React.useState(false);
 
@@ -36,8 +36,8 @@ export function DemoLandingPage({
     config.agents[0];
 
   const ready = config.apiKeyConfigured && config.agents.length > 0;
-  const baseUrl = config.apiUrl.replace(/\/$/, '');
-  const accentColor = '#dc143c';
+  const baseUrl = config.apiUrl.replace(/\/$/, "");
+  const accentColor = "#e1ccaf";
 
   React.useEffect(() => {
     if (
@@ -49,7 +49,7 @@ export function DemoLandingPage({
   }, [config.agents, selectedAgentId]);
 
   React.useEffect(() => {
-    if (integrationMode !== 'widget' && widgetLoaded) {
+    if (integrationMode !== "widget" && widgetLoaded) {
       removeWidget();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,18 +62,18 @@ export function DemoLandingPage({
 
     removeWidget();
 
-    const script = document.createElement('script');
-    script.id = 'humaner-test-widget';
+    const script = document.createElement("script");
+    script.id = "humaner-test-widget";
     script.src = `${baseUrl}/widget.js`;
-    script.setAttribute('data-agent', selectedAgentId);
-    script.setAttribute('data-color', accentColor);
-    script.setAttribute('data-position', 'bottom-right');
+    script.setAttribute("data-agent", selectedAgentId);
+    script.setAttribute("data-color", accentColor);
+    script.setAttribute("data-position", "bottom-right");
     document.body.appendChild(script);
     setWidgetLoaded(true);
   };
 
   const removeWidget = (): void => {
-    document.getElementById('humaner-test-widget')?.remove();
+    document.getElementById("humaner-test-widget")?.remove();
     document
       .querySelectorAll('iframe[title="Humaner chat"]')
       .forEach((node) => node.remove());
@@ -118,7 +118,7 @@ export function DemoLandingPage({
               <p className="max-w-lg text-base leading-relaxed text-white/70 sm:text-lg">
                 This page mimics a real landing site. Test the floating widget
                 embed or a fully custom chat UI powered by the REST API — both
-                talk to your live agent on{' '}
+                talk to your live agent on{" "}
                 <code className="rounded bg-white/10 px-1.5 py-0.5 text-sm text-white/85">
                   {baseUrl}
                 </code>
@@ -144,12 +144,12 @@ export function DemoLandingPage({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => setIntegrationMode('api')}
+                onClick={() => setIntegrationMode("api")}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm font-medium transition',
-                  integrationMode === 'api'
-                    ? 'border-white/25 bg-white text-foreground'
-                    : 'border-white/15 text-white/65 hover:border-white/25 hover:text-white'
+                  "rounded-full border px-4 py-2 text-sm font-medium transition",
+                  integrationMode === "api"
+                    ? "border-white/25 bg-white text-foreground"
+                    : "border-white/15 text-white/65 hover:border-white/25 hover:text-white",
                 )}
               >
                 Custom API chat
@@ -157,29 +157,29 @@ export function DemoLandingPage({
               <button
                 type="button"
                 onClick={() => {
-                  setIntegrationMode('widget');
+                  setIntegrationMode("widget");
                   if (!widgetLoaded && selectedAgentId) {
                     loadWidget();
                   }
                 }}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm font-medium transition',
-                  integrationMode === 'widget'
-                    ? 'border-white/25 bg-white text-foreground'
-                    : 'border-white/15 text-white/65 hover:border-white/25 hover:text-white'
+                  "rounded-full border px-4 py-2 text-sm font-medium transition",
+                  integrationMode === "widget"
+                    ? "border-white/25 bg-white text-foreground"
+                    : "border-white/15 text-white/65 hover:border-white/25 hover:text-white",
                 )}
               >
                 Floating widget
               </button>
             </div>
 
-            {integrationMode === 'widget' && (
+            {integrationMode === "widget" && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                 <p className="text-sm text-white/75">
-                  The Humaner bubble loads in the corner — same{' '}
-                  <code className="text-white/90">widget.js</code> snippet you&apos;d
-                  paste on a customer site. Scroll and interact with the page
-                  like a real visitor.
+                  The Humaner bubble loads in the corner — same{" "}
+                  <code className="text-white/90">widget.js</code> snippet
+                  you&apos;d paste on a customer site. Scroll and interact with
+                  the page like a real visitor.
                 </p>
                 {!widgetLoaded && (
                   <button
@@ -197,10 +197,10 @@ export function DemoLandingPage({
           </section>
 
           <section className="lg:pt-4">
-            {integrationMode === 'api' ? (
+            {integrationMode === "api" ? (
               <CustomChatWidget
-                agentId={selectedAgent?.id ?? ''}
-                agentLabel={selectedAgent?.label ?? 'Agent'}
+                agentId={selectedAgent?.id ?? ""}
+                agentLabel={selectedAgent?.label ?? "Agent"}
                 accentColor={accentColor}
                 disabled={!ready}
               />
@@ -218,9 +218,9 @@ export function DemoLandingPage({
                     Snippet on this page
                   </p>
                   <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-relaxed text-white/70">
-{`<script
+                    {`<script
   src="${baseUrl}/widget.js"
-  data-agent="${selectedAgentId || '…'}"
+  data-agent="${selectedAgentId || "…"}"
   data-color="${accentColor}"
   data-position="bottom-right">
 </script>`}
@@ -233,7 +233,7 @@ export function DemoLandingPage({
       </main>
 
       <footer className="border-t border-white/10 py-8 text-center text-xs text-white/30">
-        Local test harness · Velvet &amp; Vine demo · Humaner agents on{' '}
+        Local test harness · Velvet &amp; Vine demo · Humaner agents on{" "}
         {baseUrl}
       </footer>
 

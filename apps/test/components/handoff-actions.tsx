@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
 export type HandoffPayload = {
   humanDesk: boolean;
   email: string | null;
 };
 
-type HandoffTurn = { role: 'user' | 'assistant'; content: string };
+type HandoffTurn = { role: "user" | "assistant"; content: string };
 
 type HandoffActionsProps = {
   handoff: HandoffPayload;
@@ -17,17 +17,18 @@ type HandoffActionsProps = {
   getHistory: () => HandoffTurn[];
 };
 
-type Mode = 'idle' | 'form' | 'submitting' | 'done';
+type Mode = "idle" | "form" | "submitting" | "done";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function buildMailto(email: string, history: HandoffTurn[]): string {
-  const lastUser = [...history].reverse().find((turn) => turn.role === 'user');
-  const subject = 'Support request';
-  const intro = "Hi, I need help with the following and couldn't resolve it in chat:";
+  const lastUser = [...history].reverse().find((turn) => turn.role === "user");
+  const subject = "Support request";
+  const intro =
+    "Hi, I need help with the following and couldn't resolve it in chat:";
   const body = lastUser ? `${intro}\n\n${lastUser.content}` : intro;
   return `mailto:${email}?subject=${encodeURIComponent(
-    subject
+    subject,
   )}&body=${encodeURIComponent(body)}`;
 }
 
@@ -36,11 +37,11 @@ export function HandoffActions({
   accentColor,
   agentId,
   sessionId,
-  getHistory
+  getHistory,
 }: HandoffActionsProps): React.JSX.Element | null {
-  const [mode, setMode] = React.useState<Mode>('idle');
-  const [email, setEmail] = React.useState('');
-  const [note, setNote] = React.useState('');
+  const [mode, setMode] = React.useState<Mode>("idle");
+  const [email, setEmail] = React.useState("");
+  const [note, setNote] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
 
   const canCreateTicket = handoff.humanDesk;
@@ -53,25 +54,25 @@ export function HandoffActions({
   const submitTicket = async (): Promise<void> => {
     const trimmed = email.trim();
     if (!EMAIL_REGEX.test(trimmed)) {
-      setError('Please enter a valid email so the team can reach you.');
+      setError("Please enter a valid email so the team can reach you.");
       return;
     }
     setError(null);
-    setMode('submitting');
+    setMode("submitting");
     try {
-      const response = await fetch('/api/handoff/ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/handoff/ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           agentId,
           sessionId,
           visitorEmail: trimmed,
           note: note.trim() || undefined,
-          history: getHistory()
-        })
+          history: getHistory(),
+        }),
       });
       if (!response.ok) {
-        let detail = 'Could not create the ticket. Please try again.';
+        let detail = "Could not create the ticket. Please try again.";
         try {
           const data = (await response.json()) as { error?: string };
           if (data.error) {
@@ -82,18 +83,18 @@ export function HandoffActions({
         }
         throw new Error(detail);
       }
-      setMode('done');
+      setMode("done");
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Could not create the ticket. Please try again.'
+          : "Could not create the ticket. Please try again.",
       );
-      setMode('form');
+      setMode("form");
     }
   };
 
-  if (mode === 'done') {
+  if (mode === "done") {
     return (
       <div className="mt-2 rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white/85">
         <p className="font-medium">Got it — your request is with the team.</p>
@@ -106,12 +107,12 @@ export function HandoffActions({
 
   return (
     <div className="mt-2 space-y-2">
-      {mode === 'idle' && (
+      {mode === "idle" && (
         <div className="flex flex-wrap gap-2">
           {canCreateTicket && (
             <button
               type="button"
-              onClick={() => setMode('form')}
+              onClick={() => setMode("form")}
               className="rounded-full px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: accentColor }}
             >
@@ -130,7 +131,7 @@ export function HandoffActions({
         </div>
       )}
 
-      {(mode === 'form' || mode === 'submitting') && (
+      {(mode === "form" || mode === "submitting") && (
         <div className="rounded-xl border border-white/10 bg-black/25 p-3">
           <p className="text-xs font-medium text-white/90">
             Leave your email and the team will take it from here.
@@ -138,7 +139,7 @@ export function HandoffActions({
           <input
             type="email"
             value={email}
-            disabled={mode === 'submitting'}
+            disabled={mode === "submitting"}
             placeholder="you@example.com"
             onChange={(event) => setEmail(event.target.value)}
             className="mt-2 w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:ring-2 focus:ring-white/20"
@@ -146,7 +147,7 @@ export function HandoffActions({
           <textarea
             value={note}
             rows={2}
-            disabled={mode === 'submitting'}
+            disabled={mode === "submitting"}
             placeholder="Anything else we should know? (optional)"
             onChange={(event) => setNote(event.target.value)}
             className="mt-2 max-h-28 w-full resize-none rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:ring-2 focus:ring-white/20"
@@ -156,19 +157,19 @@ export function HandoffActions({
             <button
               type="button"
               onClick={() => void submitTicket()}
-              disabled={mode === 'submitting'}
+              disabled={mode === "submitting"}
               className="rounded-full px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: accentColor }}
             >
-              {mode === 'submitting' ? 'Sending…' : 'Submit ticket'}
+              {mode === "submitting" ? "Sending…" : "Submit ticket"}
             </button>
             <button
               type="button"
               onClick={() => {
-                setMode('idle');
+                setMode("idle");
                 setError(null);
               }}
-              disabled={mode === 'submitting'}
+              disabled={mode === "submitting"}
               className="rounded-full px-3 py-1.5 text-xs font-medium text-white/55 transition-colors hover:text-white/80 disabled:opacity-50"
             >
               Cancel

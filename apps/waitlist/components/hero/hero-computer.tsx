@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useReducedMotion } from 'framer-motion';
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useReducedMotion } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 import {
   HERO_COMPUTER_CROP,
   HERO_COMPUTER_CROP_ASPECT,
   HERO_COMPUTER_FRAME,
-  HERO_COMPUTER_SCREEN
-} from '@/lib/hero-computer-screen';
-import { cn } from '@/lib/utils';
+  HERO_COMPUTER_SCREEN,
+} from "@/lib/hero-computer-screen";
+import { cn } from "@/lib/utils";
 
 const GLITCH_MS = { min: 500, max: 700 } as const;
 const STATIC_MS = { min: 2400, max: 3400 } as const;
@@ -27,9 +27,9 @@ function randomBetween(min: number, max: number): number {
 function ScreenLogo({ className }: { className?: string }): React.JSX.Element {
   return (
     <div
-      className={cn('relative h-[62%] w-[62%]', className)}
+      className={cn("relative h-[62%] w-[62%]", className)}
       style={{
-        transform: `translate(${HERO_COMPUTER_SCREEN.logoOffsetX}, ${HERO_COMPUTER_SCREEN.logoOffsetY})`
+        transform: `translate(${HERO_COMPUTER_SCREEN.logoOffsetX}, ${HERO_COMPUTER_SCREEN.logoOffsetY})`,
       }}
     >
       <Image
@@ -58,19 +58,25 @@ export function HeroComputer(): React.JSX.Element {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const scheduleStatic = (): void => {
-      timeoutId = setTimeout(() => {
-        if (cancelled) {
-          return;
-        }
-        setGlitching(true);
-        timeoutId = setTimeout(() => {
+      timeoutId = setTimeout(
+        () => {
           if (cancelled) {
             return;
           }
-          setGlitching(false);
-          scheduleStatic();
-        }, randomBetween(GLITCH_MS.min, GLITCH_MS.max));
-      }, randomBetween(STATIC_MS.min, STATIC_MS.max));
+          setGlitching(true);
+          timeoutId = setTimeout(
+            () => {
+              if (cancelled) {
+                return;
+              }
+              setGlitching(false);
+              scheduleStatic();
+            },
+            randomBetween(GLITCH_MS.min, GLITCH_MS.max),
+          );
+        },
+        randomBetween(STATIC_MS.min, STATIC_MS.max),
+      );
     };
 
     timeoutId = setTimeout(scheduleStatic, 1800);
@@ -91,7 +97,7 @@ export function HeroComputer(): React.JSX.Element {
           className="absolute top-0 h-full"
           style={{
             width: `${FRAME_IN_CROP_WIDTH_PERCENT}%`,
-            left: `${FRAME_IN_CROP_LEFT_PERCENT}%`
+            left: `${FRAME_IN_CROP_LEFT_PERCENT}%`,
           }}
         >
           <Image
@@ -113,13 +119,13 @@ export function HeroComputer(): React.JSX.Element {
               height: HERO_COMPUTER_SCREEN.height,
               borderRadius: HERO_COMPUTER_SCREEN.borderRadius,
               transform: `perspective(900px) rotateY(${HERO_COMPUTER_SCREEN.rotateY}) rotateX(${HERO_COMPUTER_SCREEN.rotateX}) translate(${HERO_COMPUTER_SCREEN.screenOffsetX}, ${HERO_COMPUTER_SCREEN.screenOffsetY})`,
-              transformOrigin: 'center center'
+              transformOrigin: "center center",
             }}
           >
             <div
               className={cn(
-                'hero-screen-logo relative flex h-full w-full items-center justify-center',
-                glitching && 'hero-screen-logo--glitch'
+                "hero-screen-logo relative flex h-full w-full items-center justify-center",
+                glitching && "hero-screen-logo--glitch",
               )}
             >
               <div className="hero-screen-logo__layer hero-screen-logo__layer--base absolute inset-0 flex items-center justify-center">
@@ -137,7 +143,10 @@ export function HeroComputer(): React.JSX.Element {
               >
                 <ScreenLogo />
               </div>
-              <div className="hero-screen-logo__scanlines absolute inset-0" aria-hidden />
+              <div
+                className="hero-screen-logo__scanlines absolute inset-0"
+                aria-hidden
+              />
             </div>
           </div>
         </div>

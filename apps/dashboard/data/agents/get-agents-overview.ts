@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { unstable_cache as cache } from 'next/cache';
+import { redirect } from 'next/navigation';
 import type {
   CharacterType,
   EmojiMode,
@@ -8,23 +10,21 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
-import { unstable_cache as cache } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import {
   Caching,
   defaultRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
-import { dedupedAuth } from '@/lib/auth';
 import {
   computeAgentMetrics,
   summarizeSourceStatuses,
   type AgentMetrics
 } from '@/lib/agents/compute-agent-metrics';
-import { countConversationOutcomes } from '@/lib/conversations/conversation-outcome';
+import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { countConversationOutcomes } from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
 
 export type AgentOverviewItem = {
@@ -95,11 +95,10 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
       return agents.map((agent) => {
         const outcomeCounts = countConversationOutcomes(agent.conversations);
 
-        const assistantMessages = agent.conversations.flatMap(
-          (conversation) =>
-            conversation.messages.filter(
-              (message) => message.role === 'ASSISTANT'
-            )
+        const assistantMessages = agent.conversations.flatMap((conversation) =>
+          conversation.messages.filter(
+            (message) => message.role === 'ASSISTANT'
+          )
         );
         const totalAssistantMessages = assistantMessages.length;
         const unansweredMessages = assistantMessages.filter(

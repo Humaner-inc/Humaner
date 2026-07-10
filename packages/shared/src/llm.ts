@@ -1,4 +1,4 @@
-import { getPlanForTier, normalizePlanTier, type PlanTier } from './plans';
+import { getPlanForTier, normalizePlanTier, type PlanTier } from "./plans";
 
 export type LlmConfig = {
   model: string;
@@ -11,7 +11,7 @@ const OUTPUT_TOKEN_CAPS: Record<PlanTier, number> = {
   free: 512,
   grow: 768,
   scale: 1_024,
-  delegate: 2_048
+  delegate: 2_048,
 };
 
 export function getLlmConfigForTier(tier: string): LlmConfig {
@@ -22,10 +22,10 @@ export function getLlmConfigForTier(tier: string): LlmConfig {
     model: plan.model,
     maxContextTokens: plan.maxContextTokens,
     maxHistoryTurns: plan.maxHistoryTurns,
-    maxOutputTokens: OUTPUT_TOKEN_CAPS[planTier]
+    maxOutputTokens: OUTPUT_TOKEN_CAPS[planTier],
   };
 }
 
 export function isPaidTier(tier: string): boolean {
-  return normalizePlanTier(tier) !== 'free';
+  return normalizePlanTier(tier) !== "free";
 }

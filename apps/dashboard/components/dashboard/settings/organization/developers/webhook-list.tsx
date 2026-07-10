@@ -2,9 +2,9 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
+import { MoreHorizontalIcon } from '@humaner/shared/icons';
 import { WebhookTrigger } from '@prisma/client';
 import { LightningBoltIcon } from '@radix-ui/react-icons';
-import { MoreHorizontalIcon } from '@humaner/shared/icons';
 
 import { DeleteWebhookModal } from '@/components/dashboard/settings/organization/developers/delete-webhook-modal';
 import { EditWebhookModal } from '@/components/dashboard/settings/organization/developers/edit-webhook-modal';

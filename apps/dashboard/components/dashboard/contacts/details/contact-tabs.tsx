@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { ActivityIcon, CheckSquare2Icon, FileIcon } from '@humaner/shared/icons';
+import {
+  ActivityIcon,
+  CheckSquare2Icon,
+  FileIcon
+} from '@humaner/shared/icons';
 
 import { ContactNotesTab } from '@/components/dashboard/contacts/details/notes/contact-notes-tab';
 import { ContactTasksTab } from '@/components/dashboard/contacts/details/tasks/contact-tasks-tab';

@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import type { SyncStatus } from '@prisma/client';
 import { Loader2Icon } from '@humaner/shared/icons';
+import type { SyncStatus } from '@prisma/client';
 
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import {
@@ -57,15 +57,24 @@ export function KnowledgeSourceStatus({
         title="Ingested and ready"
         aria-label="Ingested and ready"
       >
-        <FileCheckIcon ref={iconRef} size={24} />
+        <FileCheckIcon
+          ref={iconRef}
+          size={24}
+        />
       </div>
     );
   }
 
   if (status === 'PROCESSING' || status === 'PENDING') {
     return (
-      <Badge variant="secondary" className="gap-1.5">
-        <Loader2Icon className="size-3 animate-spin text-muted-foreground" aria-hidden />
+      <Badge
+        variant="secondary"
+        className="gap-1.5"
+      >
+        <Loader2Icon
+          className="size-3 animate-spin text-muted-foreground"
+          aria-hidden
+        />
         {status === 'PENDING' ? 'Queued' : 'Processing'}
       </Badge>
     );

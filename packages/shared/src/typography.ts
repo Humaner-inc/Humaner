@@ -9,9 +9,9 @@
  * Fellix (`font-fellix`): product mockups / embeddable widget — same face as sans
  */
 
-export const UI_SANS = 'font-sans';
-export const UI_DISPLAY = 'font-display';
-export const UI_MONO = 'font-mono';
+export const UI_SANS = "font-sans";
+export const UI_DISPLAY = "font-display";
+export const UI_MONO = "font-mono";
 
 export const uiNavLinkClassName = `${UI_SANS} text-xs transition-colors`;
 

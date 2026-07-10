@@ -106,8 +106,9 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
           <div className="flex flex-row items-start gap-2">
             <InfoIcon className="mt-0.5 size-[18px] shrink-0" />
             <AlertDescription>
-              Creating a new workspace will share your account&apos;s plan and message
-              quota. If you need a separate billing for this business create a new account.
+              Creating a new workspace will share your account&apos;s plan and
+              message quota. If you need a separate billing for this business
+              create a new account.
             </AlertDescription>
           </div>
         </Alert>

@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from '@humaner/shared/icons';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { switchWorkspace } from '@/actions/workspaces/switch-workspace';
@@ -63,7 +63,10 @@ function WorkspaceAvatar({
       <img
         src={logoUrl}
         alt=""
-        className={cn('size-8 rounded-lg object-cover ring-1 ring-border/50', className)}
+        className={cn(
+          'size-8 rounded-lg object-cover ring-1 ring-border/50',
+          className
+        )}
       />
     );
   }
@@ -154,14 +157,19 @@ export function WorkspaceSwitcher({
   if (variant === 'sidebar') {
     return (
       <DropdownMenu>
-        <SidebarGroup className={cn('p-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center', className)}>
+        <SidebarGroup
+          className={cn(
+            'p-0 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center',
+            className
+          )}
+        >
           <SidebarMenu>
             <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
                   tooltip={active.name}
-                  className="h-auto gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 px-2.5 py-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
+                  className="h-auto gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
                 >
                   <WorkspaceAvatar workspace={active} />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">

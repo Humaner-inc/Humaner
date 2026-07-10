@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
-import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
 import { prisma } from '@/lib/db/prisma';
+import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
@@ -61,11 +61,8 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
       await feedClusterFromResolution({
         organizationId: session.user.organizationId,
         ticketId: ticket.id,
-        pattern:
-          parsedInput.resolutionPattern?.trim() ||
-          ticket.subject,
-        issueType:
-          parsedInput.issueType?.trim() || 'general',
+        pattern: parsedInput.resolutionPattern?.trim() || ticket.subject,
+        issueType: parsedInput.issueType?.trim() || 'general',
         solution: parsedInput.resolutionSolution.trim(),
         existingClusterId: ticket.clusterId
       });

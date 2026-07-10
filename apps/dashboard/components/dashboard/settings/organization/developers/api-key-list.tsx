@@ -2,9 +2,8 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { formatDistanceToNow } from 'date-fns';
-import { isBefore } from 'date-fns';
 import { KeyRoundIcon, MoreHorizontalIcon } from '@humaner/shared/icons';
+import { formatDistanceToNow, isBefore } from 'date-fns';
 
 import { EditApiKeyModal } from '@/components/dashboard/settings/organization/developers/edit-api-key-modal';
 import { RevokeApiKeyModal } from '@/components/dashboard/settings/organization/developers/revoke-api-key-modal';
@@ -74,7 +73,11 @@ type ApiKeyListItemProps = React.HtmlHTMLAttributes<HTMLLIElement> & {
   apiKey: ApiKeyDto;
 };
 
-function ApiKeyStatusBadge({ status }: { status: ApiKeyStatus }): React.JSX.Element {
+function ApiKeyStatusBadge({
+  status
+}: {
+  status: ApiKeyStatus;
+}): React.JSX.Element {
   return (
     <Badge
       variant="outline"
@@ -114,7 +117,9 @@ function ApiKeyListItem({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-sm font-medium">{apiKey.description}</span>
+          <span className="truncate text-sm font-medium">
+            {apiKey.description}
+          </span>
           <ApiKeyStatusBadge status={status} />
         </div>
         <p

@@ -13,11 +13,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import {
   SUPPORT_TICKET_INBOX_FILTER_OPTIONS,
   type SupportTicketInboxFilter
 } from '@/lib/support-ticket-labels';
+import { cn } from '@/lib/utils';
 
 export type SupportTicketInboxFilterDropdownProps = {
   value: SupportTicketInboxFilter;
@@ -83,7 +83,10 @@ export function SupportTicketInboxFilterDropdown({
             >
               <span className="flex min-w-0 items-center gap-2">
                 <span
-                  className={cn('size-2 shrink-0 rounded-full', option.dotClass)}
+                  className={cn(
+                    'size-2 shrink-0 rounded-full',
+                    option.dotClass
+                  )}
                   aria-hidden
                 />
                 <span className="truncate">{option.label}</span>

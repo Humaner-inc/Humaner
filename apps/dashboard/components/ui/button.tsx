@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
 import {
   ctaPrimaryOnLightClassName,
   ctaSecondaryAdaptiveClassName
 } from '@humaner/shared/cta';
 import { Loader2Icon } from '@humaner/shared/icons';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
 const neutralCtaClasses = `${ctaPrimaryOnLightClassName} dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-[#d9d4cd] dark:hover:text-[#070607]`;
 
 const upgradeCtaClasses =
-  'border border-[#070607]/14 bg-[#fff8f2] font-mono font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#dc143c] hover:text-white dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#dc143c] dark:hover:text-white';
+  'border border-[#070607]/14 bg-[#fff8f2] font-mono font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#e1ccaf] hover:text-[#070607] dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#e1ccaf] dark:hover:text-[#070607]';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
@@ -21,8 +21,7 @@ const buttonVariants = cva(
       variant: {
         default: neutralCtaClasses,
         upgrade: upgradeCtaClasses,
-        accent:
-          'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+        accent: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
         outline: ctaSecondaryAdaptiveClassName,

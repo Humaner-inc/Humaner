@@ -1,14 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { type SubmitHandler } from 'react-hook-form';
 import type { IndustryType, TargetAudience } from '@prisma/client';
+import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { updateOrganizationDetails } from '@/actions/organization/update-organization-details';
+import { BusinessLogo } from '@/components/dashboard/business-logo';
 import { AudienceTag } from '@/components/dashboard/home/audience-tag';
 import { IndustryTag } from '@/components/dashboard/home/industry-tag';
-import { BusinessLogo } from '@/components/dashboard/business-logo';
 import { Button } from '@/components/ui/button';
 import {
   Card,

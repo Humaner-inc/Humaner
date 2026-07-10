@@ -1,5 +1,6 @@
-import { HandoffTicketStatus } from '@/types/handoff-ticket';
 import { z } from 'zod';
+
+import { HandoffTicketStatus } from '@/types/handoff-ticket';
 
 export const setHumanDeskEnabledSchema = z.object({
   enabled: z.boolean()
@@ -41,7 +42,9 @@ export const assignHandoffTicketSchema = z.object({
   assigneeId: z.string().uuid('A valid teammate is required.').nullable()
 });
 
-export type AssignHandoffTicketSchema = z.infer<typeof assignHandoffTicketSchema>;
+export type AssignHandoffTicketSchema = z.infer<
+  typeof assignHandoffTicketSchema
+>;
 
 export const updateLiveChatSettingsSchema = z.object({
   liveChatEnabled: z.boolean(),

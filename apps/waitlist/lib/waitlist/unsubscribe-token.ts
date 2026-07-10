@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -19,15 +19,12 @@ export function createUnsubscribeToken(email: string): string | null {
     return null;
   }
 
-  return createHmac('sha256', secret)
+  return createHmac("sha256", secret)
     .update(normalizeEmail(email))
-    .digest('base64url');
+    .digest("base64url");
 }
 
-export function verifyUnsubscribeToken(
-  email: string,
-  token: string
-): boolean {
+export function verifyUnsubscribeToken(email: string, token: string): boolean {
   const expected = createUnsubscribeToken(email);
 
   if (!expected || !token) {

@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { ContactTaskStatus } from '@prisma/client';
 import { MoreHorizontalIcon } from '@humaner/shared/icons';
+import { ContactTaskStatus } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { updateContactTask } from '@/actions/contacts/update-contact-task';

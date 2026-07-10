@@ -10,7 +10,9 @@ import {
   type UserWorkspaceSummary
 } from '@/lib/auth/workspace-membership';
 
-export async function getWorkspaceSwitcherData(): Promise<UserWorkspaceSummary[]> {
+export async function getWorkspaceSwitcherData(): Promise<
+  UserWorkspaceSummary[]
+> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());

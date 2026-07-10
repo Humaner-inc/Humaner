@@ -1,19 +1,24 @@
 import 'server-only';
 
-import type { HandoffTicketStatus, HandoffTicketUrgency } from '@/types/handoff-ticket';
 import { redirect } from 'next/navigation';
 
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { toDeskRoutedTo } from '@/lib/desk/routed-to';
 import { prisma } from '@/lib/db/prisma';
+import { toDeskRoutedTo } from '@/lib/desk/routed-to';
+import type {
+  HandoffInboxAssignee,
+  HandoffInboxTicket
+} from '@/lib/handoff/handoff-inbox';
 import {
   resolveHandoffIntegrationProfile,
   type HandoffIntegrationProfile
 } from '@/lib/integrations/handoff-integration-profile';
-
-import type { HandoffInboxAssignee, HandoffInboxTicket } from '@/lib/handoff/handoff-inbox';
+import type {
+  HandoffTicketStatus,
+  HandoffTicketUrgency
+} from '@/types/handoff-ticket';
 
 const HANDOFF_TICKET_LIMIT = 500;
 
