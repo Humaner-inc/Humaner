@@ -118,6 +118,8 @@ export type BrandWordmarkProps = HTMLAttributes<HTMLSpanElement> & {
   active?: boolean;
   /** When false, renders static text with no hover morph (for embeds, footers). */
   interactive?: boolean;
+  /** Pixel pass only — no display→mono typography switch (nav links, mono UI). */
+  pixelOnly?: boolean;
 };
 
 export function BrandWordmark({
@@ -125,6 +127,7 @@ export function BrandWordmark({
   hoverText = BRAND_WORDMARK_HOVER,
   active,
   interactive = true,
+  pixelOnly = false,
   className,
   style,
   onMouseEnter,
@@ -185,7 +188,9 @@ export function BrandWordmark({
         progressRef.current = target;
         setDisplayText(target >= 1 ? to : from);
         setUseHoverTypography(
-          hoverTypographyActive(progressRef.current, target),
+          pixelOnly
+            ? false
+            : hoverTypographyActive(progressRef.current, target),
         );
         stopAnimation();
         return;
@@ -193,7 +198,9 @@ export function BrandWordmark({
 
       setDisplayText(morphText(eased, from, to));
       setUseHoverTypography(
-        hoverTypographyActive(progressRef.current, targetRef.current),
+        pixelOnly
+          ? false
+          : hoverTypographyActive(progressRef.current, targetRef.current),
       );
       frameRef.current = requestAnimationFrame(tick);
     },
@@ -205,7 +212,9 @@ export function BrandWordmark({
       if (progressRef.current === nextTarget) {
         setDisplayText(nextTarget >= 1 ? to : from);
         setUseHoverTypography(
-          hoverTypographyActive(progressRef.current, nextTarget),
+          pixelOnly
+            ? false
+            : hoverTypographyActive(progressRef.current, nextTarget),
         );
         return;
       }

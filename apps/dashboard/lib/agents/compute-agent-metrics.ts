@@ -149,8 +149,10 @@ export function summarizeSourceStatuses(
 > {
   return {
     readySources: statuses.filter((status) => status === 'READY').length,
-    pendingSources: statuses.filter(
-      (status) => status === 'PENDING' || status === 'PROCESSING'
+    pendingSources: statuses.filter((status) =>
+      ['PENDING', 'QUEUED', 'EXTRACTING', 'PROCESSING', 'INDEXING'].includes(
+        status
+      )
     ).length,
     failedSources: statuses.filter((status) => status === 'FAILED').length
   };

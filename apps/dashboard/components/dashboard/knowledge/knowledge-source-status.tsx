@@ -14,10 +14,21 @@ const STATUS_META: Record<
   Exclude<SyncStatus, 'READY'>,
   { label: string; variant: BadgeProps['variant'] }
 > = {
-  PENDING: { label: 'Queued', variant: 'secondary' },
+  PENDING: { label: 'Pending', variant: 'secondary' },
+  QUEUED: { label: 'Queued', variant: 'secondary' },
+  EXTRACTING: { label: 'Extracting', variant: 'secondary' },
   PROCESSING: { label: 'Processing', variant: 'secondary' },
+  INDEXING: { label: 'Indexing', variant: 'secondary' },
   FAILED: { label: 'Failed', variant: 'destructive' }
 };
+
+const IN_FLIGHT_STATUSES: SyncStatus[] = [
+  'PENDING',
+  'QUEUED',
+  'EXTRACTING',
+  'PROCESSING',
+  'INDEXING'
+];
 
 type KnowledgeSourceStatusProps = {
   status: SyncStatus;
@@ -65,7 +76,7 @@ export function KnowledgeSourceStatus({
     );
   }
 
-  if (status === 'PROCESSING' || status === 'PENDING') {
+  if (IN_FLIGHT_STATUSES.includes(status)) {
     return (
       <Badge
         variant="secondary"
@@ -75,7 +86,7 @@ export function KnowledgeSourceStatus({
           className="size-3 animate-spin text-muted-foreground"
           aria-hidden
         />
-        {status === 'PENDING' ? 'Queued' : 'Processing'}
+        {STATUS_META[status].label}
       </Badge>
     );
   }
