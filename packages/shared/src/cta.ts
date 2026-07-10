@@ -74,8 +74,7 @@ export function getCtaTryHumanerIconClassName(
     : "flex size-4 shrink-0 items-center justify-center text-[#e1ccaf]";
 }
 
-export const ctaTryHumanerIconClassName =
-  getCtaTryHumanerIconClassName("dark");
+export const ctaTryHumanerIconClassName = getCtaTryHumanerIconClassName("dark");
 
 const CTA_TRY_HUMANER_LABEL_BASE =
   "font-mono text-xs font-medium uppercase tracking-[0.14em]";
