@@ -2,6 +2,7 @@ node_modules
 .next
 **/.next
 **/node_modules
+**/.pytest_cache
 apps/dashboard/lib/generated
 **/*.lock
 pnpm-lock.yaml
