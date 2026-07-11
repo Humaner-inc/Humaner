@@ -1,9 +1,6 @@
--- Phase 3 prerequisite: enable pgvector in Supabase Dashboard first
--- (Database → Extensions → vector), then run:
---   pnpm --filter @humaner/dashboard db:execute:pgvector
---   pnpm db:migrate
---
--- Or run this file manually in the Supabase SQL editor (not via pooler):
+-- Deprecated: use prisma/sql/phase3-gap-clustering.sql
+-- Kept for reference — enable vector in Supabase Dashboard first.
+
 CREATE EXTENSION IF NOT EXISTS vector;
 
 ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "embedding" vector(1536);
