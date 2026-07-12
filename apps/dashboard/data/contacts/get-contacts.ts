@@ -6,7 +6,7 @@ import { ContactRecord, Prisma } from '@prisma/client';
 
 import {
   Caching,
-  defaultRevalidateTimeInSeconds,
+  dynamicListRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
 import { dedupedAuth } from '@/lib/auth';
@@ -111,7 +111,7 @@ export async function getContacts(
       parsedInput.searchQuery?.toString() ?? ''
     ),
     {
-      revalidate: defaultRevalidateTimeInSeconds,
+      revalidate: dynamicListRevalidateTimeInSeconds,
       tags: [
         Caching.createOrganizationTag(
           OrganizationCacheKey.Contacts,

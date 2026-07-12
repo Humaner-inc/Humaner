@@ -14,6 +14,7 @@ import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 import { addKnowledgeSource } from '@/actions/knowledge/add-knowledge-source';
+import { useOptionalKnowledgeResources } from '@/components/dashboard/knowledge/knowledge-resources-shell';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,11 +28,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
 import {
   formatKnowledgeFileSizeLimit,
   KNOWLEDGE_FILE_CONTENT_MAX_LENGTH,
   KNOWLEDGE_PASTED_TEXT_MAX_LENGTH
 } from '@/lib/knowledge/content-limits';
+import { buildOptimisticKnowledgeSources } from '@/lib/knowledge/optimistic-knowledge-source';
 import { cn } from '@/lib/utils';
 
 const highlightedInputClassName =
@@ -117,6 +120,7 @@ export function AddSourceDialog({
   onSourceAdded
 }: AddSourceDialogProps): React.JSX.Element {
   const router = useRouter();
+  const knowledgeResources = useOptionalKnowledgeResources();
   const { resolvedTheme } = useTheme();
   const highlightedTone: HighlightedFieldTone =
     resolvedTheme === 'light' ? 'light' : 'dark';
@@ -216,9 +220,21 @@ export function AddSourceDialog({
     }
     startTransition(async () => {
       if (type === 'MARKDOWN') {
+        const filesToAdd = [...mdFiles];
+        const optimisticSources = buildOptimisticKnowledgeSources({
+          type: 'TEXT',
+          files: filesToAdd
+        });
+        const optimisticIds = optimisticSources.map((source) => source.id);
+        knowledgeResources?.addSources(optimisticSources);
+        setOpen(false);
+        reset();
+
         let added = 0;
+        const createdSources: KnowledgeSourceItem[] = [];
         let lastError: string | undefined;
-        for (const file of mdFiles) {
+
+        for (const file of filesToAdd) {
           const result = await addKnowledgeSource({
             agentId,
             type: 'TEXT',
@@ -231,21 +247,37 @@ export function AddSourceDialog({
             lastError = `${file.name}: ${error}`;
             continue;
           }
+          if (result?.data?.sources) {
+            createdSources.push(...result.data.sources);
+          }
           added++;
         }
+
         if (added === 0) {
+          knowledgeResources?.reconcileSources(optimisticIds, []);
           toast.error(lastError ?? 'Could not add any files');
           return;
         }
+
+        knowledgeResources?.reconcileSources(optimisticIds, createdSources);
         toast.success(
           `${added} file${added === 1 ? '' : 's'} added — queued for processing`
         );
-        setOpen(false);
-        reset();
         onSourceAdded?.();
         router.refresh();
         return;
       }
+
+      const optimisticSources = buildOptimisticKnowledgeSources({
+        type,
+        urls: type === 'URL' ? parsedUrls : undefined,
+        url: type === 'SITEMAP' ? url.trim() : undefined,
+        title: type === 'TEXT' ? title.trim() : undefined
+      });
+      const optimisticIds = optimisticSources.map((source) => source.id);
+      knowledgeResources?.addSources(optimisticSources);
+      setOpen(false);
+      reset();
 
       const result = await addKnowledgeSource({
         agentId,
@@ -256,20 +288,28 @@ export function AddSourceDialog({
         content: type === 'TEXT' ? content.trim() : undefined
       });
       if (result?.serverError) {
+        knowledgeResources?.reconcileSources(optimisticIds, []);
         toast.error(result.serverError);
         return;
       }
       if (result?.validationErrors) {
+        knowledgeResources?.reconcileSources(optimisticIds, []);
         toast.error('Please check the source details');
         return;
       }
+
+      if (result?.data?.sources) {
+        knowledgeResources?.reconcileSources(
+          optimisticIds,
+          result.data.sources
+        );
+      }
+
       toast.success(
         type === 'URL'
           ? `${parsedUrls.length} source${parsedUrls.length === 1 ? '' : 's'} added — queued for processing`
           : 'Source added — queued for processing'
       );
-      setOpen(false);
-      reset();
       onSourceAdded?.();
       router.refresh();
     });

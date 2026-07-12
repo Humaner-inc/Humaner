@@ -27,21 +27,34 @@ const TYPE_ICON: Record<SourceType, typeof GlobeIcon> = {
 
 export type SourceListProps = {
   sources: KnowledgeSourceItem[];
+  onSourceRemoved?: (id: string) => void;
 };
 
-export function SourceList({ sources }: SourceListProps): React.JSX.Element {
+export function SourceList({
+  sources,
+  onSourceRemoved
+}: SourceListProps): React.JSX.Element {
   const router = useRouter();
   const [pendingId, setPendingId] = React.useState<string | null>(null);
 
   const handleDelete = async (id: string): Promise<void> => {
+    if (id.startsWith('optimistic-')) {
+      onSourceRemoved?.(id);
+      return;
+    }
+
+    onSourceRemoved?.(id);
     setPendingId(id);
     try {
       const result = await deleteKnowledgeSource({ id });
       if (result?.serverError) {
         toast.error(result.serverError);
+        router.refresh();
         return;
       }
       toast.success('Source removed');
+      router.refresh();
+    } catch {
       router.refresh();
     } finally {
       setPendingId(null);

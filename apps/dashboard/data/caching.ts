@@ -113,3 +113,6 @@ export class Caching {
 }
 
 export const defaultRevalidateTimeInSeconds = AppInfo.PRODUCTION ? 3600 : 120;
+
+/** Paginated or frequently updated lists (contacts table, etc.). */
+export const dynamicListRevalidateTimeInSeconds = AppInfo.PRODUCTION ? 30 : 15;

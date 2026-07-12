@@ -13,7 +13,7 @@ import type {
 
 import {
   Caching,
-  defaultRevalidateTimeInSeconds,
+  dynamicListRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
 import { dedupedAuth } from '@/lib/auth';
@@ -79,7 +79,7 @@ export async function getAgents(): Promise<AgentListItem[]> {
       'list'
     ),
     {
-      revalidate: defaultRevalidateTimeInSeconds,
+      revalidate: dynamicListRevalidateTimeInSeconds,
       tags: [
         Caching.createOrganizationTag(
           OrganizationCacheKey.Agents,
