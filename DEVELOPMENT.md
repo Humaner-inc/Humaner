@@ -12,14 +12,14 @@ This guide is for **Humaner team members**, **security evaluators** reading auth
 
 ## What you can run locally
 
-| Surface                          | Local? | Notes                                      |
-| -------------------------------- | ------ | ------------------------------------------ |
-| Landing (`apps/landing`)         | ✅     | Marketing + docs site                      |
-| Dashboard UI (`apps/dashboard`)  | ✅     | Auth, settings, desk, billing UI           |
-| Widget iframe + `widget.js`      | ✅     | Point embed at `localhost:3001`            |
-| `@humaner/react`                 | ✅     | `baseUrl="http://localhost:3001"`          |
-| API routes (`/api/v1/*`)         | ✅     | Requires your own keys + Redis (see below) |
-| Agent test harness (`apps/test`) | ✅     | Sandbox against local or hosted API        |
+| Surface                         | Local? | Notes                                      |
+| ------------------------------- | ------ | ------------------------------------------ |
+| Landing (`apps/landing`)        | ✅     | Marketing site + vision handbook           |
+| Docs (`apps/documentation`)     | ✅     | Product documentation (`docs.humaner.io`)  |
+| Dashboard UI (`apps/dashboard`) | ✅     | Auth, settings, desk, billing UI           |
+| Widget iframe + `widget.js`     | ✅     | Point embed at `localhost:3001`            |
+| `@humaner/react`                | ✅     | `baseUrl="http://localhost:3001"`          |
+| API routes (`/api/v1/*`)        | ✅     | Requires your own keys + Redis (see below) |
 
 ## What you cannot self-host today
 
@@ -57,11 +57,11 @@ pnpm --filter @humaner/dashboard exec prisma migrate dev
 pnpm dev
 ```
 
-| App          | URL                   | Command              |
-| ------------ | --------------------- | -------------------- |
-| Landing      | http://localhost:3000 | `pnpm dev:landing`   |
-| Dashboard    | http://localhost:3001 | `pnpm dev:dashboard` |
-| Test harness | http://localhost:3003 | `pnpm dev:test`      |
+| App       | URL                   | Command                  |
+| --------- | --------------------- | ------------------------ |
+| Landing   | http://localhost:3000 | `pnpm dev:landing`       |
+| Dashboard | http://localhost:3001 | `pnpm dev:dashboard`     |
+| Docs      | http://localhost:3004 | `pnpm dev:documentation` |
 
 ```bash
 pnpm build       # production build
@@ -77,8 +77,9 @@ pnpm db:studio   # Prisma Studio
 ```
 apps/
   landing/     → humaner.io        (port 3000)
+  documentation/ → docs.humaner.io   (port 3004)
   dashboard/   → app.humaner.io    (port 3001)
-  test/        → agent sandbox      (port 3003)
+  waitlist/    → deploy.humaner.io (port 3002)
 packages/
   react/       → @humaner/react
   shared/      → plans, URLs, shared types

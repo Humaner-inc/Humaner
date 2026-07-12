@@ -118,9 +118,10 @@ This repo is for team members, evaluators, and SDK contributors. See [DEVELOPMEN
 
 ```
 apps/
-  landing/     → humaner.io        (port 3000)
-  dashboard/   → app.humaner.io    (port 3001)
-  test/        → agent sandbox      (port 3003)
+  landing/        → humaner.io        (port 3000)
+  documentation/  → docs.humaner.io   (port 3004)
+  dashboard/      → app.humaner.io    (port 3001)
+  waitlist/       → deploy.humaner.io (port 3002)
 packages/
   react/       → @humaner/react
   shared/      → plans, URLs, shared types

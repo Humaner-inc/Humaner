@@ -14,7 +14,7 @@ regexes = [
   '''<api-key>''',
 ]
 paths = [
-  '''apps/landing/lib/docs-content/''',
+  '''apps/documentation/lib/docs-content/''',
   '''apps/landing/lib/integrations\.ts''',
   '''apps/dashboard/components/dashboard/integrations/''',
   '''apps/dashboard/components/dashboard/settings/organization/developers/''',
