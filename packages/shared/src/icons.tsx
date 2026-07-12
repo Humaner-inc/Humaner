@@ -68,6 +68,7 @@ import {
   PlugZapIcon,
   PlusIcon as PlusIconSource,
   RadioIcon as RadioIconSource,
+  RefreshCwIcon as RefreshCwIconSource,
   RocketIcon as RocketIconSource,
   RouteIcon,
   SearchIcon as SearchIconSource,
@@ -203,6 +204,7 @@ export const PlugIcon = createAnimatedIcon(PlugZapIcon);
 export const Plus = createAnimatedIcon(PlusIconSource);
 export const PlusIcon = createAnimatedIcon(PlusIconSource);
 export const RadioIcon = createAnimatedIcon(RadioIconSource);
+export const RefreshCwIcon = createAnimatedIcon(RefreshCwIconSource);
 export const Rocket = createAnimatedIcon(RocketIconSource);
 export const SearchIcon = createAnimatedIcon(SearchIconSource);
 export const SettingsIcon = createAnimatedIcon(SettingsIconSource);

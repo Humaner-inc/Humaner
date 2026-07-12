@@ -19,6 +19,7 @@ const POLL_INTERVAL_MS = 2000;
 type KnowledgeResourcesContextValue = {
   addSources: (sources: KnowledgeSourceItem[]) => void;
   removeSource: (id: string) => void;
+  markSourcePending: (id: string) => void;
   reconcileSources: (
     optimisticIds: string[],
     sources: KnowledgeSourceItem[]
@@ -110,6 +111,16 @@ export function KnowledgeResourcesShell({
     setSources((current) => current.filter((source) => source.id !== id));
   }, []);
 
+  const markSourcePending = React.useCallback((id: string) => {
+    setSources((current) =>
+      current.map((source) =>
+        source.id === id
+          ? { ...source, status: 'PENDING', errorMessage: null }
+          : source
+      )
+    );
+  }, []);
+
   const reconcileSources = React.useCallback(
     (optimisticIds: string[], next: KnowledgeSourceItem[]) => {
       setSources((current) => {
@@ -178,9 +189,10 @@ export function KnowledgeResourcesShell({
     () => ({
       addSources,
       removeSource,
+      markSourcePending,
       reconcileSources
     }),
-    [addSources, removeSource, reconcileSources]
+    [addSources, removeSource, markSourcePending, reconcileSources]
   );
 
   return (

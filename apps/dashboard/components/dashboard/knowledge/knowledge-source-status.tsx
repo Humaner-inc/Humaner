@@ -1,11 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { CheckIcon, Loader2Icon } from '@humaner/shared/icons';
+import {
+  CheckIcon,
+  Loader2Icon,
+  TriangleAlertIcon
+} from '@humaner/shared/icons';
 import type { SyncStatus } from '@prisma/client';
 import { motion } from 'motion/react';
 
-import { StatusPill } from '@/components/ui/status-pill';
+import { cn } from '@/lib/utils';
 
 const IN_FLIGHT_LABELS: Record<
   Extract<
@@ -24,6 +28,9 @@ const IN_FLIGHT_LABELS: Record<
 const IN_FLIGHT_STATUSES = Object.keys(
   IN_FLIGHT_LABELS
 ) as (keyof typeof IN_FLIGHT_LABELS)[];
+
+const statusIndicatorClassName =
+  'flex size-8 shrink-0 items-center justify-center text-muted-foreground';
 
 type KnowledgeSourceStatusProps = {
   status: SyncStatus;
@@ -55,9 +62,8 @@ export function KnowledgeSourceStatus({
 
   if (status === 'READY') {
     return (
-      <StatusPill
-        variant="success"
-        iconOnly
+      <span
+        className={statusIndicatorClassName}
         title="Ingested and ready"
         aria-label="Ingested and ready"
       >
@@ -68,25 +74,39 @@ export function KnowledgeSourceStatus({
           className="flex items-center justify-center"
         >
           <CheckIcon
-            className="size-3.5"
+            className="size-4 text-emerald-500"
             aria-hidden
           />
         </motion.span>
-      </StatusPill>
+      </span>
     );
   }
 
   if (IN_FLIGHT_STATUSES.includes(status as keyof typeof IN_FLIGHT_LABELS)) {
     return (
-      <StatusPill variant="pending">
+      <span
+        className={statusIndicatorClassName}
+        title={IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
+        aria-label={IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
+      >
         <Loader2Icon
-          className="size-3 animate-spin"
+          className="size-4 animate-spin"
           aria-hidden
         />
-        {IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
-      </StatusPill>
+      </span>
     );
   }
 
-  return <StatusPill variant="failed">Failed</StatusPill>;
+  return (
+    <span
+      className={cn(statusIndicatorClassName, 'text-destructive')}
+      title="Failed"
+      aria-label="Failed"
+    >
+      <TriangleAlertIcon
+        className="size-4"
+        aria-hidden
+      />
+    </span>
+  );
 }
