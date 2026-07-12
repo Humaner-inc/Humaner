@@ -3,12 +3,14 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { HighlightedTextarea, HighlightedTextInput } from '@humaner/react';
+import type { HighlightedFieldTone } from '@humaner/react';
 import {
   FileTextIcon,
   PlusIcon,
   UploadIcon,
   XIcon
 } from '@humaner/shared/icons';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 import { addKnowledgeSource } from '@/actions/knowledge/add-knowledge-source';
@@ -60,6 +62,9 @@ export function AddSourceDialog({
   onSourceAdded
 }: AddSourceDialogProps): React.JSX.Element {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const highlightedTone: HighlightedFieldTone =
+    resolvedTheme === 'light' ? 'light' : 'dark';
   const [internalOpen, setInternalOpen] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -254,10 +259,11 @@ export function AddSourceDialog({
                   'https://example.com/help/refunds\nhttps://example.com/help/shipping\nhttps://example.com/faq'
                 }
                 value={urls}
+                tone={highlightedTone}
                 disabled={isPending}
                 onChange={(e) => setUrls(e.target.value)}
                 className={highlightedTextareaClassName}
-                mirrorClassName="px-3 py-2 text-foreground"
+                mirrorClassName="px-3 py-2"
               />
               <p className="text-xs text-muted-foreground">
                 One URL per line — add as many as you need.
@@ -272,11 +278,12 @@ export function AddSourceDialog({
                 id="source-root"
                 placeholder="https://example.com"
                 value={url}
+                tone={highlightedTone}
                 maxLength={2048}
                 disabled={isPending}
                 onChange={(e) => setUrl(e.target.value)}
                 className={highlightedInputClassName}
-                mirrorClassName="px-3 py-1 text-foreground"
+                mirrorClassName="px-3 py-1"
               />
               <p className="text-xs text-muted-foreground">
                 We discover and crawl every page under this URL.
