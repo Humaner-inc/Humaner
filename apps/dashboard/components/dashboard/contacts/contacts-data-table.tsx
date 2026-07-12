@@ -32,6 +32,7 @@ import {
   DataTableColumnOptionsHeader,
   DataTablePagination
 } from '@/components/ui/data-table';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -350,15 +351,14 @@ const columns: ColumnDef<ContactDto>[] = [
               <Link href={`${Routes.Contacts}/${row.original.id}`}>View</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="!text-destructive"
+            <DeleteActionMenuItem
               onClick={(e) => {
                 e.stopPropagation();
                 handleShowDeleteContactModal();
               }}
             >
               Delete
-            </DropdownMenuItem>
+            </DeleteActionMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

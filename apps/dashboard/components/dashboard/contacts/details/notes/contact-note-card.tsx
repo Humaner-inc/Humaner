@@ -15,6 +15,7 @@ import {
   CardHeader,
   type CardProps
 } from '@/components/ui/card';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,12 +75,9 @@ export function ContactNoteCard({
               Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="!text-destructive"
-              onClick={handleShowDeleteContactNoteModal}
-            >
+            <DeleteActionMenuItem onClick={handleShowDeleteContactNoteModal}>
               Delete
-            </DropdownMenuItem>
+            </DeleteActionMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>

@@ -3,8 +3,7 @@ import {
   BellIcon,
   CreditCardIcon,
   LockKeyholeIcon,
-  UserIcon,
-  UserPlus2Icon
+  UserIcon
 } from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
@@ -13,7 +12,6 @@ export type SettingsNavTabId =
   | 'profile'
   | 'security'
   | 'notifications'
-  | 'members'
   | 'billing';
 
 export type SettingsNavTab = {
@@ -42,13 +40,6 @@ export const SETTINGS_NAV_TABS: SettingsNavTab[] = [
     label: 'Notifications',
     icon: BellIcon,
     href: Routes.Notifications
-  },
-  {
-    id: 'members',
-    label: 'Members',
-    icon: UserPlus2Icon,
-    href: Routes.Members,
-    ownerOnly: true
   },
   {
     id: 'billing',

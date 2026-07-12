@@ -9,6 +9,7 @@ import { EditApiKeyModal } from '@/components/dashboard/settings/organization/de
 import { RevokeApiKeyModal } from '@/components/dashboard/settings/organization/developers/revoke-api-key-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -153,12 +154,9 @@ function ApiKeyListItem({
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="!text-destructive"
-            onClick={handleShowRevokeApiKeyModal}
-          >
+          <DeleteActionMenuItem onClick={handleShowRevokeApiKeyModal}>
             Revoke
-          </DropdownMenuItem>
+          </DeleteActionMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </li>

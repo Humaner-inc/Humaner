@@ -218,7 +218,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         kind: 'plan_limit',
         title: 'Member limit reached',
         description: `${plan.name} includes ${plan.members} ${plan.members === 1 ? 'member' : 'members'}. Upgrade to invite more teammates.`,
-        href: Routes.Members,
+        href: Routes.OrganizationTeam,
         severity: memberCount > plan.members ? 'critical' : 'warning',
         tag: `${memberCount}/${plan.members} members`,
         createdAt: new Date().toISOString()

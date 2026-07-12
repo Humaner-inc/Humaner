@@ -11,6 +11,7 @@ import { updateContactComment } from '@/actions/contacts/update-contact-comment'
 import { DeleteContactCommentModal } from '@/components/dashboard/contacts/details/timeline/delete-contact-comment-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,12 +125,12 @@ export function ContactTimelineComment({
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="!text-destructive"
+              <DeleteActionMenuItem
+                disabled={!canEdit || isEditing}
                 onClick={handleDelete}
               >
                 Delete
-              </DropdownMenuItem>
+              </DeleteActionMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CopyIcon, PlusIcon, TrashIcon } from '@humaner/shared/icons';
+import { CopyIcon, PlusIcon } from '@humaner/shared/icons';
 import { DayOfWeek } from '@prisma/client';
 import { PopoverClose } from '@radix-ui/react-popover';
 import { format, parseISO } from 'date-fns';
@@ -22,6 +22,7 @@ import {
   type CardProps
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DeleteIconActionButton } from '@/components/ui/delete-action-button';
 import { FormDescription, FormProvider } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import {
@@ -284,15 +285,11 @@ const WorkTimeSlot = React.memo(
           />
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-full text-muted-foreground"
+              <DeleteIconActionButton
+                srLabel="Remove time slot"
+                className="size-8 rounded-full"
                 onClick={onRemove}
-              >
-                <TrashIcon className="size-4 shrink-0" />
-              </Button>
+              />
             </TooltipTrigger>
             <TooltipContent>Remove time slot</TooltipContent>
           </Tooltip>

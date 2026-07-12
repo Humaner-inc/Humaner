@@ -4,8 +4,7 @@ import {
   LockKeyholeIcon,
   MessageSquare,
   StoreIcon,
-  UserIcon,
-  UserPlus2Icon
+  UserIcon
 } from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
@@ -46,12 +45,6 @@ export const organizationNavItems: NavItem[] = [
     title: 'Information',
     href: Routes.OrganizationInformation,
     icon: StoreIcon,
-    ownerOnly: true
-  },
-  {
-    title: 'Members',
-    href: Routes.Members,
-    icon: UserPlus2Icon,
     ownerOnly: true
   },
   {

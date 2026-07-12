@@ -4,7 +4,7 @@ This repo is Humaner's **integration layer** | Dashboard UI, widget, React SDK, 
 **Agent intelligence** (Humaner v1.0 / v2.0 / v3.0) runs on Humaner's hosted runtime.
 
 Most integrators embed the widget, install `@humaner/react`, or call `app.humaner.io`.
-See [README.md](./README.md) and [docs](https://humaner.io/resources/docs).
+See [README.md](./README.md) and [docs](https://docs.humaner.io).
 
 This guide is for **Humaner team members**, **security evaluators** reading auth/tenancy code, and **contributors** working on the SDK or widget.
 

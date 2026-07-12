@@ -6,15 +6,14 @@ import {
   FileTextIcon,
   GlobeIcon,
   NetworkIcon,
-  PlugIcon,
-  Trash2Icon
+  PlugIcon
 } from '@humaner/shared/icons';
 import type { SourceType } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { deleteKnowledgeSource } from '@/actions/knowledge/delete-knowledge-source';
 import { KnowledgeSourceStatus } from '@/components/dashboard/knowledge/knowledge-source-status';
-import { Button } from '@/components/ui/button';
+import { DeleteIconActionButton } from '@/components/ui/delete-action-button';
 import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
 
 const TYPE_ICON: Record<SourceType, typeof GlobeIcon> = {
@@ -75,18 +74,12 @@ export function SourceList({ sources }: SourceListProps): React.JSX.Element {
               sourceId={source.id}
               status={source.status}
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-destructive"
+            <DeleteIconActionButton
+              srLabel="Delete source"
               loading={pendingId === source.id}
               disabled={pendingId === source.id}
               onClick={() => handleDelete(source.id)}
-            >
-              <Trash2Icon className="size-4" />
-              <span className="sr-only">Delete source</span>
-            </Button>
+            />
           </li>
         );
       })}

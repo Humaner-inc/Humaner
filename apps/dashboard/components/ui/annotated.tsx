@@ -54,7 +54,7 @@ const AnnotatedLayout = React.forwardRef<
 AnnotatedLayout.displayName = 'AnnotatedLayout';
 
 const annotatedSectionVariants = cva(
-  'grid w-full max-w-4xl grid-cols-1 gap-y-4 px-6 md:grid-cols-12 md:gap-x-8 lg:gap-x-16',
+  'grid w-full max-w-4xl grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-x-8 lg:gap-x-16',
   {
     variants: {
       intent: {

@@ -2,14 +2,13 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { TrashIcon } from '@humaner/shared/icons';
 import type { CharacterType } from '@prisma/client';
 import { toast } from 'sonner';
 
 import { updateAgentImage } from '@/actions/agents/update-agent-image';
 import { CropPhotoModal } from '@/components/dashboard/settings/account/profile/crop-photo-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { DeleteOverlayButton } from '@/components/ui/delete-action-button';
 import { ImageDropzone } from '@/components/ui/image-dropzone';
 import {
   Tooltip,
@@ -39,7 +38,10 @@ export function AgentAvatarUpload({
   onImageChange
 }: AgentAvatarUploadProps): React.JSX.Element {
   const [currentImage, setCurrentImage] = React.useState(image ?? null);
-  const fallbackImage = CHARACTER_META[character].image;
+  const isCustomWithoutImage = character === 'CUSTOM' && !currentImage;
+  const fallbackImage = isCustomWithoutImage
+    ? null
+    : CHARACTER_META[character].image;
   const glowImage = currentImage ?? fallbackImage;
 
   React.useEffect(() => {
@@ -125,19 +127,21 @@ export function AgentAvatarUpload({
 
   return (
     <div className={cn('relative inline-flex', avatarSize)}>
-      <div
-        className="pointer-events-none absolute inset-0 scale-[1.65] overflow-hidden rounded-full opacity-50 blur-2xl"
-        aria-hidden
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={glowImage}
-          alt=""
-          className="size-full object-cover"
-        />
-      </div>
+      {glowImage ? (
+        <div
+          className="pointer-events-none absolute inset-0 scale-[1.65] overflow-hidden rounded-full opacity-50 blur-2xl"
+          aria-hidden
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={glowImage}
+            alt=""
+            className="size-full object-cover"
+          />
+        </div>
+      ) : null}
 
-      <div className="relative size-full overflow-hidden rounded-full ring-2 ring-foreground/10 ring-offset-2 ring-offset-background">
+      <div className="relative size-full overflow-hidden rounded-full bg-white ring-2 ring-foreground/10 ring-offset-2 ring-offset-background">
         <ImageDropzone
           accept={{ 'image/*': [] }}
           multiple={false}
@@ -159,14 +163,20 @@ export function AgentAvatarUpload({
               />
             ) : null}
             <AvatarFallback
-              className={cn(avatarSize, 'overflow-hidden rounded-full p-0')}
+              className={cn(
+                avatarSize,
+                'overflow-hidden rounded-full p-0',
+                isCustomWithoutImage && 'bg-white'
+              )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={fallbackImage}
-                alt=""
-                className="size-full object-cover"
-              />
+              {isCustomWithoutImage ? null : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={fallbackImage!}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              )}
             </AvatarFallback>
           </Avatar>
         </ImageDropzone>
@@ -175,15 +185,11 @@ export function AgentAvatarUpload({
       {currentImage && !disabled ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full bg-background text-foreground shadow-sm dark:border-white/25 dark:bg-[#1c1c1c] dark:text-white dark:hover:bg-[#262626] dark:hover:text-white"
+            <DeleteOverlayButton
+              className="absolute -bottom-1 -right-1 z-10"
+              srLabel="Remove profile picture"
               onClick={handleRemoveImage}
-            >
-              <TrashIcon className="size-4 shrink-0" />
-            </Button>
+            />
           </TooltipTrigger>
           <TooltipContent side="right">Remove profile picture</TooltipContent>
         </Tooltip>

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { TrashIcon, UploadIcon } from '@humaner/shared/icons';
+import { UploadIcon } from '@humaner/shared/icons';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -17,6 +17,7 @@ import {
   CardFooter,
   type CardProps
 } from '@/components/ui/card';
+import { DeleteOverlayButton } from '@/components/ui/delete-action-button';
 import {
   FormControl,
   FormField,
@@ -143,16 +144,12 @@ export function PersonalDetailsCard({
                 {image && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full bg-background !opacity-100"
+                      <DeleteOverlayButton
+                        className="absolute -bottom-1 -right-1 z-10 !opacity-100"
+                        srLabel="Remove image"
                         disabled={methods.formState.isSubmitting}
                         onClick={handleRemoveImage}
-                      >
-                        <TrashIcon className="size-4 shrink-0" />
-                      </Button>
+                      />
                     </TooltipTrigger>
                     <TooltipContent side="right">Remove image</TooltipContent>
                   </Tooltip>

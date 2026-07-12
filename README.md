@@ -1,9 +1,9 @@
 <p align="center">
   <a href="https://humaner.io">Website</a>
   ·
-  <a href="https://humaner.io/resources/docs">Docs</a>
+  <a href="https://docs.humaner.io">Docs</a>
   ·
-  <a href="https://humaner.io/resources/docs/integrations/api">API</a>
+  <a href="https://docs.humaner.io/integrations/api">API</a>
   ·
   <a href="https://github.com/Humaner-inc/humaner">GitHub</a>
   ·
@@ -25,15 +25,40 @@ We want Customer Support to mean something again. Humaner is the frontier betwee
 - **Human desk** for escalations, ticketing and live support within the same dashboard.
 - **Training loop** across the help desk to learn from human behavior and content gaps.
 
-### Open integration layer
+### Open platform + hosted intelligence
 
-Widget, React SDK, API routes, auth, and tenancy code are **source-available** in this repo so integrators can inspect how embeds and API keys work. **Agent intelligence** (Humaner v1.0 / v2.0 / v3.0) runs on Humaner's hosted runtime — not something you self-host today.
+Widget, React SDK, REST API, **Organization**, and **Desk Center** (handoff framework, Human Desk, tickets — **bring your own support agent**) are **source-available** in this repo. On Humaner Cloud, **Agent Intelligence** fills the Support Agent slot; **Desk Intelligence** adds async tiers, AI Desk, runbooks, and clusters.
+
+```mermaid
+flowchart TB
+  SITE[Customer site / app]
+
+  subgraph OSS["Open Source — source-available in this repo"]
+    INT["Integration layer<br/>Widget · React SDK · REST API"]
+    ORG["Organization system<br/>multi-workspace · members · RBAC"]
+    DC["Desk Center<br/>handoff framework · Human Desk · tickets<br/>Support Agent slot: BYO API"]
+  end
+
+  subgraph HOSTED["Hosted — app.humaner.io only"]
+    HAI["Humaner Agent Intelligence<br/>fills Support Agent slot"]
+    HDI["Humaner Desk Intelligence<br/>async tiers · AI Desk · runbooks · clusters"]
+  end
+
+  SITE --> INT
+  INT -->|your agent API| DC
+  INT -->|or Humaner Cloud| HAI
+  HAI --> DC
+  DC <-->|learning loop| HDI
+  ORG --- DC
+```
+
+[Full docs →](https://docs.humaner.io) · [Open-source strategy →](./Docs/OPEN_SOURCING.md)
 
 ### Built for developer integrations
 
-- **Widget embed:** one-line script, domain allowlist, visitor identify for cross-session memory > [docs](https://humaner.io/resources/docs/integrations/widget).
-- **React SDK:** drop-in `<HumanerChat />` with the same auth model as the widget > [docs](https://humaner.io/resources/docs/integrations/react) · [package](./packages/react).
-- **REST API:** SSE chat stream, agent metadata, webhooks coming soon > [docs](https://humaner.io/resources/docs/integrations/api).
+- **Widget embed:** one-line script, domain allowlist, visitor identify for cross-session memory > [docs](https://docs.humaner.io/integrations/widget).
+- **React SDK:** drop-in `<HumanerChat />` with the same auth model as the widget > [docs](https://docs.humaner.io/integrations/react) · [package](./packages/react).
+- **REST API:** SSE chat stream, agent metadata, webhooks coming soon > [docs](https://docs.humaner.io/integrations/api).
 - **Knowledge-backed agents:** pre-built intelligence across verticals and personalized knowledge through org docs and sites.
 - **Human-in-the-loop:** escalate to Human Desk; auto-training from desk conversations on Frontier plan.
 
@@ -56,12 +81,12 @@ Widget, React SDK, API routes, auth, and tenancy code are **source-available** i
 
 Integrate Humaner on your site, app, or backend in minutes:
 
-| Surface              | Docs                                                                             | Source in repo                       |
-| -------------------- | -------------------------------------------------------------------------------- | ------------------------------------ |
-| Widget embed         | [integrations/widget](https://humaner.io/resources/docs/integrations/widget)     | `apps/dashboard/public/widget.js`    |
-| React component      | [integrations/react](https://humaner.io/resources/docs/integrations/react)       | [`packages/react`](./packages/react) |
-| REST API (Frontier+) | [integrations/api](https://humaner.io/resources/docs/integrations/api)           | `apps/dashboard/app/api/v1/`         |
-| Webhooks             | [integrations/webhooks](https://humaner.io/resources/docs/integrations/webhooks) | dashboard webhook handlers           |
+| Surface              | Docs                                                                   | Source in repo                       |
+| -------------------- | ---------------------------------------------------------------------- | ------------------------------------ |
+| Widget embed         | [integrations/widget](https://docs.humaner.io/integrations/widget)     | `apps/dashboard/public/widget.js`    |
+| React component      | [integrations/react](https://docs.humaner.io/integrations/react)       | [`packages/react`](./packages/react) |
+| REST API (Frontier+) | [integrations/api](https://docs.humaner.io/integrations/api)           | `apps/dashboard/app/api/v1/`         |
+| Webhooks             | [integrations/webhooks](https://docs.humaner.io/integrations/webhooks) | dashboard webhook handlers           |
 
 **Quick embed:**
 
@@ -87,7 +112,7 @@ npm install @humaner/react
 
 ## Local development
 
-**Most integrators use the hosted API** — no clone required. See [docs](https://humaner.io/resources/docs) to embed in minutes.
+**Most integrators use the hosted API** — no clone required. See [docs](https://docs.humaner.io) to embed in minutes.
 
 This repo is for team members, evaluators, and SDK contributors. See [DEVELOPMENT.md](./DEVELOPMENT.md) for what runs locally vs on Humaner's hosted runtime.
 
@@ -103,10 +128,13 @@ packages/
 
 ## Open-source strategy
 
-Humaner follows a **partial open-source** model — similar in spirit to how developer platforms expose integration code while keeping proprietary runtime intelligence hosted:
+Humaner follows a **partial open-source** model — expose the platform operators need (integrations, org, Desk Center); keep the intelligence runtimes hosted:
 
-- **Public:** embed code, SDK, API surface, auth, rate limits, tenancy, dashboard UI, docs
-- **Hosted only:** prompt layers, training pipeline, eval gates, model routing heuristics
+| Source-available (this repo)                                         | Hosted only                                                                           |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Integration layer — widget, SDK, API, auth, rate limits              | **Humaner Agent Intelligence** — fills Support Agent slot; prompts, memory, knowledge |
+| Organization — workspaces, members, RBAC                             | **Humaner Desk Intelligence** — async tiers, AI Desk, runbooks, clusters              |
+| Desk Center — handoff framework, Human Desk, tickets (**BYO agent**) | Training banks, eval gates, model routing                                             |
 
 Details: [Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)
 

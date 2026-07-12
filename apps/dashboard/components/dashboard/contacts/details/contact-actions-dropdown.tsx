@@ -10,6 +10,7 @@ import { addFavorite } from '@/actions/favorites/add-favorite';
 import { removeFavorite } from '@/actions/favorites/remove-favorite';
 import { DeleteContactModal } from '@/components/dashboard/contacts/delete-contact-modal';
 import { Button } from '@/components/ui/button';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,12 +92,9 @@ export function ContactActionsDropdown({
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="!text-destructive"
-          onClick={handleShowDeleteContactModal}
-        >
+        <DeleteActionMenuItem onClick={handleShowDeleteContactModal}>
           Delete
-        </DropdownMenuItem>
+        </DeleteActionMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

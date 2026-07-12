@@ -24,9 +24,13 @@ import { getIndustryIcon } from '@/lib/industry-icons';
 
 export type IndustryTagProps = {
   industry: IndustryType | null;
+  editable?: boolean;
 };
 
-export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
+export function IndustryTag({
+  industry,
+  editable = false
+}: IndustryTagProps): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<IndustryType | undefined>(
@@ -55,15 +59,23 @@ export function IndustryTag({ industry }: IndustryTagProps): React.JSX.Element {
     });
   };
 
+  const badge = (
+    <Badge
+      variant="secondary"
+      className="gap-1.5 px-2.5 py-1"
+    >
+      {CurrentIcon ? <CurrentIcon className="size-3.5" /> : null}
+      {current ? current.label : 'No industry set'}
+    </Badge>
+  );
+
+  if (!editable) {
+    return badge;
+  }
+
   return (
     <div className="group/industry flex items-center gap-1">
-      <Badge
-        variant="secondary"
-        className="gap-1.5 px-2.5 py-1"
-      >
-        {CurrentIcon ? <CurrentIcon className="size-3.5" /> : null}
-        {current ? current.label : 'No industry set'}
-      </Badge>
+      {badge}
       <Dialog
         open={open}
         onOpenChange={(nextOpen) => {

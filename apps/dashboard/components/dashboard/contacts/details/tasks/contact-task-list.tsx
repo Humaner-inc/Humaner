@@ -12,6 +12,7 @@ import { EditContactTaskModal } from '@/components/dashboard/contacts/details/ta
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -157,12 +158,9 @@ function ContactTaskListItem({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="!text-destructive"
-                onClick={onDelete}
-              >
+              <DeleteActionMenuItem onClick={onDelete}>
                 Delete
-              </DropdownMenuItem>
+              </DeleteActionMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

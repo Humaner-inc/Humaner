@@ -1,16 +1,21 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
+import {
+  getPlanForTier,
+  normalizePlanTier,
+  type PlanTier
+} from '@humaner/shared/plans';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
-import { AudienceTag } from '@/components/dashboard/home/audience-tag';
-import { IndustryTag } from '@/components/dashboard/home/industry-tag';
 import { Button } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
+import { getIndustry } from '@/lib/industries';
+import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
 
 export type DashboardOverviewStripProps = {
   organizationName: string;
+  website?: string | null;
   logoUrl?: string | null;
   industry: IndustryType | null;
   targetAudience: TargetAudience | null;
@@ -18,23 +23,60 @@ export type DashboardOverviewStripProps = {
   className?: string;
 };
 
-/**
- * Subtle tier-tinted glow layered over the banner's neutral card background.
- * Classic (`free`) stays plain; paid tiers blend the same neutral grey into
- * a brand color — cobalt for Refined, the crimson accent for Frontier/Humaner.
- */
-const TIER_BANNER_GLOW: Partial<
-  Record<ReturnType<typeof normalizePlanTier>, string>
-> = {
-  grow: 'bg-[linear-gradient(110deg,transparent_0%,transparent_35%,rgb(0_71_171_/_0.16)_100%)] dark:bg-[linear-gradient(110deg,transparent_0%,transparent_35%,rgb(0_71_171_/_0.28)_100%)]',
-  scale:
-    'bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.14)_100%)] dark:bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.24)_100%)]',
-  delegate:
-    'bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.18)_100%)] dark:bg-[linear-gradient(110deg,transparent_0%,transparent_35%,hsl(var(--primary)/0.3)_100%)]'
+/** Tier accent — matches pricing model dots (cobalt / cream). */
+const TIER_ACCENT: Record<PlanTier, string> = {
+  free: '#a8a4a0',
+  grow: '#0047ab',
+  scale: '#c9ae84',
+  delegate: '#e1ccaf'
 };
+
+function OverviewOrgMeta({
+  organizationName,
+  website,
+  logoUrl,
+  industry,
+  targetAudience
+}: Pick<
+  DashboardOverviewStripProps,
+  'organizationName' | 'website' | 'logoUrl' | 'industry' | 'targetAudience'
+>): React.JSX.Element {
+  const domain = website ? toHostname(website) : null;
+  const logoSrc = logoUrl ?? (domain ? getLogoUrl(domain, 40, true) : null);
+  const industryLabel = industry ? getIndustry(industry).label : null;
+  const audienceLabel =
+    targetAudience === 'B2B' ? 'B2B' : targetAudience === 'B2C' ? 'B2C' : null;
+  const context = [industryLabel, audienceLabel].filter(Boolean).join(' · ');
+
+  return (
+    <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+      {logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoSrc}
+          alt=""
+          className="size-5 shrink-0 rounded object-cover"
+        />
+      ) : null}
+      <span className="truncate">{organizationName}</span>
+      {context ? (
+        <>
+          <span
+            aria-hidden
+            className="text-border"
+          >
+            ·
+          </span>
+          <span className="truncate">{context}</span>
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 export function DashboardOverviewStrip({
   organizationName,
+  website,
   logoUrl,
   industry,
   targetAudience,
@@ -44,83 +86,56 @@ export function DashboardOverviewStrip({
   const normalizedTier = normalizePlanTier(tier);
   const plan = getPlanForTier(tier);
   const isFreePlan = normalizedTier === 'free';
-  const isManagePlanLink =
-    normalizedTier === 'grow' || normalizedTier === 'scale';
-  const tierGlow = TIER_BANNER_GLOW[normalizedTier];
+  const tierAccent = TIER_ACCENT[normalizedTier];
 
   return (
     <section
       className={cn(
-        'relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6',
+        'flex flex-col gap-6 border-b border-border/50 pb-8 sm:flex-row sm:items-end sm:justify-between',
         className
       )}
     >
-      {tierGlow ? (
-        <div
-          aria-hidden
-          className={cn('pointer-events-none absolute inset-0', tierGlow)}
+      <div className="min-w-0 space-y-3">
+        <h1 className="font-display text-3xl leading-none tracking-tight sm:text-4xl">
+          {plan.name}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          <span style={{ color: tierAccent }}>{plan.modelLabel}</span>
+          <span
+            aria-hidden
+            className="mx-2 text-border"
+          >
+            ·
+          </span>
+          <span className="font-mono tabular-nums">
+            {plan.includedMessages.toLocaleString()} messages/mo
+          </span>
+        </p>
+        <OverviewOrgMeta
+          organizationName={organizationName}
+          website={website}
+          logoUrl={logoUrl}
+          industry={industry}
+          targetAudience={targetAudience}
         />
-      ) : null}
-
-      <div className="relative min-w-0 space-y-3">
-        <div className="flex items-center gap-3">
-          {logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt=""
-              className="size-10 shrink-0 rounded-lg object-cover"
-            />
-          )}
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Organization
-            </p>
-            <h1 className="mt-1 font-display text-2xl leading-tight tracking-tight">
-              {organizationName}
-            </h1>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <IndustryTag industry={industry} />
-          <AudienceTag targetAudience={targetAudience} />
-        </div>
       </div>
 
-      <div className="relative flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:justify-end">
-        <div className="min-w-0 text-sm leading-snug">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Plan
-          </p>
-          <p className="mt-1">
-            <span className="font-display text-base text-foreground">
-              {plan.name}
-            </span>
-            <span className="font-mono tabular-nums text-muted-foreground">
-              {' '}
-              · {plan.modelLabel} · {plan.includedMessages.toLocaleString()}{' '}
-              messages/mo
-            </span>
-          </p>
-        </div>
-        {isManagePlanLink ? (
-          <Link
-            href={Routes.Billing}
-            className="shrink-0 text-sm text-foreground underline underline-offset-4"
-          >
-            Manage plan
-          </Link>
-        ) : (
+      <div className="shrink-0">
+        {isFreePlan ? (
           <Button
             asChild
             size="sm"
-            variant={isFreePlan ? 'upgrade' : 'outline'}
-            className="shrink-0"
+            variant="upgrade"
           >
-            <Link href={Routes.Billing}>
-              {isFreePlan ? 'Upgrade plan' : 'Manage plan'}
-            </Link>
+            <Link href={Routes.Billing}>Upgrade plan</Link>
           </Button>
+        ) : (
+          <Link
+            href={Routes.Billing}
+            className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          >
+            Manage billing
+          </Link>
         )}
       </div>
     </section>

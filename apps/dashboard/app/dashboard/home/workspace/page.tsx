@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
+import { OrganizationWorkspaceBanner } from '@/components/dashboard/home/organization-workspace-banner';
 import { WorkspaceAccentSection } from '@/components/dashboard/organization/workspace-accent-section';
 import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { SectionPage } from '@/components/ui/section-shell';
@@ -13,7 +14,7 @@ import { prisma } from '@/lib/db/prisma';
 import { createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: createTitle('Workspace')
+  title: createTitle('Organization')
 };
 
 export default async function WorkspacePage(): Promise<React.JSX.Element> {
@@ -29,25 +30,33 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
       select: {
         accentColor: true,
         industry: true,
-        targetAudience: true
+        targetAudience: true,
+        logoUrl: true
       }
     })
   ]);
 
+  const organizationTitle = details.name?.trim()
+    ? `${details.name.trim()}'s Organization`
+    : 'Organization';
+
   return (
     <SectionPage width="md">
       <div className="space-y-8">
-        <div>
-          <h1 className="font-display text-3xl leading-none">Workspace</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Organization details and workspace personalization.
-          </p>
-        </div>
+        <OrganizationWorkspaceBanner
+          title={organizationTitle}
+          name={details.name}
+          website={details.website}
+          logoUrl={organization?.logoUrl ?? null}
+          industry={organization?.industry ?? null}
+          targetAudience={organization?.targetAudience ?? null}
+        />
 
         <OrganizationDetailsCard
           details={details}
           industry={organization?.industry ?? null}
           targetAudience={organization?.targetAudience ?? null}
+          brandHeader="none"
         />
 
         <WorkspaceAccentSection

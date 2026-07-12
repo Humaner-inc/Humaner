@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 
+import { SectionPage } from '@/components/ui/section-shell';
 import { createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 export default function SettingsLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
-  return <>{children}</>;
+  return <SectionPage width="xl">{children}</SectionPage>;
 }

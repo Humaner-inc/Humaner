@@ -4,13 +4,13 @@ import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
 
 import { DeleteAccountModal } from '@/components/dashboard/settings/account/profile/delete-account-modal';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardFooter,
   type CardProps
 } from '@/components/ui/card';
+import { DeleteActionButton } from '@/components/ui/delete-action-button';
 import { Separator } from '@/components/ui/separator';
 
 export type DangerZoneCardProps = CardProps & {
@@ -37,15 +37,13 @@ export function DangerZoneCard({
       </CardContent>
       <Separator />
       <CardFooter className="flex w-full justify-end pt-6">
-        <Button
-          type="button"
-          variant="destructive"
+        <DeleteActionButton
           size="default"
           disabled={!email}
           onClick={handleShowDeleteAccountModal}
         >
           Delete account
-        </Button>
+        </DeleteActionButton>
       </CardFooter>
     </Card>
   );

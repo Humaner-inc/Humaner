@@ -37,12 +37,15 @@ export type OrganizationDetailsCardProps = CardProps & {
   details: OrganizationDetailsDto;
   industry?: IndustryType | null;
   targetAudience?: TargetAudience | null;
+  /** Workspace page: hide header. Settings: logo block with description. */
+  brandHeader?: 'logo' | 'none';
 };
 
 export function OrganizationDetailsCard({
   details,
   industry = null,
   targetAudience = null,
+  brandHeader = 'logo',
   ...props
 }: OrganizationDetailsCardProps): React.JSX.Element {
   const methods = useZodForm({
@@ -78,28 +81,33 @@ export function OrganizationDetailsCard({
             className="space-y-4"
             onSubmit={methods.handleSubmit(onSubmit)}
           >
-            <div className="flex items-center gap-4 rounded-lg border bg-secondary/30 p-4">
-              <div className="size-14 shrink-0 overflow-hidden rounded-xl border bg-background">
-                <BusinessLogo
-                  website={methods.watch('website')}
-                  name={methods.watch('name')}
-                  size={96}
-                />
-              </div>
-              <div className="min-w-0 flex-1 space-y-2">
-                <div>
-                  <p className="text-sm font-medium">Brand logo</p>
-                  <p className="text-xs text-muted-foreground">
-                    Auto-detected from your website and used across your
-                    dashboard.
-                  </p>
+            {brandHeader === 'logo' ? (
+              <div className="flex items-center gap-4 rounded-lg border bg-secondary/30 p-4">
+                <div className="size-14 shrink-0 overflow-hidden rounded-xl border bg-background">
+                  <BusinessLogo
+                    website={methods.watch('website')}
+                    name={methods.watch('name')}
+                    size={96}
+                  />
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <IndustryTag industry={industry} />
-                  <AudienceTag targetAudience={targetAudience} />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div>
+                    <p className="text-sm font-medium">Brand logo</p>
+                    <p className="text-xs text-muted-foreground">
+                      Auto-detected from your website and used across your
+                      dashboard.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <IndustryTag
+                      industry={industry}
+                      editable
+                    />
+                    <AudienceTag targetAudience={targetAudience} />
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : null}
             <FormField
               control={methods.control}
               name="name"

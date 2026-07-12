@@ -10,8 +10,7 @@ import {
   KeyRoundIcon,
   MoreHorizontalIcon,
   PencilIcon,
-  PlayIcon,
-  Trash2Icon
+  PlayIcon
 } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
@@ -29,6 +28,7 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -221,13 +221,9 @@ export function AgentCard({
               )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2Icon className="mr-2 size-4" />
+            <DeleteActionMenuItem onClick={() => setDeleteOpen(true)}>
               Delete
-            </DropdownMenuItem>
+            </DeleteActionMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -350,6 +346,7 @@ export function AgentCard({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               disabled={isDeleting}
               onClick={(event) => {
                 event.preventDefault();

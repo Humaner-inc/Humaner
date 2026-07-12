@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { DeleteContactsModal } from '@/components/dashboard/contacts/delete-contacts-modal';
 import { Button } from '@/components/ui/button';
 import { DataTableBulkActions } from '@/components/ui/data-table';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,12 +114,9 @@ export function ContactsBulkActions({
             Export to Excel
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="!text-destructive"
-            onClick={handleShowDeleteContactsModal}
-          >
+          <DeleteActionMenuItem onClick={handleShowDeleteContactsModal}>
             Delete
-          </DropdownMenuItem>
+          </DeleteActionMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </DataTableBulkActions>

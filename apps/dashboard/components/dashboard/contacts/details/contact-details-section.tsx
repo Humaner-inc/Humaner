@@ -7,7 +7,6 @@ import {
   MailIcon,
   PhoneIcon,
   SquareDashedKanbanIcon,
-  TrashIcon,
   UploadIcon
 } from '@humaner/shared/icons';
 import { ContactRecord } from '@prisma/client';
@@ -20,6 +19,7 @@ import { updateContactProperties } from '@/actions/contacts/update-contact-prope
 import { CropPhotoModal } from '@/components/dashboard/settings/account/profile/crop-photo-modal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { DeleteOverlayButton } from '@/components/ui/delete-action-button';
 import {
   FormControl,
   FormField,
@@ -141,15 +141,11 @@ function ContactImage(contact: ContactDto): React.JSX.Element {
         {contact.image && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="absolute -bottom-1 -right-1 z-10 size-8 rounded-full bg-background"
+              <DeleteOverlayButton
+                className="absolute -bottom-1 -right-1 z-10"
+                srLabel="Remove image"
                 onClick={handleRemoveImage}
-              >
-                <TrashIcon className="size-4 shrink-0" />
-              </Button>
+              />
             </TooltipTrigger>
             <TooltipContent side="right">Remove image</TooltipContent>
           </Tooltip>

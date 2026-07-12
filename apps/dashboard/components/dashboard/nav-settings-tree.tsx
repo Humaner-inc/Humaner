@@ -28,7 +28,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar';
-import { Routes } from '@/constants/routes';
 import {
   getActiveSettingsTab,
   isSettingsPath,
@@ -69,18 +68,13 @@ export function NavSettingsTree({
           <SidebarMenuItem className="relative">
             <CollapsibleTrigger asChild>
               <SidebarMenuButton
+                variant="section"
                 tooltip="Settings"
                 isActive={inSettings}
                 className={cn('group/settings', SIDEBAR_TREE_TRIGGER_CLASS)}
               >
                 <SidebarTreeDisclosureIcon open={open} />
-                <Link
-                  href={Routes.Profile}
-                  className="flex min-w-0 flex-1 items-center group-data-[collapsible=icon]:flex-none"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <SidebarHeadTitle shortLabel="SET">Settings</SidebarHeadTitle>
-                </Link>
+                <SidebarHeadTitle shortLabel="SET">Settings</SidebarHeadTitle>
               </SidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent className="group-data-[collapsible=icon]:overflow-visible">

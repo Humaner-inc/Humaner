@@ -32,7 +32,6 @@ import {
   filterNavItemsForProfile,
   isPlatformAdmin
 } from '@/lib/auth/workspace-access';
-import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { NavItem } from '@/types/nav-item';
 
@@ -55,6 +54,7 @@ function NavMainItem({
     <SidebarMenuItem>
       <SidebarMenuButton
         asChild
+        variant="section"
         isActive={isActive}
         tooltip={item.title}
       >
@@ -66,14 +66,9 @@ function NavMainItem({
           <NavMenuIcon
             icon={item.icon}
             iconRef={iconRef}
-            className={cn(
-              'size-4 shrink-0',
-              isActive ? 'text-inherit' : 'text-muted-foreground'
-            )}
+            className="size-4 shrink-0"
           />
-          <span className={isActive ? 'text-inherit' : 'text-muted-foreground'}>
-            {item.title}
-          </span>
+          <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

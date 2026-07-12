@@ -23,6 +23,7 @@ import { prisma } from '@/lib/db/prisma';
 
 export type AgentListItem = {
   id: string;
+  publicId: string;
   name: string;
   role: string;
   character: CharacterType;
@@ -52,6 +53,7 @@ export async function getAgents(): Promise<AgentListItem[]> {
         where: { organizationId: session.user.organizationId },
         select: {
           id: true,
+          publicId: true,
           name: true,
           role: true,
           character: true,

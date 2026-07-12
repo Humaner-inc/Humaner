@@ -3,11 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PlusIcon } from '@humaner/shared/icons';
 
 import { SidebarBranchIcon } from '@/components/dashboard/sidebar-branch-icon';
 import {
-  SIDEBAR_HEAD_TITLE_CLASS,
   SIDEBAR_TREE_TRIGGER_CLASS,
   SidebarAgentHead,
   SidebarBranchItem,
@@ -31,7 +29,6 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar';
 import { AGENT_NAV_TABS, getActiveAgentTab } from '@/constants/agent-nav-items';
-import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
 
 export type SidebarAgent = {
@@ -62,22 +59,17 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
       <SidebarMenuItem className="relative">
         <CollapsibleTrigger asChild>
           <SidebarMenuButton
+            variant="section"
             tooltip={agent.name}
             isActive={inAgent}
             className={cn('group/agent', SIDEBAR_TREE_TRIGGER_CLASS)}
           >
             <SidebarTreeDisclosureIcon open={open} />
-            <Link
-              href={agentPersonaRoute(agent.id)}
-              className="flex min-w-0 flex-1 items-center group-data-[collapsible=icon]:flex-none"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <SidebarAgentHead
-                name={agent.name}
-                image={agent.image}
-                isPaused={agent.isPaused}
-              />
-            </Link>
+            <SidebarAgentHead
+              name={agent.name}
+              image={agent.image}
+              isPaused={agent.isPaused}
+            />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className="group-data-[collapsible=icon]:overflow-visible">
@@ -109,60 +101,15 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
 }
 
 export function NavAgentTree({ agents }: NavAgentTreeProps): React.JSX.Element {
-  const pathname = usePathname();
-  const onNewAgent = pathname === Routes.AgentNew;
-
   return (
     <SidebarGroup className="py-0">
       <SidebarMenu>
-        {agents.length === 0 ? (
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              disabled
-              className="font-mono text-xs uppercase text-muted-foreground group-data-[collapsible=icon]:justify-center"
-            >
-              <span className="group-data-[collapsible=icon]:hidden">
-                No agents yet
-              </span>
-              <span className="hidden group-data-[collapsible=icon]:block">
-                —
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ) : (
-          agents.map((agent) => (
-            <AgentTreeNode
-              key={agent.id}
-              agent={agent}
-            />
-          ))
-        )}
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            asChild
-            isActive={onNewAgent}
-            tooltip="New agent"
-            className="text-muted-foreground group-data-[collapsible=icon]:justify-center"
-          >
-            <Link
-              href={Routes.AgentNew}
-              className="flex min-w-0 items-center gap-2 group-data-[collapsible=icon]:justify-center"
-            >
-              <PlusIcon
-                className="size-3.5 shrink-0"
-                strokeWidth={1.5}
-              />
-              <span
-                className={cn(
-                  SIDEBAR_HEAD_TITLE_CLASS,
-                  'group-data-[collapsible=icon]:hidden'
-                )}
-              >
-                New agent
-              </span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        {agents.map((agent) => (
+          <AgentTreeNode
+            key={agent.id}
+            agent={agent}
+          />
+        ))}
       </SidebarMenu>
     </SidebarGroup>
   );

@@ -10,6 +10,7 @@ import { DeleteWebhookModal } from '@/components/dashboard/settings/organization
 import { EditWebhookModal } from '@/components/dashboard/settings/organization/developers/edit-webhook-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,12 +108,9 @@ function WebhookListItem({
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="!text-destructive"
-            onClick={handleShowDeleteWebhookModal}
-          >
+          <DeleteActionMenuItem onClick={handleShowDeleteWebhookModal}>
             Delete
-          </DropdownMenuItem>
+          </DeleteActionMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </li>
