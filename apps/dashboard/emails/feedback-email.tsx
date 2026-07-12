@@ -7,7 +7,6 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type FeedbackEmailData = {
   recipient: string;
@@ -25,11 +24,7 @@ export const FeedbackEmail = ({
   category,
   message
 }: FeedbackEmailData) => (
-  <EmailLayout
-    preview="Feedback"
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview="Feedback">
     <EmailTitle>Feedback</EmailTitle>
     <EmailText>Organization: {organizationName}</EmailText>
     <EmailText>Name: {name}</EmailText>

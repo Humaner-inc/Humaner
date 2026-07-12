@@ -59,10 +59,13 @@ export default async function HomePage(): Promise<React.JSX.Element> {
   const plan = getPlanForTier(organization?.tier ?? 'free');
   const agentLimit = getEffectiveAgentLimit(plan, bypassLimits);
   const atLimit = hasReachedAgentLimit(liveAgentCount, plan, bypassLimits);
+  const slotLabel = bypassLimits
+    ? `${agents.length} agent${agents.length === 1 ? '' : 's'}`
+    : `${liveAgentCount}/${agentLimit} live`;
 
   return (
-    <SectionPage width="lg">
-      <div className="space-y-8">
+    <SectionPage width="xl">
+      <div className="space-y-6">
         <DashboardOverviewStrip
           organizationName={organization?.name ?? 'Your organization'}
           website={organization?.website ?? null}
@@ -72,56 +75,58 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           tier={organization?.tier ?? 'free'}
         />
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:items-start">
-          <div className="space-y-4">
-            <DeskIssuesOverviewCard overview={deskOverview} />
-            <TeamMembersOverviewCard members={members} />
-          </div>
-
-          <section className="space-y-4">
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] xl:items-start">
+          <section className="min-w-0 space-y-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="font-mono text-sm font-medium leading-none">
                 Agents
-              </p>
-              <h2 className="mt-1 font-display text-2xl leading-none">
-                Your agents
+                <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+                  {slotLabel}
+                </span>
               </h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                {bypassLimits
-                  ? `${agents.length} agent${agents.length === 1 ? '' : 's'} · no plan limits`
-                  : `${liveAgentCount} of ${agentLimit} live slot${agentLimit === 1 ? '' : 's'}`}
-              </p>
+              {!atLimit ? (
+                <Link
+                  href={Routes.AgentNew}
+                  className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  New agent
+                </Link>
+              ) : null}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
               {agents.map((agent) => (
                 <AgentCard
                   key={agent.id}
                   agent={agent}
                   linkToWorkspace
+                  compact
                 />
               ))}
               {!atLimit ? (
                 <Link
                   href={Routes.AgentNew}
-                  className="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center transition-colors hover:border-foreground/20 hover:bg-muted/40"
+                  className="flex min-h-[12rem] flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-foreground/20 hover:bg-muted/30"
                 >
-                  <BotIcon className="mb-3 size-8 text-muted-foreground" />
-                  <span className="text-sm font-medium">Create agent</span>
-                  <span className="mt-1 text-xs text-muted-foreground">
-                    Personality, knowledge, and policies
+                  <BotIcon className="mb-2 size-6 text-muted-foreground" />
+                  <span className="font-mono text-xs font-medium">
+                    Create agent
                   </span>
                 </Link>
               ) : null}
             </div>
 
             {atLimit ? (
-              <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                You&apos;ve reached your plan&apos;s live agent limit. Pause an
-                agent or upgrade to create more.
+              <p className="rounded-lg border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
+                Live agent limit reached. Pause an agent or upgrade your plan.
               </p>
             ) : null}
           </section>
+
+          <aside className="space-y-3 xl:sticky xl:top-4">
+            <DeskIssuesOverviewCard overview={deskOverview} />
+            <TeamMembersOverviewCard members={members} />
+          </aside>
         </div>
       </div>
     </SectionPage>

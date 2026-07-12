@@ -34,7 +34,7 @@ export function DashboardTopNav({
     <>
       <header
         className={cn(
-          'sticky top-0 z-30 grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border/50 bg-background px-4 sm:gap-3 sm:px-6',
+          'sticky top-0 z-30 grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border/50 bg-background px-4 sm:gap-3 sm:px-5',
           className
         )}
       >

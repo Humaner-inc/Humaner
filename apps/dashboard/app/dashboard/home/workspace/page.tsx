@@ -41,8 +41,8 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
     : 'Organization';
 
   return (
-    <SectionPage width="md">
-      <div className="space-y-8">
+    <SectionPage width="lg">
+      <div className="space-y-6">
         <OrganizationWorkspaceBanner
           title={organizationTitle}
           name={details.name}

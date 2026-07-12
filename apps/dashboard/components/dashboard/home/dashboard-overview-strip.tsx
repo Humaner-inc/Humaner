@@ -8,6 +8,7 @@ import {
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
+import { HintLabel } from '@/components/ui/hint-label';
 import { Routes } from '@/constants/routes';
 import { getIndustry } from '@/lib/industries';
 import { getLogoUrl, toHostname } from '@/lib/logo';
@@ -23,56 +24,12 @@ export type DashboardOverviewStripProps = {
   className?: string;
 };
 
-/** Tier accent — matches pricing model dots (cobalt / cream). */
 const TIER_ACCENT: Record<PlanTier, string> = {
   free: '#a8a4a0',
   grow: '#0047ab',
   scale: '#c9ae84',
   delegate: '#e1ccaf'
 };
-
-function OverviewOrgMeta({
-  organizationName,
-  website,
-  logoUrl,
-  industry,
-  targetAudience
-}: Pick<
-  DashboardOverviewStripProps,
-  'organizationName' | 'website' | 'logoUrl' | 'industry' | 'targetAudience'
->): React.JSX.Element {
-  const domain = website ? toHostname(website) : null;
-  const logoSrc = logoUrl ?? (domain ? getLogoUrl(domain, 40, true) : null);
-  const industryLabel = industry ? getIndustry(industry).label : null;
-  const audienceLabel =
-    targetAudience === 'B2B' ? 'B2B' : targetAudience === 'B2C' ? 'B2C' : null;
-  const context = [industryLabel, audienceLabel].filter(Boolean).join(' · ');
-
-  return (
-    <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-      {logoSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={logoSrc}
-          alt=""
-          className="size-5 shrink-0 rounded object-cover"
-        />
-      ) : null}
-      <span className="truncate">{organizationName}</span>
-      {context ? (
-        <>
-          <span
-            aria-hidden
-            className="text-border"
-          >
-            ·
-          </span>
-          <span className="truncate">{context}</span>
-        </>
-      ) : null}
-    </div>
-  );
-}
 
 export function DashboardOverviewStrip({
   organizationName,
@@ -87,37 +44,62 @@ export function DashboardOverviewStrip({
   const plan = getPlanForTier(tier);
   const isFreePlan = normalizedTier === 'free';
   const tierAccent = TIER_ACCENT[normalizedTier];
+  const domain = website ? toHostname(website) : null;
+  const logoSrc = logoUrl ?? (domain ? getLogoUrl(domain, 40, true) : null);
+  const industryLabel = industry ? getIndustry(industry).label : null;
+  const audienceLabel =
+    targetAudience === 'B2B' ? 'B2B' : targetAudience === 'B2C' ? 'B2C' : null;
+  const context = [industryLabel, audienceLabel].filter(Boolean).join(' · ');
 
   return (
     <section
       className={cn(
-        'flex flex-col gap-6 border-b border-border/50 pb-8 sm:flex-row sm:items-end sm:justify-between',
+        'flex flex-col gap-4 border-b border-border/60 pb-6 sm:flex-row sm:items-end sm:justify-between',
         className
       )}
     >
-      <div className="min-w-0 space-y-3">
-        <h1 className="font-display text-3xl leading-none tracking-tight sm:text-4xl">
-          {plan.name}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          <span style={{ color: tierAccent }}>{plan.modelLabel}</span>
-          <span
-            aria-hidden
-            className="mx-2 text-border"
-          >
-            ·
-          </span>
-          <span className="font-mono tabular-nums">
-            {plan.includedMessages.toLocaleString()} messages/mo
-          </span>
-        </p>
-        <OverviewOrgMeta
-          organizationName={organizationName}
-          website={website}
-          logoUrl={logoUrl}
-          industry={industry}
-          targetAudience={targetAudience}
-        />
+      <div className="flex min-w-0 items-start gap-3">
+        {logoSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoSrc}
+            alt=""
+            className="mt-0.5 size-8 shrink-0 rounded object-cover border border-border/60"
+          />
+        ) : null}
+        <div className="min-w-0 space-y-1.5">
+          <h1 className="truncate font-mono text-2xl font-medium tracking-tight">
+            {organizationName}
+          </h1>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            <HintLabel
+              hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}
+              className="font-medium"
+            >
+              <span style={{ color: tierAccent }}>{plan.name}</span>
+            </HintLabel>
+            <span
+              aria-hidden
+              className="text-border"
+            >
+              ·
+            </span>
+            <span className="font-mono text-xs tabular-nums">
+              {plan.includedMessages.toLocaleString()} msg/mo
+            </span>
+            {context ? (
+              <>
+                <span
+                  aria-hidden
+                  className="text-border"
+                >
+                  ·
+                </span>
+                <span className="text-xs">{context}</span>
+              </>
+            ) : null}
+          </p>
+        </div>
       </div>
 
       <div className="shrink-0">
@@ -134,7 +116,7 @@ export function DashboardOverviewStrip({
             href={Routes.Billing}
             className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
           >
-            Manage billing
+            Billing
           </Link>
         )}
       </div>

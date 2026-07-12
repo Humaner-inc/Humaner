@@ -8,9 +8,9 @@ export type SectionContentProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 const WIDTH_CLASS = {
-  md: 'max-w-3xl',
-  lg: 'max-w-5xl',
-  xl: 'max-w-6xl',
+  md: 'max-w-4xl',
+  lg: 'max-w-6xl',
+  xl: 'max-w-[80rem]',
   full: 'max-w-none'
 } as const;
 
@@ -23,7 +23,11 @@ export function SectionContent({
   return (
     <div className="min-h-0 flex-1 overflow-auto">
       <div
-        className={cn('mx-auto w-full p-6', WIDTH_CLASS[width], className)}
+        className={cn(
+          'mx-auto w-full px-4 py-5 md:px-5 md:py-6',
+          WIDTH_CLASS[width],
+          className
+        )}
         {...props}
       >
         {children}

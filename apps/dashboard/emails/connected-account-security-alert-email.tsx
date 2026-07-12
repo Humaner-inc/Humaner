@@ -7,7 +7,6 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type ConnectedAccountSecurityAlertEmailData = {
   recipient: string;
@@ -21,11 +20,7 @@ export const ConnectedAccountSecurityAlertEmail = ({
   provider,
   action
 }: ConnectedAccountSecurityAlertEmailData) => (
-  <EmailLayout
-    preview="Security alert"
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview="Security alert">
     <EmailTitle>Security alert</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>

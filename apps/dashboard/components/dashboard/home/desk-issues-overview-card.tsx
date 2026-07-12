@@ -33,68 +33,56 @@ export function DeskIssuesOverviewCard({
 
   return (
     <section
-      className={cn('flex flex-col rounded-xl border bg-card p-5', className)}
+      className={cn('rounded-xl border border-border/60 bg-card', className)}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Desk
-          </p>
-          <h2 className="mt-1 font-display text-lg leading-none">
-            Desk issues
-          </h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            {needsAttention > 0
-              ? `${needsAttention} ticket${needsAttention === 1 ? '' : 's'} need attention`
-              : counts.total > 0
-                ? 'No open tickets right now'
-                : 'No desk tickets yet'}
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-3">
+        <h2 className="font-mono text-sm font-medium leading-none">
+          Desk
+          {needsAttention > 0 ? (
+            <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+              {needsAttention} active
+            </span>
+          ) : null}
+        </h2>
         <Link
           href={Routes.DeskHuman}
-          className="group inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="group inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          Open desk
-          <ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          Open
+          <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </Link>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <StatPill
+      <div className="grid grid-cols-3 divide-x divide-border/50 border-b border-border/50">
+        <StatCell
           label="Open"
           value={counts.open}
-          tone="warning"
         />
-        <StatPill
+        <StatCell
           label="In progress"
           value={counts.inProgress}
-          tone="info"
         />
-        <StatPill
+        <StatCell
           label="Resolved"
           value={counts.resolved + counts.closed}
-          tone="success"
         />
       </div>
 
-      <div className="mt-5 flex-1">
+      <div className="p-3">
         {activeTickets.length > 0 ? (
-          <ul className="m-0 list-none divide-y rounded-lg border p-0">
+          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden rounded-lg border p-0">
             {activeTickets.map((ticket) => (
               <li key={ticket.id}>
                 <Link
                   href={Routes.DeskHuman}
                   className={cn(
-                    'flex items-start gap-3 border-l-2 px-3 py-2.5 transition-colors hover:bg-muted/40',
+                    'flex items-start gap-3 border-l-2 px-2 py-2 transition-colors hover:bg-muted/30',
                     URGENCY_CLASS[ticket.urgency] ?? 'border-l-border'
                   )}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {ticket.subject}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <p className="truncate text-sm">{ticket.subject}</p>
+                    <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
                       {ticket.agentName} ·{' '}
                       {formatDistanceToNow(new Date(ticket.updatedAt), {
                         addSuffix: true
@@ -103,7 +91,7 @@ export function DeskIssuesOverviewCard({
                   </div>
                   <Badge
                     variant="secondary"
-                    className="shrink-0 text-[11px]"
+                    className="shrink-0 text-[10px]"
                   >
                     {STATUS_LABELS[ticket.status] ?? ticket.status}
                   </Badge>
@@ -112,36 +100,30 @@ export function DeskIssuesOverviewCard({
             ))}
           </ul>
         ) : (
-          <div className="rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
             {counts.total > 0
-              ? 'All tickets are resolved or closed.'
-              : 'Escalated conversations will appear here once agents hand off to your team.'}
-          </div>
+              ? 'No open tickets.'
+              : 'Handoffs from agents appear here.'}
+          </p>
         )}
       </div>
     </section>
   );
 }
 
-function StatPill({
+function StatCell({
   label,
-  value,
-  tone
+  value
 }: {
   label: string;
   value: number;
-  tone: 'warning' | 'info' | 'success';
 }): React.JSX.Element {
-  const toneClass = {
-    warning: 'bg-amber-500/10 text-amber-800 dark:text-amber-300',
-    info: 'bg-violet-500/10 text-violet-800 dark:text-violet-300',
-    success: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
-  }[tone];
-
   return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn('mt-1 font-display text-2xl tabular-nums', toneClass)}>
+    <div className="px-3 py-2.5">
+      <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 font-mono text-xl tabular-nums leading-none">
         {value}
       </p>
     </div>

@@ -17,11 +17,7 @@ export type WelcomeEmailData = {
 };
 
 export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
-  <EmailLayout
-    preview={`Welcome to ${AppInfo.APP_NAME}!`}
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview={`Welcome to ${AppInfo.APP_NAME}!`}>
     <EmailTitle>Welcome to {AppInfo.APP_NAME}!</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>

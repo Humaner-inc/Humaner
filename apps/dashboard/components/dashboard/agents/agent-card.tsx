@@ -51,6 +51,8 @@ import { cn } from '@/lib/utils';
 export type AgentCardProps = {
   agent: AgentOverviewItem;
   linkToWorkspace?: boolean;
+  /** Tighter layout for overview grids. */
+  compact?: boolean;
 };
 
 function formatAgentId(publicId: string): string {
@@ -88,21 +90,37 @@ function PauseGlyph({ className }: { className?: string }): React.JSX.Element {
 }
 
 function AgentStatusBadge({
-  isPaused
+  isPaused,
+  compact = false
 }: {
   isPaused: boolean;
+  compact?: boolean;
 }): React.JSX.Element {
+  const sizeClass = compact
+    ? 'px-2 py-0.5 text-[10px]'
+    : 'px-2.5 py-0.5 text-[11px]';
+
   if (isPaused) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-        <PauseGlyph className="size-3" />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 font-medium text-amber-700 dark:text-amber-300',
+          sizeClass
+        )}
+      >
+        <PauseGlyph className={compact ? 'size-2.5' : 'size-3'} />
         Paused
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-700 dark:text-emerald-300',
+        sizeClass
+      )}
+    >
       <span className="relative flex size-2">
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
@@ -114,7 +132,8 @@ function AgentStatusBadge({
 
 export function AgentCard({
   agent,
-  linkToWorkspace = false
+  linkToWorkspace = false,
+  compact = false
 }: AgentCardProps): React.JSX.Element {
   const router = useRouter();
   const meta = CHARACTER_META[agent.character];
@@ -179,12 +198,18 @@ export function AgentCard({
     <>
       <article
         className={cn(
-          'group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all hover:border-foreground/15 hover:shadow-md',
+          'group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition-colors hover:border-foreground/20',
+          compact ? 'p-4' : 'p-5 hover:shadow-md',
           isPaused && 'opacity-90'
         )}
       >
-        <div className="absolute left-3 top-3">
-          <AgentStatusBadge isPaused={isPaused} />
+        <div
+          className={cn('absolute left-2.5 top-2.5', compact && 'left-2 top-2')}
+        >
+          <AgentStatusBadge
+            isPaused={isPaused}
+            compact={compact}
+          />
         </div>
 
         <DropdownMenu>
@@ -193,7 +218,10 @@ export function AgentCard({
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-3 top-3 size-8 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+              className={cn(
+                'absolute right-2 top-2 size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100',
+                !compact && 'right-3 top-3 size-8'
+              )}
             >
               <MoreHorizontalIcon className="size-4" />
               <span className="sr-only">Agent options</span>
@@ -229,7 +257,12 @@ export function AgentCard({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="flex flex-col items-center pt-6 text-center">
+        <div
+          className={cn(
+            'flex flex-col items-center text-center',
+            compact ? 'pt-5' : 'pt-6'
+          )}
+        >
           <AgentAvatarUpload
             agentId={agent.id}
             character={agent.character}
@@ -241,7 +274,12 @@ export function AgentCard({
             }}
           />
 
-          <h3 className="mt-4 max-w-full truncate font-display text-xl leading-tight tracking-tight">
+          <h3
+            className={cn(
+              'mt-3 max-w-full truncate font-mono font-medium leading-tight tracking-tight',
+              compact ? 'text-base' : 'text-xl font-display'
+            )}
+          >
             {linkToWorkspace ? (
               <Link
                 href={agentPersonaRoute(agent.id)}
@@ -254,19 +292,26 @@ export function AgentCard({
             )}
           </h3>
           {agent.showRole ? (
-            <p className="mt-1 max-w-full truncate text-sm text-muted-foreground">
+            <p className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">
               {agent.role}
             </p>
           ) : null}
-          <span className="mt-2.5 inline-flex rounded-full border border-border/80 bg-muted/30 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {meta.label}
-          </span>
+          {!compact ? (
+            <span className="mt-2 inline-flex rounded-full border border-border/80 bg-muted/30 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {meta.label}
+            </span>
+          ) : null}
 
           <button
             type="button"
             onClick={handleCopyId}
             title={agent.publicId}
-            className="group/id mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-background/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+            className={cn(
+              'group/id mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-background/50 text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground',
+              compact
+                ? 'px-2 py-0.5 text-[10px]'
+                : 'mt-3 px-2.5 py-1 text-[11px]'
+            )}
           >
             <KeyRoundIcon className="size-3 shrink-0 opacity-70" />
             <span className="truncate font-mono">
@@ -283,15 +328,25 @@ export function AgentCard({
         </div>
 
         {agent.metrics.gaps.length > 0 ? (
-          <div className="mt-5 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
-            <AlertCircleIcon className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="line-clamp-2 text-left text-[11px] leading-relaxed text-muted-foreground">
+          <div
+            className={cn(
+              'mt-3 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-2.5 py-2',
+              compact && 'mt-2'
+            )}
+          >
+            <AlertCircleIcon className="mt-0.5 size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="line-clamp-2 text-left text-[10px] leading-relaxed text-muted-foreground">
               {agent.metrics.gaps[0]}
             </p>
           </div>
         ) : null}
 
-        <div className="mt-4 flex justify-center gap-2">
+        <div
+          className={cn(
+            'mt-3 flex justify-center gap-1.5',
+            !compact && 'mt-4 gap-2'
+          )}
+        >
           {linkToWorkspace ? (
             <>
               <Button

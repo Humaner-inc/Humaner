@@ -13,6 +13,13 @@ export function getAppUrl(): string {
   );
 }
 
+/** PNG logo for transactional email (SVG is blocked by most clients). */
+export const EMAIL_LOGO_PATH = "/humaner-email.png";
+
+export function getEmailLogoUrl(): string {
+  return `${getAppUrl()}${EMAIL_LOGO_PATH}`;
+}
+
 export function getDashboardSignUpUrl(): string {
   return `${getAppUrl()}/auth/signup`;
 }

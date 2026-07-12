@@ -8,7 +8,6 @@ import {
 import { Section } from "@react-email/components";
 
 import { AppInfo } from "@/constants/app-info";
-import { getBaseUrl } from "@/lib/urls/get-base-url";
 
 export type WaitlistWelcomeEmailData = {
   recipient: string;
@@ -16,11 +15,7 @@ export type WaitlistWelcomeEmailData = {
 };
 
 export const WaitlistWelcomeEmail = (data: WaitlistWelcomeEmailData) => (
-  <EmailLayout
-    preview="Glad you're here early."
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview="Glad you're here early.">
     <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
     <EmailText>Glad you&apos;re here early.</EmailText>
     <EmailText>

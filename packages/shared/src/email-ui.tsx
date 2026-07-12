@@ -30,18 +30,17 @@ import {
   EMAIL_TEXT_CLASS,
   EMAIL_TITLE_CLASS,
 } from "./email-brand";
+import { getEmailLogoUrl } from "./urls";
 
 export type EmailLayoutProps = {
   preview: string;
-  logoSrc: string;
-  logoAlt?: string;
+  logoSrc?: string;
   children: React.ReactNode;
 };
 
 export function EmailLayout({
   preview,
-  logoSrc,
-  logoAlt = "Humaner",
+  logoSrc = getEmailLogoUrl(),
   children,
 }: EmailLayoutProps): React.JSX.Element {
   return (
@@ -54,8 +53,9 @@ export function EmailLayout({
             <Section className={EMAIL_LOGO_SECTION_CLASS}>
               <Img
                 src={logoSrc}
-                alt={logoAlt}
+                alt=""
                 width="140"
+                height="140"
                 className="mx-auto"
               />
             </Section>

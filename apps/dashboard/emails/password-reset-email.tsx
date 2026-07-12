@@ -9,7 +9,6 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type PasswordResetEmailData = {
   recipient: string;
@@ -21,11 +20,7 @@ export const PasswordResetEmail = ({
   name,
   resetPasswordLink
 }: PasswordResetEmailData) => (
-  <EmailLayout
-    preview={`${AppInfo.APP_NAME} reset your password`}
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview={`${AppInfo.APP_NAME} reset your password`}>
     <EmailTitle>Reset instructions</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>

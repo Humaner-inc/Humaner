@@ -132,7 +132,7 @@
   }
 
   ::selection {
-    background-color: rgb(220 20 60 / 0.22);
+    background-color: rgb(225 204 175 / 0.35);
     color: inherit;
   }
 
@@ -184,7 +184,7 @@ input[type='number'] {
 
 @keyframes paste-char-highlight {
   0% {
-    background-color: rgb(220 20 60 / 0.2);
+    background-color: rgb(225 204 175 / 0.28);
   }
   100% {
     background-color: transparent;
@@ -217,8 +217,8 @@ input[type='number'] {
     box-shadow: none;
   }
   45% {
-    border-color: rgb(220 20 60 / 0.5);
-    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.1);
+    border-color: rgb(225 204 175 / 0.55);
+    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.12);
   }
 }
 
@@ -290,8 +290,8 @@ input[type='number'] {
     box-shadow: none;
   }
   45% {
-    border-color: rgb(220 20 60 / 0.45);
-    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.08);
+    border-color: rgb(225 204 175 / 0.5);
+    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.1);
   }
 }
 
@@ -307,8 +307,8 @@ input[type='number'] {
     box-shadow: none;
   }
   45% {
-    border-color: rgb(220 20 60 / 0.5);
-    box-shadow: 0 0 0 3px rgb(220 20 60 / 0.1);
+    border-color: rgb(225 204 175 / 0.55);
+    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.12);
   }
 }
 

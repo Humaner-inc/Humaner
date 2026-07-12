@@ -8,8 +8,6 @@ import {
   EmailTitle
 } from '@humaner/shared/email-ui';
 
-import { getBaseUrl } from '@/lib/urls/get-base-url';
-
 export type ConfirmEmailAddressChangeEmailData = {
   recipient: string;
   name: string;
@@ -20,11 +18,7 @@ export const ConfirmEmailAddressChangeEmail = ({
   name,
   confirmLink
 }: ConfirmEmailAddressChangeEmailData) => (
-  <EmailLayout
-    preview="Confirm new email address"
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt="Humaner"
-  >
+  <EmailLayout preview="Confirm new email address">
     <EmailTitle>Confirm new email address</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>

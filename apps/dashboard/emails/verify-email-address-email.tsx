@@ -9,7 +9,6 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type VerifyEmailAddressEmailData = {
   recipient: string;
@@ -23,11 +22,7 @@ export const VerifyEmailAddressEmail = ({
   otp,
   verificationLink
 }: VerifyEmailAddressEmailData) => (
-  <EmailLayout
-    preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}
-    logoSrc={`${getBaseUrl()}/humaner.svg`}
-    logoAlt={AppInfo.APP_NAME}
-  >
+  <EmailLayout preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}>
     <EmailTitle>Verify your email</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
