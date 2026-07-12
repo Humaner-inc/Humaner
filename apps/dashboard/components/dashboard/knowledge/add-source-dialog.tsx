@@ -57,26 +57,46 @@ function stripMarkdownExtension(name: string): string {
   return name.replace(/\.(md|markdown)$/i, '');
 }
 
-function firstActionError(result: {
-  serverError?: string;
-  validationErrors?: Record<string, { _errors?: string[] } | undefined>;
-}): string | undefined {
-  if (result.serverError) {
-    return result.serverError;
-  }
-
-  if (!result.validationErrors) {
+function firstValidationError(validationErrors: unknown): string | undefined {
+  if (!validationErrors || typeof validationErrors !== 'object') {
     return undefined;
   }
 
-  for (const field of Object.values(result.validationErrors)) {
-    const message = field?._errors?.[0];
+  const rootErrors = (validationErrors as { _errors?: string[] })._errors;
+  if (rootErrors?.[0]) {
+    return rootErrors[0];
+  }
+
+  for (const value of Object.values(validationErrors)) {
+    if (!value || typeof value !== 'object' || !('_errors' in value)) {
+      continue;
+    }
+
+    const message = (value as { _errors?: string[] })._errors?.[0];
     if (message) {
       return message;
     }
   }
 
-  return 'Please check the source details';
+  return undefined;
+}
+
+function firstActionError(result?: {
+  serverError?: string;
+  validationErrors?: unknown;
+}): string | undefined {
+  if (!result) {
+    return undefined;
+  }
+
+  if (result.serverError) {
+    return result.serverError;
+  }
+
+  return (
+    firstValidationError(result.validationErrors) ??
+    (result.validationErrors ? 'Please check the source details' : undefined)
+  );
 }
 
 export type AddSourceDialogProps = {
@@ -206,7 +226,7 @@ export function AddSourceDialog({
             content: file.content,
             contentFormat: 'markdown'
           });
-          const error = firstActionError(result ?? {});
+          const error = firstActionError(result);
           if (error) {
             lastError = `${file.name}: ${error}`;
             continue;
