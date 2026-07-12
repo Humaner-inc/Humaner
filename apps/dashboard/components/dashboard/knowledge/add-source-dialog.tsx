@@ -27,6 +27,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  formatKnowledgeFileSizeLimit,
+  KNOWLEDGE_FILE_CONTENT_MAX_LENGTH,
+  KNOWLEDGE_PASTED_TEXT_MAX_LENGTH
+} from '@/lib/knowledge/content-limits';
 import { cn } from '@/lib/utils';
 
 const highlightedInputClassName =
@@ -43,6 +48,36 @@ const TYPE_OPTIONS: { value: SourceType; label: string }[] = [
   { value: 'TEXT', label: 'Plain text' },
   { value: 'MARKDOWN', label: '.md files' }
 ];
+
+function isMarkdownFileName(name: string): boolean {
+  return /\.(md|markdown)$/i.test(name);
+}
+
+function stripMarkdownExtension(name: string): string {
+  return name.replace(/\.(md|markdown)$/i, '');
+}
+
+function firstActionError(result: {
+  serverError?: string;
+  validationErrors?: Record<string, { _errors?: string[] } | undefined>;
+}): string | undefined {
+  if (result.serverError) {
+    return result.serverError;
+  }
+
+  if (!result.validationErrors) {
+    return undefined;
+  }
+
+  for (const field of Object.values(result.validationErrors)) {
+    const message = field?._errors?.[0];
+    if (message) {
+      return message;
+    }
+  }
+
+  return 'Please check the source details';
+}
 
 export type AddSourceDialogProps = {
   agentId: string;
@@ -117,20 +152,36 @@ export function AddSourceDialog({
   const handleMdFiles = async (files: FileList | null): Promise<void> => {
     if (!files) return;
     const results: { name: string; content: string }[] = [];
+    const skipped: string[] = [];
     for (const file of Array.from(files)) {
-      if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown'))
-        continue;
+      if (!isMarkdownFileName(file.name)) continue;
       const text = await file.text();
-      if (text.trim()) {
-        results.push({
-          name: file.name.replace(/\.(md|markdown)$/, ''),
-          content: text.trim()
-        });
+      const trimmed = text.trim();
+      if (!trimmed) {
+        skipped.push(`${file.name} (empty)`);
+        continue;
       }
+      if (trimmed.length > KNOWLEDGE_FILE_CONTENT_MAX_LENGTH) {
+        skipped.push(
+          `${file.name} (over ${formatKnowledgeFileSizeLimit()} limit)`
+        );
+        continue;
+      }
+      results.push({
+        name: stripMarkdownExtension(file.name),
+        content: trimmed
+      });
     }
     if (results.length === 0) {
-      toast.error('No valid .md files found');
+      toast.error(
+        skipped.length > 0
+          ? `No valid .md files found. ${skipped.join(', ')}`
+          : 'No valid .md files found'
+      );
       return;
+    }
+    if (skipped.length > 0) {
+      toast.warning(`Skipped ${skipped.length} file(s): ${skipped.join(', ')}`);
     }
     setMdFiles((prev) => [...prev, ...results]);
   };
@@ -146,18 +197,24 @@ export function AddSourceDialog({
     startTransition(async () => {
       if (type === 'MARKDOWN') {
         let added = 0;
+        let lastError: string | undefined;
         for (const file of mdFiles) {
           const result = await addKnowledgeSource({
             agentId,
             type: 'TEXT',
             title: file.name,
-            content: file.content
+            content: file.content,
+            contentFormat: 'markdown'
           });
-          if (result?.serverError || result?.validationErrors) continue;
+          const error = firstActionError(result ?? {});
+          if (error) {
+            lastError = `${file.name}: ${error}`;
+            continue;
+          }
           added++;
         }
         if (added === 0) {
-          toast.error('Could not add any files');
+          toast.error(lastError ?? 'Could not add any files');
           return;
         }
         toast.success(
@@ -311,7 +368,7 @@ export function AddSourceDialog({
                   rows={6}
                   placeholder="Paste the knowledge your agent should learn from…"
                   value={content}
-                  maxLength={20000}
+                  maxLength={KNOWLEDGE_PASTED_TEXT_MAX_LENGTH}
                   disabled={isPending}
                   onChange={(e) => setContent(e.target.value)}
                 />
@@ -354,7 +411,7 @@ export function AddSourceDialog({
                     Drop .md files here or click to browse
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Markdown files are parsed as knowledge sources
+                    Markdown files up to {formatKnowledgeFileSizeLimit()} each
                   </p>
                 </div>
               </button>

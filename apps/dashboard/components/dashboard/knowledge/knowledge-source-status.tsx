@@ -1,34 +1,29 @@
 'use client';
 
 import * as React from 'react';
-import { Loader2Icon } from '@humaner/shared/icons';
+import { CheckIcon, Loader2Icon } from '@humaner/shared/icons';
 import type { SyncStatus } from '@prisma/client';
+import { motion } from 'motion/react';
 
-import { Badge, type BadgeProps } from '@/components/ui/badge';
-import {
-  FileCheckIcon,
-  type FileCheckIconHandle
-} from '@/components/ui/file-check-icon';
+import { StatusPill } from '@/components/ui/status-pill';
 
-const STATUS_META: Record<
-  Exclude<SyncStatus, 'READY'>,
-  { label: string; variant: BadgeProps['variant'] }
+const IN_FLIGHT_LABELS: Record<
+  Extract<
+    SyncStatus,
+    'PENDING' | 'QUEUED' | 'EXTRACTING' | 'PROCESSING' | 'INDEXING'
+  >,
+  string
 > = {
-  PENDING: { label: 'Pending', variant: 'secondary' },
-  QUEUED: { label: 'Queued', variant: 'secondary' },
-  EXTRACTING: { label: 'Extracting', variant: 'secondary' },
-  PROCESSING: { label: 'Processing', variant: 'secondary' },
-  INDEXING: { label: 'Indexing', variant: 'secondary' },
-  FAILED: { label: 'Failed', variant: 'destructive' }
+  PENDING: 'Pending',
+  QUEUED: 'Queued',
+  EXTRACTING: 'Extracting',
+  PROCESSING: 'Processing',
+  INDEXING: 'Indexing'
 };
 
-const IN_FLIGHT_STATUSES: SyncStatus[] = [
-  'PENDING',
-  'QUEUED',
-  'EXTRACTING',
-  'PROCESSING',
-  'INDEXING'
-];
+const IN_FLIGHT_STATUSES = Object.keys(
+  IN_FLIGHT_LABELS
+) as (keyof typeof IN_FLIGHT_LABELS)[];
 
 type KnowledgeSourceStatusProps = {
   status: SyncStatus;
@@ -39,58 +34,59 @@ export function KnowledgeSourceStatus({
   status,
   sourceId
 }: KnowledgeSourceStatusProps): React.JSX.Element {
-  const iconRef = React.useRef<FileCheckIconHandle>(null);
   const prevStatusRef = React.useRef<SyncStatus | null>(null);
+  const [justReady, setJustReady] = React.useState(false);
 
   React.useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = status;
 
-    if (status !== 'READY') {
-      return;
-    }
-
-    const justBecameReady =
-      prev !== null && prev !== 'READY' && status === 'READY';
-
-    if (justBecameReady || prev === null) {
-      const timer = window.setTimeout(() => {
-        iconRef.current?.startAnimation();
-      }, 80);
+    if (
+      status === 'READY' &&
+      prev !== null &&
+      prev !== 'READY' &&
+      IN_FLIGHT_STATUSES.includes(prev as keyof typeof IN_FLIGHT_LABELS)
+    ) {
+      setJustReady(true);
+      const timer = window.setTimeout(() => setJustReady(false), 600);
       return () => window.clearTimeout(timer);
     }
   }, [status, sourceId]);
 
   if (status === 'READY') {
     return (
-      <div
-        className="flex shrink-0 items-center justify-center text-primary"
+      <StatusPill
+        variant="success"
+        iconOnly
         title="Ingested and ready"
         aria-label="Ingested and ready"
       >
-        <FileCheckIcon
-          ref={iconRef}
-          size={24}
-        />
-      </div>
+        <motion.span
+          initial={justReady ? { scale: 0.6, opacity: 0 } : false}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+          className="flex items-center justify-center"
+        >
+          <CheckIcon
+            className="size-3.5"
+            aria-hidden
+          />
+        </motion.span>
+      </StatusPill>
     );
   }
 
-  if (IN_FLIGHT_STATUSES.includes(status)) {
+  if (IN_FLIGHT_STATUSES.includes(status as keyof typeof IN_FLIGHT_LABELS)) {
     return (
-      <Badge
-        variant="secondary"
-        className="gap-1.5"
-      >
+      <StatusPill variant="pending">
         <Loader2Icon
-          className="size-3 animate-spin text-muted-foreground"
+          className="size-3 animate-spin"
           aria-hidden
         />
-        {STATUS_META[status].label}
-      </Badge>
+        {IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
+      </StatusPill>
     );
   }
 
-  const meta = STATUS_META[status];
-  return <Badge variant={meta.variant}>{meta.label}</Badge>;
+  return <StatusPill variant="failed">Failed</StatusPill>;
 }
