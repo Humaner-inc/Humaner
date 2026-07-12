@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, HeadsetIcon } from '@humaner/shared/icons';
+import { ArrowUpRight } from '@humaner/shared/icons';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
@@ -36,18 +36,20 @@ export function DeskIssuesOverviewCard({
       className={cn('flex flex-col rounded-xl border bg-card p-5', className)}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <HeadsetIcon className="size-5 shrink-0 text-foreground" />
-          <div>
-            <h2 className="font-display text-lg leading-none">Desk issues</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              {needsAttention > 0
-                ? `${needsAttention} ticket${needsAttention === 1 ? '' : 's'} need attention`
-                : counts.total > 0
-                  ? 'No open tickets right now'
-                  : 'No desk tickets yet'}
-            </p>
-          </div>
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Desk
+          </p>
+          <h2 className="mt-1 font-display text-lg leading-none">
+            Desk issues
+          </h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {needsAttention > 0
+              ? `${needsAttention} ticket${needsAttention === 1 ? '' : 's'} need attention`
+              : counts.total > 0
+                ? 'No open tickets right now'
+                : 'No desk tickets yet'}
+          </p>
         </div>
         <Link
           href={Routes.DeskHuman}

@@ -22,6 +22,7 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
+import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -47,7 +48,8 @@ export default async function DashboardLayout({
           dataImprovementConsent: true,
           targetAudience: true,
           tier: true,
-          accentColor: true
+          accentColor: true,
+          name: true
         }
       }
     }
@@ -71,6 +73,17 @@ export default async function DashboardLayout({
 
   const accentColor = userFromDb!.organization!.accentColor ?? undefined;
   const humanerAgentPublicId = getHumanerAgentPublicId();
+  const dashboardVisitorId = buildDashboardVisitorId(session.user.id);
+  const displayName = profile.name.trim();
+  const nameParts = displayName.split(/\s+/).filter(Boolean);
+  const visitorMetadata = {
+    ...(nameParts[0] ? { firstName: nameParts[0] } : {}),
+    ...(nameParts.length > 1 ? { lastName: nameParts.slice(1).join(' ') } : {}),
+    ...(profile.email ? { email: profile.email } : {}),
+    ...(userFromDb!.organization!.name
+      ? { company: userFromDb!.organization!.name }
+      : {})
+  };
 
   const dashboardShell = (
     <>
@@ -120,6 +133,8 @@ export default async function DashboardLayout({
             <HumanerChatProvider
               agentPublicId={humanerAgentPublicId}
               widgetColor={accentColor}
+              dashboardVisitorId={dashboardVisitorId}
+              visitorMetadata={visitorMetadata}
             >
               {dashboardShell}
             </HumanerChatProvider>

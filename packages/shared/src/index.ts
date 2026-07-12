@@ -9,3 +9,4 @@ export * from "./widget-bookmark-icon";
 export * from "./cta";
 export * from "./typography";
 export * from "./widget-icons";
+export * from "./product-positioning";

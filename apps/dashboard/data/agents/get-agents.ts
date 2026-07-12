@@ -39,6 +39,7 @@ export type AgentListItem = {
   image: string | null;
   showRole: boolean;
   isPaused: boolean;
+  forbiddenTopics: string[];
 };
 
 export async function getAgents(): Promise<AgentListItem[]> {
@@ -68,7 +69,8 @@ export async function getAgents(): Promise<AgentListItem[]> {
           greetingMessage: true,
           image: true,
           showRole: true,
-          isPaused: true
+          isPaused: true,
+          forbiddenTopics: true
         },
         orderBy: { createdAt: 'desc' }
       });

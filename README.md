@@ -129,13 +129,13 @@ packages/
 
 ## Open-source strategy
 
-Humaner follows a **partial open-source** model — expose the platform operators need (integrations, org, Desk Center); keep the intelligence runtimes hosted:
+Humaner follows a **partial open-source** model: ship what operators need to embed and run desk workflows; keep managed intelligence on Cloud:
 
-| Source-available (this repo)                                         | Hosted only                                                                           |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Integration layer — widget, SDK, API, auth, rate limits              | **Humaner Agent Intelligence** — fills Support Agent slot; prompts, memory, knowledge |
-| Organization — workspaces, members, RBAC                             | **Humaner Desk Intelligence** — async tiers, AI Desk, runbooks, clusters              |
-| Desk Center — handoff framework, Human Desk, tickets (**BYO agent**) | Training banks, eval gates, model routing                                             |
+| Self-host (this repo)                                         | Humaner Cloud                                   |
+| ------------------------------------------------------------- | ----------------------------------------------- |
+| Widget, React SDK, API, auth, rate limits                     | Everything in OSS, plus managed agent inference |
+| Workspaces, members, RBAC                                     | Grounded retrieval, memory, and live data       |
+| Desk handoff UI and Human Desk tickets (bring your own agent) | AI Desk, runbooks, clusters, and training gates |
 
 Details: [Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, UsersIcon } from '@humaner/shared/icons';
+import { ArrowUpRight } from '@humaner/shared/icons';
 import { Role, WorkspaceRole } from '@prisma/client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,17 +39,19 @@ export function TeamMembersOverviewCard({
       className={cn('flex flex-col rounded-xl border bg-card p-5', className)}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <UsersIcon className="size-5 shrink-0 text-foreground" />
-          <div>
-            <h2 className="font-display text-lg leading-none">Team members</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              {members.length} member{members.length === 1 ? '' : 's'}
-              {ownerCount > 0
-                ? ` · ${ownerCount} owner${ownerCount === 1 ? '' : 's'}`
-                : ''}
-            </p>
-          </div>
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Team
+          </p>
+          <h2 className="mt-1 font-display text-lg leading-none">
+            Team members
+          </h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {members.length} member{members.length === 1 ? '' : 's'}
+            {ownerCount > 0
+              ? ` · ${ownerCount} owner${ownerCount === 1 ? '' : 's'}`
+              : ''}
+          </p>
         </div>
         <Link
           href={Routes.OrganizationTeam}

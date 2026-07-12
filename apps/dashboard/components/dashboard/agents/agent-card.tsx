@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircleIcon,
+  BarChart3Icon,
+  BookOpenIcon,
   CheckIcon,
   CopyIcon,
   KeyRoundIcon,
@@ -289,29 +291,45 @@ export function AgentCard({
           </div>
         ) : null}
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 flex justify-center gap-2">
           {linkToWorkspace ? (
             <>
               <Button
                 asChild
                 variant="outline"
-                className="rounded-xl"
+                size="icon"
+                className="size-9 rounded-xl"
+                title="Knowledge"
               >
-                <Link href={agentKnowledgeRoute(agent.id)}>Knowledge</Link>
+                <Link href={agentKnowledgeRoute(agent.id)}>
+                  <BookOpenIcon
+                    className="size-4"
+                    aria-hidden
+                  />
+                  <span className="sr-only">Knowledge</span>
+                </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
-                className="rounded-xl"
+                size="icon"
+                className="size-9 rounded-xl"
+                title="Analytics"
               >
-                <Link href={agentAnalyticsRoute(agent.id)}>Analytics</Link>
+                <Link href={agentAnalyticsRoute(agent.id)}>
+                  <BarChart3Icon
+                    className="size-4"
+                    aria-hidden
+                  />
+                  <span className="sr-only">Analytics</span>
+                </Link>
               </Button>
             </>
           ) : (
             <Button
               type="button"
               variant="outline"
-              className="col-span-2 rounded-xl"
+              className="w-full rounded-xl"
               onClick={handleTogglePause}
               loading={isTogglingPause}
             >

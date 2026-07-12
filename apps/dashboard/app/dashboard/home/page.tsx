@@ -72,47 +72,57 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           tier={organization?.tier ?? 'free'}
         />
 
-        <section className="space-y-3">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {agents.map((agent) => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                linkToWorkspace
-              />
-            ))}
-            {!atLimit ? (
-              <Link
-                href={Routes.AgentNew}
-                className="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center transition-colors hover:border-foreground/20 hover:bg-muted/40"
-              >
-                <BotIcon className="mb-3 size-8 text-muted-foreground" />
-                <span className="text-sm font-medium">Create agent</span>
-                <span className="mt-1 text-xs text-muted-foreground">
-                  Personality, knowledge, and policies
-                </span>
-              </Link>
-            ) : null}
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:items-start">
+          <div className="space-y-4">
+            <DeskIssuesOverviewCard overview={deskOverview} />
+            <TeamMembersOverviewCard members={members} />
           </div>
 
-          <p className="text-center text-[11px] tabular-nums text-muted-foreground">
-            {bypassLimits
-              ? `${agents.length} agent${agents.length === 1 ? '' : 's'} · no plan limits`
-              : `${liveAgentCount} of ${agentLimit} live slot${agentLimit === 1 ? '' : 's'}`}
-          </p>
+          <section className="space-y-4">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Agents
+              </p>
+              <h2 className="mt-1 font-display text-2xl leading-none">
+                Your agents
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {bypassLimits
+                  ? `${agents.length} agent${agents.length === 1 ? '' : 's'} · no plan limits`
+                  : `${liveAgentCount} of ${agentLimit} live slot${agentLimit === 1 ? '' : 's'}`}
+              </p>
+            </div>
 
-          {atLimit ? (
-            <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-              You&apos;ve reached your plan&apos;s live agent limit. Pause an
-              agent or upgrade to create more.
-            </p>
-          ) : null}
-        </section>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {agents.map((agent) => (
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  linkToWorkspace
+                />
+              ))}
+              {!atLimit ? (
+                <Link
+                  href={Routes.AgentNew}
+                  className="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/20 p-6 text-center transition-colors hover:border-foreground/20 hover:bg-muted/40"
+                >
+                  <BotIcon className="mb-3 size-8 text-muted-foreground" />
+                  <span className="text-sm font-medium">Create agent</span>
+                  <span className="mt-1 text-xs text-muted-foreground">
+                    Personality, knowledge, and policies
+                  </span>
+                </Link>
+              ) : null}
+            </div>
 
-        <section className="grid gap-4 lg:grid-cols-2">
-          <DeskIssuesOverviewCard overview={deskOverview} />
-          <TeamMembersOverviewCard members={members} />
-        </section>
+            {atLimit ? (
+              <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                You&apos;ve reached your plan&apos;s live agent limit. Pause an
+                agent or upgrade to create more.
+              </p>
+            ) : null}
+          </section>
+        </div>
       </div>
     </SectionPage>
   );
