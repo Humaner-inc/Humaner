@@ -1,0 +1,21 @@
+title = "Humaner gitleaks config"
+
+[extend]
+useDefault = true
+
+# Documentation and UI snippets use Bearer + placeholder tokens, not real secrets.
+[[allowlists]]
+description = "API key placeholders in docs and integration examples"
+regexTarget = "line"
+regexes = [
+  '''YOUR_API_KEY''',
+  '''YOUR_AGENT_PUBLIC_ID''',
+  '''<your-api-key>''',
+  '''<api-key>''',
+]
+paths = [
+  '''apps/landing/lib/docs-content/''',
+  '''apps/landing/lib/integrations\.ts''',
+  '''apps/dashboard/components/dashboard/integrations/''',
+  '''apps/dashboard/components/dashboard/settings/organization/developers/''',
+]
