@@ -52,21 +52,21 @@ export function WaitlistSuccessState({
       }}
     >
       <motion.div
-        className="mx-auto flex size-12 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-400/10"
+        className="mx-auto flex size-12 items-center justify-center border border-accent/30 bg-accent/10"
         variants={fadeUpVariant(0)}
       >
-        <CircleCheck ref={checkRef} className="size-6 text-emerald-400" />
+        <CircleCheck ref={checkRef} className="size-6 text-accent" />
       </motion.div>
 
       <motion.p
-        className="mt-4 text-sm font-medium text-white"
+        className="mt-4 font-mono text-xs font-medium uppercase tracking-wider text-background"
         variants={fadeUpVariant(0.1)}
       >
         E-mail sent
       </motion.p>
 
       <motion.p
-        className="mt-3 text-sm leading-relaxed text-white/55"
+        className="mt-3 text-sm leading-relaxed text-background/55"
         variants={fadeUpVariant(0.22)}
       >
         Stay tuned, we got something else for you.

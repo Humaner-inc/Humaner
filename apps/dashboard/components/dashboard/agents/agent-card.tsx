@@ -104,7 +104,7 @@ function AgentStatusBadge({
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 font-medium text-amber-700 dark:text-amber-300',
+          'inline-flex items-center gap-1 border border-amber-500/30 bg-amber-500/10 font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300',
           sizeClass
         )}
       >
@@ -117,7 +117,7 @@ function AgentStatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 font-medium text-emerald-700 dark:text-emerald-300',
+        'inline-flex items-center gap-1.5 border border-emerald-500/30 bg-emerald-500/10 font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-300',
         sizeClass
       )}
     >
@@ -198,8 +198,8 @@ export function AgentCard({
     <>
       <article
         className={cn(
-          'group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition-colors hover:border-foreground/20',
-          compact ? 'p-4' : 'p-5 hover:shadow-md',
+          'group relative flex flex-col overflow-hidden border border-border/60 bg-card transition-colors card-interactive',
+          compact ? 'p-4' : 'p-5',
           isPaused && 'opacity-90'
         )}
       >

@@ -678,19 +678,19 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = 'SidebarMenuItem';
 
 export const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2.5 text-left font-sans text-xs outline-none ring-sidebar-ring transition-[width,height,padding,color,background-color] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2.5 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-none p-2.5 text-left font-mono text-[11px] uppercase tracking-wide outline-none ring-sidebar-ring transition-[width,height,padding,color,background-color] duration-200 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground focus-visible:ring-1 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2.5 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
   {
     variants: {
       variant: {
         default: [
-          'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-          'data-[active=true]:bg-sidebar-active data-[active=true]:font-medium data-[active=true]:text-sidebar-active-foreground data-[active=true]:shadow-sm data-[active=true]:[&_svg]:text-sidebar-active-foreground'
+          'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+          'data-[active=true]:border-l-2 data-[active=true]:border-[var(--accent-color,#e1ccaf)] data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_8%,transparent)] data-[active=true]:pl-[calc(0.625rem-2px)] data-[active=true]:font-medium data-[active=true]:text-foreground data-[active=true]:[&_svg]:text-foreground'
         ],
         section: [
-          'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
-          'data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground',
-          'data-[active=true]:[&_svg]:text-sidebar-foreground',
-          'group-data-[collapsible=icon]:data-[active=true]:bg-sidebar-accent/60'
+          'text-muted-foreground hover:bg-sidebar-accent/40 hover:text-sidebar-foreground',
+          'data-[active=true]:font-medium data-[active=true]:text-foreground',
+          'data-[active=true]:[&_svg]:text-foreground',
+          'group-data-[collapsible=icon]:data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_10%,transparent)]'
         ],
         outline:
           'bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]'

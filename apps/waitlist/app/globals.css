@@ -7,19 +7,24 @@
 
 @layer base {
   :root {
-    --background: #070607;
-    --foreground: #fff8f2;
+    --background: #fff8f2;
+    --foreground: #070607;
     --accent: #e1ccaf;
-    --brand: #6b2d3a;
+    --color-accent: #e1ccaf;
+    --fracture: #e1ccaf;
+    --alternative: #6b2d3a;
+    --surface: #eeede9;
+    --surface-elevated: #faf9f7;
+    --radius: 0px;
   }
 
   * {
-    @apply border-white/10;
+    @apply border-alternative/15;
   }
 
   ::selection {
-    background-color: rgb(220 20 60 / 0.35);
-    color: #fff8f2;
+    background-color: rgb(107 45 58 / 0.22);
+    color: #070607;
   }
 
   @font-face {
@@ -65,7 +70,7 @@
       90deg,
       #fff8f2 0%,
       #fff8f2 55%,
-      rgb(245 245 245 / 0.22) 100%
+      rgb(255 248 242 / 0.22) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -78,9 +83,9 @@
   .story-sentence--muted {
     background: linear-gradient(
       90deg,
-      rgb(245 245 245 / 0.55) 0%,
-      rgb(245 245 245 / 0.55) 55%,
-      rgb(245 245 245 / 0.12) 100%
+      rgb(255 248 242 / 0.55) 0%,
+      rgb(255 248 242 / 0.55) 55%,
+      rgb(255 248 242 / 0.12) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -88,6 +93,30 @@
     padding-block: 0.12em;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
+  }
+
+  .text-fracture {
+    color: #e1ccaf;
+  }
+
+  .glass {
+    @apply border border-white/15 bg-white/[0.04];
+  }
+
+  .glass-light {
+    @apply border border-foreground/[0.08] bg-white/80;
+  }
+
+  .glass-dark {
+    @apply border border-white/10 bg-black/40;
+  }
+
+  .section-eyebrow {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-background/45;
+  }
+
+  .section-lead {
+    @apply font-sans text-base leading-relaxed text-background/55;
   }
 
   .waitlist-cta__headline-wrap {

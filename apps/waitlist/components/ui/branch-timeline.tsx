@@ -1,5 +1,6 @@
 "use client";
 
+import { getBranchTagClassName } from "@humaner/shared/cta";
 import { useEffect, useState, type RefObject } from "react";
 
 import { cn } from "@/lib/utils";
@@ -427,6 +428,7 @@ export function BranchConnector({
   nodeFillProgress,
   label,
   tone = "dark",
+  tagClassName,
 }: {
   active: boolean;
   passed: boolean;
@@ -434,25 +436,21 @@ export function BranchConnector({
   nodeFillProgress: number;
   label: string;
   tone?: "light" | "dark";
+  tagClassName?: string;
 }): React.JSX.Element {
   const branchLength = PILL_X - TRUNK_X;
   const drawProgress = passed ? 1 : branchProgress;
   const dashOffset = branchLength * (1 - drawProgress);
   const isDark = tone === "dark";
+  const tagState = active
+    ? "active"
+    : passed || drawProgress > 0.6
+      ? "engaged"
+      : "idle";
 
   const pillClass = cn(
-    "absolute z-10 -translate-y-1/2 rounded-full border px-3 py-1 text-[11px] font-medium tracking-wide",
-    isDark
-      ? active
-        ? "border-white/50 bg-white/10 text-white"
-        : passed || drawProgress > 0.6
-          ? "border-white/30 text-white/75"
-          : "border-white/15 text-white/40"
-      : active
-        ? "border-foreground/20 bg-foreground/[0.04] text-foreground"
-        : passed || drawProgress > 0.6
-          ? "border-foreground/14 text-foreground/70"
-          : "border-foreground/12 text-foreground/40",
+    "absolute z-10 -translate-y-1/2 whitespace-nowrap px-3 py-1",
+    tagClassName ?? getBranchTagClassName(tagState, isDark ? "dark" : "light"),
   );
 
   const pillStyle = { left: PILL_X, top: PILL_Y } as const;
@@ -500,7 +498,7 @@ export function BranchConnector({
 
       <span
         aria-hidden
-        className={cn(pillClass, "pointer-events-none whitespace-nowrap")}
+        className={cn(pillClass, "pointer-events-none")}
         style={pillStyle}
       >
         {label}

@@ -157,6 +157,22 @@ module.exports = {
           '50%': {
             transform: 'translateY(-5px)'
           }
+        },
+        'humaner-slide-up-in': {
+          from: { transform: 'translateY(100%)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' }
+        },
+        'humaner-slide-up-out': {
+          from: { transform: 'translateY(0)', opacity: '1' },
+          to: { transform: 'translateY(100%)', opacity: '0' }
+        },
+        'humaner-slide-down-in': {
+          from: { transform: 'translate(-50%, -0.5rem)', opacity: '0' },
+          to: { transform: 'translate(-50%, 0)', opacity: '1' }
+        },
+        'humaner-slide-down-out': {
+          from: { transform: 'translate(-50%, 0)', opacity: '1' },
+          to: { transform: 'translate(-50%, -0.5rem)', opacity: '0' }
         }
       },
       animation: {
@@ -167,7 +183,15 @@ module.exports = {
         'collapsible-up': 'collapsible-up 0.2s ease-out',
         fadeIn: 'fadeIn 0.3s ease-in-out',
         slideIn: 'slideIn 0.3s ease-in-out',
-        bounce: 'bounce 0.6s ease-in-out'
+        bounce: 'bounce 0.6s ease-in-out',
+        'humaner-slide-up-in':
+          'humaner-slide-up-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'humaner-slide-up-out':
+          'humaner-slide-up-out 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'humaner-slide-down-in':
+          'humaner-slide-down-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'humaner-slide-down-out':
+          'humaner-slide-down-out 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards'
       }
     }
   },

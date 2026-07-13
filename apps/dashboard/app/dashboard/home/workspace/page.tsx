@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 import { OrganizationWorkspaceBanner } from '@/components/dashboard/home/organization-workspace-banner';
-import { WorkspaceAccentSection } from '@/components/dashboard/organization/workspace-accent-section';
 import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { SectionPage } from '@/components/ui/section-shell';
 import { getOrganizationDetails } from '@/data/organization/get-organization-details';
@@ -28,7 +27,6 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
     prisma.organization.findFirst({
       where: { id: session.user.organizationId },
       select: {
-        accentColor: true,
         industry: true,
         targetAudience: true,
         logoUrl: true
@@ -57,10 +55,6 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
           industry={organization?.industry ?? null}
           targetAudience={organization?.targetAudience ?? null}
           brandHeader="none"
-        />
-
-        <WorkspaceAccentSection
-          accentColor={organization?.accentColor ?? null}
         />
       </div>
     </SectionPage>

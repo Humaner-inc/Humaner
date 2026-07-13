@@ -13,7 +13,15 @@ const config: Config = {
         foreground: "#070607",
         accent: {
           DEFAULT: "#e1ccaf",
-          foreground: "#070607",
+          foreground: "#060707",
+        },
+        fracture: {
+          DEFAULT: "#e1ccaf",
+          foreground: "#060707",
+        },
+        alternative: {
+          DEFAULT: "#6b2d3a",
+          foreground: "#fff8f2",
         },
         brand: {
           DEFAULT: "#6b2d3a",
@@ -30,6 +38,12 @@ const config: Config = {
         ],
         mono: ["var(--font-humaner-mono)", "ui-monospace", "monospace"],
         fellix: ["var(--font-fellix)", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        lg: "0",
+        md: "0",
+        sm: "0",
+        DEFAULT: "0",
       },
     },
   },

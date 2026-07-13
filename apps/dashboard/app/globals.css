@@ -41,7 +41,7 @@
     --input: 340 12% 88%;
     --ring: 300 8% 72%;
 
-    --radius: 0.625rem;
+    --radius: 0px;
 
     --chart-1: 300 8% 28%;
     --chart-2: 35 45% 78%;
@@ -117,11 +117,13 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  *,
+  *::before,
+  *::after {
+    border-color: hsl(var(--border) / 0.15);
   }
   body {
-    @apply box-border bg-background font-sans text-foreground;
+    @apply box-border bg-background font-sans text-foreground antialiased;
   }
 
   h1,
@@ -164,6 +166,97 @@
   .tabular-nums {
     @apply font-mono;
   }
+
+  /* Dashboard micro-labels — mono uppercase tags */
+  .micro-label {
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  /* Dashboard section titles */
+  .section-title {
+    @apply font-mono text-sm font-medium leading-none tracking-tight;
+  }
+
+  /* Card hover — border lift, no shadow */
+  .card-interactive {
+    @apply transition-colors hover:border-foreground/20 hover:bg-muted/20;
+  }
+}
+
+/* Ask Humaner slide-up */
+@keyframes humaner-slide-up-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes humaner-slide-up-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes humaner-bar-in {
+  from {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-humaner-slide-up-in {
+  animation: humaner-slide-up-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-humaner-slide-up-out {
+  animation: humaner-slide-up-out 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes humaner-slide-down-in {
+  from {
+    transform: translate(-50%, -0.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes humaner-slide-down-out {
+  from {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -0.5rem);
+    opacity: 0;
+  }
+}
+
+.animate-humaner-slide-down-in {
+  animation: humaner-slide-down-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-humaner-slide-down-out {
+  animation: humaner-slide-down-out 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-humaner-bar-in {
+  animation: humaner-bar-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* Number input spinners */

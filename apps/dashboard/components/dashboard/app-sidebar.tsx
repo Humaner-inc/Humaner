@@ -41,7 +41,10 @@ export function AppSidebar({
   const [brandHovered, setBrandHovered] = React.useState(false);
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar
+      collapsible="icon"
+      className="bg-sidebar/95 backdrop-blur-xl"
+    >
       <SidebarHeader className="shrink-0 p-2">
         <div className="flex h-10 w-full items-center justify-center overflow-hidden">
           {isCollapsed ? (
@@ -65,7 +68,7 @@ export function AppSidebar({
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden group-data-[collapsible=icon]:hidden">
+      <SidebarContent className="overflow-hidden">
         <ScrollArea
           verticalScrollBar
           className="h-full [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:flex-col"

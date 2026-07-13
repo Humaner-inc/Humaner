@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { uiLeadClassName } from "@humaner/shared/typography";
+
 import { WaitlistSuccessState } from "@/components/waitlist-success-state";
 import type { FormState } from "@/components/waitlist-email-form";
 import { cn } from "@/lib/utils";
@@ -64,7 +66,12 @@ export function WaitlistCtaReveal({
           <WaitlistSuccessState />
         </div>
       ) : (
-        <p className="waitlist-cta__sub mx-auto mt-4 text-sm leading-relaxed text-white/55 sm:mt-5 sm:text-base">
+        <p
+          className={cn(
+            uiLeadClassName,
+            "waitlist-cta__sub mx-auto mt-4 max-w-sm text-background/55 sm:mt-5",
+          )}
+        >
           <span className="block sm:whitespace-nowrap">
             Being early will grant exclusive benefits.
           </span>

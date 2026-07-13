@@ -16,9 +16,9 @@ export function GlassPanel({
   return (
     <div
       className={cn(
-        'relative isolate overflow-hidden rounded-2xl border backdrop-blur-xl',
-        'border-foreground/15 bg-card shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(225_204_175_/_0.1)]',
-        'dark:border-white/[0.08] dark:bg-black/55 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_40px_100px_-40px_rgb(0_0_0_/_0.65)]',
+        'relative isolate overflow-hidden border backdrop-blur-xl',
+        'border-foreground/15 bg-card',
+        'dark:border-white/[0.08] dark:bg-black/55',
         className
       )}
       {...props}

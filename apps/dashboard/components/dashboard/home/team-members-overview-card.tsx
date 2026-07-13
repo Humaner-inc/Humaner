@@ -5,9 +5,14 @@ import { Role, WorkspaceRole } from '@prisma/client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AvatarGroup } from '@/components/ui/avatar-group';
-import { Badge } from '@/components/ui/badge';
+import {
+  DashboardCard,
+  DashboardCardBody,
+  DashboardCardHeader
+} from '@/components/ui/dashboard-card';
+import { StatusTag } from '@/components/ui/micro-label';
 import { Routes } from '@/constants/routes';
-import { cn, getInitials } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
 import type { MemberDto } from '@/types/dtos/member-dto';
 
 const PREVIEW_LIMIT = 4;
@@ -32,24 +37,20 @@ export function TeamMembersOverviewCard({
   const previewMembers = members.slice(0, PREVIEW_LIMIT);
 
   return (
-    <section
-      className={cn('rounded-xl border border-border/60 bg-card', className)}
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-3">
-        <h2 className="font-mono text-sm font-medium leading-none">
-          Team
-          <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
-            {members.length}
-          </span>
-        </h2>
-        <Link
-          href={Routes.OrganizationTeam}
-          className="group inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Manage
-          <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        </Link>
-      </div>
+    <DashboardCard className={className}>
+      <DashboardCardHeader
+        title="Team"
+        count={members.length}
+        action={
+          <Link
+            href={Routes.OrganizationTeam}
+            className="group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Manage
+            <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
+        }
+      />
 
       {members.length > 0 ? (
         <>
@@ -66,7 +67,7 @@ export function TeamMembersOverviewCard({
             />
           </div>
 
-          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden rounded-lg border">
+          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden border-x-0 border-b-0 border-t-0">
             {previewMembers.map((member) => (
               <li
                 key={member.id}
@@ -89,12 +90,9 @@ export function TeamMembersOverviewCard({
                     {member.email}
                   </p>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="shrink-0 text-[10px]"
-                >
+                <StatusTag className="shrink-0">
                   {memberRoleLabel(member)}
-                </Badge>
+                </StatusTag>
               </li>
             ))}
           </ul>
@@ -106,18 +104,20 @@ export function TeamMembersOverviewCard({
           ) : null}
         </>
       ) : (
-        <div className="rounded-lg border border-dashed px-4 py-8 text-center">
-          <p className="text-xs text-muted-foreground">
-            You&apos;re the only member.
-          </p>
-          <Link
-            href={Routes.OrganizationTeam}
-            className="mt-2 inline-block text-xs text-foreground underline underline-offset-4"
-          >
-            Invite teammates
-          </Link>
-        </div>
+        <DashboardCardBody>
+          <div className="border border-dashed px-4 py-8 text-center">
+            <p className="text-xs text-muted-foreground">
+              You&apos;re the only member.
+            </p>
+            <Link
+              href={Routes.OrganizationTeam}
+              className="mt-2 inline-block font-mono text-xs text-foreground underline underline-offset-4"
+            >
+              Invite teammates
+            </Link>
+          </div>
+        </DashboardCardBody>
       )}
-    </section>
+    </DashboardCard>
   );
 }

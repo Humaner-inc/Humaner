@@ -3,6 +3,8 @@
 import { forwardRef, type ReactNode, type RefObject } from "react";
 
 import { BranchConnector } from "@/components/ui/branch-timeline";
+import { ctaAccentClassName, getBranchTagClassName } from "@humaner/shared/cta";
+import { uiLeadClassName } from "@humaner/shared/typography";
 import {
   WaitlistEmailForm,
   type FormState,
@@ -168,7 +170,12 @@ const StoryBeat = forwardRef<HTMLElement, StoryBeatProps>(function StoryBeat(
         </p>
 
         {subline ? (
-          <p className="mx-auto mt-6 max-w-4xl text-sm leading-relaxed text-white/55 sm:mt-8 sm:text-base sm:leading-relaxed sm:whitespace-nowrap">
+          <p
+            className={cn(
+              uiLeadClassName,
+              "mx-auto mt-6 max-w-4xl text-background/55 sm:mt-8 sm:whitespace-nowrap",
+            )}
+          >
             {subline}
           </p>
         ) : null}
@@ -205,6 +212,16 @@ const StoryCtaEnd = function StoryCtaEnd({
   ctaInView: boolean;
 }): React.JSX.Element {
   const joinOpen = active || passed || ctaInView;
+  const branchFilled = passed || branchProgress >= 0.98;
+  const accessTagClassName = cn(
+    "px-6 py-2.5",
+    branchFilled
+      ? ctaAccentClassName
+      : getBranchTagClassName(
+          passed || branchProgress > 0.6 ? "engaged" : "idle",
+          "dark",
+        ),
+  );
 
   return (
     <article className="relative scroll-mt-28 pb-16 sm:pb-20">
@@ -216,6 +233,7 @@ const StoryCtaEnd = function StoryCtaEnd({
           nodeFillProgress={passed ? 1 : nodeFillProgress}
           label={STAGES[4]}
           tone="dark"
+          tagClassName={accessTagClassName}
         />
 
         <WaitlistCtaReveal

@@ -1,13 +1,13 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BotIcon } from '@humaner/shared/icons';
 import { getPlanForTier } from '@humaner/shared/plans';
 
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
 import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-overview-strip';
 import { DeskIssuesOverviewCard } from '@/components/dashboard/home/desk-issues-overview-card';
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
+import { CircleDashedIcon } from '@/components/ui/circle-dashed-icon';
 import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
@@ -106,9 +106,12 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               {!atLimit ? (
                 <Link
                   href={Routes.AgentNew}
-                  className="flex min-h-[12rem] flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-foreground/20 hover:bg-muted/30"
+                  className="flex min-h-[12rem] flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
                 >
-                  <BotIcon className="mb-2 size-6 text-muted-foreground" />
+                  <CircleDashedIcon
+                    size={24}
+                    className="mb-2 text-muted-foreground"
+                  />
                   <span className="font-mono text-xs font-medium">
                     Create agent
                   </span>
@@ -117,7 +120,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             </div>
 
             {atLimit ? (
-              <p className="rounded-lg border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
+              <p className="border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
                 Live agent limit reached. Pause an agent or upgrade your plan.
               </p>
             ) : null}

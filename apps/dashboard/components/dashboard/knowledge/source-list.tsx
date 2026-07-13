@@ -18,6 +18,7 @@ import { rescanKnowledgeSourceAction } from '@/actions/knowledge/rescan-knowledg
 import { useOptionalKnowledgeResources } from '@/components/dashboard/knowledge/knowledge-resources-shell';
 import { KnowledgeSourceStatus } from '@/components/dashboard/knowledge/knowledge-source-status';
 import { Button } from '@/components/ui/button';
+import { deleteIconButtonClassName } from '@/components/ui/delete-action-button';
 import { ListRowActions } from '@/components/ui/status-pill';
 import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
 import { cn } from '@/lib/utils';
@@ -173,10 +174,7 @@ export function SourceList({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  listRowIconButtonClassName,
-                  'hover:text-destructive'
-                )}
+                className={deleteIconButtonClassName}
                 aria-label="Delete source"
                 disabled={
                   pendingDeleteId === source.id || pendingRescanId === source.id

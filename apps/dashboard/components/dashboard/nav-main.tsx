@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import {
@@ -12,16 +11,11 @@ import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
 import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
+import { SidebarMainNavHighlight } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
-import {
-  NavMenuIcon,
-  useNavMenuIconAnimation
-} from '@/components/ui/nav-menu-icon';
+import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
 import {
   SidebarGroup,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarSeparator,
   type SidebarGroupProps
 } from '@/components/ui/sidebar';
@@ -33,47 +27,12 @@ import {
   isPlatformAdmin
 } from '@/lib/auth/workspace-access';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
-import type { NavItem } from '@/types/nav-item';
 
 export type NavMainProps = SidebarGroupProps & {
   profile: ProfileDto;
   agents: SidebarAgent[];
   orgTier: string;
 };
-
-function NavMainItem({
-  item,
-  isActive
-}: {
-  item: NavItem;
-  isActive: boolean;
-}): React.JSX.Element {
-  const { iconRef, menuHoverHandlers } = useNavMenuIconAnimation();
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        variant="section"
-        isActive={isActive}
-        tooltip={item.title}
-      >
-        <Link
-          href={item.disabled ? '#' : item.href}
-          target={item.external ? '_blank' : undefined}
-          {...menuHoverHandlers}
-        >
-          <NavMenuIcon
-            icon={item.icon}
-            iconRef={iconRef}
-            className="size-4 shrink-0"
-          />
-          <span>{item.title}</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-}
 
 export function NavMain({
   profile,
@@ -91,33 +50,49 @@ export function NavMain({
 
   return (
     <SidebarNavAccordionProvider agents={agents}>
-      <NavOrganizationTree />
-      {canAccessPage(profile, 'integrations') ? (
-        <NavIntegrationsTree orgTier={orgTier} />
-      ) : null}
-      {canAccessPage(profile, 'desk') ? (
-        <NavDeskTree orgTier={orgTier} />
-      ) : null}
-      <NavSettingsTree profile={profile} />
-      {items.length > 0 ? (
-        <SidebarGroup {...props}>
-          <SidebarMenu>
-            {items.map((item) => (
-              <NavMainItem
-                key={item.href}
-                item={item}
-                isActive={
-                  item.href === Routes.Home
-                    ? pathname === Routes.Home
-                    : pathname.startsWith(item.href)
-                }
-              />
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      ) : null}
-      <SidebarSeparator className="my-2" />
-      <NavAgentTree agents={agents} />
+      <SidebarMainNavHighlight className="flex flex-col gap-0 px-1 pt-1">
+        <NavOrganizationTree />
+        {canAccessPage(profile, 'integrations') ? (
+          <NavIntegrationsTree orgTier={orgTier} />
+        ) : null}
+        {canAccessPage(profile, 'desk') ? (
+          <NavDeskTree orgTier={orgTier} />
+        ) : null}
+        <NavSettingsTree profile={profile} />
+        {items.length > 0 ? (
+          <SidebarGroup
+            {...props}
+            className="py-0"
+          >
+            <div className="space-y-0.5">
+              {items.map((item) => (
+                <SidebarNavLink
+                  key={item.href}
+                  href={item.href}
+                  icon={item.icon}
+                  label={item.title}
+                  active={
+                    item.href === Routes.Home
+                      ? pathname === Routes.Home
+                      : pathname.startsWith(item.href)
+                  }
+                  external={item.external}
+                  disabled={item.disabled}
+                  mainNavHighlight
+                />
+              ))}
+            </div>
+          </SidebarGroup>
+        ) : null}
+      </SidebarMainNavHighlight>
+      <div className="px-1">
+        {agents.length > 0 ? (
+          <>
+            <SidebarSeparator className="my-1.5 opacity-50" />
+            <NavAgentTree agents={agents} />
+          </>
+        ) : null}
+      </div>
     </SidebarNavAccordionProvider>
   );
 }

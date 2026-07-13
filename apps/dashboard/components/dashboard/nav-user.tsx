@@ -151,7 +151,7 @@ export function NavUser({
     const hotkeys: Record<string, { action: () => void; shift: boolean }> = {
       p: { action: handleNavigateToProfilePage, shift: true },
       b: { action: handleNavigateToBillingPage, shift: true },
-      f: { action: handleShowCommandMenu, shift: false },
+      k: { action: handleShowCommandMenu, shift: false },
       l: { action: handleLogOut, shift: true }
     };
 

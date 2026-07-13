@@ -41,7 +41,7 @@ export function WaitlistHeader(): React.JSX.Element {
         "fixed inset-x-0 top-0 z-50 transition-all duration-500",
         lightHero
           ? "border-b border-foreground/[0.06] bg-[#fff8f2]/90 backdrop-blur-md"
-          : "border-b border-white/10 bg-foreground shadow-[0_1px_0_0_rgb(255_255_255_/_0.06)]",
+          : "border-b border-alternative/15 bg-foreground shadow-[0_1px_0_0_rgb(255_255_255_/_0.06)]",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-6">

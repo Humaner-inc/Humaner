@@ -24,7 +24,7 @@ export function SectionContent({
     <div className="min-h-0 flex-1 overflow-auto">
       <div
         className={cn(
-          'mx-auto w-full px-4 py-5 md:px-5 md:py-6',
+          'mx-auto w-full px-6 py-6 md:px-8 md:py-8',
           WIDTH_CLASS[width],
           className
         )}

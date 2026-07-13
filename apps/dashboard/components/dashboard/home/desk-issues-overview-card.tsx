@@ -3,7 +3,13 @@ import Link from 'next/link';
 import { ArrowUpRight } from '@humaner/shared/icons';
 import { formatDistanceToNow } from 'date-fns';
 
-import { Badge } from '@/components/ui/badge';
+import {
+  DashboardCard,
+  DashboardCardBody,
+  DashboardCardHeader
+} from '@/components/ui/dashboard-card';
+import { MetricCell, MetricRow } from '@/components/ui/metric-cell';
+import { StatusTag } from '@/components/ui/micro-label';
 import { Routes } from '@/constants/routes';
 import type { DeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
 import { cn } from '@/lib/utils';
@@ -32,45 +38,39 @@ export function DeskIssuesOverviewCard({
   const needsAttention = counts.open + counts.inProgress;
 
   return (
-    <section
-      className={cn('rounded-xl border border-border/60 bg-card', className)}
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-border/50 px-4 py-3">
-        <h2 className="font-mono text-sm font-medium leading-none">
-          Desk
-          {needsAttention > 0 ? (
-            <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
-              {needsAttention} active
-            </span>
-          ) : null}
-        </h2>
-        <Link
-          href={Routes.DeskHuman}
-          className="group inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Open
-          <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        </Link>
-      </div>
+    <DashboardCard className={className}>
+      <DashboardCardHeader
+        title="Desk"
+        count={needsAttention > 0 ? `${needsAttention} active` : undefined}
+        action={
+          <Link
+            href={Routes.DeskHuman}
+            className="group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Open
+            <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
+        }
+      />
 
-      <div className="grid grid-cols-3 divide-x divide-border/50 border-b border-border/50">
-        <StatCell
+      <MetricRow className="grid-cols-3">
+        <MetricCell
           label="Open"
           value={counts.open}
         />
-        <StatCell
+        <MetricCell
           label="In progress"
           value={counts.inProgress}
         />
-        <StatCell
+        <MetricCell
           label="Resolved"
           value={counts.resolved + counts.closed}
         />
-      </div>
+      </MetricRow>
 
-      <div className="p-3">
+      <DashboardCardBody>
         {activeTickets.length > 0 ? (
-          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden rounded-lg border p-0">
+          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden border p-0">
             {activeTickets.map((ticket) => (
               <li key={ticket.id}>
                 <Link
@@ -89,43 +89,21 @@ export function DeskIssuesOverviewCard({
                       })}
                     </p>
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="shrink-0 text-[10px]"
-                  >
+                  <StatusTag className="shrink-0">
                     {STATUS_LABELS[ticket.status] ?? ticket.status}
-                  </Badge>
+                  </StatusTag>
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="rounded-lg border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
+          <p className="border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
             {counts.total > 0
               ? 'No open tickets.'
               : 'Handoffs from agents appear here.'}
           </p>
         )}
-      </div>
-    </section>
-  );
-}
-
-function StatCell({
-  label,
-  value
-}: {
-  label: string;
-  value: number;
-}): React.JSX.Element {
-  return (
-    <div className="px-3 py-2.5">
-      <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-xl tabular-nums leading-none">
-        {value}
-      </p>
-    </div>
+      </DashboardCardBody>
+    </DashboardCard>
   );
 }

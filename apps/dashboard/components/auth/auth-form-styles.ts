@@ -101,20 +101,20 @@ export const onboardingHeadingClassName =
   'font-display font-semibold tracking-tight text-[#070607]';
 
 export const onboardingCardClassName =
-  'rounded-lg border border-[#070607]/[0.06] bg-[#070607]/[0.02]';
+  'border border-[#070607]/[0.06] bg-[#070607]/[0.02]';
 
 export const onboardingRadioCardClassName =
-  'border border-[#070607]/[0.08] bg-[#070607]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#070607]/[0.15] hover:bg-[#070607]/[0.04] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
+  'rounded-none border border-[#070607]/[0.08] bg-[#070607]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#070607]/[0.15] hover:bg-[#070607]/[0.04] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
 
 export const onboardingRadioCardCheckClassName =
-  'border-[#070607]/15 bg-[#070607]/[0.02] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
+  'rounded-none border-[#070607]/15 bg-[#070607]/[0.02] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
 
 /** Mirror of onboarding radio cards for inverted (dark card) appearance */
 export const onboardingRadioCardClassNameInverted =
-  'border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
+  'rounded-none border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#e1ccaf]/40 data-[state=checked]:bg-[#e1ccaf]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e1ccaf]/25';
 
 export const onboardingRadioCardCheckClassNameInverted =
-  'border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
+  'rounded-none border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#e1ccaf] group-data-[state=checked]:bg-[#e1ccaf]';
 
 export const onboardingOutlineButtonClassName = `${ctaSecondaryOnLightClassName} h-10 px-4`;
 

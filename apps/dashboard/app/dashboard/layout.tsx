@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { WorkspaceRole } from '@prisma/client';
 
+import { AskHumanerSlideUp } from '@/components/dashboard/ask-humaner/ask-humaner-slide-up';
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
@@ -96,6 +97,7 @@ export default async function DashboardLayout({
           id: a.id,
           name: a.name,
           image: a.image,
+          character: a.character,
           isPaused: a.isPaused
         }))}
       />
@@ -110,6 +112,7 @@ export default async function DashboardLayout({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <PageAccessGate profile={profile}>{children}</PageAccessGate>
         </div>
+        <AskHumanerSlideUp />
       </SidebarInset>
     </>
   );

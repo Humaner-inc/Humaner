@@ -1,6 +1,9 @@
 "use client";
 
 import { useId } from "react";
+import { uiLeadClassName } from "@humaner/shared/typography";
+
+import { GradientPillarIcon } from "@humaner/shared/gradient-pillar-icon";
 
 import {
   Brain,
@@ -39,7 +42,7 @@ const pillarGradients: Record<
   "live-knowledge": {
     from: "#faf6f4",
     to: "#e1ccaf",
-    glow: "rgb(220 20 60 / 0.22)",
+    glow: "rgb(225 204 175 / 0.22)",
   },
   "cross-session-memory": {
     from: "#f5f0f2",
@@ -147,7 +150,7 @@ function PlatformPillarCard({
   return (
     <article
       className={cn(
-        "flex flex-col items-center text-center transition-opacity duration-500",
+        "group flex flex-col items-center text-center transition-opacity duration-500",
         dimmed && "opacity-55",
       )}
     >
@@ -155,7 +158,12 @@ function PlatformPillarCard({
       <h3 className="mt-5 font-display text-lg font-semibold leading-snug text-[#fff8f2] sm:text-xl">
         {pillar.title}
       </h3>
-      <p className="mt-2.5 max-w-[15rem] text-sm leading-relaxed text-white/55 sm:max-w-[11rem] sm:text-[0.9375rem]">
+      <p
+        className={cn(
+          uiLeadClassName,
+          "mt-2.5 max-w-[15rem] text-background/55 sm:max-w-[11rem]",
+        )}
+      >
         {pillar.tagline}
       </p>
     </article>
@@ -174,49 +182,8 @@ function PillarIcon({
   const tone = pillarGradients[id];
 
   return (
-    <div className="relative inline-flex">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-3 rounded-[1.35rem] opacity-70 blur-2xl"
-        style={{
-          background: `radial-gradient(circle, ${tone.glow}, transparent 72%)`,
-        }}
-      />
-
-      <div
-        className={cn(
-          "relative flex size-12 items-center justify-center overflow-hidden rounded-2xl",
-          "border border-white/[0.12] bg-[#101010]",
-          "shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]",
-        )}
-        aria-hidden
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[58%] bg-[radial-gradient(ellipse_90%_90%_at_50%_0%,rgb(255_255_255_/_0.09),transparent)]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-[1px] rounded-[0.9rem] border border-white/[0.04]"
-        />
-
-        <svg width="0" height="0" className="absolute" aria-hidden>
-          <defs>
-            <linearGradient id={gradId} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={tone.from} />
-              <stop offset="52%" stopColor={tone.from} stopOpacity="0.94" />
-              <stop offset="100%" stopColor={tone.to} />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <Icon
-          size={22}
-          strokeWidth={1.25}
-          color={`url(#${gradId})`}
-          className="relative z-[1]"
-        />
-      </div>
-    </div>
+    <GradientPillarIcon gradId={gradId} tone={tone}>
+      <Icon size={22} strokeWidth={1.25} color={`url(#${gradId})`} />
+    </GradientPillarIcon>
   );
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { BellIcon, InfoIcon } from '@humaner/shared/icons';
 
-import { AskHumanerButton } from '@/components/dashboard/ask-humaner/ask-humaner-button';
+import { AskHumanerTrigger } from '@/components/dashboard/ask-humaner/ask-humaner-trigger';
 import { HelpDrawer } from '@/components/dashboard/help-drawer';
 import { NavUser } from '@/components/dashboard/nav-user';
 import { NotificationsDrawer } from '@/components/dashboard/notifications-drawer';
@@ -34,23 +34,18 @@ export function DashboardTopNav({
     <>
       <header
         className={cn(
-          'sticky top-0 z-30 grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border/50 bg-background px-4 sm:gap-3 sm:px-5',
+          'sticky top-0 z-30 grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-1 border-b border-border/50 bg-background/95 px-4 backdrop-blur-xl sm:px-5',
           className
         )}
       >
-        <div
-          aria-hidden
-          className="min-w-0"
-        />
-        <div className="justify-self-center">
-          <AskHumanerButton />
-        </div>
-        <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+        <div aria-hidden />
+        <AskHumanerTrigger />
+        <div className="col-start-3 flex items-center justify-end gap-1">
           <Button
             type="button"
             variant="ghost"
-            size="sm"
-            className="relative h-9 shrink-0 gap-1.5 px-2.5 text-sm text-muted-foreground hover:text-foreground"
+            size="icon"
+            className="relative size-9 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             onClick={() => setNotificationsOpen(true)}
             aria-label={
               unreadCount > 0
@@ -59,9 +54,8 @@ export function DashboardTopNav({
             }
           >
             <BellIcon className="size-4" />
-            <span className="hidden sm:inline">Notifications</span>
             {unreadCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center bg-red-500 font-mono text-[10px] text-white">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             ) : null}
@@ -69,12 +63,12 @@ export function DashboardTopNav({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
-            className="h-9 shrink-0 gap-1.5 px-2.5 text-sm text-muted-foreground hover:text-foreground"
+            size="icon"
+            className="size-9 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             onClick={() => setHelpOpen(true)}
+            aria-label="Help"
           >
             <InfoIcon className="size-4" />
-            <span className="hidden sm:inline">Help</span>
           </Button>
           <ThemeToggle
             variant="ghost"

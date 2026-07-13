@@ -1,26 +1,25 @@
 /**
- * Docs-style developer CTAs — mono, rounded-md.
+ * Brand CTAs — mono, sharp corners, border-driven.
  *
  * Colors are literal brand neutrals (#070607 / #fff8f2), never theme-relative
  * tokens (`background`/`foreground`). Those tokens flip per app/dark-mode and
  * can end up matching the surface a button sits on, making it disappear.
  *
- * Rule: black button → text stays #fff8f2. Cream/white button → hover shifts
- * to grey, never pure opacity fades (which read as "broken" against dark UI).
+ * Secondary CTAs are outline-only (transparent fill).
  */
 
 export const CTA_BASE =
-  "inline-flex items-center justify-center rounded-md font-mono text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-none font-mono text-xs font-medium uppercase tracking-wider transition-colors disabled:pointer-events-none disabled:opacity-50";
 
-/** Pill Dashboard nav CTA — mono, rounded-full (docs / vision topbars). */
+/** Pill Dashboard nav CTA — mono, sharp. */
 export const CTA_DASHBOARD_BASE =
-  "inline-flex items-center justify-center rounded-full font-mono text-sm font-medium transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-none font-mono text-sm font-medium transition-colors hover:opacity-90 disabled:pointer-events-none disabled:opacity-50";
 
 /** White pill on dark surfaces. */
-export const ctaDashboardOnDarkClassName = `${CTA_DASHBOARD_BASE} bg-white px-3.5 py-1.5 text-black`;
+export const ctaDashboardOnDarkClassName = `${CTA_DASHBOARD_BASE} border border-white/20 bg-white px-3.5 py-1.5 text-black hover:bg-white/90`;
 
 /** Inverted pill on light surfaces (e.g. vision hero). */
-export const ctaDashboardOnLightClassName = `${CTA_DASHBOARD_BASE} bg-foreground px-3.5 py-1.5 text-[#fff8f2]`;
+export const ctaDashboardOnLightClassName = `${CTA_DASHBOARD_BASE} border border-foreground/15 bg-foreground px-3.5 py-1.5 text-[#fff8f2] hover:bg-foreground/90`;
 
 export function getCtaDashboardClassName(surface: "light" | "dark"): string {
   return surface === "dark"
@@ -29,34 +28,28 @@ export function getCtaDashboardClassName(surface: "light" | "dark"): string {
 }
 
 /** Cream button — use on dark surfaces. */
-export const ctaPrimaryClassName = `${CTA_BASE} bg-[#fff8f2] px-4 py-2 text-[#070607] hover:bg-[#d9d4cd] hover:text-[#070607]`;
+export const ctaPrimaryClassName = `${CTA_BASE} border border-[#fff8f2]/20 bg-[#fff8f2] px-4 py-2 text-[#070607] hover:bg-[#d9d4cd] hover:text-[#070607]`;
 
 /** Black button — use on light surfaces. Text always stays cream. */
-export const ctaPrimaryOnLightClassName = `${CTA_BASE} bg-[#070607] px-4 py-2 text-[#fff8f2] hover:bg-[#070607]/85 hover:text-[#fff8f2]`;
+export const ctaPrimaryOnLightClassName = `${CTA_BASE} border border-[#070607]/15 bg-[#070607] px-4 py-2 text-[#fff8f2] hover:bg-[#070607]/85 hover:text-[#fff8f2]`;
 
-export const ctaSecondaryOnDarkClassName = `${CTA_BASE} border border-white/20 bg-white/[0.04] px-4 py-2 text-white/80 hover:border-white/30 hover:bg-white/[0.08] hover:text-white`;
+export const ctaSecondaryOnDarkClassName = `${CTA_BASE} border border-white/25 bg-transparent px-4 py-2 text-white/80 hover:border-white/45 hover:text-white`;
 
-export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]/25 bg-[#070607]/[0.04] px-4 py-2 text-[#070607]/80 hover:border-[#070607]/40 hover:bg-[#070607]/[0.08] hover:text-[#070607]`;
+export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]/30 bg-transparent px-4 py-2 text-[#070607]/80 hover:border-[#070607]/50 hover:text-[#070607]`;
 
 /** Outline CTA that inverts for dashboard light/dark shells. */
-export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/20 dark:bg-white/[0.04] dark:text-white/80 dark:hover:border-white/30 dark:hover:bg-white/[0.08] dark:hover:text-white`;
+export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/25 dark:bg-transparent dark:text-white/80 dark:hover:border-white/45 dark:hover:text-white`;
 
 /** Accent deploy CTA — roadmap close, branch terminus. */
-export const ctaAccentClassName = `${CTA_BASE} bg-accent px-6 py-3 text-sm text-[#070607] hover:bg-accent/90 hover:text-[#070607]`;
+export const ctaAccentClassName = `${CTA_BASE} border border-accent/40 bg-accent px-6 py-3 text-sm text-[#070607] hover:bg-accent/90 hover:text-[#070607]`;
 
-/**
- * Floating demo dock trigger — the landing page's core CTA.
- * Same language as `ctaPrimaryClassName` (mono, rounded-md) with an accent
- * glyph and floating-dock elevation. Inverts against the surface behind it:
- * cream pill over dark sections, black pill over light sections.
- */
 const CTA_TRY_HUMANER_BASE = `${CTA_BASE} gap-2.5 px-5 py-3`;
 
 /** Cream pill — use when floating over dark sections. */
-export const ctaTryHumanerOnDarkClassName = `${CTA_TRY_HUMANER_BASE} bg-[#fff8f2] text-[#070607] hover:bg-[#d9d4cd] hover:text-[#070607] shadow-[0_16px_40px_-12px_rgb(0_0_0_/_0.6),0_0_0_1px_rgb(255_255_255_/_0.08),inset_0_1px_0_rgb(255_255_255_/_0.9)]`;
+export const ctaTryHumanerOnDarkClassName = `${CTA_TRY_HUMANER_BASE} border border-white/15 bg-[#fff8f2] text-[#070607] hover:bg-[#d9d4cd] hover:text-[#070607]`;
 
 /** Black pill — use when floating over light sections. */
-export const ctaTryHumanerOnLightClassName = `${CTA_TRY_HUMANER_BASE} bg-[#070607] text-[#fff8f2] hover:bg-[#070607]/90 hover:text-[#fff8f2] shadow-[0_16px_40px_-12px_rgb(0_0_0_/_0.35),0_0_0_1px_rgb(7_6_7_/_0.06),inset_0_1px_0_rgb(255_255_255_/_0.12)]`;
+export const ctaTryHumanerOnLightClassName = `${CTA_TRY_HUMANER_BASE} border border-[#070607]/10 bg-[#070607] text-[#fff8f2] hover:bg-[#070607]/90 hover:text-[#fff8f2]`;
 
 export const ctaTryHumanerClassName = ctaTryHumanerOnDarkClassName;
 

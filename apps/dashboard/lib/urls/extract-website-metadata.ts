@@ -1,10 +1,12 @@
 import 'server-only';
 
 import { toHostname } from '@/lib/logo';
+import { extractBrandAccentColor } from '@/lib/urls/extract-brand-accent-color';
 
 export type WebsiteMetadata = {
   businessName: string;
   faviconUrl: string | null;
+  accentColor: string | null;
 };
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -172,7 +174,8 @@ export async function extractWebsiteMetadata(
     if (!response.ok) {
       return {
         businessName: businessNameFromHostname(hostname),
-        faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico')
+        faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
+        accentColor: null
       };
     }
 
@@ -188,12 +191,14 @@ export async function extractWebsiteMetadata(
 
     return {
       businessName,
-      faviconUrl: readFaviconUrl(html, pageUrl)
+      faviconUrl: readFaviconUrl(html, pageUrl),
+      accentColor: extractBrandAccentColor(html)
     };
   } catch {
     return {
       businessName: businessNameFromHostname(hostname),
-      faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico')
+      faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
+      accentColor: null
     };
   }
 }

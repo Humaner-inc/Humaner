@@ -64,7 +64,7 @@ export function DashboardOverviewStrip({
           <img
             src={logoSrc}
             alt=""
-            className="mt-0.5 size-8 shrink-0 rounded object-cover border border-border/60"
+            className="mt-0.5 size-8 shrink-0 border border-border/60 object-cover"
           />
         ) : null}
         <div className="min-w-0 space-y-1.5">

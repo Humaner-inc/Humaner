@@ -83,7 +83,7 @@ export const WaitlistEmailForm = forwardRef<
           ) : formState === "success" ? (
             <>
               <span className="sr-only">Joined</span>
-              <CircleCheck ref={checkRef} className="size-4 text-emerald-700" />
+              <CircleCheck ref={checkRef} className="size-4 text-[#070607]" />
             </>
           ) : (
             <>
