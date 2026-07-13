@@ -2,9 +2,7 @@ import 'server-only';
 
 import { prisma } from '@/lib/db/prisma';
 
-import type { DashboardAgentContext, DashboardAgentTool } from '../types';
-
-type ListAgentsInput = Record<string, never>;
+import type { DashboardAgentTool } from '../types';
 
 export const listAgentsTool: DashboardAgentTool = {
   id: 'list_agents',
