@@ -169,7 +169,7 @@ export function WorkspaceSwitcher({
                 <SidebarMenuButton
                   size="lg"
                   tooltip={active.name}
-                  className="h-auto gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
+                  className="h-auto min-w-0 gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
                 >
                   <WorkspaceAvatar workspace={active} />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">

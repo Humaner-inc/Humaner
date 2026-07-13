@@ -45,8 +45,8 @@ export function AppSidebar({
       collapsible="icon"
       className="bg-sidebar/95 backdrop-blur-xl"
     >
-      <SidebarHeader className="shrink-0 p-2">
-        <div className="flex h-10 w-full items-center justify-center overflow-hidden">
+      <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
+        <div className="flex h-full w-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
             <Image
               src="/favicon.svg"
@@ -68,10 +68,10 @@ export function AppSidebar({
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="overflow-hidden">
+      <SidebarContent className="min-h-0 overflow-hidden">
         <ScrollArea
           verticalScrollBar
-          className="h-full [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:flex-col"
+          className="h-full min-w-0 [&>[data-radix-scroll-area-viewport]>div]:flex [&>[data-radix-scroll-area-viewport]>div]:min-w-0 [&>[data-radix-scroll-area-viewport]>div]:flex-col"
         >
           <NavMain
             profile={profile}
@@ -80,12 +80,12 @@ export function AppSidebar({
           />
         </ScrollArea>
       </SidebarContent>
-      <div className="mt-auto border-t border-sidebar-border/60">
+      <div className="mt-auto min-w-0 border-t border-sidebar-border/60">
         <SidebarMessageUsage
           usage={messageUsage}
           className="pt-2"
         />
-        <SidebarFooter className="p-2">
+        <SidebarFooter className="min-w-0 p-2">
           <WorkspaceSwitcher
             variant="sidebar"
             workspaces={workspaces}

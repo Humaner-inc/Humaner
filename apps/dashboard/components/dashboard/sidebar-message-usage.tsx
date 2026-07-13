@@ -33,7 +33,7 @@ function SidebarUsageProgress({
 
   return (
     <div
-      className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted"
+      className="relative h-1.5 w-full min-w-0 overflow-hidden rounded-full bg-muted"
       role="progressbar"
       aria-valuenow={value}
       aria-valuemin={0}
@@ -61,7 +61,7 @@ export function SidebarMessageUsage({
   className
 }: SidebarMessageUsageProps): React.JSX.Element {
   const { state, isMobile } = useSidebar();
-  const isCollapsed = !isMobile && state === 'collapsed';
+  const isIconRail = !isMobile && state === 'collapsed';
   const usagePercent = Math.min(
     100,
     usage.includedMessages > 0
@@ -70,7 +70,7 @@ export function SidebarMessageUsage({
   );
   const isFreePlan = usage.tier === 'free';
   const showUpgradeCta =
-    !isCollapsed &&
+    !isIconRail &&
     usagePercent >= USAGE_UPGRADE_THRESHOLD_PERCENT &&
     usage.tier !== 'delegate';
 
@@ -78,16 +78,18 @@ export function SidebarMessageUsage({
 
   return (
     <div
-      className={cn('px-2 pb-2', className)}
-      title={isCollapsed ? `Messages this month: ${usageLabel}` : undefined}
+      className={cn('min-w-0 px-2 pb-2', className)}
+      title={isIconRail ? `Messages this month: ${usageLabel}` : undefined}
     >
       <div
         className={cn(
-          'grid transition-[grid-template-rows,opacity]',
+          'grid min-w-0 transition-[grid-template-rows,opacity]',
           SIDEBAR_TRANSITION_CLASS,
           showUpgradeCta
             ? 'grid-rows-[1fr] opacity-100'
-            : 'grid-rows-[0fr] opacity-0'
+            : 'grid-rows-[0fr] opacity-0',
+          !isMobile &&
+            'group-data-[collapsible=icon]:grid-rows-[0fr] group-data-[collapsible=icon]:opacity-0'
         )}
         aria-hidden={!showUpgradeCta}
       >
@@ -96,7 +98,7 @@ export function SidebarMessageUsage({
             asChild
             size="sm"
             variant="upgrade"
-            className="mb-2 h-8 w-full"
+            className="mb-2 h-8 w-full min-w-0"
           >
             <Link href={Routes.Billing}>
               {isFreePlan ? 'Upgrade plan' : 'Upgrade for more messages'}
@@ -104,49 +106,46 @@ export function SidebarMessageUsage({
           </Button>
         </div>
       </div>
+
       <div
         className={cn(
-          'grid transition-[grid-template-rows,opacity]',
+          'hidden min-w-0 group-data-[collapsible=icon]:grid',
+          isMobile && 'hidden',
           SIDEBAR_TRANSITION_CLASS,
-          isCollapsed
-            ? 'grid-rows-[1fr] opacity-100'
-            : 'grid-rows-[0fr] opacity-0'
+          'grid-rows-[1fr] opacity-100'
         )}
-        aria-hidden={!isCollapsed}
+        aria-hidden={!isIconRail}
       >
-        <div className="overflow-hidden">
-          <div className="flex justify-center px-0.5">
-            <span className="text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
-              {usage.messagesUsed.toLocaleString()}
-              <span className="text-muted-foreground/70">
-                /{usage.includedMessages.toLocaleString()}
-              </span>
+        <div className="overflow-hidden px-0.5">
+          <span className="block text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
+            {usage.messagesUsed.toLocaleString()}
+            <span className="text-muted-foreground/70">
+              /{usage.includedMessages.toLocaleString()}
             </span>
-          </div>
+          </span>
         </div>
       </div>
+
       <div
         className={cn(
-          'space-y-2 overflow-hidden',
+          'min-w-0 space-y-2 overflow-hidden',
           `transition-[max-height,opacity] ${SIDEBAR_TRANSITION_CLASS}`,
-          isCollapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'
+          isIconRail ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100',
+          !isMobile &&
+            'group-data-[collapsible=icon]:max-h-0 group-data-[collapsible=icon]:opacity-0'
         )}
-        aria-hidden={isCollapsed}
+        aria-hidden={isIconRail}
       >
-        <div
-          className={cn(
-            'flex items-center justify-between gap-2 text-xs',
-            `transition-opacity ${SIDEBAR_TRANSITION_CLASS}`,
-            isCollapsed ? 'opacity-0' : 'opacity-100'
-          )}
-        >
-          <span className="text-muted-foreground">Messages this month</span>
+        <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
+          <span className="truncate text-muted-foreground">
+            Messages this month
+          </span>
           <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
             {usageLabel}
           </span>
         </div>
         <SidebarUsageProgress
-          expanded={!isCollapsed}
+          expanded={!isIconRail}
           value={usagePercent}
         />
       </div>
