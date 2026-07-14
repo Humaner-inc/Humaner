@@ -44,6 +44,8 @@ interface SpeechRecognitionInstance extends EventTarget {
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
 
+const SILENCE_TIMEOUT_MS = 3000;
+
 function getSpeechRecognition(): SpeechRecognitionConstructor | null {
   if (typeof window === 'undefined') {
     return null;
@@ -136,9 +138,28 @@ export function useSpeechDictation({
 
   const recognitionRef = React.useRef<SpeechRecognitionInstance | null>(null);
   const listeningIntentRef = React.useRef(false);
+  const silenceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const stopRef = React.useRef<() => void>(() => {});
   const baseTextRef = React.useRef('');
   const valueRef = React.useRef(value);
   const onChangeRef = React.useRef(onChange);
+
+  const clearSilenceTimeout = React.useCallback((): void => {
+    if (silenceTimeoutRef.current !== null) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resetSilenceTimeout = React.useCallback((): void => {
+    clearSilenceTimeout();
+    silenceTimeoutRef.current = setTimeout(() => {
+      silenceTimeoutRef.current = null;
+      stopRef.current();
+    }, SILENCE_TIMEOUT_MS);
+  }, [clearSilenceTimeout]);
 
   React.useEffect(() => {
     valueRef.current = value;
@@ -153,10 +174,15 @@ export function useSpeechDictation({
   }, []);
 
   const stop = React.useCallback(() => {
+    clearSilenceTimeout();
     listeningIntentRef.current = false;
     recognitionRef.current?.stop();
     setIsListening(false);
-  }, []);
+  }, [clearSilenceTimeout]);
+
+  React.useEffect(() => {
+    stopRef.current = stop;
+  }, [stop]);
 
   const start = React.useCallback(async () => {
     const SpeechRecognition = getSpeechRecognition();
@@ -212,12 +238,17 @@ export function useSpeechDictation({
         baseTextRef.current += finalText;
       }
 
+      if (interim.length > 0 || finalText.length > 0) {
+        resetSilenceTimeout();
+      }
+
       onChangeRef.current(baseTextRef.current + interim);
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       const message = mapSpeechError(event.error);
       if (message) {
+        clearSilenceTimeout();
         setError(message);
         listeningIntentRef.current = false;
         setIsListening(false);
@@ -244,12 +275,14 @@ export function useSpeechDictation({
     try {
       recognition.start();
       setIsListening(true);
+      resetSilenceTimeout();
     } catch {
+      clearSilenceTimeout();
       setError('Could not start voice input.');
       listeningIntentRef.current = false;
       setIsListening(false);
     }
-  }, [disabled, lang]);
+  }, [clearSilenceTimeout, disabled, lang, resetSilenceTimeout]);
 
   const toggle = React.useCallback(() => {
     if (isListening) {
@@ -262,10 +295,11 @@ export function useSpeechDictation({
 
   React.useEffect(() => {
     return () => {
+      clearSilenceTimeout();
       listeningIntentRef.current = false;
       recognitionRef.current?.abort();
     };
-  }, []);
+  }, [clearSilenceTimeout]);
 
   return { isSupported, isListening, error, toggle, stop };
 }
