@@ -198,7 +198,9 @@ function Properties(contact: ContactDto): React.JSX.Element {
         onSubmit={methods.handleSubmit(onSubmit)}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold tracking-tight">Properties</h3>
+          <h3 className="subsection-title font-semibold tracking-tight">
+            Properties
+          </h3>
           {editMode ? (
             <div>
               <Button

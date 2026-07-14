@@ -32,7 +32,7 @@ export function ContactNotes({
       className="h-full"
     >
       <div className="flex h-16 flex-row items-center justify-between gap-2 px-6">
-        <h1 className="text-sm font-semibold">
+        <h1 className="subsection-title font-semibold">
           All notes{' '}
           <span className="text-muted-foreground">({notes.length})</span>
         </h1>

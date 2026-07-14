@@ -65,7 +65,7 @@ export function DashboardCardLinkAction({
   return (
     <a
       className={cn(
-        'group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground',
+        'group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] tracking-wider text-muted-foreground transition-colors hover:text-foreground',
         className
       )}
       {...props}

@@ -18,7 +18,7 @@ export const deleteActionIconClassName =
 
 export const deleteActionMenuItemClassName = cn(
   deleteActionGroupClassName,
-  'mx-1 my-0.5 font-fellix text-destructive focus:bg-destructive/10 focus:text-destructive'
+  'font-fellix text-destructive focus:bg-destructive/10 focus:text-destructive'
 );
 
 export type DeleteActionButtonProps = ButtonProps;
@@ -126,7 +126,7 @@ export function DeleteActionMenuItem({
       {...props}
     >
       <Trash2Icon
-        className="size-4 shrink-0"
+        className="mr-2 size-4 shrink-0"
         aria-hidden
       />
       <span>{children}</span>

@@ -86,7 +86,6 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
         expanded={open}
         onToggle={() => onOpenChange(!open)}
         href={agentPersonaRoute(agent.id)}
-        onNavigate={() => onOpenChange(true)}
         tooltip={agent.name}
       />
       <SidebarNavChildren expanded={open}>

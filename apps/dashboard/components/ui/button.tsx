@@ -9,7 +9,13 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
-const neutralCtaClasses = `${ctaPrimaryOnLightClassName} dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-[#d9d4cd] dark:hover:text-[#070607]`;
+const dashboardCtaCaseClassName = 'normal-case';
+
+const neutralCtaClasses = cn(
+  ctaPrimaryOnLightClassName,
+  dashboardCtaCaseClassName,
+  'dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-[#d9d4cd] dark:hover:text-[#070607]'
+);
 
 const upgradeCtaClasses =
   'border border-[#070607]/14 bg-[#fff8f2] font-mono font-medium text-[#070607] shadow-sm transition-colors hover:border-transparent hover:bg-[#e1ccaf] hover:text-[#070607] dark:border-[#070607]/22 dark:bg-[#070607] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#e1ccaf] dark:hover:text-[#070607]';
@@ -24,7 +30,7 @@ const buttonVariants = cva(
         accent: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline: ctaSecondaryAdaptiveClassName,
+        outline: cn(ctaSecondaryAdaptiveClassName, dashboardCtaCaseClassName),
         secondary:
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',

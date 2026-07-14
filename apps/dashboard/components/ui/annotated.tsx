@@ -111,7 +111,7 @@ const AnnotatedSection = React.forwardRef<
         <div className="space-y-4 md:col-span-5">
           <h2
             id={id}
-            className={cn('text-sm font-semibold', titleClassName)}
+            className={cn('subsection-title font-semibold', titleClassName)}
           >
             {title}
           </h2>

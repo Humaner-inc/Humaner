@@ -55,7 +55,7 @@ export function GlassPanelSection({
     >
       {title ? (
         <div className="mb-4">
-          <h3 className="text-sm font-semibold">{title}</h3>
+          <h3 className="subsection-title font-semibold">{title}</h3>
           {description ? (
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           ) : null}

@@ -92,7 +92,7 @@ export function OrganizationDetailsCard({
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <div>
-                    <p className="text-sm font-medium">Brand logo</p>
+                    <p className="subsection-title">Brand logo</p>
                     <p className="text-xs text-muted-foreground">
                       Auto-detected from your website and used across your
                       dashboard.

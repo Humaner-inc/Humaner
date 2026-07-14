@@ -17,8 +17,7 @@ export type IntegrationNavTab = {
 };
 
 const CHANNEL_CAPABILITY_GATE: Record<string, keyof PlanCapabilities> = {
-  'rest-api': 'apiAccess',
-  webhooks: 'liveData'
+  'rest-api': 'apiAccess'
 };
 
 export function isIntegrationLocked(

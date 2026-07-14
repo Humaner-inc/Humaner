@@ -40,7 +40,7 @@ export function ContactTasks({
     >
       <div className="divide-y border-b">
         <div className="flex h-16 flex-row items-center justify-between gap-2 px-6">
-          <h1 className="text-sm font-semibold">
+          <h1 className="subsection-title font-semibold">
             All tasks{' '}
             <span className="text-muted-foreground">({tasks.length})</span>
           </h1>

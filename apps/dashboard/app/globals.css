@@ -172,9 +172,14 @@
     @apply font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
   }
 
-  /* Dashboard section titles */
+  /* Dashboard section titles — page / panel headings */
   .section-title {
-    @apply font-mono text-sm font-medium leading-none tracking-tight;
+    @apply font-mono text-base font-medium leading-none tracking-tight;
+  }
+
+  /* Dashboard subsection titles — in-card section headings */
+  .subsection-title {
+    @apply text-base font-medium leading-tight;
   }
 
   /* Card hover — border lift, no shadow */

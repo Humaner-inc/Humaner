@@ -120,7 +120,7 @@ export function AgentAccuracyCard({
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium">Knowledge gaps</p>
+            <p className="subsection-title">Knowledge gaps</p>
             <span className="text-xs text-muted-foreground">
               {gaps.length} open
             </span>
@@ -341,7 +341,7 @@ export function TrainingInsightsPanel({
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-3">
-          <p className="text-sm font-medium">What to test</p>
+          <p className="subsection-title">What to test</p>
           <div className="flex flex-wrap gap-2">
             {topics.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -396,7 +396,7 @@ export function TrainingInsightsPanel({
         <Separator />
 
         <div className="space-y-3">
-          <p className="text-sm font-medium">Past runs</p>
+          <p className="subsection-title">Past runs</p>
           {trainingHistory.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No training runs yet.

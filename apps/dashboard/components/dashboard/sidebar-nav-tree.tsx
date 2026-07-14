@@ -46,7 +46,6 @@ export type SidebarNavParentProps = {
   expanded: boolean;
   onToggle: () => void;
   href?: string;
-  onNavigate?: () => void;
   tooltip?: string;
   mainNavHighlight?: boolean;
 };
@@ -59,7 +58,6 @@ export function SidebarNavParent({
   expanded,
   onToggle,
   href,
-  onNavigate,
   tooltip,
   mainNavHighlight = false
 }: SidebarNavParentProps): React.JSX.Element {
@@ -99,21 +97,14 @@ export function SidebarNavParent({
         active && !mainNavHighlight && 'bg-muted/40'
       )}
     >
-      {href ? (
-        <Link
-          href={href}
-          onClick={onNavigate}
-          className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0"
-        >
-          {leadingNode}
-          <span className="flex-1 truncate">{label}</span>
-        </Link>
-      ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0">
-          {leadingNode}
-          <span className="flex-1 truncate">{label}</span>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
+      >
+        {leadingNode}
+        <span className="flex-1 truncate">{label}</span>
+      </button>
       <button
         type="button"
         aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
@@ -225,7 +216,6 @@ export function SidebarNavTree({
         expanded={open}
         onToggle={() => onOpenChange(!open)}
         href={parentHref}
-        onNavigate={() => onOpenChange(true)}
         mainNavHighlight={mainNavHighlight}
       />
       <SidebarNavChildren expanded={open}>{children}</SidebarNavChildren>

@@ -78,7 +78,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] xl:items-start">
           <section className="min-w-0 space-y-4">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-mono text-sm font-medium leading-none">
+              <h2 className="section-title">
                 Agents
                 <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
                   {slotLabel}

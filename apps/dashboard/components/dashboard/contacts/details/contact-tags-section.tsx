@@ -49,7 +49,9 @@ export function ContactTagsSection({
       <section {...other}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <div className="flex h-16 flex-row items-center p-6">
-            <h3 className="text-sm font-semibold tracking-tight">Tags</h3>
+            <h3 className="subsection-title font-semibold tracking-tight">
+              Tags
+            </h3>
           </div>
           <div className="p-6 pt-0">
             <FormField

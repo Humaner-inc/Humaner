@@ -45,7 +45,7 @@ export function DeskIssuesOverviewCard({
         action={
           <Link
             href={Routes.DeskHuman}
-            className="group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+            className="group inline-flex shrink-0 items-center gap-1 font-mono text-[10px] tracking-wider text-muted-foreground transition-colors hover:text-foreground"
           >
             Open
             <ArrowUpRight className="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

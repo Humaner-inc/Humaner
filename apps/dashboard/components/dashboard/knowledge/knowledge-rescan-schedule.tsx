@@ -80,7 +80,7 @@ export function KnowledgeRescanSchedule({
         <div className="min-w-0">
           <Label
             htmlFor="knowledge-rescan-schedule"
-            className="text-sm font-medium"
+            className="subsection-title"
           >
             Automatic rescan
           </Label>
