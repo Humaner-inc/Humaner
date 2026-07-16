@@ -5,16 +5,18 @@ import { redirect } from 'next/navigation';
 import { OrganizationWorkspaceBanner } from '@/components/dashboard/home/organization-workspace-banner';
 import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { SectionPage } from '@/components/ui/section-shell';
+import { Routes } from '@/constants/routes';
 import { getOrganizationDetails } from '@/data/organization/get-organization-details';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { createTitle } from '@/lib/utils';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 
-export const metadata: Metadata = {
-  title: createTitle('Organization')
-};
+export const metadata: Metadata = createDashboardPageMetadata(
+  Routes.OrganizationWorkspace,
+  'Workspace'
+);
 
 export default async function WorkspacePage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();

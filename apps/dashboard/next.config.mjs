@@ -99,7 +99,7 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/dashboard/home',
+        destination: '/organization/overview',
         permanent: false
       },
       {
@@ -108,39 +108,140 @@ const nextConfig = {
         permanent: false
       },
       {
-        source: '/dashboard',
-        destination: '/dashboard/home',
+        source: '/settings',
+        destination: '/settings/account/profile',
         permanent: false
       },
       {
-        source: '/dashboard/settings',
-        destination: '/dashboard/settings/account/profile',
+        source: '/settings/account',
+        destination: '/settings/account/profile',
         permanent: false
       },
       {
-        source: '/dashboard/settings/account',
-        destination: '/dashboard/settings/account/profile',
+        source: '/settings/organization',
+        destination: '/settings/organization/information',
         permanent: false
+      },
+      {
+        source: '/desk',
+        destination: '/desk/ai',
+        permanent: false
+      },
+      {
+        source: '/dashboard/home/workspace',
+        destination: '/organization/workspace',
+        permanent: true
+      },
+      {
+        source: '/dashboard/home/team',
+        destination: '/organization/team',
+        permanent: true
+      },
+      {
+        source: '/dashboard/home',
+        destination: '/organization/overview',
+        permanent: true
       },
       {
         source: '/dashboard/contacts',
-        destination: '/dashboard/home',
+        destination: '/organization/overview',
         permanent: false
       },
       {
         source: '/dashboard/contacts/:path*',
-        destination: '/dashboard/home',
+        destination: '/organization/overview',
         permanent: false
       },
       {
-        source: '/dashboard/settings/organization',
-        destination: '/dashboard/settings/organization/information',
-        permanent: false
+        source: '/dashboard',
+        destination: '/organization/overview',
+        permanent: true
       },
       {
         source: '/dashboard/agents/:agentId/personality',
-        destination: '/dashboard/agents/:agentId/persona',
-        permanent: false
+        destination: '/agents/:agentId/persona',
+        permanent: true
+      },
+      {
+        source: '/dashboard/:path*',
+        destination: '/:path*',
+        permanent: true
+      }
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/organization/overview',
+        destination: '/dashboard/home'
+      },
+      {
+        source: '/organization/team',
+        destination: '/dashboard/home/team'
+      },
+      {
+        source: '/organization/workspace',
+        destination: '/dashboard/home/workspace'
+      },
+      {
+        source: '/agents',
+        destination: '/dashboard/agents'
+      },
+      {
+        source: '/agents/:path*',
+        destination: '/dashboard/agents/:path*'
+      },
+      {
+        source: '/desk',
+        destination: '/dashboard/desk'
+      },
+      {
+        source: '/desk/:path*',
+        destination: '/dashboard/desk/:path*'
+      },
+      {
+        source: '/integrations',
+        destination: '/dashboard/integrations'
+      },
+      {
+        source: '/integrations/:path*',
+        destination: '/dashboard/integrations/:path*'
+      },
+      {
+        source: '/settings',
+        destination: '/dashboard/settings'
+      },
+      {
+        source: '/settings/:path*',
+        destination: '/dashboard/settings/:path*'
+      },
+      {
+        source: '/history',
+        destination: '/dashboard/history'
+      },
+      {
+        source: '/analytics',
+        destination: '/dashboard/analytics'
+      },
+      {
+        source: '/knowledge',
+        destination: '/dashboard/knowledge'
+      },
+      {
+        source: '/human-desk',
+        destination: '/dashboard/human-desk'
+      },
+      {
+        source: '/human-desk/:path*',
+        destination: '/dashboard/human-desk/:path*'
+      },
+      {
+        source: '/training',
+        destination: '/dashboard/training'
+      },
+      {
+        source: '/admin/tickets',
+        destination: '/dashboard/admin/tickets'
       }
     ];
   },

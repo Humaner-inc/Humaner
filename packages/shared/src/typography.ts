@@ -21,7 +21,7 @@ export const uiNavLinkOnDarkClassName = `${uiNavLinkClassName} text-white/70 hov
 
 export const uiFooterGroupClassName = `${UI_MONO} text-[10px] font-medium uppercase tracking-[0.18em] text-background/40`;
 
-export const uiFooterLinkClassName = `${UI_SANS} text-xs text-background/65 transition-colors hover:text-background`;
+export const uiFooterLinkClassName = `${UI_SANS} text-xs text-background/65 underline-offset-4 transition-colors hover:text-background hover:underline`;
 
 export const uiFooterMetaClassName = `${UI_MONO} text-xs text-background/40`;
 

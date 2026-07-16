@@ -4,7 +4,7 @@ import { MicroLabel } from '@/components/ui/micro-label';
 import { cn } from '@/lib/utils';
 
 export type MetricCellProps = React.HTMLAttributes<HTMLDivElement> & {
-  label: string;
+  label: React.ReactNode;
   value: React.ReactNode;
   hint?: string;
 };
@@ -22,7 +22,13 @@ export function MetricCell({
       className={cn('px-3 py-2.5', className)}
       {...props}
     >
-      <MicroLabel>{label}</MicroLabel>
+      {typeof label === 'string' ? (
+        <MicroLabel>{label}</MicroLabel>
+      ) : (
+        <span className="flex min-h-3.5 items-center justify-center">
+          {label}
+        </span>
+      )}
       <p className="mt-1 font-mono text-xl tabular-nums leading-none tracking-tight">
         {value}
       </p>

@@ -17,6 +17,7 @@ import {
   agentRunbooksRoute,
   Routes
 } from '@/constants/routes';
+import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type AgentNavTabId =
   | 'persona'
@@ -73,14 +74,16 @@ export const AGENT_NAV_TABS: AgentNavTab[] = [
 ];
 
 export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
+  const publicPath = toPublicPathname(pathname);
+
   if (
-    pathname === Routes.AgentNew ||
-    pathname.startsWith(`${Routes.AgentNew}/`)
+    publicPath === Routes.AgentNew ||
+    publicPath.startsWith(`${Routes.AgentNew}/`)
   ) {
     return null;
   }
 
-  const match = pathname.match(/^\/dashboard\/agents\/[^/]+(?:\/([^/]+))?/);
+  const match = publicPath.match(/^\/agents\/[^/]+(?:\/([^/]+))?/);
   if (!match) {
     return null;
   }
@@ -98,5 +101,6 @@ export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
 }
 
 export function isAgentWorkspacePath(pathname: string): boolean {
-  return /^\/dashboard\/agents\/(?!new(?:\/|$))[^/]+/.test(pathname);
+  const publicPath = toPublicPathname(pathname);
+  return /^\/agents\/(?!new(?:\/|$))[^/]+/.test(publicPath);
 }

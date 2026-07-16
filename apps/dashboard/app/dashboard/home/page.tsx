@@ -21,11 +21,12 @@ import {
   userBypassesPlanLimits
 } from '@/lib/billing/plan-limits';
 import { prisma } from '@/lib/db/prisma';
-import { createTitle } from '@/lib/utils';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 
-export const metadata: Metadata = {
-  title: createTitle('Organization')
-};
+export const metadata: Metadata = createDashboardPageMetadata(
+  Routes.Home,
+  'Organization'
+);
 
 export default async function HomePage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();

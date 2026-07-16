@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { authActionClient } from '@/actions/safe-action';
+import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { assertTicketScreenshotPath } from '@/lib/storage/ticket-screenshot-storage';
 import { createSupportTicketSchema } from '@/schemas/support/support-ticket-schemas';
@@ -25,7 +26,7 @@ export const createSupportTicket = authActionClient
       }
     });
 
-    revalidatePath('/dashboard/admin/tickets');
+    revalidatePath(Routes.AdminTickets);
 
     return { ticketId: ticket.id };
   });

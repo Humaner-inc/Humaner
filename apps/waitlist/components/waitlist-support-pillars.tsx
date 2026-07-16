@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import { uiLeadClassName } from "@humaner/shared/typography";
 
 import { GradientPillarIcon } from "@humaner/shared/gradient-pillar-icon";
@@ -177,8 +176,7 @@ function PillarIcon({
   id: PillarId;
   icon: LucideIcon;
 }): React.JSX.Element {
-  const reactId = useId();
-  const gradId = `waitlist-pillar-grad-${id}${reactId.replace(/:/g, "")}`;
+  const gradId = `waitlist-pillar-grad-${id}`;
   const tone = pillarGradients[id];
 
   return (

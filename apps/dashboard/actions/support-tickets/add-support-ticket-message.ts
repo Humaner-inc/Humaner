@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { authActionClient } from '@/actions/safe-action';
+import { Routes } from '@/constants/routes';
 import { isAdmin } from '@/lib/auth/permissions';
 import { prisma } from '@/lib/db/prisma';
 import { ForbiddenError, NotFoundError } from '@/lib/validation/exceptions';
@@ -41,7 +42,7 @@ export const addSupportTicketMessage = authActionClient
       })
     ]);
 
-    revalidatePath('/dashboard/admin/tickets');
+    revalidatePath(Routes.AdminTickets);
 
     return { success: true };
   });

@@ -1,14 +1,8 @@
 import * as React from 'react';
-import { type Metadata } from 'next';
 
 import { AnnotatedLayout } from '@/components/ui/annotated';
 import { Separator } from '@/components/ui/separator';
 import { session } from '@/lib/auth/session';
-import { createTitle } from '@/lib/utils';
-
-export const metadata: Metadata = {
-  title: createTitle('Security')
-};
 
 export type SecurityLayoutProps = {
   changePassword: React.ReactNode;

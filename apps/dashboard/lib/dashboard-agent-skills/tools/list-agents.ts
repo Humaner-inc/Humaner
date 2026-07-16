@@ -1,5 +1,10 @@
 import 'server-only';
 
+import {
+  agentKnowledgeRoute,
+  agentPersonaRoute,
+  Routes
+} from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 
 import type { DashboardAgentTool } from '../types';
@@ -32,7 +37,7 @@ export const listAgentsTool: DashboardAgentTool = {
     if (agents.length === 0) {
       return JSON.stringify({
         agents: [],
-        message: 'No agents yet. Suggest creating one at /dashboard/agents/new.'
+        message: `No agents yet. Suggest creating one at ${Routes.AgentNew}.`
       });
     }
 
@@ -43,8 +48,8 @@ export const listAgentsTool: DashboardAgentTool = {
         role: agent.role,
         industry: agent.industry,
         isPaused: agent.isPaused,
-        personaPath: `/dashboard/agents/${agent.id}/persona`,
-        knowledgePath: `/dashboard/agents/${agent.id}/knowledge`
+        personaPath: agentPersonaRoute(agent.id),
+        knowledgePath: agentKnowledgeRoute(agent.id)
       }))
     });
   }

@@ -34,7 +34,7 @@ export function getActiveSidebarDrawerId(
   if (isSettingsPath(pathname)) return SIDEBAR_DRAWER_IDS.settings;
 
   const agent = agents.find((item) =>
-    pathname.startsWith(`/dashboard/agents/${item.id}`)
+    pathname.startsWith(`/agents/${item.id}`)
   );
   if (agent) return SIDEBAR_DRAWER_IDS.agent(agent.id);
 

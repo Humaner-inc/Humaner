@@ -23,37 +23,38 @@ export enum Routes {
   VerifyEmailExpired = '/auth/verify-email/expired',
   VerifyEmailSuccess = '/auth/verify-email/success',
 
-  Dashboard = '/dashboard',
-  Home = '/dashboard/home',
-  OrganizationTeam = '/dashboard/home/team',
-  OrganizationWorkspace = '/dashboard/home/workspace',
-  Agents = '/dashboard/agents',
-  AgentNew = '/dashboard/agents/new',
-  Knowledge = '/dashboard/knowledge',
-  Integrations = '/dashboard/integrations',
-  Analytics = '/dashboard/analytics',
-  History = '/dashboard/history',
-  Desk = '/dashboard/desk',
-  DeskAI = '/dashboard/desk/ai',
-  DeskHuman = '/dashboard/desk/human',
-  DeskRunbooks = '/dashboard/desk/runbooks',
-  DeskClusters = '/dashboard/desk/clusters',
-  DeskEscalation = '/dashboard/desk/escalation',
-  DeskTeam = '/dashboard/desk/team',
-  HumanDesk = '/dashboard/human-desk',
-  Training = '/dashboard/training',
-  AdminTickets = '/dashboard/admin/tickets',
-  Contacts = '/dashboard/home',
-  Settings = '/dashboard/settings',
-  Account = '/dashboard/settings/account',
-  Profile = '/dashboard/settings/account/profile',
-  Security = '/dashboard/settings/account/security',
-  Notifications = '/dashboard/settings/account/notifications',
-  Organization = '/dashboard/settings/organization',
-  OrganizationInformation = '/dashboard/settings/organization/information',
-  Members = '/dashboard/settings/organization/members',
-  Billing = '/dashboard/settings/organization/billing',
-  Developers = '/dashboard/settings/organization/developers',
+  /** @deprecated Internal alias — use {@link Routes.Home} for navigation and meta links. */
+  Dashboard = '/organization/overview',
+  Home = '/organization/overview',
+  OrganizationTeam = '/organization/team',
+  OrganizationWorkspace = '/organization/workspace',
+  Agents = '/agents',
+  AgentNew = '/agents/new',
+  Knowledge = '/knowledge',
+  Integrations = '/integrations',
+  Analytics = '/analytics',
+  History = '/history',
+  Desk = '/desk',
+  DeskAI = '/desk/ai',
+  DeskHuman = '/desk/human',
+  DeskRunbooks = '/desk/runbooks',
+  DeskClusters = '/desk/clusters',
+  DeskEscalation = '/desk/escalation',
+  DeskTeam = '/desk/team',
+  HumanDesk = '/human-desk',
+  Training = '/training',
+  AdminTickets = '/admin/tickets',
+  Contacts = '/organization/overview',
+  Settings = '/settings',
+  Account = '/settings/account',
+  Profile = '/settings/account/profile',
+  Security = '/settings/account/security',
+  Notifications = '/settings/account/notifications',
+  Organization = '/settings/organization',
+  OrganizationInformation = '/settings/organization/information',
+  Members = '/settings/organization/members',
+  Billing = '/settings/organization/billing',
+  Developers = '/settings/organization/developers',
 
   Invitations = '/invitations',
   InvitationRequest = '/invitations/request',
@@ -65,7 +66,7 @@ export enum Routes {
 }
 
 export function agentPersonaRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/persona`;
+  return `/agents/${agentId}/persona`;
 }
 
 /** @deprecated Use {@link agentPersonaRoute} */
@@ -78,25 +79,25 @@ export function agentOverviewRoute(agentId: string): string {
 }
 
 export function agentKnowledgeRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/knowledge`;
+  return `/agents/${agentId}/knowledge`;
 }
 
 export function agentRunbooksRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/runbooks`;
+  return `/agents/${agentId}/runbooks`;
 }
 
 export function agentEscalationRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/escalation`;
+  return `/agents/${agentId}/escalation`;
 }
 
 export function agentAnalyticsRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/analytics`;
+  return `/agents/${agentId}/analytics`;
 }
 
 export function agentHistoryRoute(agentId: string): string {
-  return `/dashboard/agents/${agentId}/history`;
+  return `/agents/${agentId}/history`;
 }
 
 export function integrationChannelRoute(channelId: string): string {
-  return `/dashboard/integrations/${channelId}`;
+  return `/integrations/${channelId}`;
 }

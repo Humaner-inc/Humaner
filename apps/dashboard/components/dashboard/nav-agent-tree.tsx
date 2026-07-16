@@ -65,7 +65,7 @@ function AgentAvatarIcon({
 function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
   const pathname = usePathname();
   const activeTab = getActiveAgentTab(pathname);
-  const inAgent = pathname.startsWith(`/dashboard/agents/${agent.id}`);
+  const inAgent = pathname.startsWith(`/agents/${agent.id}`);
   const { open, onOpenChange } = useSidebarNavDrawer(
     SIDEBAR_DRAWER_IDS.agent(agent.id)
   );

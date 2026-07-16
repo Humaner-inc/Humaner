@@ -5,12 +5,28 @@ import { redirect } from 'next/navigation';
 
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
+import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
-import { createTitle } from '@/lib/utils';
 
-export const metadata: Metadata = {
-  title: createTitle('Auth')
+const AUTH_TITLES: Record<string, string> = {
+  [Routes.Login]: 'Log in',
+  [Routes.SignUp]: 'Sign up',
+  [Routes.ForgotPassword]: 'Forgot password',
+  [Routes.ForgotPasswordSuccess]: 'Forgot password',
+  [Routes.ResetPassword]: 'Reset password',
+  [Routes.VerifyEmail]: 'Verify email',
+  [Routes.Totp]: 'Two-factor authentication',
+  [Routes.RecoveryCode]: 'Recovery code',
+  [Routes.Logout]: 'Log out'
 };
+
+export function generateMetadata(): Metadata {
+  const pathname = getPathname() ?? Routes.Login;
+  const title =
+    AUTH_TITLES[pathname] ??
+    (pathname.startsWith(Routes.Auth) ? 'Auth' : 'Auth');
+  return createPageMetadata(pathname, title);
+}
 
 function isChangeEmailRoute(): boolean {
   const pathname = getPathname();

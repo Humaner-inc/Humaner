@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight } from '@humaner/shared/icons';
+import { ArrowUpRight, CheckIcon } from '@humaner/shared/icons';
 import { formatDistanceToNow } from 'date-fns';
 
 import {
@@ -18,6 +18,58 @@ const STATUS_LABELS: Record<string, string> = {
   OPEN: 'Open',
   IN_PROGRESS: 'In progress'
 };
+
+function DeskStatusIcon({
+  status
+}: {
+  status: 'open' | 'inProgress' | 'resolved';
+}): React.JSX.Element {
+  if (status === 'open') {
+    return (
+      <span
+        className="inline-flex size-3.5 shrink-0 items-center justify-center text-blue-500"
+        aria-hidden
+      >
+        <span className="size-2 rounded-full border-[1.5px] border-current" />
+      </span>
+    );
+  }
+
+  if (status === 'inProgress') {
+    return (
+      <span
+        className="inline-flex size-3.5 shrink-0 items-center justify-center text-amber-500"
+        aria-hidden
+      >
+        <span className="block h-0.5 w-2.5 rounded-full bg-current" />
+      </span>
+    );
+  }
+
+  return (
+    <CheckIcon
+      className="size-3.5 shrink-0 text-emerald-500"
+      aria-hidden
+    />
+  );
+}
+
+function DeskStatusMetricLabel({
+  status,
+  label
+}: {
+  status: 'open' | 'inProgress' | 'resolved';
+  label: string;
+}): React.JSX.Element {
+  return (
+    <span className="inline-flex items-center justify-center gap-1.5">
+      <DeskStatusIcon status={status} />
+      <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+    </span>
+  );
+}
 
 const URGENCY_CLASS: Record<string, string> = {
   HIGH: 'border-l-red-500',
@@ -55,15 +107,30 @@ export function DeskIssuesOverviewCard({
 
       <MetricRow className="grid-cols-3">
         <MetricCell
-          label="Open"
+          label={
+            <DeskStatusMetricLabel
+              status="open"
+              label="Open"
+            />
+          }
           value={counts.open}
         />
         <MetricCell
-          label="In progress"
+          label={
+            <DeskStatusMetricLabel
+              status="inProgress"
+              label="Progress"
+            />
+          }
           value={counts.inProgress}
         />
         <MetricCell
-          label="Resolved"
+          label={
+            <DeskStatusMetricLabel
+              status="resolved"
+              label="Solved"
+            />
+          }
           value={counts.resolved + counts.closed}
         />
       </MetricRow>

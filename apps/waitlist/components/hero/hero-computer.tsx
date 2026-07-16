@@ -5,20 +5,14 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import {
-  HERO_COMPUTER_CROP,
-  HERO_COMPUTER_CROP_ASPECT,
-  HERO_COMPUTER_FRAME,
+  HERO_COMPUTER_FRAME_LAYOUT,
   HERO_COMPUTER_SCREEN,
+  HERO_COMPUTER_VIEWPORT_ASPECT,
 } from "@/lib/hero-computer-screen";
 import { cn } from "@/lib/utils";
 
 const GLITCH_MS = { min: 500, max: 700 } as const;
 const STATIC_MS = { min: 2400, max: 3400 } as const;
-
-const FRAME_IN_CROP_WIDTH_PERCENT =
-  (HERO_COMPUTER_FRAME.width / HERO_COMPUTER_CROP.width) * 100;
-const FRAME_IN_CROP_LEFT_PERCENT =
-  -(HERO_COMPUTER_CROP.left / HERO_COMPUTER_CROP.width) * 100;
 
 function randomBetween(min: number, max: number): number {
   return min + Math.random() * (max - min);
@@ -90,23 +84,18 @@ export function HeroComputer(): React.JSX.Element {
   return (
     <div className="relative mx-auto w-full max-w-[min(100%,15rem)] sm:max-w-[17rem] lg:w-auto lg:max-w-none">
       <div
-        className="relative mx-auto overflow-hidden lg:h-[min(78vh,780px)]"
-        style={{ aspectRatio: HERO_COMPUTER_CROP_ASPECT }}
+        className="relative mx-auto w-full overflow-hidden lg:h-[min(78vh,780px)]"
+        style={{ aspectRatio: HERO_COMPUTER_VIEWPORT_ASPECT }}
       >
-        <div
-          className="absolute top-0 h-full"
-          style={{
-            width: `${FRAME_IN_CROP_WIDTH_PERCENT}%`,
-            left: `${FRAME_IN_CROP_LEFT_PERCENT}%`,
-          }}
-        >
+        <div className="absolute" style={HERO_COMPUTER_FRAME_LAYOUT}>
           <Image
             src="/computer_frame.png"
             alt=""
-            fill
+            width={1536}
+            height={589}
             unoptimized
             priority
-            className="h-full w-full object-fill"
+            className="block h-full w-full"
             sizes="(max-width: 1024px) 90vw, 38vw"
           />
 

@@ -24,11 +24,13 @@ import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
-import { createTitle } from '@/lib/utils';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+import { getPathname } from '@/lib/network/get-pathname';
 
-export const metadata: Metadata = {
-  title: createTitle('Dashboard')
-};
+export function generateMetadata(): Metadata {
+  const pathname = getPathname() ?? Routes.Home;
+  return createDashboardPageMetadata(pathname);
+}
 
 export default async function DashboardLayout({
   children

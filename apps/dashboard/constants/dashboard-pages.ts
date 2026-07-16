@@ -1,4 +1,5 @@
 import { Routes } from '@/constants/routes';
+import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export const DASHBOARD_PAGE_KEYS = [
   'overview',
@@ -57,24 +58,26 @@ export type ResolvedPathAccess =
   | { type: 'unknown' };
 
 export function resolvePathAccess(pathname: string): ResolvedPathAccess {
-  if (pathname.startsWith(Routes.AdminTickets)) {
+  const path = toPublicPathname(pathname);
+
+  if (path.startsWith(Routes.AdminTickets)) {
     return { type: 'platform-admin' };
   }
 
-  if (OWNER_ONLY_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+  if (OWNER_ONLY_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix))) {
     return { type: 'owner' };
   }
 
-  if (ACCOUNT_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+  if (ACCOUNT_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix))) {
     return { type: 'account' };
   }
 
-  if (/^\/dashboard\/agents(\/|$)/.test(pathname)) {
+  if (/^\/agents(\/|$)/.test(path)) {
     return { type: 'page', pageKey: 'agents' };
   }
 
   for (const entry of PAGE_KEY_ROUTE_PREFIXES) {
-    if (pathname.startsWith(entry.prefix)) {
+    if (path.startsWith(entry.prefix)) {
       return { type: 'page', pageKey: entry.key };
     }
   }

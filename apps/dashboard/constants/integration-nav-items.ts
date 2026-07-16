@@ -1,12 +1,13 @@
 import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
-import { integrationChannelRoute } from '@/constants/routes';
+import { integrationChannelRoute, Routes } from '@/constants/routes';
 import {
   INTEGRATION_CHANNELS,
   INTEGRATION_DOCK_ORDER,
   type IntegrationChannel
 } from '@/lib/integrations';
+import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type IntegrationNavTab = {
   id: string;
@@ -45,12 +46,14 @@ export const INTEGRATION_NAV_TABS: IntegrationNavTab[] =
   });
 
 export function getActiveIntegrationChannelId(pathname: string): string | null {
-  const match = pathname.match(/^\/dashboard\/integrations\/([^/]+)/);
+  const publicPath = toPublicPathname(pathname);
+  const match = publicPath.match(/^\/integrations\/([^/]+)/);
   return match?.[1] ?? null;
 }
 
 export function isIntegrationsPath(pathname: string): boolean {
-  return pathname.startsWith('/dashboard/integrations');
+  const publicPath = toPublicPathname(pathname);
+  return publicPath.startsWith(Routes.Integrations);
 }
 
 export function isValidIntegrationChannelId(channelId: string): boolean {

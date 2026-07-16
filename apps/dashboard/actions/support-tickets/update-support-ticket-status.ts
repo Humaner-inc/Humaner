@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { authActionClient } from '@/actions/safe-action';
+import { Routes } from '@/constants/routes';
 import { requireAdmin } from '@/lib/auth/permissions';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
@@ -27,7 +28,7 @@ export const updateSupportTicketStatus = authActionClient
       data: { status: parsedInput.status, updatedAt: new Date() }
     });
 
-    revalidatePath('/dashboard/admin/tickets');
+    revalidatePath(Routes.AdminTickets);
 
     return { success: true };
   });
