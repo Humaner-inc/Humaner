@@ -662,9 +662,11 @@ export function buildPlatformTrainingAgent(
     emojiMode: config.personaPreset.emojiMode,
     openerStyle: config.personaPreset.openerStyle,
     allowTypos: config.personaPreset.allowTypos,
+    typoExceptions: config.personaPreset.typoExceptions,
     forbiddenTopics: config.forbiddenTopics,
     fallbackMessage: config.personaPreset.fallbackMessage,
     role: config.personaPreset.role,
-    name: config.personaPreset.name
+    name: config.personaPreset.name,
+    hasCrossSessionMemory: false
   };
 }
