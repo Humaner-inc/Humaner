@@ -45,7 +45,6 @@ import {
 } from '@/constants/routes';
 import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { CHARACTER_META } from '@/lib/character-presets';
 import { cn } from '@/lib/utils';
 
 export type AgentCardProps = {
@@ -136,7 +135,6 @@ export function AgentCard({
   compact = false
 }: AgentCardProps): React.JSX.Element {
   const router = useRouter();
-  const meta = CHARACTER_META[agent.character];
   const copyToClipboard = useCopyToClipboard();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState(false);
@@ -295,11 +293,6 @@ export function AgentCard({
             <p className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">
               {agent.role}
             </p>
-          ) : null}
-          {!compact ? (
-            <span className="mt-2 inline-flex rounded-full border border-border/80 bg-muted/30 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-              {meta.label}
-            </span>
           ) : null}
 
           <button

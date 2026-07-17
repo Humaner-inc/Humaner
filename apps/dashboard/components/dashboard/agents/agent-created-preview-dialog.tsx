@@ -11,7 +11,10 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { DEFAULT_AGENT_ROLE } from '@/lib/agent-defaults';
-import { CHARACTER_META } from '@/lib/character-presets';
+import {
+  CHARACTER_META,
+  formatPersonaToneCaption
+} from '@/lib/character-presets';
 import { cn } from '@/lib/utils';
 
 export type AgentCreatedPreviewDialogProps = {
@@ -73,7 +76,10 @@ export function AgentCreatedPreviewDialog({
             {name}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {displayRole} · {meta.label}
+            {displayRole} ·{' '}
+            {meta.personaName
+              ? `${meta.personaName} · ${formatPersonaToneCaption(meta)}`
+              : formatPersonaToneCaption(meta)}
           </p>
 
           <p className="mt-5 text-sm text-muted-foreground">

@@ -9,6 +9,9 @@ import type {
 
 export type CharacterMeta = {
   id: CharacterType;
+  /** Default agent name when this persona is selected. */
+  personaName: string | null;
+  /** Tone label — Casual, Corporate, Efficient. */
   label: string;
   tagline: string;
   /** Profile cover image in /public. */
@@ -19,37 +22,49 @@ export type CharacterMeta = {
 export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
   CASUAL: {
     id: 'CASUAL',
+    personaName: 'Astral',
     label: 'Casual',
     tagline: 'Warm, human, contractions. A knowledgeable friend.',
-    image: '/caracters/gradient_1.jpg',
+    image: '/personas/Astral.png',
     example:
       "Hey, totally get that — it's a bit confusing on first sign-up. Go to Settings → Account and hit reset. Takes 30 seconds!"
   },
   CORPORATE: {
     id: 'CORPORATE',
+    personaName: 'Taleb',
     label: 'Corporate',
     tagline: 'Polished, complete sentences. The voice of a well-run company.',
-    image: '/caracters/gradient_5.jpg',
+    image: '/personas/Taleb.png',
     example:
       'Thank you for reaching out. To resolve this, please navigate to Settings, select Account, and click Reset. The change takes effect immediately.'
   },
   EFFICIENT: {
     id: 'EFFICIENT',
+    personaName: 'Vidi',
     label: 'Efficient',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
-    image: '/caracters/gradient_2.png',
+    image: '/personas/Vidi.png',
     example:
       'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
   },
   CUSTOM: {
     id: 'CUSTOM',
-    label: 'Custom',
+    personaName: 'Custom',
+    label: 'Zero preset',
     tagline: 'Your own voice. Write the character prompt from scratch.',
-    image: '/caracters/gradient_4.jpg',
+    image: '/personas/Custom.png',
     example:
       'Define how your agent speaks — tone, style, boundaries — in your own words.'
   }
 };
+
+export function getDefaultAgentName(character: CharacterType): string {
+  return CHARACTER_META[character].personaName ?? '';
+}
+
+export function formatPersonaToneCaption(meta: CharacterMeta): string {
+  return meta.id === 'CUSTOM' ? meta.label : `${meta.label} tone`;
+}
 
 /** Onboarding and other flows outside /dashboard — presets only, no Custom. */
 export const STANDARD_CHARACTER_LIST: CharacterMeta[] = [
