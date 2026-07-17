@@ -143,7 +143,7 @@ export function DeskIssuesOverviewCard({
                 <Link
                   href={Routes.DeskHuman}
                   className={cn(
-                    'flex items-start gap-3 border-l-2 px-2 py-2 transition-colors hover:bg-muted/30',
+                    'flex items-start gap-3 border-l-2 p-2 transition-colors hover:bg-muted/30',
                     URGENCY_CLASS[ticket.urgency] ?? 'border-l-border'
                   )}
                 >

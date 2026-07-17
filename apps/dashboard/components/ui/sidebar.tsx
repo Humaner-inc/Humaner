@@ -224,7 +224,7 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
 
     React.useEffect(() => {
       setOpenMobile(false);
-    }, [pathname]);
+    }, [pathname, setOpenMobile]);
 
     if (collapsible === 'none') {
       return (

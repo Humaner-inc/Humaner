@@ -67,7 +67,7 @@ export function TeamMembersOverviewCard({
             />
           </div>
 
-          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden border-x-0 border-b-0 border-t-0">
+          <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden border-0">
             {previewMembers.map((member) => (
               <li
                 key={member.id}

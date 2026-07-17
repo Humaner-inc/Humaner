@@ -46,7 +46,7 @@ export function AppSidebar({
       className="bg-sidebar/95 backdrop-blur-xl"
     >
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
-        <div className="flex h-full w-full min-w-0 items-center justify-center overflow-hidden">
+        <div className="flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
             <Image
               src="/favicon.svg"

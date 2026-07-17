@@ -107,7 +107,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               {!atLimit ? (
                 <Link
                   href={Routes.AgentNew}
-                  className="flex min-h-[12rem] flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
+                  className="flex min-h-48 flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
                 >
                   <CircleDashedIcon
                     size={24}
