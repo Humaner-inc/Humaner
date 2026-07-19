@@ -455,6 +455,49 @@ input[type='number'] {
   }
 }
 
+@keyframes onboarding-stripe-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(121px, 32px);
+  }
+}
+
+.onboarding-background__stripes {
+  position: absolute;
+  inset: -25%;
+  pointer-events: none;
+  opacity: 0.28;
+  background-image: repeating-linear-gradient(
+    165deg,
+    transparent 0,
+    transparent 118px,
+    rgb(225 204 175 / 0.03) 118px,
+    rgb(225 204 175 / 0.03) 119px
+  );
+  animation: onboarding-stripe-drift 52s linear infinite;
+  mask-image: radial-gradient(ellipse 82% 72% at 50% 38%, black 18%, transparent 78%);
+  will-change: transform;
+}
+
+.onboarding-root[data-onboarding-appearance='light'] .onboarding-background__stripes {
+  opacity: 0.24;
+  background-image: repeating-linear-gradient(
+    165deg,
+    transparent 0,
+    transparent 118px,
+    rgb(92 79 66 / 0.055) 118px,
+    rgb(92 79 66 / 0.055) 119px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-background__stripes {
+    animation: none;
+  }
+}
+
 @layer utilities {
   .animate-onboarding-glow {
     animation: onboarding-glow 20s ease-in-out infinite;

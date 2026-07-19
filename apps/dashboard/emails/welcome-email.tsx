@@ -3,8 +3,7 @@ import {
   EmailDivider,
   EmailLayout,
   EmailMuted,
-  EmailText,
-  EmailTitle
+  EmailText
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
@@ -16,21 +15,29 @@ export type WelcomeEmailData = {
   name: string;
 };
 
-export const WelcomeEmail = ({ name }: WelcomeEmailData) => (
-  <EmailLayout preview={`Welcome to ${AppInfo.APP_NAME}!`}>
-    <EmailTitle>Welcome to {AppInfo.APP_NAME}!</EmailTitle>
-    <EmailText>Hello {name},</EmailText>
+export const WelcomeEmail = (_data: WelcomeEmailData) => (
+  <EmailLayout preview="Glad you're here.">
+    <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
+    <EmailText>Glad you&apos;re here.</EmailText>
     <EmailText>
-      Thank you for signing up! We&apos;re excited to have you on board. Your
-      account has been successfully created, and you&apos;re ready to start
-      exploring our platform.
+      Hope this email sounds Human enouhg for you. (even added typo as your
+      Humaner agents will do.)
+    </EmailText>
+    <EmailText>
+      We want to give Customer Support the attention and the tools it deserves.{' '}
+      {AppInfo.APP_NAME} have one goal in mind: allowing businesses to offer
+      exceptional support in the AI era.
+    </EmailText>
+    <EmailText>
+      Stay tuned, we will thank you with more than words for being here first.
     </EmailText>
     <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>
       Get started
     </EmailButton>
     <EmailText>
-      If you have any questions or need assistance, please don&apos;t hesitate
-      to reach out to our support team.
+      Lovely day,
+      <br />
+      Alexandre
     </EmailText>
     <EmailDivider />
     <EmailMuted>
