@@ -44,6 +44,10 @@ export function getTermsUrl(): string {
   return `${getLandingUrl()}/terms`;
 }
 
+export function getDpaUrl(): string {
+  return `${getLandingUrl()}/dpa`;
+}
+
 export function getSecurityUrl(): string {
   return `${getLandingUrl()}/security`;
 }
