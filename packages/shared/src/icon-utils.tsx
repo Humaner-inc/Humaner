@@ -8,6 +8,7 @@ import {
   type ComponentType,
   type ForwardRefExoticComponent,
   type HTMLAttributes,
+  type MouseEvent,
   type RefAttributes,
 } from "react";
 
@@ -85,10 +86,15 @@ export function createAnimatedIcon(
       {
         className,
         size,
-        animateOnHover,
+        // lucide-animated disables its own hover once a ref is attached
+        // (controlled mode). We always attach a ref for imperative handles,
+        // so hover must be driven from this wrapper.
+        animateOnHover = true,
         strokeWidth: _strokeWidth,
         width,
         height,
+        onMouseEnter,
+        onMouseLeave,
         ...props
       },
       ref,
@@ -112,11 +118,23 @@ export function createAnimatedIcon(
 
       return (
         <Icon
+          {...props}
           ref={innerRef}
           className={className}
           size={resolvedSize}
-          animateOnHover={animateOnHover}
-          {...props}
+          animateOnHover={false}
+          onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
+            if (animateOnHover) {
+              innerRef.current?.startAnimation();
+            }
+            onMouseEnter?.(event);
+          }}
+          onMouseLeave={(event: MouseEvent<HTMLDivElement>) => {
+            if (animateOnHover) {
+              innerRef.current?.stopAnimation();
+            }
+            onMouseLeave?.(event);
+          }}
         />
       );
     }),

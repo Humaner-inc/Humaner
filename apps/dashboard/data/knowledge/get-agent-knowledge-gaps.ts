@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { getOrganizationCapabilities } from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
 
 export type AgentKnowledgeGapItem = {
@@ -20,6 +21,13 @@ export async function getAgentKnowledgeGaps(
   const session = await dedupedAuth();
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
+  }
+
+  const capabilities = await getOrganizationCapabilities(
+    session.user.organizationId
+  );
+  if (!capabilities.contentGaps) {
+    return [];
   }
 
   const gaps = await prisma.knowledgeGap.findMany({

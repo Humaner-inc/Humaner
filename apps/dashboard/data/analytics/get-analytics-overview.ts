@@ -12,6 +12,7 @@ import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { normalizeTier } from '@/lib/billing/tier';
 import {
   countConversationOutcomes,
+  deriveConversationOutcome,
   formatSatisfactionDetail
 } from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
@@ -19,6 +20,9 @@ import { prisma } from '@/lib/db/prisma';
 export type AnalyticsVolumePoint = {
   date: string;
   messages: number;
+  conversations: number;
+  /** 0–100 resolution rate for conversations started that day. */
+  satisfactionRate: number;
 };
 
 export type AnalyticsKnowledgeGap = {
@@ -49,29 +53,63 @@ const VOLUME_DAYS = 30;
 const GAP_CONVERSATION_LIMIT = 200;
 
 function buildVolumeByDay(
-  messages: { createdAt: Date }[]
+  messages: { createdAt: Date }[],
+  conversations: Array<{
+    createdAt: Date;
+    messages: Array<{ role: MessageRole; unanswered: boolean }>;
+    handoffTickets: Array<{ status: string }>;
+  }>
 ): AnalyticsVolumePoint[] {
-  const counts = new Map<string, number>();
+  const messageCounts = new Map<string, number>();
+  const conversationCounts = new Map<string, number>();
+  const satisfiedCounts = new Map<string, number>();
 
   for (let index = 0; index < VOLUME_DAYS; index += 1) {
     const date = format(
       subDays(startOfDay(new Date()), VOLUME_DAYS - 1 - index),
       'yyyy-MM-dd'
     );
-    counts.set(date, 0);
+    messageCounts.set(date, 0);
+    conversationCounts.set(date, 0);
+    satisfiedCounts.set(date, 0);
   }
 
   for (const message of messages) {
     const date = format(message.createdAt, 'yyyy-MM-dd');
-    if (counts.has(date)) {
-      counts.set(date, (counts.get(date) ?? 0) + 1);
+    if (messageCounts.has(date)) {
+      messageCounts.set(date, (messageCounts.get(date) ?? 0) + 1);
     }
   }
 
-  return Array.from(counts.entries()).map(([date, messageCount]) => ({
-    date,
-    messages: messageCount
-  }));
+  for (const conversation of conversations) {
+    const date = format(conversation.createdAt, 'yyyy-MM-dd');
+    if (!conversationCounts.has(date)) {
+      continue;
+    }
+    conversationCounts.set(date, (conversationCounts.get(date) ?? 0) + 1);
+    if (
+      deriveConversationOutcome({
+        messages: conversation.messages,
+        handoffTickets: conversation.handoffTickets
+      }) === 'satisfied'
+    ) {
+      satisfiedCounts.set(date, (satisfiedCounts.get(date) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(messageCounts.entries()).map(([date, messageCount]) => {
+    const conversationCount = conversationCounts.get(date) ?? 0;
+    const satisfiedCount = satisfiedCounts.get(date) ?? 0;
+    return {
+      date,
+      messages: messageCount,
+      conversations: conversationCount,
+      satisfactionRate:
+        conversationCount > 0
+          ? Math.round((satisfiedCount / conversationCount) * 100)
+          : 0
+    };
+  });
 }
 
 function extractKnowledgeGaps(
@@ -165,53 +203,73 @@ export async function getAnalyticsOverview(options?: {
   const agentFilter = options?.agentId ? { id: options.agentId } : {};
   const volumeStart = subDays(startOfDay(new Date()), VOLUME_DAYS - 1);
 
-  const [organization, conversations, volumeMessages, gapConversations] =
-    await Promise.all([
-      prisma.organization.findFirst({
-        where: { id: organizationId },
-        select: { tier: true }
-      }),
-      prisma.conversation.findMany({
-        where: { agent: { organizationId, ...agentFilter } },
-        select: {
-          messages: {
-            select: { role: true, unanswered: true }
-          },
-          handoffTickets: {
-            select: { status: true }
+  const [
+    organization,
+    conversations,
+    volumeMessages,
+    volumeConversations,
+    gapConversations
+  ] = await Promise.all([
+    prisma.organization.findFirst({
+      where: { id: organizationId },
+      select: { tier: true }
+    }),
+    prisma.conversation.findMany({
+      where: { agent: { organizationId, ...agentFilter } },
+      select: {
+        messages: {
+          select: { role: true, unanswered: true }
+        },
+        handoffTickets: {
+          select: { status: true }
+        }
+      }
+    }),
+    prisma.message.findMany({
+      where: {
+        createdAt: { gte: volumeStart },
+        conversation: { agent: { organizationId, ...agentFilter } }
+      },
+      select: { createdAt: true }
+    }),
+    prisma.conversation.findMany({
+      where: {
+        createdAt: { gte: volumeStart },
+        agent: { organizationId, ...agentFilter }
+      },
+      select: {
+        createdAt: true,
+        messages: {
+          select: { role: true, unanswered: true }
+        },
+        handoffTickets: {
+          select: { status: true }
+        }
+      }
+    }),
+    prisma.conversation.findMany({
+      where: {
+        agent: { organizationId, ...agentFilter },
+        messages: { some: { role: 'ASSISTANT', unanswered: true } }
+      },
+      select: {
+        id: true,
+        updatedAt: true,
+        agent: { select: { id: true, name: true } },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            role: true,
+            content: true,
+            unanswered: true,
+            createdAt: true
           }
         }
-      }),
-      prisma.message.findMany({
-        where: {
-          createdAt: { gte: volumeStart },
-          conversation: { agent: { organizationId, ...agentFilter } }
-        },
-        select: { createdAt: true }
-      }),
-      prisma.conversation.findMany({
-        where: {
-          agent: { organizationId, ...agentFilter },
-          messages: { some: { role: 'ASSISTANT', unanswered: true } }
-        },
-        select: {
-          id: true,
-          updatedAt: true,
-          agent: { select: { id: true, name: true } },
-          messages: {
-            orderBy: { createdAt: 'asc' },
-            select: {
-              role: true,
-              content: true,
-              unanswered: true,
-              createdAt: true
-            }
-          }
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: GAP_CONVERSATION_LIMIT
-      })
-    ]);
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: GAP_CONVERSATION_LIMIT
+    })
+  ]);
 
   const outcomeCounts = countConversationOutcomes(conversations);
   const resolutionRate =
@@ -248,7 +306,7 @@ export async function getAnalyticsOverview(options?: {
       messagesUsed,
       includedMessages: plan.includedMessages
     },
-    volumeByDay: buildVolumeByDay(volumeMessages),
+    volumeByDay: buildVolumeByDay(volumeMessages, volumeConversations),
     knowledgeGaps
   };
 }

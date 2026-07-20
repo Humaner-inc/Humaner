@@ -110,90 +110,92 @@ export function VerifyEmailCard({
         </div>
 
         <form
-          className="flex flex-col gap-5"
+          className="flex flex-col items-center gap-5"
           onSubmit={methods.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={methods.control}
-            name="otp"
-            render={({ field }) => (
-              <FormItem className="flex w-full flex-col items-center space-y-2">
-                <FormControl>
-                  <InputOTP
-                    {...field}
-                    inputMode="text"
-                    maxLength={6}
-                    pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                    disabled={isVerifying || verifySuccess}
-                    onComplete={methods.handleSubmit(onSubmit)}
-                  >
-                    <InputOTPGroup className="justify-center gap-2.5">
-                      <InputOTPSlot
-                        index={0}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                      <InputOTPSlot
-                        index={1}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                      <InputOTPSlot
-                        index={2}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                      <InputOTPSlot
-                        index={3}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                      <InputOTPSlot
-                        index={4}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                      <InputOTPSlot
-                        index={5}
-                        className={cn(
-                          authOtpSlotClassName,
-                          'ring-[#e1ccaf]/40'
-                        )}
-                      />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </FormControl>
-                <FormMessage className={authDestructiveMessageClassName} />
-              </FormItem>
-            )}
-          />
+          <div className="flex w-fit flex-col gap-5">
+            <FormField
+              control={methods.control}
+              name="otp"
+              render={({ field }) => (
+                <FormItem className="flex w-full flex-col items-center space-y-2">
+                  <FormControl>
+                    <InputOTP
+                      {...field}
+                      inputMode="text"
+                      maxLength={6}
+                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                      disabled={isVerifying || verifySuccess}
+                      onComplete={methods.handleSubmit(onSubmit)}
+                    >
+                      <InputOTPGroup className="justify-center gap-2.5">
+                        <InputOTPSlot
+                          index={0}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                        <InputOTPSlot
+                          index={1}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                        <InputOTPSlot
+                          index={2}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                        <InputOTPSlot
+                          index={3}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                        <InputOTPSlot
+                          index={4}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                        <InputOTPSlot
+                          index={5}
+                          className={cn(
+                            authOtpSlotClassName,
+                            'ring-[#e1ccaf]/40'
+                          )}
+                        />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormMessage className={authDestructiveMessageClassName} />
+                </FormItem>
+              )}
+            />
 
-          <Button
-            type="submit"
-            variant="ghost"
-            className={authPrimaryButtonClassName}
-            disabled={!canSubmit}
-            loading={isVerifying}
-          >
-            {verifySuccess ? (
-              <CheckIcon
-                className="size-4"
-                strokeWidth={2.5}
-              />
-            ) : (
-              'Verify'
-            )}
-          </Button>
+            <Button
+              type="submit"
+              variant="ghost"
+              className={authPrimaryButtonClassName}
+              disabled={!canSubmit}
+              loading={isVerifying}
+            >
+              {verifySuccess ? (
+                <CheckIcon
+                  className="size-4"
+                  strokeWidth={2.5}
+                />
+              ) : (
+                'Verify'
+              )}
+            </Button>
+          </div>
         </form>
 
         <p className={cn('text-center', authMutedTextClassName)}>

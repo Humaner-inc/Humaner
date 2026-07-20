@@ -6,7 +6,7 @@
 export const HUMANER_TAGLINE =
   "Customer support agents that answer from your docs, remember context, and hand off to your team when it matters.";
 
-export const HUMANER_ELEVATOR_PITCH = `Humaner helps companies deploy AI support agents that stay grounded in their own knowledge, adapt to their industry, and escalate to human desk workflows when the agent cannot resolve an issue. You can embed a widget or React component in minutes, connect your documentation and live business data, and route frustrated customers to your team with full conversation context.`;
+export const HUMANER_ELEVATOR_PITCH = `Humaner helps product teams deploy customer support agents, adapt to their industry, and escalate to human desk workflows when the agent cannot resolve an issue. Add in-product support with a widget, React component, or API in minutes. Recognize users, connect your documentation, and hand off to desk when a human needs the wheel.`;
 
 export const HUMANER_DIFFERENTIATORS = [
   "Answers are grounded in your knowledge base and live data, not generic web knowledge.",

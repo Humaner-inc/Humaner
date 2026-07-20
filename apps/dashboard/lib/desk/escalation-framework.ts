@@ -19,7 +19,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
   {
     mode: 'PRIORITY',
     label: 'Priority',
-    trigger: 'High-value account, billing dispute',
+    trigger: 'Billing dispute, access blocked',
     sla: '< 2 hr',
     action: 'Async reply with context'
   },
