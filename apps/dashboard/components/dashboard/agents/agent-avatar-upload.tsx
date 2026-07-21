@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/tooltip';
 import { MAX_IMAGE_SIZE } from '@/constants/limits';
 import { CHARACTER_META } from '@/lib/character-presets';
+import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
 import { FileUploadAction } from '@/types/file-upload-action';
 
@@ -37,15 +38,17 @@ export function AgentAvatarUpload({
   disabled = false,
   onImageChange
 }: AgentAvatarUploadProps): React.JSX.Element {
-  const [currentImage, setCurrentImage] = React.useState(image ?? null);
+  const [currentImage, setCurrentImage] = React.useState(
+    () => toSameOriginImageUrl(image) ?? null
+  );
   const isCustomWithoutImage = character === 'CUSTOM' && !currentImage;
   const fallbackImage = isCustomWithoutImage
     ? null
     : CHARACTER_META[character].image;
-  const glowImage = currentImage ?? fallbackImage;
+  const displayImage = currentImage ?? fallbackImage;
 
   React.useEffect(() => {
-    setCurrentImage(image ?? null);
+    setCurrentImage(toSameOriginImageUrl(image) ?? null);
   }, [image]);
 
   const handleDrop = async (files: File[]): Promise<void> => {
@@ -75,6 +78,9 @@ export function AgentAvatarUpload({
       return;
     }
 
+    // Show the cropped image immediately while the API URL is persisted.
+    setCurrentImage(base64Image);
+
     const result = await updateAgentImage({
       id: agentId,
       action: FileUploadAction.Update,
@@ -82,11 +88,13 @@ export function AgentAvatarUpload({
     });
 
     if (result?.serverError || result?.validationErrors) {
+      setCurrentImage(toSameOriginImageUrl(image) ?? null);
       toast.error("Couldn't update profile picture");
       return;
     }
 
-    const nextImage = result?.data?.imageUrl ?? null;
+    const nextImage =
+      toSameOriginImageUrl(result?.data?.imageUrl) ?? base64Image;
     setCurrentImage(nextImage);
     onImageChange?.(nextImage);
     toast.success('Profile picture updated');
@@ -127,14 +135,14 @@ export function AgentAvatarUpload({
 
   return (
     <div className={cn('relative inline-flex', avatarSize)}>
-      {glowImage ? (
+      {displayImage ? (
         <div
           className="pointer-events-none absolute inset-0 scale-[1.65] overflow-hidden rounded-full opacity-50 blur-2xl"
           aria-hidden
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={glowImage}
+            src={displayImage}
             alt=""
             className="size-full object-cover"
           />
@@ -148,7 +156,7 @@ export function AgentAvatarUpload({
           disabled={disabled}
           onDrop={handleDrop}
           borderRadius="full"
-          src={currentImage ?? undefined}
+          title="Upload image"
           className={cn(
             dropzoneSize,
             'border-0 bg-transparent shadow-none hover:bg-transparent'
@@ -169,7 +177,11 @@ export function AgentAvatarUpload({
                 isCustomWithoutImage && 'bg-white'
               )}
             >
-              {isCustomWithoutImage ? null : (
+              {isCustomWithoutImage ? (
+                <span className="px-2 text-center text-[10px] font-medium leading-tight text-muted-foreground">
+                  Upload image
+                </span>
+              ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={fallbackImage!}

@@ -45,6 +45,7 @@ import {
 } from '@/constants/routes';
 import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
 
 export type AgentCardProps = {
@@ -138,13 +139,15 @@ export function AgentCard({
   const copyToClipboard = useCopyToClipboard();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [copiedId, setCopiedId] = React.useState(false);
-  const [avatarImage, setAvatarImage] = React.useState(agent.image);
+  const [avatarImage, setAvatarImage] = React.useState(() =>
+    toSameOriginImageUrl(agent.image)
+  );
   const [isPaused, setIsPaused] = React.useState(agent.isPaused);
   const [isDeleting, startDeleteTransition] = React.useTransition();
   const [isTogglingPause, startPauseTransition] = React.useTransition();
 
   React.useEffect(() => {
-    setAvatarImage(agent.image);
+    setAvatarImage(toSameOriginImageUrl(agent.image));
   }, [agent.image]);
 
   React.useEffect(() => {

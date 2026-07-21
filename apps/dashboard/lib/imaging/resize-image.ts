@@ -11,19 +11,27 @@ export async function resizeImage(
   const image = sharp(buffer);
   const metadata = await image.metadata();
 
-  if (
-    !metadata.width ||
-    !metadata.height ||
-    metadata.width !== metadata.height
-  ) {
-    throw new Error('Image is not a square');
+  if (!metadata.width || !metadata.height) {
+    throw new Error('Could not read image dimensions');
   }
 
-  const currentSize = Math.max(metadata.width, metadata.height);
-  let resizedImage = image;
+  // Crop pixels can be 1px off a perfect square after browser rounding.
+  let prepared = image;
+  if (metadata.width !== metadata.height) {
+    const side = Math.min(metadata.width, metadata.height);
+    prepared = image.extract({
+      left: Math.floor((metadata.width - side) / 2),
+      top: Math.floor((metadata.height - side) / 2),
+      width: side,
+      height: side
+    });
+  }
+
+  const currentSize = Math.min(metadata.width, metadata.height);
+  let resizedImage = prepared;
 
   if (currentSize > maxSize) {
-    resizedImage = image.resize(maxSize, maxSize);
+    resizedImage = prepared.resize(maxSize, maxSize);
   }
 
   const format = getFormatFromMimeType(mimeType);
@@ -44,10 +52,11 @@ function getFormatFromMimeType(mimeType: string): string {
     if (parts.length !== 2 || parts[0] !== 'image') {
       throw new Error(`Invalid mime type: ${mimeType}`);
     }
-    return parts[1];
+    const subtype = parts[1] === 'jpg' ? 'jpeg' : parts[1];
+    return subtype;
   } catch (error) {
     console.warn(
-      `Error parsing mime type: ${error.message}. Using default format.`
+      `Error parsing mime type: ${error instanceof Error ? error.message : String(error)}. Using default format.`
     );
     return defaultFormat;
   }

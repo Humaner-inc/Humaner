@@ -9,6 +9,7 @@ export type LlmConfig = {
 
 const OUTPUT_TOKEN_CAPS: Record<PlanTier, number> = {
   free: 512,
+  classic: 768,
   grow: 768,
   scale: 1_024,
   delegate: 2_048,

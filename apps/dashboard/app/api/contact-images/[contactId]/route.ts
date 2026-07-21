@@ -1,20 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
-import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 import { validate as uuidValidate } from 'uuid';
 
 import { prisma } from '@/lib/db/prisma';
-import type { Params } from '@/types/request-params';
 
-const paramsCache = createSearchParamsCache({
-  contactId: parseAsString.withDefault('')
-});
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<Params> }
+  props: { params: Promise<{ contactId: string }> }
 ): Promise<Response> {
-  const { contactId } = await paramsCache.parse(props.params);
+  const { contactId } = await props.params;
   if (!contactId || !uuidValidate(contactId)) {
     return new NextResponse(undefined, {
       status: 400,
@@ -40,7 +37,7 @@ export async function GET(
     }
   );
 
-  if (!contactImage || !contactImage.data) {
+  if (!contactImage?.data || contactImage.data.length === 0) {
     return new NextResponse(undefined, {
       status: 404,
       headers: {
@@ -49,8 +46,7 @@ export async function GET(
     });
   }
 
-  const { searchParams } = new URL(req.url);
-  const version = searchParams.get('v');
+  const version = req.nextUrl.searchParams.get('v');
   if (version && version !== contactImage.hash) {
     return new NextResponse(undefined, {
       status: 400,
@@ -60,12 +56,14 @@ export async function GET(
     });
   }
 
-  return new NextResponse(contactImage.data, {
+  const body = Buffer.from(contactImage.data);
+
+  return new NextResponse(body, {
     status: 200,
     headers: {
       'Cache-Control': 'public, max-age=86400, immutable',
       'Content-Type': contactImage.contentType ?? 'image/png',
-      'Content-Length': contactImage.data.length.toString()
+      'Content-Length': body.byteLength.toString()
     }
   });
 }

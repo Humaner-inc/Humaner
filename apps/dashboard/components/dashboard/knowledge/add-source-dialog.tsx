@@ -49,7 +49,7 @@ const TYPE_OPTIONS: { value: SourceType; label: string }[] = [
   { value: 'URL', label: 'Pages' },
   { value: 'SITEMAP', label: 'Crawl site' },
   { value: 'TEXT', label: 'Plain text' },
-  { value: 'MARKDOWN', label: '.md files' }
+  { value: 'MARKDOWN', label: 'Markdown' }
 ];
 
 function isMarkdownFileName(name: string): boolean {
