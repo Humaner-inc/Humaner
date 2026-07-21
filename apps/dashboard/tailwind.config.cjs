@@ -43,6 +43,10 @@ module.exports = {
           DEFAULT: 'hsl(var(--fracture))',
           foreground: 'hsl(var(--fracture-foreground))'
         },
+        frame: {
+          DEFAULT: 'var(--frame)',
+          foreground: 'var(--frame-foreground)'
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))'

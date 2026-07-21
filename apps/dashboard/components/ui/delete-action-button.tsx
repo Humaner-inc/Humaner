@@ -96,15 +96,14 @@ export function DeleteOverlayButton({
       variant={variant}
       size="icon"
       className={cn(
-        deleteIconButtonClassName,
-        'bg-background/90 shadow-sm',
+        'size-7 shrink-0 bg-transparent text-white shadow-none hover:bg-transparent hover:text-white/85',
         className
       )}
       aria-label={srLabel}
       {...props}
     >
       <Trash2Icon
-        className="size-4"
+        className="size-4 drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.65)]"
         aria-hidden
       />
     </Button>

@@ -25,7 +25,7 @@ export type DashboardOverviewStripProps = {
 };
 
 const TIER_ACCENT: Record<PlanTier, string> = {
-  free: '#a8a4a0',
+  free: '#7b7b73',
   classic: '#6b8cae',
   grow: '#0047ab',
   scale: '#c9ae84',

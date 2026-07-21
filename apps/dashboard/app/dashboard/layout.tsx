@@ -64,11 +64,15 @@ export default async function DashboardLayout({
     return redirect(Routes.Onboarding);
   }
 
-  const profile = await getProfile();
-  const agents = await getAgents();
-  const workspaces = await getWorkspaceSwitcherData();
-  const messageUsage = await getSidebarMessageUsage();
-  const { items: notifications } = await getDashboardNotifications();
+  const [profile, agents, workspaces, messageUsage, notificationsResult] =
+    await Promise.all([
+      getProfile(),
+      getAgents(),
+      getWorkspaceSwitcherData(),
+      getSidebarMessageUsage(),
+      getDashboardNotifications()
+    ]);
+  const { items: notifications } = notificationsResult;
 
   const showDataImprovementPrompt =
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&

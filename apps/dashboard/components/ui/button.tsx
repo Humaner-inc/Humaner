@@ -14,7 +14,7 @@ const dashboardCtaCaseClassName = 'normal-case';
 const neutralCtaClasses = cn(
   ctaPrimaryOnLightClassName,
   dashboardCtaCaseClassName,
-  'dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-[#d9d4cd] dark:hover:text-[#070607]'
+  'dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-frame dark:hover:text-frame-foreground'
 );
 
 const upgradeCtaClasses =

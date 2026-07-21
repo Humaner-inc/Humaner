@@ -30,32 +30,38 @@ export const metadata: Metadata = createDashboardPageMetadata(
 
 export default async function HomePage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
-  const bypassLimits = session?.user?.id
-    ? await userBypassesPlanLimits(session.user.id)
-    : false;
 
-  const [organization, agents, liveAgentCount, deskOverview, members] =
-    await Promise.all([
-      session?.user?.organizationId
-        ? prisma.organization.findFirst({
-            where: { id: session.user.organizationId },
-            select: {
-              name: true,
-              website: true,
-              industry: true,
-              tier: true,
-              targetAudience: true,
-              logoUrl: true
-            }
-          })
-        : Promise.resolve(null),
-      getAgentsOverview(),
-      session?.user?.organizationId
-        ? getLiveAgentCount(session.user.organizationId)
-        : Promise.resolve(0),
-      getDeskIssuesOverview(),
-      getOrganizationMembers()
-    ]);
+  const [
+    bypassLimits,
+    organization,
+    agents,
+    liveAgentCount,
+    deskOverview,
+    members
+  ] = await Promise.all([
+    session?.user?.id
+      ? userBypassesPlanLimits(session.user.id)
+      : Promise.resolve(false),
+    session?.user?.organizationId
+      ? prisma.organization.findFirst({
+          where: { id: session.user.organizationId },
+          select: {
+            name: true,
+            website: true,
+            industry: true,
+            tier: true,
+            targetAudience: true,
+            logoUrl: true
+          }
+        })
+      : Promise.resolve(null),
+    getAgentsOverview(),
+    session?.user?.organizationId
+      ? getLiveAgentCount(session.user.organizationId)
+      : Promise.resolve(0),
+    getDeskIssuesOverview(),
+    getOrganizationMembers()
+  ]);
 
   const plan = getPlanForTier(organization?.tier ?? 'free');
   const agentLimit = getEffectiveAgentLimit(plan, bypassLimits);

@@ -1,11 +1,13 @@
 /**
  * Brand CTAs — mono, sharp corners, border-driven.
  *
- * Colors are literal brand neutrals (#070607 / #fff8f2), never theme-relative
- * tokens (`background`/`foreground`). Those tokens flip per app/dark-mode and
- * can end up matching the surface a button sits on, making it disappear.
+ * Colors are literal brand neutrals (#070607 / #fff8f2 / #7b7b73), never
+ * theme-relative tokens (`background`/`foreground`). Those tokens flip per
+ * app/dark-mode and can end up matching the surface a button sits on, making
+ * it disappear.
  *
  * Secondary CTAs are outline-only (transparent fill).
+ * Frame grey (#7b7b73) is selective fracture only — not a default CTA.
  */
 
 export const CTA_BASE =
@@ -42,6 +44,9 @@ export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} da
 
 /** Accent deploy CTA — roadmap close, branch terminus. */
 export const ctaAccentClassName = `${CTA_BASE} border border-accent/40 bg-accent px-6 py-3 text-sm text-[#070607] hover:bg-accent/90 hover:text-[#070607]`;
+
+/** Frame grey CTA — selective sleek fracture on dark or light sections. */
+export const ctaFrameClassName = `${CTA_BASE} border border-[#7b7b73]/40 bg-[#7b7b73] px-4 py-2 text-[#fff8f2] hover:bg-[#6e6e66] hover:text-[#fff8f2]`;
 
 const CTA_TRY_HUMANER_BASE = `${CTA_BASE} gap-2.5 px-5 py-3`;
 

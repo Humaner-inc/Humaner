@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* HUMANER — primary/CTA #e1ccaf; UI neutrals #060707 / #fff8f2 */
+    /* HUMANER — white #fff8f2 · black #070607 · accent #e1ccaf · grey/frame #7b7b73 */
     --background: 40 20% 97%;
     --foreground: 300 8% 2.5%;
 
@@ -33,6 +33,10 @@
 
     --fracture: 35 45% 78%;
     --fracture-foreground: 300 8% 2.5%;
+
+    /* Selective CTA / section fracture — not a default surface */
+    --frame: #7b7b73;
+    --frame-foreground: #fff8f2;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -89,6 +93,9 @@
 
     --fracture: 35 45% 82%;
     --fracture-foreground: 300 8% 2.5%;
+
+    --frame: #7b7b73;
+    --frame-foreground: #fff8f2;
 
     --destructive: 0 62% 42%;
     --destructive-foreground: 0 0% 100%;

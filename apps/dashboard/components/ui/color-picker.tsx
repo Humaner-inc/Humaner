@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 // Colors
 
-export const DEFAULT_COLOR = '#888888';
+export const DEFAULT_COLOR = '#7b7b73';
 export const RGB_MAX = 255;
 export const SV_MAX = 100;
 

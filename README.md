@@ -62,6 +62,18 @@ flowchart TB
 - **Knowledge-backed agents:** pre-built intelligence across verticals and personalized knowledge through org docs and sites.
 - **Human-in-the-loop:** escalate to Human Desk; auto-training from desk conversations on Frontier plan.
 
+## Brand
+
+| Token  | Hex       | Use                                                                         |
+| ------ | --------- | --------------------------------------------------------------------------- |
+| White  | `#fff8f2` | Primary light surface, cream type on dark                                   |
+| Black  | `#070607` | Primary dark surface, page canvas                                           |
+| Accent | `#e1ccaf` | Fracture highlight — links, emphasis, warm CTAs                             |
+| Grey   | `#7b7b73` | Sleek fracture only — selective CTA / section fills (not a default surface) |
+| Cobalt | `#0682de` | Documentation warnings, messages, and banners                               |
+
+Grey exists to break rhythm inside the brand: use it sparingly on a few section CTAs or marks for chrome-like sleekness. Do not replace black, white, or accent as the base system.
+
 ## Pricing
 
 - **Classic** (free): 50 messages/mo · 1 agent · Humaner v1.0 (with limitations)
