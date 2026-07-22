@@ -14,6 +14,8 @@ export type GradientPillarIconProps = {
   size?: "sm" | "md";
   /** Inner plate. Default dark; `muted` lightens for cream footers. */
   plate?: "dark" | "muted";
+  /** Extra classes on the inner plate (e.g. landing grain surface). */
+  plateClassName?: string;
   className?: string;
   children: React.ReactNode;
 };
@@ -35,6 +37,7 @@ export function GradientPillarIcon({
   tone,
   size = "md",
   plate = "dark",
+  plateClassName,
   className,
   children,
 }: GradientPillarIconProps): React.JSX.Element {
@@ -53,7 +56,8 @@ export function GradientPillarIcon({
           "relative flex items-center justify-center overflow-hidden rounded-none",
           SIZE_CLASS[size],
           PLATE_CLASS[plate],
-          "transition-transform duration-300 group-hover:scale-[1.03]",
+          plateClassName,
+          "origin-center scale-100 transition-transform duration-300 group-hover:scale-[1.03]",
         )}
         aria-hidden
       >
@@ -71,7 +75,12 @@ export function GradientPillarIcon({
           className="pointer-events-none absolute inset-[1px] rounded-none border border-white/[0.04]"
         />
 
-        <svg width="0" height="0" className="absolute" aria-hidden>
+        <svg
+          width="0"
+          height="0"
+          className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden"
+          aria-hidden
+        >
           <defs>
             <linearGradient id={gradId} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor={tone.from} />
@@ -81,7 +90,9 @@ export function GradientPillarIcon({
           </defs>
         </svg>
 
-        <div className="relative z-[1]">{children}</div>
+        <div className="relative z-[1] flex size-full items-center justify-center">
+          {children}
+        </div>
       </div>
     </div>
   );

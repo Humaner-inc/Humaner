@@ -82,62 +82,64 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           tier={organization?.tier ?? 'free'}
         />
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] xl:items-start">
-          <section className="min-w-0 space-y-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="section-title">
-                Agents
-                <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
-                  {slotLabel}
-                </span>
-              </h2>
-              {!atLimit ? (
-                <Link
-                  href={Routes.AgentNew}
-                  className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                >
-                  New agent
-                </Link>
-              ) : null}
-            </div>
-
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
-              {agents.map((agent) => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  linkToWorkspace
-                  compact
-                />
-              ))}
-              {!atLimit ? (
-                <Link
-                  href={Routes.AgentNew}
-                  className="flex min-h-48 flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
-                >
-                  <CircleDashedIcon
-                    size={24}
-                    className="mb-2 text-muted-foreground"
-                  />
-                  <span className="font-mono text-xs font-medium">
-                    Create agent
-                  </span>
-                </Link>
-              ) : null}
-            </div>
-
-            {atLimit ? (
-              <p className="border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
-                Live agent limit reached. Pause an agent or upgrade your plan.
-              </p>
+        <section className="space-y-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="section-title">
+              Agents
+              <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">
+                {slotLabel}
+              </span>
+            </h2>
+            {!atLimit ? (
+              <Link
+                href={Routes.AgentNew}
+                className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                New agent
+              </Link>
             ) : null}
-          </section>
+          </div>
 
-          <aside className="space-y-3 xl:sticky xl:top-4">
-            <DeskIssuesOverviewCard overview={deskOverview} />
-            <TeamMembersOverviewCard members={members} />
-          </aside>
-        </div>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] xl:items-start">
+            <div className="min-w-0 space-y-4">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(18.5rem,1fr))] gap-4">
+                {agents.map((agent) => (
+                  <AgentCard
+                    key={agent.id}
+                    agent={agent}
+                    linkToWorkspace
+                    compact
+                  />
+                ))}
+                {!atLimit ? (
+                  <Link
+                    href={Routes.AgentNew}
+                    className="flex min-h-[22rem] flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center shadow-[0_2px_0_0_rgb(0_0_0_/_0.03),0_18px_40px_-28px_rgb(0_0_0_/_0.18)] transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
+                  >
+                    <CircleDashedIcon
+                      size={24}
+                      className="mb-2 text-muted-foreground"
+                    />
+                    <span className="font-mono text-xs font-medium">
+                      Create agent
+                    </span>
+                  </Link>
+                ) : null}
+              </div>
+
+              {atLimit ? (
+                <p className="border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
+                  Live agent limit reached. Pause an agent or upgrade your plan.
+                </p>
+              ) : null}
+            </div>
+
+            <aside className="space-y-3 xl:sticky xl:top-4">
+              <DeskIssuesOverviewCard overview={deskOverview} />
+              <TeamMembersOverviewCard members={members} />
+            </aside>
+          </div>
+        </section>
       </div>
     </SectionPage>
   );

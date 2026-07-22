@@ -9,7 +9,6 @@ import {
   BookOpenIcon,
   CheckIcon,
   CopyIcon,
-  KeyRoundIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PlayIcon
@@ -76,14 +75,14 @@ function PauseGlyph({ className }: { className?: string }): React.JSX.Element {
         y="5"
         width="4"
         height="14"
-        rx="1"
+        rx="0"
       />
       <rect
         x="14"
         y="5"
         width="4"
         height="14"
-        rx="1"
+        rx="0"
       />
     </svg>
   );
@@ -96,37 +95,78 @@ function AgentStatusBadge({
   isPaused: boolean;
   compact?: boolean;
 }): React.JSX.Element {
-  const sizeClass = compact
-    ? 'px-2 py-0.5 text-[10px]'
-    : 'px-2.5 py-0.5 text-[11px]';
-
   if (isPaused) {
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-1 border border-amber-500/30 bg-amber-500/10 font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300',
-          sizeClass
+          'inline-flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300',
+          compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-[11px]'
         )}
       >
         <PauseGlyph className={compact ? 'size-2.5' : 'size-3'} />
-        Paused
+        [paused]
       </span>
     );
   }
 
   return (
     <span
+      className="inline-flex items-center gap-1.5"
+      title="Live"
+      aria-label="Live"
+    >
+      <span className="inline-flex size-1.5 shrink-0 bg-emerald-500" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
+        [live]
+      </span>
+    </span>
+  );
+}
+
+function IdDotStrip({
+  publicId,
+  copied,
+  onCopy,
+  className
+}: {
+  publicId: string;
+  copied: boolean;
+  onCopy: () => void;
+  className?: string;
+}): React.JSX.Element {
+  const maskedId = formatAgentId(publicId);
+
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      title={`Copy agent ID · ${publicId}`}
       className={cn(
-        'inline-flex items-center gap-1.5 border border-emerald-500/30 bg-emerald-500/10 font-mono uppercase tracking-wider text-emerald-700 dark:text-emerald-300',
-        sizeClass
+        'group/id relative mx-auto flex h-7 w-fit max-w-[70%] items-center justify-center overflow-hidden px-3 text-foreground transition-opacity hover:opacity-100',
+        className
       )}
     >
-      <span className="relative flex size-2">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, currentColor 0.7px, transparent 0.8px)',
+          backgroundSize: '5px 5px',
+          backgroundPosition: 'center'
+        }}
+      />
+      <span className="relative z-[1] inline-flex max-w-full items-center gap-1.5 font-mono text-[11px] text-muted-foreground/80 transition-colors group-hover/id:text-foreground/85">
+        <span className="truncate">{maskedId}</span>
+        <span className="shrink-0 opacity-50 transition-opacity group-hover/id:opacity-100">
+          {copied ? (
+            <CheckIcon className="size-3 text-emerald-500" />
+          ) : (
+            <CopyIcon className="size-3" />
+          )}
+        </span>
       </span>
-      Live
-    </span>
+    </button>
   );
 }
 
@@ -195,17 +235,26 @@ export function AgentCard({
     });
   };
 
+  const passLabel = isPaused
+    ? 'PAUSED PASS'
+    : agent.showRole && agent.role
+      ? agent.role.toUpperCase()
+      : 'AGENT PASS';
+
   return (
     <>
       <article
         className={cn(
-          'group relative flex flex-col overflow-hidden border border-border/60 bg-card transition-colors card-interactive',
-          compact ? 'p-4' : 'p-5',
+          'group relative flex min-h-[22rem] flex-col overflow-hidden rounded-none border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
+          compact ? 'px-5 pb-4 pt-5' : 'px-6 pb-5 pt-6',
           isPaused && 'opacity-90'
         )}
       >
         <div
-          className={cn('absolute left-2.5 top-2.5', compact && 'left-2 top-2')}
+          className={cn(
+            'absolute left-3.5 top-3.5',
+            compact ? 'left-3 top-3' : 'left-4 top-4'
+          )}
         >
           <AgentStatusBadge
             isPaused={isPaused}
@@ -220,8 +269,8 @@ export function AgentCard({
               variant="ghost"
               size="icon"
               className={cn(
-                'absolute right-2 top-2 size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100',
-                !compact && 'right-3 top-3 size-8'
+                'absolute right-2.5 top-2.5 size-8 rounded-none text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100',
+                !compact && 'right-3.5 top-3.5 size-8'
               )}
             >
               <MoreHorizontalIcon className="size-4" />
@@ -260,8 +309,8 @@ export function AgentCard({
 
         <div
           className={cn(
-            'flex flex-col items-center text-center',
-            compact ? 'pt-5' : 'pt-6'
+            'flex flex-1 flex-col items-center justify-center text-center',
+            compact ? 'px-1 pt-8' : 'px-2 pt-10'
           )}
         >
           <AgentAvatarUpload
@@ -277,8 +326,8 @@ export function AgentCard({
 
           <h3
             className={cn(
-              'mt-3 max-w-full truncate font-mono font-medium leading-tight tracking-tight',
-              compact ? 'text-base' : 'text-xl font-display'
+              'mt-6 max-w-full truncate font-display leading-none tracking-tight',
+              compact ? 'text-2xl' : 'text-[1.75rem]'
             )}
           >
             {linkToWorkspace ? (
@@ -292,41 +341,14 @@ export function AgentCard({
               agent.name
             )}
           </h3>
-          {agent.showRole ? (
-            <p className="mt-0.5 max-w-full truncate text-xs text-muted-foreground">
-              {agent.role}
-            </p>
-          ) : null}
 
-          <button
-            type="button"
-            onClick={handleCopyId}
-            title={agent.publicId}
-            className={cn(
-              'group/id mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-background/50 text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground',
-              compact
-                ? 'px-2 py-0.5 text-[10px]'
-                : 'mt-3 px-2.5 py-1 text-[11px]'
-            )}
-          >
-            <KeyRoundIcon className="size-3 shrink-0 opacity-70" />
-            <span className="truncate font-mono">
-              {formatAgentId(agent.publicId)}
-            </span>
-            <span className="shrink-0 opacity-60 transition-opacity group-hover/id:opacity-100">
-              {copiedId ? (
-                <CheckIcon className="size-3 text-emerald-500" />
-              ) : (
-                <CopyIcon className="size-3" />
-              )}
-            </span>
-          </button>
+          <p className="micro-label mt-2.5 text-foreground/80">{passLabel}</p>
         </div>
 
         {agent.metrics.gaps.length > 0 ? (
           <div
             className={cn(
-              'mt-3 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-2.5 py-2',
+              'mt-3 flex gap-2 border border-amber-500/20 bg-amber-500/5 px-2.5 py-2',
               compact && 'mt-2'
             )}
           >
@@ -337,24 +359,26 @@ export function AgentCard({
           </div>
         ) : null}
 
-        <div
-          className={cn(
-            'mt-3 flex justify-center gap-1.5',
-            !compact && 'mt-4 gap-2'
-          )}
-        >
+        <IdDotStrip
+          publicId={agent.publicId}
+          copied={copiedId}
+          onCopy={handleCopyId}
+          className="mt-3"
+        />
+
+        <div className="mt-3 flex justify-center gap-1.5">
           {linkToWorkspace ? (
             <>
               <Button
                 asChild
                 variant="outline"
                 size="icon"
-                className="size-9 rounded-xl"
+                className="size-8 rounded-none"
                 title="Knowledge"
               >
                 <Link href={agentKnowledgeRoute(agent.id)}>
                   <BookOpenIcon
-                    className="size-4"
+                    className="size-3.5"
                     aria-hidden
                   />
                   <span className="sr-only">Knowledge</span>
@@ -364,12 +388,12 @@ export function AgentCard({
                 asChild
                 variant="outline"
                 size="icon"
-                className="size-9 rounded-xl"
+                className="size-8 rounded-none"
                 title="Analytics"
               >
                 <Link href={agentAnalyticsRoute(agent.id)}>
                   <BarChart3Icon
-                    className="size-4"
+                    className="size-3.5"
                     aria-hidden
                   />
                   <span className="sr-only">Analytics</span>
@@ -380,7 +404,7 @@ export function AgentCard({
             <Button
               type="button"
               variant="outline"
-              className="w-full rounded-xl"
+              className="w-full rounded-none"
               onClick={handleTogglePause}
               loading={isTogglingPause}
             >

@@ -127,11 +127,9 @@ export function AgentAvatarUpload({
     toast.success('Profile picture removed');
   };
 
-  const avatarSize = size === 'card' ? 'size-[4.5rem]' : 'size-24';
+  const avatarSize = 'size-24';
   const dropzoneSize =
-    size === 'card'
-      ? 'size-[4.5rem] p-0'
-      : 'size-24 min-h-24 max-h-24 w-24 p-0';
+    size === 'card' ? 'size-24 p-0' : 'size-24 min-h-24 max-h-24 w-24 p-0';
 
   return (
     <div className={cn('relative inline-flex', avatarSize)}>

@@ -67,13 +67,19 @@ function parseSizeFromClassName(className?: string): number | undefined {
     return undefined;
   }
 
+  let maxSize: number | undefined;
+
   for (const [token, size] of Object.entries(SIZE_CLASS_MAP)) {
     if (className.includes(token)) {
-      return size;
+      maxSize = maxSize === undefined ? size : Math.max(maxSize, size);
     }
   }
 
-  return undefined;
+  return maxSize;
+}
+
+function cn(...classes: Array<string | false | undefined>): string {
+  return classes.filter(Boolean).join(" ");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,7 +126,10 @@ export function createAnimatedIcon(
         <Icon
           {...props}
           ref={innerRef}
-          className={className}
+          className={cn(
+            "inline-flex shrink-0 items-center justify-center",
+            className,
+          )}
           size={resolvedSize}
           animateOnHover={false}
           onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
