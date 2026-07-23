@@ -45,6 +45,7 @@ export default async function DashboardLayout({
     select: {
       completedOnboarding: true,
       workspaceRole: true,
+      role: true,
       organization: {
         select: {
           completedOnboarding: true,

@@ -72,7 +72,7 @@ export function SidebarMessageUsage({
   const showUpgradeCta =
     !isIconRail &&
     usagePercent >= USAGE_UPGRADE_THRESHOLD_PERCENT &&
-    usage.tier !== 'delegate';
+    usage.tier !== 'humaner';
 
   const usageLabel = `${usage.messagesUsed.toLocaleString()} / ${usage.includedMessages.toLocaleString()}`;
 

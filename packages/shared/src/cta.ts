@@ -35,12 +35,12 @@ export const ctaPrimaryClassName = `${CTA_BASE} border border-[#fff8f2]/30 bg-[#
 /** Black button — use on light surfaces. Text always stays cream. */
 export const ctaPrimaryOnLightClassName = `${CTA_BASE} border border-[#070607]/15 bg-[#070607] px-4 py-2 text-[#fff8f2] hover:bg-[#070607]/85 hover:text-[#fff8f2]`;
 
-export const ctaSecondaryOnDarkClassName = `${CTA_BASE} border border-white/25 bg-transparent px-4 py-2 text-white/80 hover:border-white/75 hover:bg-white/14 hover:text-white hover:shadow-[0_0_22px_rgb(255_255_255_/_0.28)]`;
+export const ctaSecondaryOnDarkClassName = `${CTA_BASE} border border-white/25 bg-transparent px-4 py-2 text-white/80 hover:border-transparent hover:bg-[#fff8f2] hover:text-[#070607]`;
 
-export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]/30 bg-transparent px-4 py-2 text-[#070607]/80 hover:border-[#070607]/50 hover:text-[#070607]`;
+export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#070607]/30 bg-transparent px-4 py-2 text-[#070607]/80 hover:border-transparent hover:bg-[#070607] hover:text-[#fff8f2]`;
 
 /** Outline CTA that inverts for dashboard light/dark shells. */
-export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/25 dark:bg-transparent dark:text-white/80 dark:hover:border-white/75 dark:hover:bg-white/14 dark:hover:text-white dark:hover:shadow-[0_0_22px_rgb(255_255_255_/_0.28)]`;
+export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/25 dark:bg-transparent dark:text-white/80 dark:hover:border-transparent dark:hover:bg-[#fff8f2] dark:hover:text-[#070607]`;
 
 /** Accent deploy CTA — roadmap close, branch terminus. */
 export const ctaAccentClassName = `${CTA_BASE} border border-accent/40 bg-accent px-6 py-3 text-sm text-[#070607] hover:bg-accent/90 hover:text-[#070607]`;

@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
+import { encryptSensitiveField } from '@/lib/security/sensitive-fields';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateWebhookSchema } from '@/schemas/webhooks/update-webhook-schema';
 
@@ -22,6 +23,11 @@ export const updateWebhook = ownerActionClient
       throw new NotFoundError('Webhook not found');
     }
 
+    const nextSecret =
+      parsedInput.secret && parsedInput.secret.length > 0
+        ? encryptSensitiveField(parsedInput.secret)
+        : undefined;
+
     await prisma.webhook.update({
       where: {
         id: parsedInput.id,
@@ -30,7 +36,7 @@ export const updateWebhook = ownerActionClient
       data: {
         url: parsedInput.url,
         triggers: parsedInput.triggers ? parsedInput.triggers : [],
-        secret: parsedInput.secret ? parsedInput.secret : null
+        ...(nextSecret !== undefined ? { secret: nextSecret } : {})
       },
       select: {
         id: true // SELECT NONE

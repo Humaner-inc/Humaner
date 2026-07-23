@@ -37,9 +37,9 @@ export const RecoveryCodesModal = NiceModal.create<RecoveryCodesModalProps>(
     const modal = useEnhancedModal();
     const mdUp = useMediaQuery(MediaQueries.MdUp, { ssr: false });
     const copyToClipboard = useCopyToClipboard();
-    const title = 'Recovery codes';
+    const title = '2FA Recovery';
     const description =
-      'Each recovery code can be used exactly once to grant access without your authenticator.';
+      "Your recovery codes won't be shown again. Make sure to store them in a safe place.";
     const handleCopyRecoveryCodes = async (): Promise<void> => {
       await copyToClipboard(
         recoveryCodes

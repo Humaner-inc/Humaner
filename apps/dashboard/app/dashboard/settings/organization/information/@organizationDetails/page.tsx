@@ -19,6 +19,8 @@ export default async function OrganizationDetailsPage(): Promise<React.JSX.Eleme
       <DataImprovementConsentCard
         consent={consentSettings.consent}
         consentedAt={consentSettings.consentedAt}
+        modelTrainingConsent={consentSettings.modelTrainingConsent}
+        modelTrainingConsentedAt={consentSettings.modelTrainingConsentedAt}
         isOwner={consentSettings.isOwner}
       />
     </div>

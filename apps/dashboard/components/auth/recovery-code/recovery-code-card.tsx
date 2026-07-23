@@ -71,31 +71,38 @@ export function RecoveryCodeCard({
     const result = await submitRecoveryCode(values);
 
     if (result?.validationErrors?._errors) {
-      const errorCode = result.validationErrors._errors[0] as AuthErrorCode;
-      setErrorCode(errorCode);
+      const nextErrorCode = result.validationErrors._errors[0] as AuthErrorCode;
+      setErrorCode(nextErrorCode);
       setErrorMessage(
         authErrorMessages[
-          errorCode in authErrorMessages
-            ? errorCode
+          nextErrorCode in authErrorMessages
+            ? nextErrorCode
             : AuthErrorCode.UnknownError
         ]
       );
 
       setIsLoading(false);
-    } else if (result?.serverError) {
+      return;
+    }
+
+    if (result?.serverError) {
       setErrorCode(undefined);
       setErrorMessage(result.serverError);
       setIsLoading(false);
+      return;
     }
+
+    const redirectTo = result?.data?.redirectTo ?? Routes.Home;
+    window.location.assign(redirectTo);
   };
 
   return (
     <AuthInnerCard {...other}>
       <AuthInnerCardHeader>
-        <AuthInnerCardTitle>Recovery code</AuthInnerCardTitle>
+        <AuthInnerCardTitle>2FA Recovery</AuthInnerCardTitle>
         <AuthInnerCardDescription>
-          Each recovery code can be used exactly once to grant access without
-          your authenticator.
+          Enter one of your recovery codes to sign in without your authenticator
+          app.
         </AuthInnerCardDescription>
       </AuthInnerCardHeader>
       <AuthInnerCardContent>
@@ -109,6 +116,12 @@ export function RecoveryCodeCard({
               className="hidden"
               disabled={methods.formState.isSubmitting}
               {...methods.register('token')}
+            />
+            <input
+              type="hidden"
+              className="hidden"
+              disabled={methods.formState.isSubmitting}
+              {...methods.register('expiry')}
             />
             <FormField
               control={methods.control}

@@ -42,6 +42,10 @@ const PROTECTED_APP_PREFIXES = [
 ] as const;
 
 export function isProtectedAppPath(pathname: string): boolean {
+  if (pathname === '/api/dashboard' || pathname.startsWith('/api/dashboard/')) {
+    return true;
+  }
+
   return PROTECTED_APP_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );

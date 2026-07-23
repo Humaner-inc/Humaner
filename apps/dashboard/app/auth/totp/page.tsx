@@ -13,7 +13,7 @@ const searchParamsCache = createSearchParamsCache({
 });
 
 export const metadata: Metadata = {
-  title: createTitle('Confirm via authenticator app')
+  title: createTitle('Authenticator code')
 };
 
 export default async function TotpPage({
@@ -22,14 +22,19 @@ export default async function TotpPage({
   const { token, expiry } = await searchParamsCache.parse(searchParams);
 
   if (!token) {
-    return <AuthContainer>Missing token param.</AuthContainer>;
+    return <AuthContainer showLogo={false}>Missing token param.</AuthContainer>;
   }
   if (!expiry) {
-    return <AuthContainer>Missing expiry param.</AuthContainer>;
+    return (
+      <AuthContainer showLogo={false}>Missing expiry param.</AuthContainer>
+    );
   }
 
   return (
-    <AuthContainer maxWidth="sm">
+    <AuthContainer
+      showLogo={false}
+      maxWidth="sm"
+    >
       <TotpCodeCard
         token={token}
         expiry={expiry}

@@ -59,3 +59,44 @@ export function getSafeAuthCallbackUrl(
 
   return callbackUrl;
 }
+
+/**
+ * Auth.js v5 `signIn(..., { redirect: false })` returns a string URL
+ * (absolute or relative). Older shapes used `{ url, error }`.
+ */
+export function toClientAuthRedirect(
+  result: unknown,
+  fallback: string
+): string {
+  let raw: string | undefined;
+
+  if (typeof result === 'string' && result.trim()) {
+    raw = result.trim();
+  } else if (
+    result &&
+    typeof result === 'object' &&
+    'url' in result &&
+    typeof (result as { url: unknown }).url === 'string'
+  ) {
+    raw = (result as { url: string }).url.trim();
+  }
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      const url = new URL(raw);
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    return fallback;
+  }
+
+  if (raw.startsWith('/')) {
+    return raw;
+  }
+
+  return fallback;
+}

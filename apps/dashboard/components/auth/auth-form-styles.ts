@@ -33,7 +33,7 @@ export const authLinkClassName = uiAuthLinkClassName;
 
 export const authPrimaryButtonClassName = `${ctaPrimaryClassName} h-11 w-full`;
 
-export const authOutlineButtonClassName = `${ctaSecondaryOnDarkClassName} h-11 w-full hover:!border-transparent hover:!bg-[#fff8f2] hover:!text-[#070607]`;
+export const authOutlineButtonClassName = `${ctaSecondaryOnDarkClassName} h-11 w-full`;
 
 export const authHighlightButtonClassName = ctaPrimaryClassName;
 

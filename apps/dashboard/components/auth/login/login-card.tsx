@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   AlertCircleIcon,
   ArrowRightIcon,
@@ -52,7 +51,6 @@ import {
 } from '@/schemas/auth/log-in-schema';
 
 export function LoginCard(): React.JSX.Element {
-  const router = useRouter();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [loginSuccess, setLoginSuccess] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string>();
@@ -135,8 +133,9 @@ export function LoginCard(): React.JSX.Element {
     await new Promise((resolve) => {
       window.setTimeout(resolve, 550);
     });
-    router.push(redirectTo);
-    router.refresh();
+    // Full navigation so the session cookie from the server action is applied
+    // before protected middleware runs (router.push can race).
+    window.location.assign(redirectTo);
   };
   const handleSignInWithGoogle = async (): Promise<void> => {
     if (!canSubmit) {

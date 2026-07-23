@@ -6,23 +6,23 @@ import {
   AlertCircleIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  CheckIcon,
   LockIcon
 } from '@humaner/shared/icons';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 
 import { submitTotpCode } from '@/actions/auth/submit-totp-code';
-import { glassLinkClassName } from '@/components/auth/auth-form-styles';
 import {
-  AuthInnerCard,
-  AuthInnerCardContent,
-  AuthInnerCardDescription,
-  AuthInnerCardFooter,
-  AuthInnerCardHeader,
-  AuthInnerCardTitle
-} from '@/components/auth/auth-inner-card';
+  authAlertDestructiveClassName,
+  authDestructiveMessageClassName,
+  authHeadingClassName,
+  authLinkClassName,
+  authMutedTextClassName,
+  authOtpSlotClassName,
+  authPrimaryButtonClassName
+} from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
-import type { CardProps } from '@/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -35,7 +35,6 @@ import {
   InputOTPGroup,
   InputOTPSlot
 } from '@/components/ui/input-otp';
-import { Separator } from '@/components/ui/separator';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
@@ -45,17 +44,17 @@ import {
   type SubmitTotpCodeSchema
 } from '@/schemas/auth/submit-totp-code-schema';
 
-export type TotpCodeCardProps = CardProps & {
+export type TotpCodeCardProps = {
   token: string;
   expiry: string;
 };
 
 export function TotpCodeCard({
   token,
-  expiry,
-  ...other
+  expiry
 }: TotpCodeCardProps): React.JSX.Element {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [submitSuccess, setSubmitSuccess] = React.useState(false);
   const [errorCode, setErrorCode] = React.useState<AuthErrorCode>();
   const [errorMessage, setErrorMessage] = React.useState<string>();
   const methods = useZodForm({
@@ -67,127 +66,168 @@ export function TotpCodeCard({
       totpCode: ''
     }
   });
-  const canSubmit = !isLoading && !methods.formState.isSubmitting;
+  const canSubmit =
+    !isLoading && !submitSuccess && !methods.formState.isSubmitting;
+
   const onSubmit = async (values: SubmitTotpCodeSchema): Promise<void> => {
     if (!canSubmit) {
       return;
     }
     setIsLoading(true);
+    setSubmitSuccess(false);
+    setErrorMessage(undefined);
 
     const result = await submitTotpCode(values);
 
     if (result?.validationErrors?._errors) {
-      const errorCode = result.validationErrors._errors[0] as AuthErrorCode;
-      setErrorCode(errorCode);
+      const nextErrorCode = result.validationErrors._errors[0] as AuthErrorCode;
+      setErrorCode(nextErrorCode);
       setErrorMessage(
         authErrorMessages[
-          errorCode in authErrorMessages
-            ? errorCode
+          nextErrorCode in authErrorMessages
+            ? nextErrorCode
             : AuthErrorCode.UnknownError
         ]
       );
-
       setIsLoading(false);
-    } else if (result?.serverError) {
+      return;
+    }
+
+    if (result?.serverError) {
       setErrorCode(undefined);
       setErrorMessage(result.serverError);
       setIsLoading(false);
+      return;
     }
+
+    setIsLoading(false);
+    setSubmitSuccess(true);
+
+    const redirectTo = result?.data?.redirectTo ?? Routes.Home;
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 450);
+    });
+    window.location.assign(redirectTo);
   };
 
   return (
-    <AuthInnerCard {...other}>
-      <AuthInnerCardHeader>
-        <AuthInnerCardTitle>Authenticator code</AuthInnerCardTitle>
-        <AuthInnerCardDescription>
-          Please enter the 6-digit code from your authenticator app.
-        </AuthInnerCardDescription>
-      </AuthInnerCardHeader>
-      <AuthInnerCardContent>
-        <FormProvider {...methods}>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={methods.handleSubmit(onSubmit)}
-          >
-            <input
-              type="hidden"
-              className="hidden"
-              disabled={methods.formState.isSubmitting}
-              {...methods.register('token')}
-            />
+    <div className="flex w-full flex-col gap-8">
+      <div className="space-y-2 text-center">
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#e1ccaf]/80">
+          Two-factor
+        </p>
+        <h1 className={cn(authHeadingClassName, 'text-3xl sm:text-4xl')}>
+          Authenticator code
+        </h1>
+        <p className={cn(authMutedTextClassName, 'text-center')}>
+          Enter the 6-digit code from your authenticator app.
+        </p>
+      </div>
+
+      <FormProvider {...methods}>
+        <form
+          className="flex flex-col items-center gap-6"
+          onSubmit={methods.handleSubmit(onSubmit)}
+        >
+          <input
+            type="hidden"
+            className="hidden"
+            disabled={methods.formState.isSubmitting}
+            {...methods.register('token')}
+          />
+          <input
+            type="hidden"
+            className="hidden"
+            disabled={methods.formState.isSubmitting}
+            {...methods.register('expiry')}
+          />
+
+          <div className="flex w-fit flex-col gap-5">
             <FormField
               control={methods.control}
               name="totpCode"
               render={({ field }) => (
-                <FormItem className="flex w-full flex-col items-center space-y-0">
+                <FormItem className="flex w-full flex-col items-center space-y-2">
                   <FormControl>
                     <InputOTP
                       {...field}
                       inputMode="numeric"
                       maxLength={6}
                       pattern={REGEXP_ONLY_DIGITS}
-                      disabled={methods.formState.isSubmitting}
+                      disabled={isLoading || submitSuccess}
                       onComplete={methods.handleSubmit(onSubmit)}
-                      containerClassName="w-full"
                     >
-                      <InputOTPGroup className="w-full justify-between">
+                      <InputOTPGroup className="justify-center gap-2.5">
                         {[...Array(6)].map((_, i) => (
                           <InputOTPSlot
                             key={i}
                             index={i}
-                            className="size-12 rounded-md border"
+                            className={cn(
+                              authOtpSlotClassName,
+                              'font-mono tracking-wide ring-[#e1ccaf]/40'
+                            )}
                           />
                         ))}
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className={authDestructiveMessageClassName} />
                 </FormItem>
               )}
             />
-            {errorMessage && (
-              <Alert variant="destructive">
+
+            {errorMessage ? (
+              <Alert
+                variant="destructive"
+                className={authAlertDestructiveClassName}
+              >
                 <div className="flex flex-row items-center gap-2">
                   <AlertCircleIcon className="size-[18px] shrink-0" />
                   <AlertDescription>
                     {errorMessage}
-                    {errorCode === AuthErrorCode.RequestExpired && (
+                    {errorCode === AuthErrorCode.RequestExpired ? (
                       <Link
                         className={cn(
                           buttonVariants({ variant: 'link' }),
-                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
-                          glassLinkClassName
+                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-300 underline'
                         )}
                         href={Routes.Login}
                       >
                         Log in again.
                         <ArrowRightIcon className="size-3 shrink-0" />
                       </Link>
-                    )}
+                    ) : null}
                   </AlertDescription>
                 </div>
               </Alert>
-            )}
+            ) : null}
+
             <Button
               type="submit"
-              variant="default"
-              className="w-full"
+              variant="ghost"
+              className={authPrimaryButtonClassName}
               disabled={!canSubmit}
-              loading={methods.formState.isSubmitting}
-              onClick={methods.handleSubmit(onSubmit)}
+              loading={isLoading}
             >
-              Submit
+              {submitSuccess ? (
+                <CheckIcon
+                  className="size-4"
+                  strokeWidth={2.5}
+                />
+              ) : (
+                'Verify'
+              )}
             </Button>
-          </form>
-        </FormProvider>
-      </AuthInnerCardContent>
-      <Separator />
-      <AuthInnerCardFooter className="justify-center gap-4 py-2">
+          </div>
+        </form>
+      </FormProvider>
+
+      <div className="flex items-center justify-center gap-5">
         <Link
           href={Routes.Login}
           className={cn(
             buttonVariants({ variant: 'link', size: 'default' }),
-            glassLinkClassName,
+            authLinkClassName,
             'hover:no-underline'
           )}
         >
@@ -198,14 +238,14 @@ export function TotpCodeCard({
           href={`${Routes.RecoveryCode}?token=${encodeURIComponent(token)}&expiry=${encodeURIComponent(expiry)}`}
           className={cn(
             buttonVariants({ variant: 'link', size: 'default' }),
-            glassLinkClassName,
+            authLinkClassName,
             'hover:no-underline'
           )}
         >
           <LockIcon className="mr-2 size-4 shrink-0" />
           Lost access
         </Link>
-      </AuthInnerCardFooter>
-    </AuthInnerCard>
+      </div>
+    </div>
   );
 }

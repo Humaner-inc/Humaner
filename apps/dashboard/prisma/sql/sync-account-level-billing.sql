@@ -33,9 +33,10 @@ WITH tier_rank AS (
             PARTITION BY o."ownerId"
             ORDER BY
                 CASE o."tier"
-                    WHEN 'delegate' THEN 4
-                    WHEN 'scale' THEN 3
-                    WHEN 'grow' THEN 2
+                    WHEN 'humaner' THEN 5
+                    WHEN 'frontier' THEN 4
+                    WHEN 'refined' THEN 3
+                    WHEN 'classic' THEN 2
                     ELSE 1
                 END DESC,
                 o."id" ASC

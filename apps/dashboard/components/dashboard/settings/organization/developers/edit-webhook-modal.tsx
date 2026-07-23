@@ -60,7 +60,7 @@ export const EditWebhookModal = NiceModal.create<EditWebhookModalProps>(
         id: webhook.id,
         url: webhook.url,
         triggers: webhook.triggers,
-        secret: webhook.secret
+        secret: ''
       }
     });
     const title = 'Edit webhook';
@@ -150,8 +150,14 @@ export const EditWebhookModal = NiceModal.create<EditWebhookModalProps>(
               <FormLabel>Secret</FormLabel>
               <FormControl>
                 <Input
-                  type="text"
+                  type="password"
+                  autoComplete="new-password"
                   maxLength={1024}
+                  placeholder={
+                    webhook.hasSecret
+                      ? 'Leave blank to keep existing secret'
+                      : 'Optional signing secret'
+                  }
                   disabled={methods.formState.isSubmitting}
                   {...field}
                 />

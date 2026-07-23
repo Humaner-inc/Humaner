@@ -1,6 +1,5 @@
 import 'server-only';
 
-import { purgeVisitorMemory } from '@/services/agent-memory';
 import { subDays } from 'date-fns';
 
 import { getMessageRetentionDays } from '@/lib/data-retention/constants';
@@ -14,17 +13,21 @@ export type PurgeExpiredMessagesResult = {
   cutoff: string;
 };
 
+/**
+ * Hard-delete stale conversation transcripts (GDPR data minimisation / storage).
+ *
+ * Does **not** touch Redis Iris agent memory. Cross-session visitor memory is the
+ * product layer for returning customers and must outlive transcript retention.
+ * Iris is only cleared on explicit erasure (visitor delete, org delete, agent delete).
+ */
 export async function purgeExpiredMessages(): Promise<PurgeExpiredMessagesResult> {
   const retentionDays = getMessageRetentionDays();
   const cutoff = subDays(new Date(), retentionDays);
   let conversationsDeleted = 0;
-  const purgedVisitors = new Set<string>();
 
   while (true) {
-    const stale = await prisma.$queryRaw<
-      Array<{ id: string; visitorId: string }>
-    >`
-      SELECT c.id, c."visitorId"
+    const stale = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT c.id
       FROM "Conversation" c
       LEFT JOIN LATERAL (
         SELECT MAX(m."createdAt") AS last_message_at
@@ -41,13 +44,6 @@ export async function purgeExpiredMessages(): Promise<PurgeExpiredMessagesResult
 
     if (stale.length === 0) {
       break;
-    }
-
-    for (const row of stale) {
-      if (!purgedVisitors.has(row.visitorId)) {
-        purgedVisitors.add(row.visitorId);
-        await purgeVisitorMemory(row.visitorId);
-      }
     }
 
     const deleted = await prisma.conversation.deleteMany({

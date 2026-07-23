@@ -6,6 +6,7 @@ import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
+import { extractResolutionPattern } from '@/lib/platform-intelligence/extract-resolution-pattern';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
@@ -20,6 +21,7 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
       },
       select: {
         id: true,
+        agentId: true,
         conversationId: true,
         subject: true,
         summary: true,
@@ -65,6 +67,14 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
         issueType: parsedInput.issueType?.trim() || 'general',
         solution: parsedInput.resolutionSolution.trim(),
         existingClusterId: ticket.clusterId
+      });
+
+      // Anonymised platform signal — no org/visitor IDs stored.
+      await extractResolutionPattern({
+        organizationId: session.user.organizationId,
+        agentId: ticket.agentId,
+        issueType: parsedInput.issueType?.trim() || 'general',
+        solution: parsedInput.resolutionSolution.trim()
       });
     }
 

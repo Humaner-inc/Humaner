@@ -27,9 +27,9 @@ export type DashboardOverviewStripProps = {
 const TIER_ACCENT: Record<PlanTier, string> = {
   free: '#7b7b73',
   classic: '#6b8cae',
-  grow: '#0047ab',
-  scale: '#c9ae84',
-  delegate: '#e1ccaf'
+  refined: '#0047ab',
+  frontier: '#c9ae84',
+  humaner: '#e1ccaf'
 };
 
 export function DashboardOverviewStrip({

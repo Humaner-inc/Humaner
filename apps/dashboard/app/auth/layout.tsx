@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
+import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
@@ -47,12 +48,13 @@ export default async function AuthLayout({
   }
   return (
     <div className="relative flex min-h-screen bg-[#070607]">
+      <GrainAmbient className="fixed inset-0 z-0" />
       {/* Left: auth form */}
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
         {children}
       </main>
       {/* Right: image panel */}
-      <div className="relative hidden lg:block lg:w-1/2">
+      <div className="relative z-10 hidden lg:block lg:w-1/2">
         <div className="absolute inset-4 overflow-hidden rounded-2xl">
           <Image
             src="/lazy_work.png"

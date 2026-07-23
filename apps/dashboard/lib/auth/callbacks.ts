@@ -130,6 +130,17 @@ export const callbacks = {
       token.accessToken = account.access_token;
 
       if (account.type === 'credentials' && user.id) {
+        // Password login with MFA must not mint a session here — signIn
+        // redirects to /auth/totp (or recovery) first. Session is created
+        // only after TotpCode / RecoveryCode succeeds (and for password
+        // when MFA is off).
+        if (
+          account.provider === IdentityProvider.Credentials &&
+          (await isAuthenticatorAppEnabled(user.id))
+        ) {
+          return token;
+        }
+
         const expires = getSessionExpiryFromNow();
         const sessionToken = generateSessionToken();
 

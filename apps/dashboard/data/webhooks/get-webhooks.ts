@@ -40,7 +40,7 @@ export async function getWebhooks(): Promise<WebhookDto[]> {
         id: webhook.id,
         url: webhook.url,
         triggers: webhook.triggers,
-        secret: webhook.secret ?? undefined
+        hasSecret: Boolean(webhook.secret)
       }));
 
       return response;

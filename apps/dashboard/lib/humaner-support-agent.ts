@@ -9,7 +9,7 @@ import {
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 
 /** Runtime tier used for the Humaner platform support agent (full memory stack). */
-export const HUMANER_SUPPORT_MEMORY_TIER: PlanTier = 'delegate';
+export const HUMANER_SUPPORT_MEMORY_TIER: PlanTier = 'humaner';
 
 export function isHumanerSupportAgent(
   publicId: string | null | undefined

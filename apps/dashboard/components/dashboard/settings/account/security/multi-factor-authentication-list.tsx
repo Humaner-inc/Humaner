@@ -108,7 +108,9 @@ function AuthenticatorAppListItem({
             Authenticator app
           </h5>
           <div className="overflow-hidden truncate text-sm text-muted-foreground">
-            {isEnabled ? 'Enabled' : 'Not enabled'}
+            {isEnabled
+              ? 'Enabled — required at sign-in'
+              : 'Not enabled — highly recommended for owners'}
           </div>
         </div>
       </div>

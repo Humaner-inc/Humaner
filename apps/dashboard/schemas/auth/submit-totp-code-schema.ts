@@ -21,7 +21,8 @@ export const submitTotpCodeSchema = z.object({
       invalid_type_error: 'Code consists of 6 digits.'
     })
     .trim()
-    .max(6, { message: '' })
+    .length(6, { message: 'Code must be 6 digits.' })
+    .regex(/^\d{6}$/, { message: 'Code must be 6 digits.' })
 });
 
 export type SubmitTotpCodeSchema = z.infer<typeof submitTotpCodeSchema>;

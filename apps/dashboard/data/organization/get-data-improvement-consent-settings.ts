@@ -12,12 +12,17 @@ import {
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { getDataImprovementConsentState } from '@/lib/consent/data-improvement-consent';
+import {
+  getDataImprovementConsentState,
+  getModelTrainingConsentState
+} from '@/lib/consent/data-improvement-consent';
 import { prisma } from '@/lib/db/prisma';
 
 export type DataImprovementConsentSettings = {
   consent: boolean | null;
   consentedAt: string | null;
+  modelTrainingConsent: boolean;
+  modelTrainingConsentedAt: string | null;
   isOwner: boolean;
 };
 
@@ -29,8 +34,9 @@ export async function getDataImprovementConsentSettings(): Promise<DataImproveme
 
   return cache(
     async () => {
-      const [state, user] = await Promise.all([
+      const [state, modelState, user] = await Promise.all([
         getDataImprovementConsentState(session.user.organizationId),
+        getModelTrainingConsentState(session.user.organizationId),
         prisma.user.findFirst({
           where: { id: session.user.id },
           select: { workspaceRole: true }
@@ -40,6 +46,8 @@ export async function getDataImprovementConsentSettings(): Promise<DataImproveme
       return {
         consent: state.consent,
         consentedAt: state.consentedAt?.toISOString() ?? null,
+        modelTrainingConsent: modelState.consent,
+        modelTrainingConsentedAt: modelState.consentedAt?.toISOString() ?? null,
         isOwner: user?.workspaceRole === WorkspaceRole.OWNER
       };
     },
@@ -48,7 +56,8 @@ export async function getDataImprovementConsentSettings(): Promise<DataImproveme
         OrganizationCacheKey.OrganizationDetails,
         session.user.organizationId
       ),
-      'data-improvement-consent'
+      'data-improvement-consent',
+      'model-training-consent'
     ],
     {
       revalidate: defaultRevalidateTimeInSeconds,
