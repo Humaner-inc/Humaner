@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, CheckIcon } from '@humaner/shared/icons';
+import { ArrowUpRight } from '@humaner/shared/icons';
 import { formatDistanceToNow } from 'date-fns';
 
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dashboard-card';
 import { MetricCell, MetricRow } from '@/components/ui/metric-cell';
 import { StatusTag } from '@/components/ui/micro-label';
+import { StatusGlyphMetricLabel } from '@/components/ui/status-glyph';
 import { Routes } from '@/constants/routes';
 import type { DeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
 import { cn } from '@/lib/utils';
@@ -18,58 +19,6 @@ const STATUS_LABELS: Record<string, string> = {
   OPEN: 'Open',
   IN_PROGRESS: 'In progress'
 };
-
-function DeskStatusIcon({
-  status
-}: {
-  status: 'open' | 'inProgress' | 'resolved';
-}): React.JSX.Element {
-  if (status === 'open') {
-    return (
-      <span
-        className="inline-flex size-3.5 shrink-0 items-center justify-center text-blue-500"
-        aria-hidden
-      >
-        <span className="size-2 rounded-full border-[1.5px] border-current" />
-      </span>
-    );
-  }
-
-  if (status === 'inProgress') {
-    return (
-      <span
-        className="inline-flex size-3.5 shrink-0 items-center justify-center text-amber-500"
-        aria-hidden
-      >
-        <span className="block h-0.5 w-2.5 rounded-full bg-current" />
-      </span>
-    );
-  }
-
-  return (
-    <CheckIcon
-      className="size-3.5 shrink-0 text-emerald-500"
-      aria-hidden
-    />
-  );
-}
-
-function DeskStatusMetricLabel({
-  status,
-  label
-}: {
-  status: 'open' | 'inProgress' | 'resolved';
-  label: string;
-}): React.JSX.Element {
-  return (
-    <span className="inline-flex items-center justify-center gap-1.5">
-      <DeskStatusIcon status={status} />
-      <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-    </span>
-  );
-}
 
 const URGENCY_CLASS: Record<string, string> = {
   HIGH: 'border-l-red-500',
@@ -108,8 +57,8 @@ export function DeskIssuesOverviewCard({
       <MetricRow className="grid-cols-3">
         <MetricCell
           label={
-            <DeskStatusMetricLabel
-              status="open"
+            <StatusGlyphMetricLabel
+              kind="open"
               label="Open"
             />
           }
@@ -117,8 +66,8 @@ export function DeskIssuesOverviewCard({
         />
         <MetricCell
           label={
-            <DeskStatusMetricLabel
-              status="inProgress"
+            <StatusGlyphMetricLabel
+              kind="progress"
               label="Progress"
             />
           }
@@ -126,8 +75,8 @@ export function DeskIssuesOverviewCard({
         />
         <MetricCell
           label={
-            <DeskStatusMetricLabel
-              status="resolved"
+            <StatusGlyphMetricLabel
+              kind="resolved"
               label="Solved"
             />
           }

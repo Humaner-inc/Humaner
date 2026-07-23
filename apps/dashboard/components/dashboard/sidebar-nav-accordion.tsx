@@ -4,6 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
 import { isDeskPath } from '@/constants/desk-nav-items';
+import { isInboxPath } from '@/constants/inbox-nav-items';
 import { isIntegrationsPath } from '@/constants/integration-nav-items';
 import { isOrganizationPath } from '@/constants/organization-nav-items';
 import { isSettingsPath } from '@/constants/settings-nav-items';
@@ -11,6 +12,7 @@ import { isSettingsPath } from '@/constants/settings-nav-items';
 export const SIDEBAR_DRAWER_IDS = {
   org: 'org',
   integrations: 'integrations',
+  inbox: 'inbox',
   desk: 'desk',
   settings: 'settings',
   agent: (agentId: string) => `agent:${agentId}`
@@ -30,6 +32,7 @@ export function getActiveSidebarDrawerId(
 ): string | null {
   if (isOrganizationPath(pathname)) return SIDEBAR_DRAWER_IDS.org;
   if (isIntegrationsPath(pathname)) return SIDEBAR_DRAWER_IDS.integrations;
+  if (isInboxPath(pathname)) return SIDEBAR_DRAWER_IDS.inbox;
   if (isDeskPath(pathname)) return SIDEBAR_DRAWER_IDS.desk;
   if (isSettingsPath(pathname)) return SIDEBAR_DRAWER_IDS.settings;
 

@@ -1,0 +1,124 @@
+import * as React from 'react';
+import { Suspense } from 'react';
+
+import { InboxDomainSwitcher } from '@/components/dashboard/inbox/inbox-domain-switcher';
+import {
+  InboxOptionalEmptyState,
+  InboxUpgradeEmptyState
+} from '@/components/dashboard/inbox/inbox-empty-state';
+import {
+  InboxListHeader,
+  type InboxListFilter
+} from '@/components/dashboard/inbox/inbox-list-header';
+import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
+import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
+import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
+import {
+  getMailInboxes,
+  getMailTags,
+  getMailThreads
+} from '@/data/inbox/get-mail-threads';
+import { getOrganizationMembers } from '@/data/members/get-organization-members';
+
+function parseFilter(value: string | undefined): InboxListFilter {
+  if (value === 'unread' || value === 'open' || value === 'pending') {
+    return value;
+  }
+  return 'all';
+}
+
+export default async function InboxAllPage({
+  searchParams
+}: {
+  searchParams: Promise<{ alias?: string; filter?: string; tag?: string }>;
+}): Promise<React.JSX.Element> {
+  const overview = await getInboxOverview();
+  const {
+    alias: aliasParam,
+    filter: filterParam,
+    tag: tagParam
+  } = await searchParams;
+  const activeFilter = parseFilter(filterParam);
+
+  if (!overview || overview.locked) {
+    return <InboxUpgradeEmptyState />;
+  }
+
+  if (!overview.hasConnections) {
+    return (
+      <InboxOptionalEmptyState
+        title="No mail connected yet"
+        description="Connect IMAP or Gmail when you want shared support aliases in Humaner. Until then, agents and Desk work as usual."
+      />
+    );
+  }
+
+  const [inboxes, tags, members] = await Promise.all([
+    getMailInboxes(),
+    getMailTags(),
+    getOrganizationMembers()
+  ]);
+
+  const activeAliasId =
+    aliasParam && inboxes.some((inbox) => inbox.id === aliasParam)
+      ? aliasParam
+      : null;
+
+  const activeTagId =
+    tagParam && tags.some((tag) => tag.id === tagParam) ? tagParam : null;
+
+  const threads = await getMailThreads({
+    aliasId: activeAliasId,
+    tagId: activeTagId,
+    unreadOnly: !activeTagId && activeFilter === 'unread',
+    status:
+      !activeTagId && activeFilter === 'open'
+        ? 'OPEN'
+        : !activeTagId && activeFilter === 'pending'
+          ? 'PENDING'
+          : undefined
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          All mail
+        </h1>
+        <InboxDomainSwitcher
+          inboxes={inboxes}
+          activeAliasId={activeAliasId}
+        />
+      </div>
+
+      <Suspense
+        fallback={<div className="h-11 rounded-lg border bg-background" />}
+      >
+        <InboxListHeader
+          activeFilter={activeFilter}
+          activeTagId={activeTagId}
+          tags={tags}
+        />
+      </Suspense>
+
+      <PullToRefreshInbox>
+        {threads.length > 0 ? (
+          <MailThreadList
+            threads={threads}
+            tags={tags}
+            members={members.map((member) => ({
+              id: member.id,
+              name: member.name
+            }))}
+          />
+        ) : (
+          <InboxOptionalEmptyState
+            title="No threads yet"
+            description="Tap sync in the header to import recent messages for your aliases."
+            showConnect={false}
+          />
+        )}
+      </PullToRefreshInbox>
+    </div>
+  );
+}

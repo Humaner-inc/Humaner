@@ -8,6 +8,7 @@ import {
   type SidebarAgent
 } from '@/components/dashboard/nav-agent-tree';
 import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
+import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
 import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
@@ -32,12 +33,14 @@ export type NavMainProps = SidebarGroupProps & {
   profile: ProfileDto;
   agents: SidebarAgent[];
   orgTier: string;
+  inboxUnreadCount?: number;
 };
 
 export function NavMain({
   profile,
   agents,
   orgTier,
+  inboxUnreadCount = 0,
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
@@ -54,6 +57,12 @@ export function NavMain({
         <NavOrganizationTree />
         {canAccessPage(profile, 'integrations') ? (
           <NavIntegrationsTree orgTier={orgTier} />
+        ) : null}
+        {canAccessPage(profile, 'inbox') ? (
+          <NavInboxTree
+            orgTier={orgTier}
+            unreadCount={inboxUnreadCount}
+          />
         ) : null}
         {canAccessPage(profile, 'desk') ? (
           <NavDeskTree orgTier={orgTier} />

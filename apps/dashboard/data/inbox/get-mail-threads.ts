@@ -1,0 +1,428 @@
+import 'server-only';
+
+import { dedupedAuth } from '@/lib/auth';
+import { checkSession } from '@/lib/auth/session';
+import { prisma } from '@/lib/db/prisma';
+import {
+  getMailProviderById,
+  MAIL_PROVIDERS
+} from '@/lib/inbox/mail-providers';
+import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
+
+export type MailTagItem = {
+  id: string;
+  name: string;
+  color: string;
+};
+
+export type MailThreadListItem = {
+  id: string;
+  subject: string;
+  status: string;
+  aliasAddress: string;
+  aliasId: string;
+  assigneeName: string | null;
+  lastMessageAt: string;
+  fromAddress: string | null;
+  fromName: string | null;
+  preview: string | null;
+  isUnread: boolean;
+  messageCount: number;
+  awaitingReply: boolean;
+  tag: MailTagItem | null;
+};
+
+export type MailThreadDetail = {
+  id: string;
+  subject: string;
+  status: string;
+  aliasAddress: string;
+  lastMessageAt: string;
+  isUnread: boolean;
+  archivedAt: string | null;
+  assigneeId: string | null;
+  tag: MailTagItem | null;
+  messages: Array<{
+    id: string;
+    direction: string;
+    fromAddress: string;
+    toAddresses: string[];
+    ccAddresses: string[];
+    bodyText: string | null;
+    bodyHtml: string | null;
+    sentAt: string;
+  }>;
+};
+
+export type MailInboxOption = {
+  id: string;
+  address: string;
+  displayName: string | null;
+};
+
+function previewText(value: string | null): string | null {
+  if (!value) return null;
+  return value.replace(/\s+/g, ' ').trim().slice(0, 180) || null;
+}
+
+function parseFromDisplay(fromAddress: string | null): {
+  email: string | null;
+  name: string | null;
+} {
+  if (!fromAddress) return { email: null, name: null };
+  const match = fromAddress.match(/^(.*?)\s*<([^>]+)>$/);
+  if (match) {
+    const name = match[1].trim().replace(/^"|"$/g, '') || null;
+    return { email: match[2].trim().toLowerCase(), name };
+  }
+  return { email: fromAddress.trim().toLowerCase(), name: null };
+}
+
+export async function getMailInboxes(): Promise<MailInboxOption[]> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return [];
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return [];
+
+  const aliases = await prisma.mailAlias.findMany({
+    where: {
+      organizationId,
+      enabled: true,
+      members: { some: { userId: session.user.id } }
+    },
+    orderBy: { address: 'asc' },
+    select: {
+      id: true,
+      address: true,
+      displayName: true
+    }
+  });
+
+  return aliases;
+}
+
+export async function getMailUnreadCount(): Promise<number> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return 0;
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return 0;
+
+  return prisma.mailThread.count({
+    where: {
+      organizationId,
+      isUnread: true,
+      archivedAt: null,
+      alias: {
+        members: { some: { userId: session.user.id } }
+      }
+    }
+  });
+}
+
+export async function getMailThreads(options?: {
+  assignedToCurrentUser?: boolean;
+  archived?: boolean;
+  aliasId?: string | null;
+  unreadOnly?: boolean;
+  status?: 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED';
+  tagId?: string | null;
+}): Promise<MailThreadListItem[]> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return [];
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return [];
+
+  const archived = options?.archived === true;
+
+  const threads = await prisma.mailThread.findMany({
+    where: {
+      organizationId,
+      archivedAt: archived ? { not: null } : null,
+      ...(options?.unreadOnly ? { isUnread: true } : {}),
+      ...(options?.status ? { status: options.status } : {}),
+      ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
+      alias: {
+        members: {
+          some: { userId: session.user.id }
+        },
+        ...(options?.aliasId ? { id: options.aliasId } : {})
+      },
+      ...(options?.assignedToCurrentUser ? { assigneeId: session.user.id } : {})
+    },
+    orderBy: { lastMessageAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      subject: true,
+      status: true,
+      isUnread: true,
+      lastMessageAt: true,
+      alias: { select: { id: true, address: true } },
+      assignee: { select: { name: true } },
+      _count: { select: { messages: true } },
+      tags: {
+        take: 1,
+        orderBy: { createdAt: 'asc' },
+        select: {
+          tag: { select: { id: true, name: true, color: true } }
+        }
+      },
+      messages: {
+        orderBy: { sentAt: 'desc' },
+        take: 1,
+        select: {
+          fromAddress: true,
+          bodyText: true,
+          direction: true
+        }
+      }
+    }
+  });
+
+  return threads.map((thread) => {
+    const from = parseFromDisplay(thread.messages[0]?.fromAddress ?? null);
+    return {
+      id: thread.id,
+      subject: thread.subject,
+      status: thread.status,
+      aliasAddress: thread.alias.address,
+      aliasId: thread.alias.id,
+      assigneeName: thread.assignee?.name ?? null,
+      lastMessageAt: thread.lastMessageAt.toISOString(),
+      fromAddress: from.email,
+      fromName: from.name,
+      preview: previewText(thread.messages[0]?.bodyText ?? null),
+      isUnread: thread.isUnread,
+      messageCount: thread._count.messages,
+      awaitingReply: thread.messages[0]?.direction === 'INBOUND',
+      tag: thread.tags[0]?.tag ?? null
+    };
+  });
+}
+
+export async function getMailThread(
+  threadId: string
+): Promise<MailThreadDetail | null> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return null;
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return null;
+
+  const thread = await prisma.mailThread.findFirst({
+    where: {
+      id: threadId,
+      organizationId,
+      alias: {
+        members: {
+          some: { userId: session.user.id }
+        }
+      }
+    },
+    select: {
+      id: true,
+      subject: true,
+      status: true,
+      isUnread: true,
+      archivedAt: true,
+      assigneeId: true,
+      lastMessageAt: true,
+      alias: { select: { address: true } },
+      tags: {
+        take: 1,
+        orderBy: { createdAt: 'asc' },
+        select: {
+          tag: { select: { id: true, name: true, color: true } }
+        }
+      },
+      messages: {
+        orderBy: { sentAt: 'asc' },
+        take: 200,
+        select: {
+          id: true,
+          direction: true,
+          fromAddress: true,
+          toAddresses: true,
+          ccAddresses: true,
+          bodyText: true,
+          bodyHtml: true,
+          sentAt: true
+        }
+      }
+    }
+  });
+
+  if (!thread) return null;
+
+  return {
+    id: thread.id,
+    subject: thread.subject,
+    status: thread.status,
+    aliasAddress: thread.alias.address,
+    lastMessageAt: thread.lastMessageAt.toISOString(),
+    isUnread: thread.isUnread,
+    archivedAt: thread.archivedAt?.toISOString() ?? null,
+    assigneeId: thread.assigneeId,
+    tag: thread.tags[0]?.tag ?? null,
+    messages: thread.messages.map((message) => ({
+      id: message.id,
+      direction: message.direction,
+      fromAddress: message.fromAddress,
+      toAddresses: message.toAddresses,
+      ccAddresses: message.ccAddresses,
+      bodyText: message.bodyText,
+      bodyHtml: message.bodyHtml,
+      sentAt: message.sentAt.toISOString()
+    }))
+  };
+}
+
+export async function getMailTags(): Promise<MailTagItem[]> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return [];
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return [];
+
+  return prisma.mailTag.findMany({
+    where: { organizationId },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, color: true }
+  });
+}
+
+export type ConnectedMailboxItem = {
+  id: string;
+  email: string;
+  providerId: string | null;
+  providerName: string;
+  logoDomain: string;
+  aliasCount: number;
+  status: string;
+  lastSyncedAt: string | null;
+};
+
+function normalizeHost(host: string | null | undefined): string | null {
+  if (!host) return null;
+  return host.trim().toLowerCase().replace(/\.$/, '');
+}
+
+function findProviderByMailHosts(
+  imapHost: string | null | undefined,
+  smtpHost: string | null | undefined
+): (typeof MAIL_PROVIDERS)[number] | undefined {
+  const imap = normalizeHost(imapHost);
+  const smtp = normalizeHost(smtpHost);
+  if (!imap && !smtp) return undefined;
+
+  return MAIL_PROVIDERS.find((provider) => {
+    const providerImap = normalizeHost(provider.imapHost);
+    const providerSmtp = normalizeHost(provider.smtpHost);
+    return (
+      (imap != null && providerImap != null && imap === providerImap) ||
+      (smtp != null && providerSmtp != null && smtp === providerSmtp)
+    );
+  });
+}
+
+function findProviderByEmailDomain(
+  email: string
+): (typeof MAIL_PROVIDERS)[number] | undefined {
+  const domain = email.split('@')[1]?.toLowerCase() ?? '';
+  if (!domain) return undefined;
+
+  return MAIL_PROVIDERS.find((provider) => {
+    const logo = provider.logoDomain.toLowerCase();
+    return domain === logo || domain.endsWith(`.${logo}`);
+  });
+}
+
+function resolveProviderFromConnection(connection: {
+  providerPresetId: string | null;
+  email: string;
+  imapHost?: string | null;
+  smtpHost?: string | null;
+}): { providerId: string | null; providerName: string; logoDomain: string } {
+  const hostMatch = findProviderByMailHosts(
+    connection.imapHost,
+    connection.smtpHost
+  );
+  const preset = connection.providerPresetId
+    ? getMailProviderById(connection.providerPresetId)
+    : undefined;
+
+  // Prefer exact IMAP/SMTP host match when it disagrees with a stale preset id.
+  const resolved =
+    hostMatch ?? preset ?? findProviderByEmailDomain(connection.email);
+
+  if (resolved) {
+    return {
+      providerId: resolved.id,
+      providerName: resolved.name,
+      logoDomain: resolved.logoDomain
+    };
+  }
+
+  const domain = connection.email.split('@')[1]?.toLowerCase() ?? '';
+  return {
+    providerId: null,
+    providerName: domain || 'Mailbox',
+    logoDomain: domain || 'mail'
+  };
+}
+
+export async function getConnectedProviderPresetIds(): Promise<string[]> {
+  const connections = await getMailboxConnections();
+  return [
+    ...new Set(
+      connections
+        .map((connection) => connection.providerId)
+        .filter((id): id is string => Boolean(id))
+    )
+  ];
+}
+
+export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) return [];
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return [];
+
+  const connections = await prisma.mailboxConnection.findMany({
+    where: { organizationId },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      email: true,
+      providerPresetId: true,
+      status: true,
+      lastSyncedAt: true,
+      imapHost: true,
+      smtpHost: true,
+      _count: { select: { aliases: true } }
+    }
+  });
+
+  return connections.map((connection) => {
+    const provider = resolveProviderFromConnection({
+      providerPresetId: connection.providerPresetId,
+      email: connection.email,
+      imapHost: decryptSensitiveField(connection.imapHost),
+      smtpHost: decryptSensitiveField(connection.smtpHost)
+    });
+    return {
+      id: connection.id,
+      email: connection.email,
+      providerId: provider.providerId,
+      providerName: provider.providerName,
+      logoDomain: provider.logoDomain,
+      aliasCount: connection._count.aliases,
+      status: connection.status,
+      lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null
+    };
+  });
+}

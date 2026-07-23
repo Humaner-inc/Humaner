@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { WorkspaceRole } from '@prisma/client';
 
@@ -8,6 +9,7 @@ import { AskHumanerSlideUp } from '@/components/dashboard/ask-humaner/ask-humane
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
+import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
@@ -15,6 +17,7 @@ import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
+import { getMailUnreadCount } from '@/data/inbox/get-mail-threads';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
@@ -44,6 +47,7 @@ export default async function DashboardLayout({
     where: { id: session.user.id },
     select: {
       completedOnboarding: true,
+      inboxConnectPromptPending: true,
       workspaceRole: true,
       role: true,
       organization: {
@@ -53,7 +57,10 @@ export default async function DashboardLayout({
           targetAudience: true,
           tier: true,
           accentColor: true,
-          name: true
+          name: true,
+          _count: {
+            select: { mailboxConnections: true }
+          }
         }
       }
     }
@@ -65,19 +72,32 @@ export default async function DashboardLayout({
     return redirect(Routes.Onboarding);
   }
 
-  const [profile, agents, workspaces, messageUsage, notificationsResult] =
-    await Promise.all([
-      getProfile(),
-      getAgents(),
-      getWorkspaceSwitcherData(),
-      getSidebarMessageUsage(),
-      getDashboardNotifications()
-    ]);
+  const [
+    profile,
+    agents,
+    workspaces,
+    messageUsage,
+    notificationsResult,
+    inboxUnreadCount
+  ] = await Promise.all([
+    getProfile(),
+    getAgents(),
+    getWorkspaceSwitcherData(),
+    getSidebarMessageUsage(),
+    getDashboardNotifications(),
+    getMailUnreadCount()
+  ]);
   const { items: notifications } = notificationsResult;
 
   const showDataImprovementPrompt =
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.organization!.dataImprovementConsent === null;
+  const showInboxConnectPrompt =
+    !showDataImprovementPrompt &&
+    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    userFromDb!.inboxConnectPromptPending &&
+    getPlanForTier(userFromDb!.organization!.tier).mailboxAliases > 0 &&
+    userFromDb!.organization!._count.mailboxConnections === 0;
 
   const accentColor = userFromDb!.organization!.accentColor ?? undefined;
   const humanerAgentPublicId = getHumanerAgentPublicId();
@@ -100,6 +120,7 @@ export default async function DashboardLayout({
         workspaces={workspaces}
         messageUsage={messageUsage}
         orgTier={userFromDb!.organization!.tier ?? 'free'}
+        inboxUnreadCount={inboxUnreadCount}
         agents={agents.map((a) => ({
           id: a.id,
           name: a.name,
@@ -138,6 +159,7 @@ export default async function DashboardLayout({
           privacyPolicyUrl={getPrivacyUrl()}
           showPrompt={showDataImprovementPrompt}
         />
+        <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
         <SidebarProvider>
           {humanerAgentPublicId ? (
             <HumanerChatProvider

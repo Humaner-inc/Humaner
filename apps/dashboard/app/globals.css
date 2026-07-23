@@ -462,6 +462,30 @@ input[type='number'] {
   }
 }
 
+@keyframes inbox-dot-jump {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 0.75;
+  }
+}
+
+.inbox-loading-dot {
+  animation: inbox-dot-jump 1.05s ease-in-out infinite;
+}
+
+.sidebar-nav-highlight-pill {
+  transition:
+    top 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .grain-ambient {
   background:
     radial-gradient(
@@ -520,3 +544,4 @@ input[type='number'] {
     animation: onboarding-glow 20s ease-in-out infinite;
   }
 }
+

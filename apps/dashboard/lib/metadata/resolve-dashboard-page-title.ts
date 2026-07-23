@@ -19,6 +19,13 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.DeskEscalation]: 'Escalation',
   [Routes.DeskTeam]: 'Desk team',
   [Routes.HumanDesk]: 'Human Desk',
+  [Routes.Inbox]: 'Inbox',
+  [Routes.InboxAll]: 'All mail',
+  [Routes.InboxAssigned]: 'Assigned to me',
+  [Routes.InboxArchive]: 'Archive',
+  [Routes.InboxAliases]: 'Aliases',
+  [Routes.InboxProviders]: 'Providers',
+  [Routes.InboxTags]: 'Tags',
   [Routes.Training]: 'Training',
   [Routes.AdminTickets]: 'Support tickets',
   [Routes.Settings]: 'Settings',
@@ -45,8 +52,13 @@ export function resolvePublicPathname(pathname: string): string {
   return toPublicPathname(pathname);
 }
 
+export function stripSearchAndHash(pathname: string): string {
+  const withoutHash = pathname.split('#')[0] ?? pathname;
+  return withoutHash.split('?')[0] ?? withoutHash;
+}
+
 export function resolveDashboardPageTitle(pathname: string): string {
-  const publicPath = resolvePublicPathname(pathname);
+  const publicPath = stripSearchAndHash(resolvePublicPathname(pathname));
 
   if (EXACT_TITLES[publicPath]) {
     return EXACT_TITLES[publicPath];
@@ -67,6 +79,10 @@ export function resolveDashboardPageTitle(pathname: string): string {
   const integrationMatch = publicPath.match(/^\/integrations\/([^/]+)$/);
   if (integrationMatch) {
     return 'Integration';
+  }
+
+  if (publicPath.startsWith('/inbox/threads/')) {
+    return 'Inbox';
   }
 
   return 'Humaner';

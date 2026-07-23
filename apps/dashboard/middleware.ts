@@ -34,6 +34,7 @@ export const config = {
     '/organization/:path*',
     '/agents/:path*',
     '/desk/:path*',
+    '/inbox/:path*',
     '/integrations/:path*',
     '/settings/:path*',
     '/history',

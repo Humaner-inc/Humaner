@@ -1,0 +1,630 @@
+'use client';
+
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  CheckIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
+  UserPlus2Icon
+} from '@humaner/shared/icons';
+import { format } from 'date-fns';
+import { useAction } from 'next-safe-action/hooks';
+import { toast } from 'sonner';
+
+import {
+  applyMailThreadTag,
+  archiveMailThread,
+  assignMailThread,
+  deleteMailThread,
+  markMailThreadRead
+} from '@/actions/inbox/manage-mail-thread';
+import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
+import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
+import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
+import { mailStatusToGlyph, StatusGlyph } from '@/components/ui/status-glyph';
+import { Textarea } from '@/components/ui/textarea';
+import { Routes } from '@/constants/routes';
+import type {
+  MailTagItem,
+  MailThreadDetail as MailThreadDetailDto
+} from '@/data/inbox/get-mail-threads';
+import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import { cn } from '@/lib/utils';
+
+type Suggestion = { label: string; draft: string };
+type SendPhase = 'idle' | 'sending' | 'success';
+
+const accentBorder =
+  'border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_55%,transparent)]';
+const accentSoftBg =
+  'bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_10%,transparent)]';
+
+function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
+  if (!thread.isUnread) return false;
+  const last = thread.messages[thread.messages.length - 1];
+  return last?.direction === 'INBOUND';
+}
+
+export function MailThreadDetail({
+  thread,
+  tags = [],
+  members = []
+}: {
+  thread: MailThreadDetailDto;
+  tags?: MailTagItem[];
+  members?: Array<{ id: string; name: string }>;
+}): React.JSX.Element {
+  const router = useRouter();
+  const { play } = useOnboardingSound();
+  const sendIconRef = React.useRef<SendIconHandle>(null);
+  const successTimerRef = React.useRef<number | null>(null);
+  const [body, setBody] = React.useState('');
+  const [composerOpen, setComposerOpen] = React.useState(false);
+  const [suggesting, setSuggesting] = React.useState(() =>
+    shouldAutoSuggest(thread)
+  );
+  const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
+  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+  const [sendPhase, setSendPhase] = React.useState<SendPhase>('idle');
+  const markedReadRef = React.useRef(false);
+  const isArchived = Boolean(thread.archivedAt);
+
+  const { execute: sendReply, isExecuting } = useAction(replyMailThread, {
+    onSuccess: () => {
+      setSendPhase('success');
+      play('validate');
+      toast.success('Reply sent');
+      if (successTimerRef.current) {
+        window.clearTimeout(successTimerRef.current);
+      }
+      successTimerRef.current = window.setTimeout(() => {
+        setBody('');
+        setComposerOpen(false);
+        setSuggesting(false);
+        setSuggestions([]);
+        setSelectedIndex(null);
+        setSendPhase('idle');
+        sendIconRef.current?.stopAnimation();
+        router.refresh();
+      }, 720);
+    },
+    onError: ({ error }) => {
+      setSendPhase('idle');
+      sendIconRef.current?.stopAnimation();
+      toast.error(error.serverError || 'Could not send reply');
+    }
+  });
+
+  const { execute: markRead } = useAction(markMailThreadRead, {
+    onSuccess: () => router.refresh()
+  });
+
+  const { execute: runArchive } = useAction(archiveMailThread, {
+    onSuccess: () => {
+      toast.success(isArchived ? 'Moved to inbox' : 'Archived');
+      if (!isArchived) {
+        router.push(Routes.InboxAll);
+      }
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not archive')
+  });
+
+  const { execute: runDelete } = useAction(deleteMailThread, {
+    onSuccess: () => {
+      toast.success('Deleted');
+      router.push(Routes.InboxAll);
+      router.refresh();
+    },
+    onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
+  });
+
+  const { execute: runAssign } = useAction(assignMailThread, {
+    onSuccess: () => {
+      toast.success('Assigned');
+      router.refresh();
+    },
+    onError: ({ error }) => toast.error(error.serverError || 'Could not assign')
+  });
+
+  const { execute: runTag } = useAction(applyMailThreadTag, {
+    onSuccess: () => {
+      toast.success('Tag updated');
+      router.refresh();
+    },
+    onError: ({ error }) => toast.error(error.serverError || 'Could not tag')
+  });
+
+  const { execute: loadSuggestions, isExecuting: loadingSuggestions } =
+    useAction(suggestMailThreadReplies, {
+      onSuccess: ({ data }) => {
+        setSuggestions(data?.suggestions ?? []);
+      },
+      onError: () => {
+        setSuggesting(false);
+        toast.error('Could not load reply suggestions');
+      }
+    });
+
+  React.useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        window.clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
+
+  React.useEffect(() => {
+    markedReadRef.current = false;
+    setSuggesting(shouldAutoSuggest(thread));
+    setSuggestions([]);
+    setSelectedIndex(null);
+    setComposerOpen(false);
+    setBody('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread.id]);
+
+  React.useEffect(() => {
+    if (!thread.isUnread || markedReadRef.current) return;
+    markedReadRef.current = true;
+    markRead({ threadId: thread.id, isUnread: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread.id]);
+
+  React.useEffect(() => {
+    if (!suggesting) return;
+    loadSuggestions({ threadId: thread.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread.id, suggesting]);
+
+  React.useEffect(() => {
+    if (sendPhase === 'sending' || isExecuting) {
+      sendIconRef.current?.startAnimation();
+    } else if (sendPhase === 'idle') {
+      sendIconRef.current?.stopAnimation();
+    }
+  }, [isExecuting, sendPhase]);
+
+  const latestInbound = [...thread.messages]
+    .reverse()
+    .find((message) => message.direction === 'INBOUND');
+  const toName =
+    latestInbound?.fromAddress.replace(/<[^>]+>/, '').trim() ||
+    latestInbound?.fromAddress ||
+    'sender';
+
+  const discardSuggestions = (): void => {
+    setSuggesting(false);
+    setSuggestions([]);
+    setSelectedIndex(null);
+  };
+
+  const suggestAgain = (): void => {
+    setSuggestions([]);
+    setSelectedIndex(null);
+    setComposerOpen(false);
+    setBody('');
+    setSuggesting(true);
+    loadSuggestions({ threadId: thread.id });
+  };
+
+  const pickSuggestion = (index: number): void => {
+    const suggestion = suggestions[index];
+    if (!suggestion) return;
+    setSelectedIndex(index);
+    setBody(suggestion.draft);
+    setComposerOpen(true);
+  };
+
+  const handleSend = (): void => {
+    if (body.trim().length === 0 || isExecuting || sendPhase !== 'idle') return;
+    setSendPhase('sending');
+    sendIconRef.current?.startAnimation();
+    sendReply({
+      threadId: thread.id,
+      body
+    });
+  };
+
+  const suggestionsReady =
+    suggesting && !loadingSuggestions && suggestions.length > 0;
+  const suggestionsLoading =
+    suggesting && (loadingSuggestions || suggestions.length === 0);
+
+  return (
+    <div className="space-y-3">
+      <header className="border-b border-border/70 pb-4">
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <div className="inline-flex min-w-0 items-center gap-2">
+            <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
+            <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              {thread.aliasAddress}
+            </span>
+            {thread.tag ? (
+              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                <span
+                  className="size-2 rounded-full"
+                  style={{ backgroundColor: thread.tag.color }}
+                />
+                {thread.tag.name}
+              </span>
+            ) : null}
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-none px-2 font-mono"
+              >
+                <MoreHorizontalIcon className="size-3.5" />
+                <span className="sr-only">Thread actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() =>
+                  runArchive({
+                    threadId: thread.id,
+                    archive: !isArchived
+                  })
+                }
+              >
+                {isArchived ? 'Move to inbox' : 'Archive'}
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <UserPlus2Icon className="mr-2 size-4" />
+                  Assign
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      runAssign({
+                        threadId: thread.id,
+                        assigneeId: null
+                      })
+                    }
+                  >
+                    Unassigned
+                  </DropdownMenuItem>
+                  {members.map((member) => (
+                    <DropdownMenuItem
+                      key={member.id}
+                      onSelect={() =>
+                        runAssign({
+                          threadId: thread.id,
+                          assigneeId: member.id
+                        })
+                      }
+                    >
+                      {member.name}
+                      {thread.assigneeId === member.id ? ' ✓' : ''}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              {tags.length > 0 ? (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        runTag({ threadId: thread.id, tagId: null })
+                      }
+                    >
+                      No tag
+                    </DropdownMenuItem>
+                    {tags.map((tag) => (
+                      <DropdownMenuItem
+                        key={tag.id}
+                        onSelect={() =>
+                          runTag({
+                            threadId: thread.id,
+                            tagId: tag.id
+                          })
+                        }
+                      >
+                        <span
+                          className="mr-2 size-2.5 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              ) : null}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={() => runDelete({ threadId: thread.id })}
+              >
+                <Trash2Icon className="mr-2 size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          {thread.subject}
+        </h1>
+      </header>
+
+      <ol className="space-y-3">
+        {thread.messages.map((message) => {
+          const outbound = message.direction === 'OUTBOUND';
+
+          return (
+            <li
+              key={message.id}
+              className={cn(
+                'flex w-full',
+                outbound ? 'justify-end' : 'justify-start'
+              )}
+            >
+              <article
+                className={cn(
+                  'w-full max-w-[88%] rounded-none border px-4 py-3.5 sm:max-w-[82%]',
+                  outbound
+                    ? cn(accentBorder, accentSoftBg)
+                    : 'border-border bg-background'
+                )}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                  <div className="min-w-0 text-xs">
+                    <p className="truncate font-medium">
+                      {message.fromAddress}
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                      to {message.toAddresses.join(', ')}
+                    </p>
+                  </div>
+                  <time
+                    dateTime={message.sentAt}
+                    className="shrink-0 font-mono text-[10px] text-muted-foreground"
+                  >
+                    {format(new Date(message.sentAt), 'PPp')}
+                  </time>
+                </div>
+
+                <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
+                  {message.bodyText || 'This message has no plain-text body.'}
+                </div>
+              </article>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-none px-4"
+          onClick={() => {
+            setComposerOpen(true);
+            setSuggesting(false);
+          }}
+        >
+          Reply
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="rounded-none px-4"
+          onClick={() => {
+            toast.message('Forward is coming soon');
+          }}
+        >
+          Forward
+        </Button>
+      </div>
+
+      {suggesting ? (
+        <article className="w-full rounded-none border border-border bg-background px-4 py-3.5">
+          {suggestionsLoading ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <SkillzCubeLoader size={32} />
+                <p className="text-sm text-muted-foreground">
+                  Suggesting reply
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-none px-4 font-mono"
+                onClick={discardSuggestions}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <SkillzCubeLoader
+                      size={28}
+                      filled
+                    />
+                    <p className="truncate text-sm font-medium">
+                      {thread.subject}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    To:{' '}
+                    <span style={{ color: 'var(--accent-color, #e1ccaf)' }}>
+                      {toName}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-none px-4 font-mono"
+                    disabled={loadingSuggestions}
+                    onClick={suggestAgain}
+                  >
+                    Suggest again
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-none px-4 font-mono"
+                    onClick={discardSuggestions}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+
+              {suggestionsReady ? (
+                <ul className="mt-3 space-y-1">
+                  {suggestions.map((suggestion, index) => {
+                    const active = selectedIndex === index;
+                    return (
+                      <li key={`${suggestion.label}-${index}`}>
+                        <button
+                          type="button"
+                          onClick={() => pickSuggestion(index)}
+                          className={cn(
+                            'flex w-full items-center gap-3 rounded-none px-1 py-2.5 text-left text-sm transition-colors',
+                            active ? accentSoftBg : 'hover:bg-muted/60'
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'flex size-6 shrink-0 items-center justify-center rounded-none font-mono text-[11px]',
+                              active
+                                ? 'text-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            )}
+                            style={
+                              active
+                                ? {
+                                    backgroundColor:
+                                      'color-mix(in srgb, var(--accent-color, #e1ccaf) 28%, transparent)'
+                                  }
+                                : undefined
+                            }
+                          >
+                            {index + 1}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">
+                            {suggestion.label}
+                          </span>
+                          {active ? (
+                            <CheckIcon
+                              className="size-3.5 shrink-0"
+                              style={{ color: 'var(--accent-color, #e1ccaf)' }}
+                            />
+                          ) : null}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </>
+          )}
+        </article>
+      ) : null}
+
+      {composerOpen ? (
+        <section
+          className={cn(
+            'ml-auto w-full max-w-[88%] rounded-none border bg-background px-4 py-3.5 sm:max-w-[82%]',
+            accentBorder,
+            accentSoftBg
+          )}
+        >
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+            <div>
+              <p className="text-sm font-medium">Reply</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Sends from {thread.aliasAddress} over your connected SMTP.
+              </p>
+            </div>
+            {!suggesting ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-none px-4 font-mono"
+                onClick={suggestAgain}
+              >
+                Suggest again
+              </Button>
+            ) : null}
+          </div>
+          <Textarea
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+            placeholder="Write your reply…"
+            rows={6}
+            className="min-h-32 resize-y rounded-none bg-background"
+          />
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-none px-4 font-mono"
+              disabled={sendPhase !== 'idle'}
+              onClick={() => setComposerOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
+              disabled={
+                sendPhase === 'sending' ||
+                (sendPhase === 'idle' && body.trim().length === 0)
+              }
+              onClick={handleSend}
+            >
+              {sendPhase === 'success' ? (
+                <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <SendIcon
+                    ref={sendIconRef}
+                    size={16}
+                    className="text-primary-foreground"
+                  />
+                  {sendPhase === 'idle' ? 'Send' : null}
+                </span>
+              )}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}

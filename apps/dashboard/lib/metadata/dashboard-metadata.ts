@@ -13,14 +13,15 @@ import {
 import { createPageMetadata } from './create-page-metadata';
 import {
   resolveDashboardPageTitle,
-  resolvePublicPathname
+  resolvePublicPathname,
+  stripSearchAndHash
 } from './resolve-dashboard-page-title';
 
 export function createDashboardPageMetadata(
   pathname: string,
   title?: string
 ): Metadata {
-  const publicPath = resolvePublicPathname(pathname);
+  const publicPath = stripSearchAndHash(resolvePublicPathname(pathname));
   return createPageMetadata(
     publicPath,
     title ?? resolveDashboardPageTitle(pathname)

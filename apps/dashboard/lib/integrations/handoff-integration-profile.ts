@@ -41,7 +41,7 @@ export function resolveHandoffIntegrationProfile(input: {
 
 export function ticketSupportsLiveChat(input: {
   orgLiveChatEnabled: boolean;
-  ticketSource: 'WIDGET' | 'API';
+  ticketSource: 'WIDGET' | 'API' | 'EMAIL';
 }): boolean {
   return input.orgLiveChatEnabled && input.ticketSource === 'WIDGET';
 }

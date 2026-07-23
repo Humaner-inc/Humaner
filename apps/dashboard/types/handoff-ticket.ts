@@ -24,7 +24,8 @@ export type HandoffTicketUrgency =
 
 export const HandoffTicketSource = {
   WIDGET: 'WIDGET',
-  API: 'API'
+  API: 'API',
+  EMAIL: 'EMAIL'
 } as const;
 
 export type HandoffTicketSource =

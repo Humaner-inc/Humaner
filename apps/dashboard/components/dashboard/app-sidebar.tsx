@@ -27,6 +27,7 @@ export type AppSidebarProps = {
   messageUsage: SidebarMessageUsageDto;
   agents: SidebarAgent[];
   orgTier: string;
+  inboxUnreadCount?: number;
 };
 
 export function AppSidebar({
@@ -34,7 +35,8 @@ export function AppSidebar({
   workspaces,
   messageUsage,
   agents,
-  orgTier
+  orgTier,
+  inboxUnreadCount = 0
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
@@ -77,6 +79,7 @@ export function AppSidebar({
             profile={profile}
             agents={agents}
             orgTier={orgTier}
+            inboxUnreadCount={inboxUnreadCount}
           />
         </ScrollArea>
       </SidebarContent>

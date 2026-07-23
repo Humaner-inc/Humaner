@@ -30,6 +30,8 @@ const svgLoader = {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@humaner/shared', 'lucide-animated'],
+  // Keep skillz on the Node filesystem so catalog.json resolves via createRequire.
+  serverExternalPackages: ['customer-support-skillz'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   turbopack: {
     rules: {
@@ -128,6 +130,11 @@ const nextConfig = {
         permanent: false
       },
       {
+        source: '/inbox',
+        destination: '/inbox/all',
+        permanent: false
+      },
+      {
         source: '/dashboard/home/workspace',
         destination: '/organization/workspace',
         permanent: true
@@ -198,6 +205,14 @@ const nextConfig = {
       {
         source: '/desk/:path*',
         destination: '/dashboard/desk/:path*'
+      },
+      {
+        source: '/inbox',
+        destination: '/dashboard/inbox'
+      },
+      {
+        source: '/inbox/:path*',
+        destination: '/dashboard/inbox/:path*'
       },
       {
         source: '/integrations',

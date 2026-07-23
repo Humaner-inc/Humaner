@@ -70,6 +70,9 @@ export function pageActionClient(pageKey: DashboardPageKey) {
 }
 
 export const ownerActionClient = authActionClient.use(async ({ next, ctx }) => {
-  await requireWorkspaceOwner(ctx.session.user.id);
+  await requireWorkspaceOwner(
+    ctx.session.user.id,
+    ctx.session.user.organizationId
+  );
   return next({ ctx });
 });

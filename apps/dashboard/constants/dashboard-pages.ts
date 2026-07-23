@@ -6,6 +6,7 @@ export const DASHBOARD_PAGE_KEYS = [
   'agents',
   'integrations',
   'history',
+  'inbox',
   'desk',
   'human-desk',
   'settings'
@@ -18,6 +19,7 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
   agents: 'Agents',
   integrations: 'Integrations',
   history: 'History',
+  inbox: 'Inbox',
   desk: 'Desk',
   'human-desk': 'Human Desk',
   settings: 'Settings'
@@ -26,6 +28,7 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
 export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
   'overview',
   'agents',
+  'inbox',
   'desk'
 ];
 
@@ -45,6 +48,7 @@ const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'overview', prefix: Routes.Home },
   { key: 'integrations', prefix: Routes.Integrations },
   { key: 'history', prefix: Routes.History },
+  { key: 'inbox', prefix: Routes.Inbox },
   { key: 'desk', prefix: Routes.Desk },
   { key: 'human-desk', prefix: Routes.HumanDesk },
   { key: 'settings', prefix: Routes.Settings }

@@ -6,12 +6,14 @@ import { getPlanForTier } from '@humaner/shared/plans';
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
 import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-overview-strip';
 import { DeskIssuesOverviewCard } from '@/components/dashboard/home/desk-issues-overview-card';
+import { InboxOverviewCard } from '@/components/dashboard/home/inbox-overview-card';
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
 import { CircleDashedIcon } from '@/components/ui/circle-dashed-icon';
 import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
 import { getDeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
+import { getInboxHomeOverview } from '@/data/inbox/get-inbox-home-overview';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
 import { dedupedAuth } from '@/lib/auth';
 import {
@@ -37,7 +39,8 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     agents,
     liveAgentCount,
     deskOverview,
-    members
+    members,
+    inboxOverview
   ] = await Promise.all([
     session?.user?.id
       ? userBypassesPlanLimits(session.user.id)
@@ -60,7 +63,8 @@ export default async function HomePage(): Promise<React.JSX.Element> {
       ? getLiveAgentCount(session.user.organizationId)
       : Promise.resolve(0),
     getDeskIssuesOverview(),
-    getOrganizationMembers()
+    getOrganizationMembers(),
+    getInboxHomeOverview()
   ]);
 
   const plan = getPlanForTier(organization?.tier ?? 'free');
@@ -137,6 +141,9 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             <aside className="space-y-3 xl:sticky xl:top-4">
               <DeskIssuesOverviewCard overview={deskOverview} />
               <TeamMembersOverviewCard members={members} />
+              {inboxOverview ? (
+                <InboxOverviewCard overview={inboxOverview} />
+              ) : null}
             </aside>
           </div>
         </section>

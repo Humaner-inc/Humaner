@@ -130,7 +130,7 @@ export function SidebarMainNavHighlight({
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 rounded-md bg-muted/40 transition-[top,height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+          'pointer-events-none absolute inset-x-0 rounded-md bg-muted/40 sidebar-nav-highlight-pill',
           isIconRail && 'bg-muted/50'
         )}
         style={{
