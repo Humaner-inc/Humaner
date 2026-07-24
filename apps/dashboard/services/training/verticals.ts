@@ -6,27 +6,89 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
-import {
-  getIndustry,
-  type IndustryPackage as SkillzIndustryPackage
-} from 'customer-support-skillz';
+import { getIndustry, SKILLZ_VERSION } from 'customer-support-skillz';
 
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
 /**
+ * Catalog industry shape (skills-based). Declared locally so the adapter does
+ * not depend on stale workspace copies of `IndustryPackage` during local
+ * `file:` linking. Keep in sync with customer-support-skillz dist/index.d.ts.
+ */
+type SkillzCoreSkill = {
+  name: string;
+  description: string;
+  type: 'core';
+  baselineTone: string[];
+  fallback: string;
+  commonTopics: string[];
+  domainTerms: string;
+  exampleBusinessTypes: string;
+};
+
+type SkillzBehaviorSkill = {
+  name: string;
+  description: string;
+  type: 'behavior';
+  rules: string[];
+  evalCommon: string[];
+  evalEdge: string[];
+};
+
+type SkillzEscalationSkill = {
+  name: string;
+  description: string;
+  type: 'escalation';
+  triggers: string[];
+  evalEscalation: string[];
+};
+
+type SkillzGuardrailsSkill = {
+  name: string;
+  description: string;
+  type: 'guardrails';
+  forbiddenTopics: string[];
+  evalTraps: string[];
+};
+
+type SkillzProblemSolvingSkill = {
+  name: string;
+  description: string;
+  type: 'problem-solving';
+  id: string;
+  whenToUse: string;
+  procedure: string;
+  doNot: string[];
+};
+
+type SkillzSkill =
+  | SkillzCoreSkill
+  | SkillzBehaviorSkill
+  | SkillzEscalationSkill
+  | SkillzGuardrailsSkill
+  | SkillzProblemSolvingSkill;
+
+type SkillzIndustryPackage = {
+  id: string;
+  skills: {
+    core: SkillzCoreSkill;
+    behavior: SkillzBehaviorSkill;
+    escalation: SkillzEscalationSkill;
+    guardrails: SkillzGuardrailsSkill;
+    [key: string]: SkillzSkill;
+  };
+};
+/**
  * Vertical Configuration for Agent Training
  *
- * SOURCE OF TRUTH: the open `customer-support-skillz` catalog
- * (https://github.com/Humaner-inc/customer-support-skillz — vendored here
- * via the `customer-support-skillz` npm dependency). This file adapts that
- * catalog's generic, Prisma-agnostic packages into Humaner's internal
- * enum-typed shape.
+ * Structural content (behavioral rules, escalation triggers, guardrails, eval
+ * scenarios, vocabulary) comes from the open `customer-support-skillz` catalog.
+ * Persona presets (character, verbosity, formality, emoji mode, opener style)
+ * are Humaner's Core Skillz (Layer 1) and stay private in this file.
  *
- * Do not hand-author vocabulary, behavioral rules, escalation triggers,
- * guardrails, or eval scenarios in this file — edit the markdown packages in
- * the catalog repo (`industries/<name>/*.md`) instead, run `npm run build`
- * there, and reinstall this dependency. This keeps content in exactly one
- * place (no dual maintenance) per `Docs/OSS_B2C_B2B_DESK_ROADMAP.md` Phase 4.
+ * Do not hand-author structural content here. Edit the markdown skill files in
+ * the catalog repo (`industries/<name>/<skill>/SKILL.md`) instead, run
+ * `npm run build` there, and reinstall the dependency.
  */
 
 export type PersonaPreset = {
@@ -40,6 +102,15 @@ export type PersonaPreset = {
   role: string;
   name: string;
   fallbackMessage: string;
+};
+
+export type ProblemSolvingSkill = {
+  id: string;
+  name: string;
+  description: string;
+  whenToUse: string;
+  procedure: string;
+  doNot: string[];
 };
 
 export type VerticalConfig = {
@@ -61,6 +132,7 @@ export type VerticalConfig = {
   escalationTriggers: string[];
   forbiddenTopics: string[];
   exampleBusinessTypes: string[];
+  problemSolvingSkills: ProblemSolvingSkill[];
 };
 
 /** Maps Humaner's Prisma `IndustryType` to the catalog's package id. */
@@ -71,78 +143,144 @@ const PACKAGE_ID_BY_INDUSTRY: Record<IndustryType, string> = {
   TRAVEL: 'hospitality'
 };
 
-const CHARACTER_MAP: Record<string, CharacterType> = {
-  casual: 'CASUAL',
-  corporate: 'CORPORATE',
-  efficient: 'EFFICIENT',
-  custom: 'CUSTOM'
-};
-const VERBOSITY_MAP: Record<string, Verbosity> = {
-  concise: 'CONCISE',
-  balanced: 'BALANCED',
-  detailed: 'DETAILED'
-};
-const FORMALITY_MAP: Record<string, Formality> = {
-  relaxed: 'RELAXED',
-  standard: 'STANDARD',
-  elevated: 'ELEVATED'
-};
-const EMOJI_MODE_MAP: Record<string, EmojiMode> = {
-  none: 'NONE',
-  subtle: 'SUBTLE',
-  expressive: 'EXPRESSIVE'
-};
-const OPENER_STYLE_MAP: Record<string, OpenerStyle> = {
-  direct: 'DIRECT',
-  warm: 'WARM',
-  mirroring: 'MIRRORING'
+/**
+ * PRIVATE persona presets per industry (Layer 1 Core Skillz).
+ * These are NOT open-sourced. The OSS catalog provides only generic structural
+ * content; persona dimensions are Humaner's private runtime concern.
+ */
+const PERSONA_PRESETS: Record<IndustryType, PersonaPreset> = {
+  ECOMMERCE: {
+    character: 'CASUAL',
+    verbosity: 'BALANCED',
+    formality: 'STANDARD',
+    emojiMode: 'SUBTLE',
+    openerStyle: 'MIRRORING',
+    allowTypos: true,
+    typoExceptions: ['order numbers', 'prices', 'dates', 'tracking numbers'],
+    role: 'customer support specialist',
+    name: 'Alex',
+    fallbackMessage: ''
+  },
+  EDUCATION: {
+    character: 'CORPORATE',
+    verbosity: 'DETAILED',
+    formality: 'STANDARD',
+    emojiMode: 'NONE',
+    openerStyle: 'WARM',
+    allowTypos: false,
+    typoExceptions: [],
+    role: 'support specialist',
+    name: 'Jordan',
+    fallbackMessage: ''
+  },
+  FITNESS: {
+    character: 'CASUAL',
+    verbosity: 'CONCISE',
+    formality: 'RELAXED',
+    emojiMode: 'SUBTLE',
+    openerStyle: 'WARM',
+    allowTypos: true,
+    typoExceptions: ['prices', 'dates', 'membership IDs'],
+    role: 'member support specialist',
+    name: 'Sam',
+    fallbackMessage: ''
+  },
+  TRAVEL: {
+    character: 'EFFICIENT',
+    verbosity: 'BALANCED',
+    formality: 'ELEVATED',
+    emojiMode: 'NONE',
+    openerStyle: 'DIRECT',
+    allowTypos: false,
+    typoExceptions: [],
+    role: 'guest relations specialist',
+    name: 'Taylor',
+    fallbackMessage: ''
+  }
 };
 
-function adaptPersona(pkg: SkillzIndustryPackage): PersonaPreset {
-  const persona = pkg.persona;
-  return {
-    character: CHARACTER_MAP[persona.character] ?? 'CASUAL',
-    verbosity: VERBOSITY_MAP[persona.verbosity] ?? 'BALANCED',
-    formality: FORMALITY_MAP[persona.formality] ?? 'STANDARD',
-    emojiMode: EMOJI_MODE_MAP[persona.emojiMode] ?? 'NONE',
-    openerStyle: OPENER_STYLE_MAP[persona.openerStyle] ?? 'DIRECT',
-    allowTypos: persona.allowTypos === 'true',
-    typoExceptions: persona.typoExceptions,
-    role: persona.role,
-    name: persona.name,
-    fallbackMessage: persona.fallbackMessage
-  };
+const INDUSTRY_META: Record<
+  IndustryType,
+  { name: string; icon: string; color: string }
+> = {
+  ECOMMERCE: { name: 'Retail', icon: '\u{1F6D2}', color: '#10B981' },
+  EDUCATION: {
+    name: 'Digital Services',
+    icon: '\u{1F393}',
+    color: '#6366F1'
+  },
+  FITNESS: { name: 'Wellness', icon: '\u{1F4AA}', color: '#F59E0B' },
+  TRAVEL: { name: 'Hospitality', icon: '\u2708\uFE0F', color: '#3B82F6' }
+};
+
+function parseTermsList(paragraph: string): string[] {
+  const colonIdx = paragraph.indexOf(':');
+  const terms = colonIdx !== -1 ? paragraph.slice(colonIdx + 1) : paragraph;
+  return terms
+    .replace(/\.$/, '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
 }
+
+const BASELINE_SKILL_IDS = new Set([
+  'core',
+  'behavior',
+  'escalation',
+  'guardrails'
+]);
 
 function adaptIndustry(
   industry: IndustryType,
   pkg: SkillzIndustryPackage
 ): VerticalConfig {
+  const { skills } = pkg;
+  const persona = { ...PERSONA_PRESETS[industry] };
+  persona.fallbackMessage = skills.core.fallback;
+  const meta = INDUSTRY_META[industry];
+
+  const problemSolvingSkills: ProblemSolvingSkill[] = Object.entries(skills)
+    .filter(([key]) => !BASELINE_SKILL_IDS.has(key))
+    .map(([, skill]) => {
+      const ps = skill as SkillzProblemSolvingSkill;
+      return {
+        id: ps.id ?? ps.name,
+        name: ps.name,
+        description: ps.description,
+        whenToUse: ps.whenToUse ?? '',
+        procedure: ps.procedure ?? '',
+        doNot: ps.doNot ?? []
+      };
+    });
+
   return {
     id: industry,
-    name: pkg.name,
-    description: pkg.description,
-    icon: pkg.icon ?? '',
-    color: pkg.color ?? '#000000',
-    personaPreset: adaptPersona(pkg),
-    commonTopics: pkg.vocabulary.commonTopics,
-    domainTerms: pkg.vocabulary.domainTerms,
+    name: meta.name,
+    description: skills.core.description,
+    icon: meta.icon,
+    color: meta.color,
+    personaPreset: persona,
+    commonTopics: skills.core.commonTopics,
+    domainTerms: parseTermsList(skills.core.domainTerms),
     questionCategories: {
-      common: pkg.eval.common,
-      edge: pkg.eval.edge,
-      trap: pkg.eval.trap,
-      escalation: pkg.eval.escalation
+      common: skills.behavior.evalCommon,
+      edge: skills.behavior.evalEdge,
+      trap: skills.guardrails.evalTraps,
+      escalation: skills.escalation.evalEscalation
     },
-    behavioralRules: pkg.behavioralRules,
-    escalationTriggers: pkg.escalationTriggers,
-    forbiddenTopics: pkg.forbiddenTopics,
-    exampleBusinessTypes: pkg.exampleBusinessTypes ?? []
+    behavioralRules: skills.behavior.rules,
+    escalationTriggers: skills.escalation.triggers,
+    forbiddenTopics: skills.guardrails.forbiddenTopics,
+    exampleBusinessTypes: skills.core.exampleBusinessTypes
+      ? parseTermsList(skills.core.exampleBusinessTypes)
+      : [],
+    problemSolvingSkills
   };
 }
 
 function requireSkillzPackage(industry: IndustryType): SkillzIndustryPackage {
   const packageId = PACKAGE_ID_BY_INDUSTRY[industry];
-  const pkg = getIndustry(packageId);
+  const pkg = getIndustry(packageId) as SkillzIndustryPackage | undefined;
   if (!pkg) {
     throw new Error(
       `customer-support-skillz package "${packageId}" not found for industry "${industry}". ` +
@@ -167,16 +305,15 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> =
   buildVerticalConfigs();
 
 /**
- * Per-vertical release versions.
- * Sourced from each package's `SKILL.md` `version` field in the
- * `customer-support-skillz` catalog — bump the package there to bump this.
- * Drives VerticalRelease.version; keyed by (industry, version) in the DB.
+ * Per-vertical release version.
+ * Now uses the catalog-level SKILLZ_VERSION since individual industry
+ * packages no longer carry their own version field.
  */
 export const VERTICAL_VERSIONS: Record<IndustryType, string> =
   Object.fromEntries(
     (Object.keys(PACKAGE_ID_BY_INDUSTRY) as IndustryType[]).map((industry) => [
       industry,
-      requireSkillzPackage(industry).version
+      SKILLZ_VERSION
     ])
   ) as Record<IndustryType, string>;
 

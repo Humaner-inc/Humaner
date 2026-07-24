@@ -197,3 +197,173 @@ export const applyMailThreadTag = authActionClient
     revalidateMailPaths(parsedInput.threadId);
     return { success: true };
   });
+
+async function assertThreadsAccess(
+  threadIds: string[],
+  userId: string,
+  organizationId: string
+): Promise<string[]> {
+  const uniqueIds = [...new Set(threadIds)];
+  if (uniqueIds.length === 0) {
+    throw new PreConditionError('No threads selected');
+  }
+
+  const threads = await prisma.mailThread.findMany({
+    where: {
+      id: { in: uniqueIds },
+      organizationId,
+      alias: { members: { some: { userId } } }
+    },
+    select: { id: true }
+  });
+
+  if (threads.length !== uniqueIds.length) {
+    throw new NotFoundError('One or more threads were not found');
+  }
+
+  return uniqueIds;
+}
+
+function revalidateMailListPaths(): void {
+  revalidatePath(Routes.InboxAll);
+  revalidatePath(Routes.InboxAssigned);
+  revalidatePath(Routes.InboxArchive);
+}
+
+export const bulkArchiveMailThreads = authActionClient
+  .metadata({ actionName: 'bulkArchiveMailThreads' })
+  .schema(
+    z.object({
+      threadIds: z.array(z.string().uuid()).min(1).max(200),
+      archive: z.boolean().default(true)
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const threadIds = await assertThreadsAccess(
+      parsedInput.threadIds,
+      session.user.id,
+      organizationId
+    );
+
+    await prisma.mailThread.updateMany({
+      where: { id: { in: threadIds }, organizationId },
+      data: {
+        archivedAt: parsedInput.archive ? new Date() : null
+      }
+    });
+
+    revalidateMailListPaths();
+    return { success: true, count: threadIds.length };
+  });
+
+export const bulkDeleteMailThreads = authActionClient
+  .metadata({ actionName: 'bulkDeleteMailThreads' })
+  .schema(
+    z.object({
+      threadIds: z.array(z.string().uuid()).min(1).max(200)
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const threadIds = await assertThreadsAccess(
+      parsedInput.threadIds,
+      session.user.id,
+      organizationId
+    );
+
+    await prisma.mailThread.deleteMany({
+      where: { id: { in: threadIds }, organizationId }
+    });
+
+    revalidateMailListPaths();
+    return { success: true, count: threadIds.length };
+  });
+
+export const bulkAssignMailThreads = authActionClient
+  .metadata({ actionName: 'bulkAssignMailThreads' })
+  .schema(
+    z.object({
+      threadIds: z.array(z.string().uuid()).min(1).max(200),
+      assigneeId: z.string().uuid().nullable()
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const threadIds = await assertThreadsAccess(
+      parsedInput.threadIds,
+      session.user.id,
+      organizationId
+    );
+
+    if (parsedInput.assigneeId) {
+      const member = await prisma.organizationMembership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: parsedInput.assigneeId,
+            organizationId
+          }
+        },
+        select: { id: true }
+      });
+      if (!member) {
+        throw new PreConditionError('Assignee is not in this workspace');
+      }
+    }
+
+    await prisma.mailThread.updateMany({
+      where: { id: { in: threadIds }, organizationId },
+      data: { assigneeId: parsedInput.assigneeId }
+    });
+
+    revalidateMailListPaths();
+    return { success: true, count: threadIds.length };
+  });
+
+export const bulkApplyMailThreadTag = authActionClient
+  .metadata({ actionName: 'bulkApplyMailThreadTag' })
+  .schema(
+    z.object({
+      threadIds: z.array(z.string().uuid()).min(1).max(200),
+      tagId: z.string().uuid().nullable()
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const threadIds = await assertThreadsAccess(
+      parsedInput.threadIds,
+      session.user.id,
+      organizationId
+    );
+
+    await prisma.mailThreadTag.deleteMany({
+      where: { threadId: { in: threadIds } }
+    });
+
+    if (parsedInput.tagId) {
+      const tag = await prisma.mailTag.findFirst({
+        where: { id: parsedInput.tagId, organizationId },
+        select: { id: true }
+      });
+      if (!tag) throw new NotFoundError('Tag not found');
+
+      await prisma.mailThreadTag.createMany({
+        data: threadIds.map((threadId) => ({
+          id: crypto.randomUUID(),
+          threadId,
+          tagId: tag.id
+        }))
+      });
+    }
+
+    revalidateMailListPaths();
+    return { success: true, count: threadIds.length };
+  });

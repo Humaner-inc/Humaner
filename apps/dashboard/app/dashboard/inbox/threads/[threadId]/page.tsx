@@ -25,7 +25,7 @@ export default async function InboxThreadPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4">
+    <div className="space-y-4">
       <Link
         href={Routes.InboxAll}
         className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"

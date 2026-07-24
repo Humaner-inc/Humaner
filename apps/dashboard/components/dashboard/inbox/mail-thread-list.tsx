@@ -17,13 +17,22 @@ import {
   applyMailThreadTag,
   archiveMailThread,
   assignMailThread,
-  deleteMailThread,
+  bulkApplyMailThreadTag,
+  bulkArchiveMailThreads,
+  bulkAssignMailThreads,
+  bulkDeleteMailThreads,
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
+import {
+  DeleteMailThreadsDialog,
+  readSkipDeleteWarning,
+  requestMailDelete
+} from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,44 +104,331 @@ function ReadCircle({
   );
 }
 
+export type MailListSelectionApi = {
+  selectedCount: number;
+  allSelected: boolean;
+  someSelected: boolean;
+  toggleAll: () => void;
+  clearSelection: () => void;
+  askDeleteSelected: () => void;
+  archiveSelected: () => void;
+  assignSelected: (assigneeId: string | null) => void;
+  tagSelected: (tagId: string | null) => void;
+  tags: MailTagItem[];
+  members: Array<{ id: string; name: string }>;
+  archivedView: boolean;
+};
+
 export function MailThreadList({
   threads,
   tags = [],
   members = [],
-  archivedView = false
+  archivedView = false,
+  selectionHeader
 }: {
   threads: MailThreadListItem[];
   tags?: MailTagItem[];
   members?: Array<{ id: string; name: string }>;
   archivedView?: boolean;
+  selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
 }): React.JSX.Element {
+  const router = useRouter();
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
+    () => new Set()
+  );
+  const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
+
+  React.useEffect(() => {
+    setSkipDeleteWarning(readSkipDeleteWarning());
+  }, []);
+
+  React.useEffect(() => {
+    const valid = new Set(threads.map((thread) => thread.id));
+    setSelectedIds((current) => {
+      const next = new Set([...current].filter((id) => valid.has(id)));
+      return next.size === current.size ? current : next;
+    });
+  }, [threads]);
+
   const hovered =
     threads.find((thread) => thread.id === hoveredId) ?? threads[0] ?? null;
 
-  return (
-    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
-      <ul className="min-w-0 self-start overflow-hidden border border-border bg-background">
-        {threads.map((thread) => (
-          <MailThreadRow
-            key={thread.id}
-            thread={thread}
-            tags={tags}
-            members={members}
-            archivedView={archivedView}
-            previewActive={hovered?.id === thread.id}
-            onPreview={() => setHoveredId(thread.id)}
-          />
-        ))}
-      </ul>
+  const allSelected = threads.length > 0 && selectedIds.size === threads.length;
+  const someSelected =
+    selectedIds.size > 0 && selectedIds.size < threads.length;
+  const selectedList = React.useMemo(() => [...selectedIds], [selectedIds]);
 
-      <div className="hidden min-w-0 self-start lg:block">
-        <MailHoverPreview
-          key={hovered?.id ?? 'empty'}
-          thread={hovered}
-          archivedView={archivedView}
-        />
+  const toggleOne = React.useCallback((threadId: string, checked: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(threadId);
+      else next.delete(threadId);
+      return next;
+    });
+  }, []);
+
+  const toggleAll = React.useCallback(() => {
+    setSelectedIds((current) => {
+      if (threads.length > 0 && current.size === threads.length) {
+        return new Set();
+      }
+      return new Set(threads.map((thread) => thread.id));
+    });
+  }, [threads]);
+
+  const clearSelection = React.useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const { execute: runBulkArchive } = useAction(bulkArchiveMailThreads, {
+    onSuccess: ({ data }) => {
+      toast.success(
+        archivedView
+          ? `Moved ${data?.count ?? selectedList.length} to inbox`
+          : `Archived ${data?.count ?? selectedList.length}`
+      );
+      clearSelection();
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not update threads')
+  });
+
+  const { execute: runBulkDelete } = useAction(bulkDeleteMailThreads, {
+    onSuccess: ({ data }) => {
+      toast.success(`Deleted ${data?.count ?? deleteIds.length}`);
+      clearSelection();
+      setDeleteOpen(false);
+      setDeleteIds([]);
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not delete threads')
+  });
+
+  const { execute: runBulkAssign } = useAction(bulkAssignMailThreads, {
+    onSuccess: ({ data }) => {
+      toast.success(`Assigned ${data?.count ?? selectedList.length}`);
+      clearSelection();
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not assign threads')
+  });
+
+  const { execute: runBulkTag } = useAction(bulkApplyMailThreadTag, {
+    onSuccess: ({ data }) => {
+      toast.success(`Tagged ${data?.count ?? selectedList.length}`);
+      clearSelection();
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not tag threads')
+  });
+
+  const askDelete = React.useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      requestMailDelete(
+        skipDeleteWarning,
+        () => {
+          setDeleteIds(ids);
+          setDeleteOpen(true);
+        },
+        () => runBulkDelete({ threadIds: ids })
+      );
+    },
+    [runBulkDelete, skipDeleteWarning]
+  );
+
+  const selectionApi: MailListSelectionApi = {
+    selectedCount: selectedIds.size,
+    allSelected,
+    someSelected,
+    toggleAll,
+    clearSelection,
+    askDeleteSelected: () => askDelete(selectedList),
+    archiveSelected: () =>
+      runBulkArchive({
+        threadIds: selectedList,
+        archive: !archivedView
+      }),
+    assignSelected: (assigneeId) =>
+      runBulkAssign({ threadIds: selectedList, assigneeId }),
+    tagSelected: (tagId) => runBulkTag({ threadIds: selectedList, tagId }),
+    tags,
+    members,
+    archivedView
+  };
+
+  return (
+    <div className="space-y-3">
+      {selectionHeader ? selectionHeader(selectionApi) : null}
+
+      {selectedIds.size > 0 && !selectionHeader ? (
+        <MailBulkActionBar selection={selectionApi} />
+      ) : null}
+
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
+        <ul className="min-w-0 self-start overflow-hidden border border-border bg-background">
+          {!selectionHeader ? (
+            <li className="flex items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
+              <Checkbox
+                checked={
+                  allSelected ? true : someSelected ? 'indeterminate' : false
+                }
+                onCheckedChange={() => toggleAll()}
+                aria-label="Select all conversations"
+                data-no-pull
+              />
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {selectedIds.size > 0
+                  ? `${selectedIds.size} selected`
+                  : 'Select'}
+              </span>
+            </li>
+          ) : null}
+          {threads.map((thread) => (
+            <MailThreadRow
+              key={thread.id}
+              thread={thread}
+              tags={tags}
+              members={members}
+              archivedView={archivedView}
+              previewActive={hovered?.id === thread.id}
+              selected={selectedIds.has(thread.id)}
+              onToggleSelected={(checked) => toggleOne(thread.id, checked)}
+              onPreview={() => setHoveredId(thread.id)}
+              onAskDelete={() => askDelete([thread.id])}
+            />
+          ))}
+        </ul>
+
+        <div className="hidden min-w-0 self-start lg:block">
+          <MailHoverPreview
+            key={hovered?.id ?? 'empty'}
+            thread={hovered}
+            archivedView={archivedView}
+          />
+        </div>
       </div>
+
+      <DeleteMailThreadsDialog
+        open={deleteOpen}
+        count={deleteIds.length}
+        onOpenChange={(open) => {
+          setDeleteOpen(open);
+          if (!open) setDeleteIds([]);
+        }}
+        onConfirm={() => {
+          setSkipDeleteWarning(readSkipDeleteWarning());
+          runBulkDelete({ threadIds: deleteIds });
+        }}
+      />
+    </div>
+  );
+}
+
+function MailBulkActionBar({
+  selection
+}: {
+  selection: MailListSelectionApi;
+}): React.JSX.Element {
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-background px-2 py-1.5 sm:px-3">
+      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        {selection.selectedCount} selected
+      </span>
+      <div
+        className="hidden h-4 w-px bg-border sm:block"
+        aria-hidden
+      />
+      {selection.tags.length > 0 ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-none font-mono text-[10px]"
+            >
+              Label
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onSelect={() => selection.tagSelected(null)}>
+              No tag
+            </DropdownMenuItem>
+            {selection.tags.map((tag) => (
+              <DropdownMenuItem
+                key={tag.id}
+                onSelect={() => selection.tagSelected(tag.id)}
+              >
+                <span
+                  className="mr-2 size-2.5 rounded-full"
+                  style={{ backgroundColor: tag.color }}
+                />
+                {tag.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-none font-mono text-[10px]"
+          >
+            Assign
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onSelect={() => selection.assignSelected(null)}>
+            Unassigned
+          </DropdownMenuItem>
+          {selection.members.map((member) => (
+            <DropdownMenuItem
+              key={member.id}
+              onSelect={() => selection.assignSelected(member.id)}
+            >
+              {member.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-8 rounded-none font-mono text-[10px]"
+        onClick={selection.archiveSelected}
+      >
+        {selection.archivedView ? 'Move to inbox' : 'Archive'}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-8 rounded-none font-mono text-[10px]"
+        onClick={selection.askDeleteSelected}
+      >
+        Delete
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-8 rounded-none font-mono text-[10px]"
+        onClick={selection.clearSelection}
+      >
+        Clear
+      </Button>
     </div>
   );
 }
@@ -355,14 +651,20 @@ function MailThreadRow({
   members,
   archivedView,
   previewActive,
-  onPreview
+  selected,
+  onToggleSelected,
+  onPreview,
+  onAskDelete
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
   members: Array<{ id: string; name: string }>;
   archivedView: boolean;
   previewActive: boolean;
+  selected: boolean;
+  onToggleSelected: (checked: boolean) => void;
   onPreview: () => void;
+  onAskDelete: () => void;
 }): React.JSX.Element {
   const router = useRouter();
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
@@ -381,14 +683,6 @@ function MailThreadRow({
     },
     onError: ({ error }) =>
       toast.error(error.serverError || 'Could not archive')
-  });
-
-  const { execute: runDelete } = useAction(deleteMailThread, {
-    onSuccess: () => {
-      toast.success('Deleted');
-      router.refresh();
-    },
-    onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
   });
 
   const { execute: runAssign } = useAction(assignMailThread, {
@@ -424,7 +718,8 @@ function MailThreadRow({
       className={cn(
         'message-item group relative border-b border-border/60 last:border-b-0',
         localUnread && 'bg-sky-50/80 dark:bg-sky-950/25',
-        previewActive && 'bg-muted/40'
+        previewActive && 'bg-muted/40',
+        selected && 'bg-muted/50'
       )}
       onMouseEnter={onPreview}
       onFocusCapture={onPreview}
@@ -441,6 +736,20 @@ function MailThreadRow({
           }
         }}
       >
+        <div
+          className="mt-2.5 shrink-0"
+          data-no-pull
+          onClick={stopRowEvent}
+          onPointerDown={stopRowEvent}
+          onKeyDown={stopRowEvent}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(value) => onToggleSelected(value === true)}
+            aria-label={`Select ${thread.subject}`}
+          />
+        </div>
+
         <Avatar className="mt-0.5 size-9 shrink-0">
           {domain ? (
             <AvatarImage
@@ -487,6 +796,7 @@ function MailThreadRow({
       >
         <time
           dateTime={thread.lastMessageAt}
+          suppressHydrationWarning
           className="pointer-events-none font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
         >
           {formatDistanceToNow(new Date(thread.lastMessageAt), {
@@ -535,16 +845,18 @@ function MailThreadRow({
               align="end"
               onCloseAutoFocus={(event) => event.preventDefault()}
             >
-              <DropdownMenuItem
-                onSelect={() =>
-                  runArchive({
-                    threadId: thread.id,
-                    archive: !archivedView
-                  })
-                }
-              >
-                {archivedView ? 'Move to inbox' : 'Archive'}
-              </DropdownMenuItem>
+              {archivedView ? (
+                <DropdownMenuItem
+                  onSelect={() =>
+                    runArchive({
+                      threadId: thread.id,
+                      archive: false
+                    })
+                  }
+                >
+                  Move to inbox
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <UserPlus2Icon className="mr-2 size-4" />
@@ -610,7 +922,7 @@ function MailThreadRow({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onSelect={() => runDelete({ threadId: thread.id })}
+                onSelect={onAskDelete}
               >
                 <Trash2Icon className="mr-2 size-4" />
                 Delete

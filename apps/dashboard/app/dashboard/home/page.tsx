@@ -138,13 +138,16 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               ) : null}
             </div>
 
-            <aside className="space-y-3 xl:sticky xl:top-4">
-              <DeskIssuesOverviewCard overview={deskOverview} />
+            <aside className="xl:sticky xl:top-4">
               <TeamMembersOverviewCard members={members} />
-              {inboxOverview ? (
-                <InboxOverviewCard overview={inboxOverview} />
-              ) : null}
             </aside>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <DeskIssuesOverviewCard overview={deskOverview} />
+            {inboxOverview ? (
+              <InboxOverviewCard overview={inboxOverview} />
+            ) : null}
           </div>
         </section>
       </div>

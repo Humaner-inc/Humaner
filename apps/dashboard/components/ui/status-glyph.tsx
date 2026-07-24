@@ -3,7 +3,12 @@ import { CheckIcon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
-export type StatusGlyphKind = 'open' | 'progress' | 'resolved' | 'snoozed';
+export type StatusGlyphKind =
+  | 'open'
+  | 'unopened'
+  | 'progress'
+  | 'resolved'
+  | 'snoozed';
 
 export function StatusGlyph({
   kind,
@@ -12,6 +17,20 @@ export function StatusGlyph({
   kind: StatusGlyphKind;
   className?: string;
 }): React.JSX.Element {
+  if (kind === 'unopened') {
+    return (
+      <span
+        className={cn(
+          'inline-flex size-3.5 shrink-0 items-center justify-center text-blue-500',
+          className
+        )}
+        aria-hidden
+      >
+        <span className="size-2 rounded-full bg-current" />
+      </span>
+    );
+  }
+
   if (kind === 'open') {
     return (
       <span

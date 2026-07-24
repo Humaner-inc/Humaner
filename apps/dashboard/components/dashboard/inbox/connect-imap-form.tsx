@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   CheckIcon,
+  CopyIcon,
   MailIcon,
   MoreHorizontalIcon,
   PlusIcon,
@@ -45,6 +46,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
 import type { ConnectedMailboxItem } from '@/data/inbox/get-mail-threads';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import {
   getMailProviderById,
   resolveMailProviderPreset
@@ -109,6 +111,14 @@ export function ConnectImapForm({
   const [smtpPassword, setSmtpPassword] = React.useState('');
   const [pendingRemove, setPendingRemove] =
     React.useState<ConnectedMailboxItem | null>(null);
+  const [removeConfirmEmail, setRemoveConfirmEmail] = React.useState('');
+  const [copiedMailboxEmail, setCopiedMailboxEmail] = React.useState(false);
+  const copyToClipboard = useCopyToClipboard();
+
+  React.useEffect(() => {
+    setRemoveConfirmEmail('');
+    setCopiedMailboxEmail(false);
+  }, [pendingRemove?.id]);
 
   const selectedProvider = providerId ? getMailProviderById(providerId) : null;
   const preset = providerId ? resolveMailProviderPreset(providerId) : null;
@@ -209,6 +219,7 @@ export function ConnectImapForm({
     {
       onSuccess: ({ data }) => {
         setPendingRemove(null);
+        setRemoveConfirmEmail('');
         toast.success(
           `Removed ${data?.email ?? 'mailbox'} and related inbox data`
         );
@@ -762,6 +773,7 @@ export function ConnectImapForm({
         onOpenChange={(open) => {
           if (!open && !isRemoving) {
             setPendingRemove(null);
+            setRemoveConfirmEmail('');
           }
         }}
       >
@@ -783,23 +795,90 @@ export function ConnectImapForm({
                 </ul>
                 <p>
                   Your provider account itself is not deleted — only Humaner
-                  data for{' '}
-                  <span className="font-mono text-foreground">
-                    {pendingRemove?.email}
-                  </span>
-                  .
+                  data for this mailbox.
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-none border border-border/60 bg-muted/20 px-3 py-2.5">
+              <p className="font-fellix text-xs font-medium text-muted-foreground">
+                Mailbox email
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="min-w-0 flex-1 truncate font-mono text-sm text-foreground">
+                  {pendingRemove?.email}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  disabled={!pendingRemove?.email}
+                  onClick={() => {
+                    if (!pendingRemove?.email) return;
+                    void (async () => {
+                      await copyToClipboard(pendingRemove.email);
+                      setCopiedMailboxEmail(true);
+                      toast.success('Email copied');
+                      window.setTimeout(
+                        () => setCopiedMailboxEmail(false),
+                        1500
+                      );
+                    })();
+                  }}
+                  aria-label="Copy mailbox email"
+                >
+                  {copiedMailboxEmail ? (
+                    <CheckIcon className="size-4 text-emerald-500" />
+                  ) : (
+                    <CopyIcon className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="remove-mailbox-confirm-email"
+                className="font-fellix"
+              >
+                Type the mailbox email to confirm
+              </Label>
+              <Input
+                id="remove-mailbox-confirm-email"
+                type="email"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder={pendingRemove?.email}
+                value={removeConfirmEmail}
+                disabled={isRemoving || !pendingRemove}
+                onChange={(event) => setRemoveConfirmEmail(event.target.value)}
+                className="rounded-none font-mono text-sm"
+              />
+            </div>
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              disabled={isRemoving || !pendingRemove}
+              disabled={
+                isRemoving ||
+                !pendingRemove ||
+                normalizeEmail(removeConfirmEmail) !==
+                  normalizeEmail(pendingRemove.email)
+              }
               onClick={(event) => {
                 event.preventDefault();
                 if (!pendingRemove) return;
+                if (
+                  normalizeEmail(removeConfirmEmail) !==
+                  normalizeEmail(pendingRemove.email)
+                ) {
+                  return;
+                }
                 removeConnection({ connectionId: pendingRemove.id });
               }}
             >

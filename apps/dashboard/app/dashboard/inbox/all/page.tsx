@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 
+import { InboxAllMailList } from '@/components/dashboard/inbox/inbox-all-mail-list';
 import { InboxDomainSwitcher } from '@/components/dashboard/inbox/inbox-domain-switcher';
 import {
   InboxOptionalEmptyState,
@@ -10,7 +11,6 @@ import {
   InboxListHeader,
   type InboxListFilter
 } from '@/components/dashboard/inbox/inbox-list-header';
-import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import {
@@ -94,31 +94,36 @@ export default async function InboxAllPage({
       <Suspense
         fallback={<div className="h-11 rounded-lg border bg-background" />}
       >
-        <InboxListHeader
-          activeFilter={activeFilter}
-          activeTagId={activeTagId}
-          tags={tags}
-        />
-      </Suspense>
-
-      <PullToRefreshInbox>
         {threads.length > 0 ? (
-          <MailThreadList
-            threads={threads}
-            tags={tags}
-            members={members.map((member) => ({
-              id: member.id,
-              name: member.name
-            }))}
-          />
+          <PullToRefreshInbox>
+            <InboxAllMailList
+              threads={threads}
+              tags={tags}
+              members={members.map((member) => ({
+                id: member.id,
+                name: member.name
+              }))}
+              activeFilter={activeFilter}
+              activeTagId={activeTagId}
+            />
+          </PullToRefreshInbox>
         ) : (
-          <InboxOptionalEmptyState
-            title="No threads yet"
-            description="Tap sync in the header to import recent messages for your aliases."
-            showConnect={false}
-          />
+          <>
+            <InboxListHeader
+              activeFilter={activeFilter}
+              activeTagId={activeTagId}
+              tags={tags}
+            />
+            <PullToRefreshInbox>
+              <InboxOptionalEmptyState
+                title="No threads yet"
+                description="Tap sync in the header to import recent messages for your aliases."
+                showConnect={false}
+              />
+            </PullToRefreshInbox>
+          </>
         )}
-      </PullToRefreshInbox>
+      </Suspense>
     </div>
   );
 }

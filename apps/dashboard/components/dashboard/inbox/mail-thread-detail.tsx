@@ -21,6 +21,11 @@ import {
 } from '@/actions/inbox/manage-mail-thread';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
+import {
+  DeleteMailThreadsDialog,
+  readSkipDeleteWarning,
+  requestMailDelete
+} from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -81,6 +86,12 @@ export function MailThreadDetail({
   const [sendPhase, setSendPhase] = React.useState<SendPhase>('idle');
   const markedReadRef = React.useRef(false);
   const isArchived = Boolean(thread.archivedAt);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
+
+  React.useEffect(() => {
+    setSkipDeleteWarning(readSkipDeleteWarning());
+  }, []);
 
   const { execute: sendReply, isExecuting } = useAction(replyMailThread, {
     onSuccess: () => {
@@ -202,9 +213,22 @@ export function MailThreadDetail({
   const latestInbound = [...thread.messages]
     .reverse()
     .find((message) => message.direction === 'INBOUND');
+  const firstInbound = thread.messages.find(
+    (message) => message.direction === 'INBOUND'
+  );
+  const senderAddress =
+    firstInbound?.fromAddress ?? latestInbound?.fromAddress ?? null;
+  const senderMatch = senderAddress?.match(/^(.*?)\s*<([^>]+)>$/);
+  const senderLabel = (
+    senderMatch?.[2]?.trim() ||
+    senderMatch?.[1]?.trim() ||
+    senderAddress ||
+    'Unknown sender'
+  ).trim();
   const toName =
-    latestInbound?.fromAddress.replace(/<[^>]+>/, '').trim() ||
-    latestInbound?.fromAddress ||
+    senderMatch?.[1]?.trim() ||
+    senderMatch?.[2]?.trim() ||
+    senderAddress ||
     'sender';
 
   const discardSuggestions = (): void => {
@@ -252,7 +276,7 @@ export function MailThreadDetail({
           <div className="inline-flex min-w-0 items-center gap-2">
             <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
             <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {thread.aliasAddress}
+              {senderLabel}
             </span>
             {thread.tag ? (
               <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
@@ -278,16 +302,18 @@ export function MailThreadDetail({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={() =>
-                  runArchive({
-                    threadId: thread.id,
-                    archive: !isArchived
-                  })
-                }
-              >
-                {isArchived ? 'Move to inbox' : 'Archive'}
-              </DropdownMenuItem>
+              {isArchived ? (
+                <DropdownMenuItem
+                  onSelect={() =>
+                    runArchive({
+                      threadId: thread.id,
+                      archive: false
+                    })
+                  }
+                >
+                  Move to inbox
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <UserPlus2Icon className="mr-2 size-4" />
@@ -354,7 +380,13 @@ export function MailThreadDetail({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onSelect={() => runDelete({ threadId: thread.id })}
+                onSelect={() => {
+                  requestMailDelete(
+                    skipDeleteWarning,
+                    () => setDeleteOpen(true),
+                    () => runDelete({ threadId: thread.id })
+                  );
+                }}
               >
                 <Trash2Icon className="mr-2 size-4" />
                 Delete
@@ -625,6 +657,16 @@ export function MailThreadDetail({
           </div>
         </section>
       ) : null}
+
+      <DeleteMailThreadsDialog
+        open={deleteOpen}
+        count={1}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => {
+          setSkipDeleteWarning(readSkipDeleteWarning());
+          runDelete({ threadId: thread.id });
+        }}
+      />
     </div>
   );
 }
