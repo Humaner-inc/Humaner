@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import {
   createSafeActionClient,
   DEFAULT_SERVER_ERROR_MESSAGE
@@ -7,7 +6,6 @@ import { z } from 'zod';
 
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
 import { dedupedAuth } from '@/lib/auth';
-import { getLoginRedirect } from '@/lib/auth/redirect';
 import {
   canAccessPageKey,
   getUserAccessContext
@@ -46,7 +44,9 @@ export const actionClient = createSafeActionClient({
 export const authActionClient = actionClient.use(async ({ next }) => {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
-    return redirect(getLoginRedirect());
+    // Do not redirect() from a Safe Action — it returns a non-RSC response and
+    // the client throws "An unexpected response was received from the server."
+    throw new ForbiddenError('Please sign in again to continue');
   }
 
   return next({ ctx: { session } });

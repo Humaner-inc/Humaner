@@ -3,10 +3,9 @@
  * Prefer outcome-led copy over internal architecture jargon.
  */
 
-export const HUMANER_TAGLINE =
-  "The customer support layer for the AI era — agents, collaborative mailbox, and desk in one place.";
+export const HUMANER_TAGLINE = "The customer support layer for developers.";
 
-export const HUMANER_ELEVATOR_PITCH = `Humaner is the customer support layer for the AI era. Deploy agents that answer from your docs, optionally manage your company's support mail as a collaborative mailbox (IMAP or Gmail), and escalate to human desk when it matters. Add in-product support with a widget, React component, or API. Connect support aliases, assign teammates, and let your org agent draft or suggest replies — without changing how customers reach you.`;
+export const HUMANER_ELEVATOR_PITCH = `Humaner is the customer support layer designed for customer care and built for developers.`;
 
 export const HUMANER_DIFFERENTIATORS = [
   "Answers are grounded in your knowledge base and live data, not generic web knowledge.",

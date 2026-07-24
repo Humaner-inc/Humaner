@@ -8,6 +8,15 @@ function getSessionCookieName(request: NextRequest): string {
   return isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token';
 }
 
+/** Auth.js may chunk large session cookies as `<name>.0`, `<name>.1`, … */
+function hasSessionCookie(request: NextRequest): boolean {
+  const cookieName = getSessionCookieName(request);
+  if (request.cookies.get(cookieName)?.value) {
+    return true;
+  }
+  return Boolean(request.cookies.get(`${cookieName}.0`)?.value);
+}
+
 export function middleware(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
@@ -15,14 +24,19 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.rewrite(new URL('/favicon.svg', request.url));
   }
 
-  if (isProtectedAppPath(pathname)) {
-    const cookieName = getSessionCookieName(request);
-    const sessionToken = request.cookies.get(cookieName);
-    if (!sessionToken?.value) {
-      const loginUrl = new URL('/auth/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  // Server Actions POST to the current page URL. An HTML login redirect here
+  // returns text/html instead of an RSC payload and surfaces as
+  // "An unexpected response was received from the server."
+  const isServerAction = request.headers.has('next-action');
+
+  if (
+    isProtectedAppPath(pathname) &&
+    !isServerAction &&
+    !hasSessionCookie(request)
+  ) {
+    const loginUrl = new URL('/auth/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
