@@ -201,6 +201,8 @@ async function persistMessages(
     await prisma.$transaction(async (tx) => {
       const isInbound = message.direction === MailMessageDirection.INBOUND;
 
+      // Upsert must not rewind lastMessageAt or re-flag read threads as unread
+      // when IMAP re-delivers older messages after a reply.
       const thread = await tx.mailThread.upsert({
         where: {
           aliasId_providerThreadId: {
@@ -217,11 +219,9 @@ async function persistMessages(
           isUnread: isInbound
         },
         update: {
-          subject: message.subject,
-          lastMessageAt: message.sentAt,
-          ...(isInbound ? { isUnread: true, archivedAt: null } : {})
+          subject: message.subject
         },
-        select: { id: true }
+        select: { id: true, lastMessageAt: true }
       });
 
       const existing = await tx.mailMessage.findUnique({
@@ -247,6 +247,22 @@ async function persistMessages(
             bodyHtml: message.bodyHtml,
             sentAt: message.sentAt
           }
+        });
+
+        const newerThanThread = message.sentAt > thread.lastMessageAt;
+        await tx.mailThread.update({
+          where: { id: thread.id },
+          data: {
+            ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
+            ...(isInbound
+              ? { isUnread: true, archivedAt: null }
+              : { isUnread: false })
+          }
+        });
+      } else if (message.sentAt > thread.lastMessageAt) {
+        await tx.mailThread.update({
+          where: { id: thread.id },
+          data: { lastMessageAt: message.sentAt }
         });
       }
     });

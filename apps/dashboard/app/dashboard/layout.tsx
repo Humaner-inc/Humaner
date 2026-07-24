@@ -5,10 +5,12 @@ import { getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { WorkspaceRole } from '@prisma/client';
 
-import { AskHumanerSlideUp } from '@/components/dashboard/ask-humaner/ask-humaner-slide-up';
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
+import { DashboardDockProvider } from '@/components/dashboard/dock/dashboard-dock-context';
+import { DashboardDockPanel } from '@/components/dashboard/dock/dashboard-dock-panel';
+import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-notifications-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
@@ -133,14 +135,13 @@ export default async function DashboardLayout({
         id="skip"
         className="min-h-0 min-w-0 flex-1"
       >
-        <DashboardTopNav
-          profile={profile}
-          notifications={notifications}
-        />
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <PageAccessGate profile={profile}>{children}</PageAccessGate>
+        <DashboardTopNav profile={profile} />
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
+            <PageAccessGate profile={profile}>{children}</PageAccessGate>
+          </div>
+          <DashboardDockPanel />
         </div>
-        <AskHumanerSlideUp />
       </SidebarInset>
     </>
   );
@@ -161,18 +162,22 @@ export default async function DashboardLayout({
         />
         <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
         <SidebarProvider>
-          {humanerAgentPublicId ? (
-            <HumanerChatProvider
-              agentPublicId={humanerAgentPublicId}
-              widgetColor={accentColor}
-              dashboardVisitorId={dashboardVisitorId}
-              visitorMetadata={visitorMetadata}
-            >
-              {dashboardShell}
-            </HumanerChatProvider>
-          ) : (
-            dashboardShell
-          )}
+          <DashboardDockProvider>
+            <DockNotificationsProvider notifications={notifications}>
+              {humanerAgentPublicId ? (
+                <HumanerChatProvider
+                  agentPublicId={humanerAgentPublicId}
+                  widgetColor={accentColor}
+                  dashboardVisitorId={dashboardVisitorId}
+                  visitorMetadata={visitorMetadata}
+                >
+                  {dashboardShell}
+                </HumanerChatProvider>
+              ) : (
+                dashboardShell
+              )}
+            </DockNotificationsProvider>
+          </DashboardDockProvider>
         </SidebarProvider>
       </div>
     </OrgModeProvider>

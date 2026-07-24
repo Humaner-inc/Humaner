@@ -109,7 +109,8 @@ export async function getMailUnreadCount(): Promise<number> {
   const organizationId = session.user.organizationId;
   if (!organizationId) return 0;
 
-  return prisma.mailThread.count({
+  // Unopened = flagged unread AND still waiting on an inbound (no reply yet).
+  const threads = await prisma.mailThread.findMany({
     where: {
       organizationId,
       isUnread: true,
@@ -117,8 +118,19 @@ export async function getMailUnreadCount(): Promise<number> {
       alias: {
         members: { some: { userId: session.user.id } }
       }
+    },
+    select: {
+      id: true,
+      messages: {
+        orderBy: { sentAt: 'desc' },
+        take: 1,
+        select: { direction: true }
+      }
     }
   });
+
+  return threads.filter((thread) => thread.messages[0]?.direction === 'INBOUND')
+    .length;
 }
 
 export async function getMailThreads(options?: {
@@ -176,14 +188,27 @@ export async function getMailThreads(options?: {
         select: {
           fromAddress: true,
           bodyText: true,
-          direction: true
+          direction: true,
+          sentAt: true
         }
       }
     }
   });
 
-  return threads.map((thread) => {
-    const from = parseFromDisplay(thread.messages[0]?.fromAddress ?? null);
+  const mapped = threads.map((thread) => {
+    const latest = thread.messages[0];
+    const from = parseFromDisplay(latest?.fromAddress ?? null);
+    // Prefer the latest message clock so the list never shows the first-email age
+    // after a reply (thread.lastMessageAt can lag until the next sync write).
+    const lastActivityAt =
+      latest && latest.sentAt > thread.lastMessageAt
+        ? latest.sentAt
+        : thread.lastMessageAt;
+    const awaitingReply = latest?.direction === 'INBOUND';
+    // A sent reply opens the thread — never keep the unopened state when
+    // the latest message is outbound (stale isUnread can otherwise linger).
+    const isUnread = Boolean(thread.isUnread && awaitingReply);
+
     return {
       id: thread.id,
       subject: thread.subject,
@@ -191,16 +216,36 @@ export async function getMailThreads(options?: {
       aliasAddress: thread.alias.address,
       aliasId: thread.alias.id,
       assigneeName: thread.assignee?.name ?? null,
-      lastMessageAt: thread.lastMessageAt.toISOString(),
+      lastMessageAt: lastActivityAt.toISOString(),
       fromAddress: from.email,
       fromName: from.name,
-      preview: previewText(thread.messages[0]?.bodyText ?? null),
-      isUnread: thread.isUnread,
+      preview: previewText(latest?.bodyText ?? null),
+      isUnread,
       messageCount: thread._count.messages,
-      awaitingReply: thread.messages[0]?.direction === 'INBOUND',
+      awaitingReply,
       tag: thread.tags[0]?.tag ?? null
     };
   });
+
+  // Heal stale unread flags for threads we already replied to.
+  const staleOpenedIds = threads
+    .filter(
+      (thread) =>
+        thread.isUnread && thread.messages[0]?.direction === 'OUTBOUND'
+    )
+    .map((thread) => thread.id);
+  if (staleOpenedIds.length > 0) {
+    void prisma.mailThread.updateMany({
+      where: { id: { in: staleOpenedIds } },
+      data: { isUnread: false }
+    });
+  }
+
+  if (options?.unreadOnly) {
+    return mapped.filter((thread) => thread.isUnread);
+  }
+
+  return mapped;
 }
 
 export async function getMailThread(
@@ -257,13 +302,16 @@ export async function getMailThread(
 
   if (!thread) return null;
 
+  const latest = thread.messages[thread.messages.length - 1];
+  const awaitingReply = latest?.direction === 'INBOUND';
+
   return {
     id: thread.id,
     subject: thread.subject,
     status: thread.status,
     aliasAddress: thread.alias.address,
     lastMessageAt: thread.lastMessageAt.toISOString(),
-    isUnread: thread.isUnread,
+    isUnread: Boolean(thread.isUnread && awaitingReply),
     archivedAt: thread.archivedAt?.toISOString() ?? null,
     assigneeId: thread.assigneeId,
     tag: thread.tags[0]?.tag ?? null,

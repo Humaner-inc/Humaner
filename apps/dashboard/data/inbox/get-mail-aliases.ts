@@ -3,6 +3,7 @@ import 'server-only';
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { getMailProviderById } from '@/lib/inbox/mail-providers';
 
 export type MailAliasListItem = {
   id: string;
@@ -11,6 +12,7 @@ export type MailAliasListItem = {
   enabled: boolean;
   connectionEmail: string;
   provider: string;
+  providerName: string;
   memberCount: number;
 };
 
@@ -30,19 +32,30 @@ export async function getMailAliases(): Promise<MailAliasListItem[]> {
       displayName: true,
       enabled: true,
       connection: {
-        select: { email: true, provider: true }
+        select: {
+          email: true,
+          provider: true,
+          providerPresetId: true
+        }
       },
       _count: { select: { members: true } }
     }
   });
 
-  return aliases.map((alias) => ({
-    id: alias.id,
-    address: alias.address,
-    displayName: alias.displayName,
-    enabled: alias.enabled,
-    connectionEmail: alias.connection.email,
-    provider: alias.connection.provider,
-    memberCount: alias._count.members
-  }));
+  return aliases.map((alias) => {
+    const preset = alias.connection.providerPresetId
+      ? getMailProviderById(alias.connection.providerPresetId)
+      : undefined;
+
+    return {
+      id: alias.id,
+      address: alias.address,
+      displayName: alias.displayName,
+      enabled: alias.enabled,
+      connectionEmail: alias.connection.email,
+      provider: alias.connection.provider,
+      providerName: preset?.name ?? alias.connection.provider,
+      memberCount: alias._count.members
+    };
+  });
 }

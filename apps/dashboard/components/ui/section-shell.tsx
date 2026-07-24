@@ -40,7 +40,8 @@ export function SectionContent({
 export function SectionPage({
   children,
   width = 'lg',
-  className
+  className,
+  ...props
 }: Omit<SectionContentProps, 'children'> & {
   children: React.ReactNode;
 }): React.JSX.Element {
@@ -49,6 +50,7 @@ export function SectionPage({
       <SectionContent
         width={width}
         className={className}
+        {...props}
       >
         {children}
       </SectionContent>

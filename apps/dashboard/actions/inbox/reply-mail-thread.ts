@@ -204,7 +204,10 @@ export const replyMailThread = pageActionClient('inbox')
       }),
       prisma.mailThread.update({
         where: { id: thread.id },
-        data: { lastMessageAt: sentAt }
+        data: {
+          lastMessageAt: sentAt,
+          isUnread: false
+        }
       })
     ]);
 

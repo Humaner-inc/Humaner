@@ -541,12 +541,9 @@ export function ConnectImapForm({
                 ) : (
                   <div className="space-y-5">
                     <div className="space-y-1">
-                      <h3 className="text-sm font-medium">
-                        Choose aliases for Humaner
-                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        We scanned recent mail for addresses on this mailbox.
-                        Select the ones you want this workspace to handle.
+                        We scanned mail addresses on this mailbox. Select the
+                        ones you want this workspace to handle.
                       </p>
                       <p className="font-mono text-xs text-muted-foreground">
                         {selectedAliases.length} of {remaining} alias slot
@@ -577,11 +574,11 @@ export function ConnectImapForm({
                                 <span className="block font-mono text-sm">
                                   {address}
                                 </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {isPrimary
-                                    ? 'Login email — always included'
-                                    : 'Found in recent mailbox traffic'}
-                                </span>
+                                {!isPrimary ? (
+                                  <span className="text-xs text-muted-foreground">
+                                    Found in recent mailbox
+                                  </span>
+                                ) : null}
                               </span>
                             </label>
                           </li>
@@ -621,125 +618,123 @@ export function ConnectImapForm({
                     </div>
                   </div>
                 )}
-              </div>
 
-              <div className="flex shrink-0 items-center justify-between gap-3 border-t bg-background px-5 py-4 sm:px-6">
-                {step === 'credentials' ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="font-mono"
-                      onClick={() => setShowAdvanced((value) => !value)}
-                    >
-                      {showAdvanced
-                        ? 'Hide advanced'
-                        : 'Advanced IMAP / SMTP hosts'}
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isDiscovering || remaining <= 0}
-                      className="font-mono"
-                    >
-                      {isDiscovering ? (
-                        'Linking mailbox…'
-                      ) : (
-                        <>
-                          Link mailbox
-                          <ArrowRight className="size-4" />
-                        </>
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="font-mono"
-                      onClick={() => setStep('credentials')}
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isExecuting || selectedAliases.length === 0}
-                      className="font-mono"
-                    >
-                      {isExecuting ? 'Connecting…' : 'Connect mailbox'}
-                    </Button>
-                  </>
-                )}
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                  {step === 'credentials' ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="font-mono"
+                        onClick={() => setShowAdvanced((value) => !value)}
+                      >
+                        {showAdvanced
+                          ? 'Hide advanced'
+                          : 'Advanced IMAP / SMTP hosts'}
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isDiscovering || remaining <= 0}
+                        className="font-mono"
+                      >
+                        {isDiscovering ? (
+                          'Linking mailbox…'
+                        ) : (
+                          <>
+                            Link mailbox
+                            <ArrowRight className="size-4" />
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="font-mono"
+                        onClick={() => setStep('credentials')}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isExecuting || selectedAliases.length === 0}
+                        className="font-mono"
+                      >
+                        {isExecuting ? 'Connecting…' : 'Connect mailbox'}
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </>
           ) : connections.length > 0 ? (
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                <ul className="space-y-0.5 p-2">
-                  {connections.map((connection) => (
-                    <li
-                      key={connection.id}
-                      className="group flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-muted/60"
-                    >
-                      <span className="relative flex size-7 shrink-0 items-center justify-center rounded-md bg-background ring-1 ring-border/60">
-                        <BrandLogo
-                          domain={connection.logoDomain}
-                          fallbackIcon={MailIcon}
-                          size={28}
-                          className="size-5"
+            <div className="min-h-0 flex-1 overflow-y-auto p-2">
+              <ul className="space-y-0.5">
+                {connections.map((connection) => (
+                  <li
+                    key={connection.id}
+                    className="group flex items-center gap-2.5 rounded-md p-2 transition-colors hover:bg-muted/60"
+                  >
+                    <span className="relative flex size-7 shrink-0 items-center justify-center rounded-md bg-background ring-1 ring-border/60">
+                      <BrandLogo
+                        domain={connection.logoDomain}
+                        fallbackIcon={MailIcon}
+                        size={28}
+                        className="size-5"
+                      />
+                      <span className="absolute -bottom-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-background ring-1 ring-border">
+                        <CheckIcon
+                          className="size-2.5 text-emerald-600"
+                          aria-hidden
                         />
-                        <span className="absolute -bottom-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-background ring-1 ring-border">
-                          <CheckIcon
-                            className="size-2.5 text-emerald-600"
-                            aria-hidden
-                          />
-                        </span>
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium leading-tight">
-                          {connection.providerName}
-                        </p>
-                        <p className="truncate font-mono text-[11px] text-muted-foreground">
-                          {connection.email}
-                        </p>
-                      </div>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium leading-tight">
+                        {connection.providerName}
+                      </p>
+                      <p className="truncate font-mono text-[11px] text-muted-foreground">
+                        {connection.email}
+                      </p>
+                    </div>
 
-                      <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="size-7"
-                              disabled={isRemoving}
-                            >
-                              <MoreHorizontalIcon className="size-3.5" />
-                              <span className="sr-only">Mailbox actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onSelect={() => editConnection(connection)}
-                            >
-                              Edit credentials
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onSelect={() => setPendingRemove(connection)}
-                            >
-                              <Trash2Icon className="mr-2 size-4" />
-                              Remove mailbox
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex shrink-0 items-center justify-between gap-3 border-t px-3 py-3">
+                    <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-7"
+                            disabled={isRemoving}
+                          >
+                            <MoreHorizontalIcon className="size-3.5" />
+                            <span className="sr-only">Mailbox actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={() => editConnection(connection)}
+                          >
+                            Edit credentials
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onSelect={() => setPendingRemove(connection)}
+                          >
+                            <Trash2Icon className="mr-2 size-4" />
+                            Remove mailbox
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t px-2 pt-3">
                 <p className="text-xs text-muted-foreground">
                   Select a provider on the left to add another mailbox.
                 </p>

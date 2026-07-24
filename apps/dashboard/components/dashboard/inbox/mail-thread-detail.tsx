@@ -53,9 +53,9 @@ type Suggestion = { label: string; draft: string };
 type SendPhase = 'idle' | 'sending' | 'success';
 
 const accentBorder =
-  'border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_55%,transparent)]';
+  'border-[color-mix(in_srgb,var(--accent-color,#0682de)_55%,transparent)]';
 const accentSoftBg =
-  'bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_10%,transparent)]';
+  'bg-[color-mix(in_srgb,var(--accent-color,#0682de)_10%,transparent)]';
 
 function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
   if (!thread.isUnread) return false;
@@ -506,7 +506,7 @@ export function MailThreadDetail({
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     To:{' '}
-                    <span style={{ color: 'var(--accent-color, #e1ccaf)' }}>
+                    <span style={{ color: 'var(--accent-color, #0682de)' }}>
                       {toName}
                     </span>
                   </p>
@@ -559,7 +559,7 @@ export function MailThreadDetail({
                               active
                                 ? {
                                     backgroundColor:
-                                      'color-mix(in srgb, var(--accent-color, #e1ccaf) 28%, transparent)'
+                                      'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
                                   }
                                 : undefined
                             }
@@ -572,7 +572,7 @@ export function MailThreadDetail({
                           {active ? (
                             <CheckIcon
                               className="size-3.5 shrink-0"
-                              style={{ color: 'var(--accent-color, #e1ccaf)' }}
+                              style={{ color: 'var(--accent-color, #0682de)' }}
                             />
                           ) : null}
                         </button>
@@ -648,7 +648,6 @@ export function MailThreadDetail({
                   <SendIcon
                     ref={sendIconRef}
                     size={16}
-                    className="text-primary-foreground"
                   />
                   {sendPhase === 'idle' ? 'Send' : null}
                 </span>

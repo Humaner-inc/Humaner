@@ -361,7 +361,7 @@ export const MAIL_PROVIDERS: MailProviderDefinition[] = [
     smtpPort: 465,
     imapAvailable: true,
     setupNote:
-      'Use your full email as username. Enable SMTP on Private Email, and keep “SMTP same as IMAP login” on unless you use a separate send password.'
+      'Use your full email as username and enable SMTP on Private Email.'
   },
   {
     id: 'hostinger',

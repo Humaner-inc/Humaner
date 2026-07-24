@@ -23,8 +23,8 @@ import {
   bulkDeleteMailThreads,
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
+import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
-import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
@@ -43,7 +43,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
+import { Textarea } from '@/components/ui/textarea';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import type {
   MailTagItem,
@@ -52,7 +54,7 @@ import type {
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#3B82F6';
+const DEFAULT_UNREAD = '#0682de';
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
@@ -71,36 +73,24 @@ function stopRowEvent(event: React.SyntheticEvent): void {
 
 function ReadCircle({
   unread,
-  color,
-  count
+  color
 }: {
   unread: boolean;
   color: string;
-  count: number;
 }): React.JSX.Element {
   return (
-    <span className="mt-1.5 flex w-5 shrink-0 flex-col items-center gap-1">
-      <span
-        className="size-2.5 shrink-0 rounded-full"
-        style={
-          unread
-            ? { backgroundColor: color }
-            : {
-                boxShadow: `inset 0 0 0 1.5px ${color}`,
-                backgroundColor: 'transparent'
-              }
-        }
-        aria-hidden
-      />
-      {count > 1 ? (
-        <span
-          className="inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[#070607] px-1 font-mono text-[9px] leading-none text-white dark:bg-white dark:text-[#070607]"
-          title={`${count} emails`}
-        >
-          {count > 99 ? '99+' : count}
-        </span>
-      ) : null}
-    </span>
+    <span
+      className="mt-1.5 size-2.5 shrink-0 rounded-full"
+      style={
+        unread
+          ? { backgroundColor: color }
+          : {
+              boxShadow: `inset 0 0 0 1.5px ${color}`,
+              backgroundColor: 'transparent'
+            }
+      }
+      aria-hidden
+    />
   );
 }
 
@@ -140,6 +130,25 @@ export function MailThreadList({
   const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
+  /** Optimistic read/time updates after quick answers until refresh lands. */
+  const [localOverrides, setLocalOverrides] = React.useState<
+    Record<
+      string,
+      { isUnread?: boolean; awaitingReply?: boolean; lastMessageAt?: string }
+    >
+  >({});
+
+  const markThreadOpened = React.useCallback((threadId: string) => {
+    setLocalOverrides((current) => ({
+      ...current,
+      [threadId]: {
+        ...current[threadId],
+        isUnread: false,
+        awaitingReply: false,
+        lastMessageAt: new Date().toISOString()
+      }
+    }));
+  }, []);
 
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
@@ -150,6 +159,37 @@ export function MailThreadList({
     setSelectedIds((current) => {
       const next = new Set([...current].filter((id) => valid.has(id)));
       return next.size === current.size ? current : next;
+    });
+  }, [threads]);
+
+  React.useEffect(() => {
+    setLocalOverrides((current) => {
+      let changed = false;
+      const next = { ...current };
+      const valid = new Set(threads.map((thread) => thread.id));
+
+      for (const id of Object.keys(next)) {
+        if (!valid.has(id)) {
+          delete next[id];
+          changed = true;
+        }
+      }
+
+      for (const thread of threads) {
+        const override = next[thread.id];
+        if (!override) continue;
+        const unreadCaughtUp = !thread.isUnread;
+        const timeCaughtUp =
+          !override.lastMessageAt ||
+          new Date(thread.lastMessageAt).getTime() >=
+            new Date(override.lastMessageAt).getTime() - 2000;
+        if (unreadCaughtUp && timeCaughtUp) {
+          delete next[thread.id];
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
     });
   }, [threads]);
 
@@ -291,27 +331,57 @@ export function MailThreadList({
               </span>
             </li>
           ) : null}
-          {threads.map((thread) => (
-            <MailThreadRow
-              key={thread.id}
-              thread={thread}
-              tags={tags}
-              members={members}
-              archivedView={archivedView}
-              previewActive={hovered?.id === thread.id}
-              selected={selectedIds.has(thread.id)}
-              onToggleSelected={(checked) => toggleOne(thread.id, checked)}
-              onPreview={() => setHoveredId(thread.id)}
-              onAskDelete={() => askDelete([thread.id])}
-            />
-          ))}
+          {threads.map((thread) => {
+            const override = localOverrides[thread.id];
+            const displayThread =
+              override == null
+                ? thread
+                : {
+                    ...thread,
+                    isUnread: override.isUnread ?? thread.isUnread,
+                    awaitingReply:
+                      override.awaitingReply ?? thread.awaitingReply,
+                    lastMessageAt:
+                      override.lastMessageAt ?? thread.lastMessageAt
+                  };
+
+            return (
+              <MailThreadRow
+                key={thread.id}
+                thread={displayThread}
+                tags={tags}
+                members={members}
+                archivedView={archivedView}
+                previewActive={hovered?.id === thread.id}
+                selected={selectedIds.has(thread.id)}
+                onToggleSelected={(checked) => toggleOne(thread.id, checked)}
+                onPreview={() => setHoveredId(thread.id)}
+                onAskDelete={() => askDelete([thread.id])}
+              />
+            );
+          })}
         </ul>
 
         <div className="hidden min-w-0 self-start lg:block">
           <MailHoverPreview
             key={hovered?.id ?? 'empty'}
-            thread={hovered}
+            thread={
+              hovered
+                ? {
+                    ...hovered,
+                    isUnread:
+                      localOverrides[hovered.id]?.isUnread ?? hovered.isUnread,
+                    awaitingReply:
+                      localOverrides[hovered.id]?.awaitingReply ??
+                      hovered.awaitingReply,
+                    lastMessageAt:
+                      localOverrides[hovered.id]?.lastMessageAt ??
+                      hovered.lastMessageAt
+                  }
+                : null
+            }
             archivedView={archivedView}
+            onOpened={markThreadOpened}
           />
         </div>
       </div>
@@ -435,13 +505,15 @@ function MailBulkActionBar({
 
 function MailHoverPreview({
   thread,
-  archivedView
+  archivedView,
+  onOpened
 }: {
   thread: MailThreadListItem | null;
   archivedView: boolean;
+  onOpened?: (threadId: string) => void;
 }): React.JSX.Element {
   const router = useRouter();
-  const chat = useHumanerChatOptional();
+  const sendIconRef = React.useRef<SendIconHandle>(null);
   const threadId = thread?.id ?? null;
   const [localUnread, setLocalUnread] = React.useState(
     thread?.isUnread ?? false
@@ -451,13 +523,8 @@ function MailHoverPreview({
   >([]);
   const [loadingSuggestions, setLoadingSuggestions] = React.useState(false);
   const [requested, setRequested] = React.useState(false);
-
-  React.useEffect(() => {
-    setLocalUnread(thread?.isUnread ?? false);
-    setSuggestions([]);
-    setLoadingSuggestions(false);
-    setRequested(false);
-  }, [thread?.id, thread?.isUnread]);
+  const [draftBody, setDraftBody] = React.useState<string | null>(null);
+  const [draftLabel, setDraftLabel] = React.useState<string | null>(null);
 
   const { execute: markRead, isExecuting } = useAction(markMailThreadRead, {
     onSuccess: ({ data, input }) => {
@@ -485,6 +552,48 @@ function MailHoverPreview({
     }
   });
 
+  const { execute: sendReply, isExecuting: isSending } = useAction(
+    replyMailThread,
+    {
+      onSuccess: ({ input }) => {
+        if (input.threadId !== threadId) return;
+        toast.success('Reply sent');
+        setDraftBody(null);
+        setDraftLabel(null);
+        setLocalUnread(false);
+        onOpened?.(input.threadId);
+        sendIconRef.current?.stopAnimation();
+        router.refresh();
+      },
+      onError: ({ error, input }) => {
+        if (input.threadId !== threadId) return;
+        sendIconRef.current?.stopAnimation();
+        toast.error(error.serverError || 'Could not send reply');
+      }
+    }
+  );
+
+  React.useEffect(() => {
+    setLocalUnread(thread?.isUnread ?? false);
+    setSuggestions([]);
+    setLoadingSuggestions(false);
+    setRequested(false);
+    setDraftBody(null);
+    setDraftLabel(null);
+  }, [thread?.id]);
+
+  // Auto-run for unopened inbound mail; already-read threads stay manual.
+  React.useEffect(() => {
+    if (!thread || archivedView) return;
+    if (!thread.isUnread || !thread.awaitingReply) return;
+
+    setRequested(true);
+    setLoadingSuggestions(true);
+    setSuggestions([]);
+    loadSuggestions({ threadId: thread.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread?.id, thread?.isUnread, thread?.awaitingReply, archivedView]);
+
   if (!thread) {
     return (
       <div className="border border-border bg-muted/10 p-6 text-sm text-muted-foreground">
@@ -500,36 +609,35 @@ function MailHoverPreview({
     setRequested(true);
     setLoadingSuggestions(true);
     setSuggestions([]);
+    setDraftBody(null);
+    setDraftLabel(null);
     loadSuggestions({ threadId });
   };
 
-  const runQuickAnswer = (suggestion: {
-    label: string;
-    draft: string;
-  }): void => {
-    if (!chat) {
-      toast.error('Ask Humaner is unavailable right now');
-      return;
-    }
-    chat.openChat();
-    void chat.sendMessage(
-      [
-        `Polish this reply for the email about “${thread.subject}”. Keep the same intent.`,
-        '',
-        `Intent: ${suggestion.label}`,
-        '',
-        suggestion.draft
-      ].join('\n')
-    );
+  const openDraft = (suggestion: { label: string; draft: string }): void => {
+    setDraftLabel(suggestion.label);
+    setDraftBody(suggestion.draft);
+  };
+
+  const clearDraft = (): void => {
+    setDraftBody(null);
+    setDraftLabel(null);
+  };
+
+  const handleSend = (): void => {
+    if (!threadId || !draftBody?.trim() || isSending) return;
+    sendIconRef.current?.startAnimation();
+    sendReply({ threadId, body: draftBody });
   };
 
   const showQuickAnswers = !archivedView;
+  const drafting = draftBody !== null;
   const showingLoader =
-    requested && loadingSuggestions && suggestions.length === 0;
+    requested && loadingSuggestions && suggestions.length === 0 && !drafting;
   const showingResults =
-    requested && !loadingSuggestions && suggestions.length > 0;
+    requested && !loadingSuggestions && suggestions.length > 0 && !drafting;
   const showingEmpty =
-    requested && !loadingSuggestions && suggestions.length === 0;
+    requested && !loadingSuggestions && suggestions.length === 0 && !drafting;
 
   return (
     <aside className="sticky top-0 flex w-full flex-col overflow-hidden border border-border bg-background">
@@ -550,6 +658,7 @@ function MailHoverPreview({
             title={localUnread ? 'Mark as read' : 'Already read'}
             onClick={() => {
               setLocalUnread(false);
+              onOpened?.(thread.id);
               markRead({ threadId: thread.id, isUnread: false });
             }}
           >
@@ -579,6 +688,54 @@ function MailHoverPreview({
 
       {showQuickAnswers ? (
         <div className="space-y-2 border-t px-4 py-3">
+          {drafting ? (
+            <>
+              {draftLabel ? (
+                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {draftLabel}
+                </p>
+              ) : null}
+              <Textarea
+                value={draftBody ?? ''}
+                onChange={(event) => setDraftBody(event.target.value)}
+                placeholder="Write your reply…"
+                rows={5}
+                className="min-h-24 resize-y rounded-none bg-background text-sm"
+                disabled={isSending}
+              />
+              <p className="text-xs italic text-muted-foreground">
+                Sends from {thread.aliasAddress}
+              </p>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-none font-mono text-[10px]"
+                  disabled={isSending}
+                  onClick={clearDraft}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 min-w-[6.5rem] rounded-none px-3 font-mono text-[10px]"
+                  disabled={isSending || !draftBody?.trim()}
+                  onClick={handleSend}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <SendIcon
+                      ref={sendIconRef}
+                      size={14}
+                    />
+                    {isSending ? 'Sending…' : 'Send'}
+                  </span>
+                </Button>
+              </div>
+            </>
+          ) : null}
+
           {!requested || showingLoader ? (
             <Button
               type="button"
@@ -612,8 +769,8 @@ function MailHoverPreview({
                   <button
                     key={`${thread.id}-${suggestion.label}-${index}`}
                     type="button"
-                    onClick={() => runQuickAnswer(suggestion)}
-                    className="flex items-center gap-2 rounded-none px-2 py-2 text-left text-xs transition-colors hover:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_12%,transparent)]"
+                    onClick={() => openDraft(suggestion)}
+                    className="flex items-center gap-2 rounded-none px-2 py-2 text-left text-xs transition-colors hover:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_14%,transparent)]"
                   >
                     <span className="flex size-5 shrink-0 items-center justify-center rounded-none bg-muted font-mono text-[10px] text-muted-foreground">
                       {index + 1}
@@ -670,11 +827,13 @@ function MailThreadRow({
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
-  const [localUnread, setLocalUnread] = React.useState(thread.isUnread);
+  // Replied threads are opened even if isUnread was left stale in the DB.
+  const effectivelyUnread = thread.isUnread && thread.awaitingReply;
+  const [localUnread, setLocalUnread] = React.useState(effectivelyUnread);
 
   React.useEffect(() => {
-    setLocalUnread(thread.isUnread);
-  }, [thread.isUnread]);
+    setLocalUnread(thread.isUnread && thread.awaitingReply);
+  }, [thread.isUnread, thread.awaitingReply]);
 
   const { execute: runArchive } = useAction(archiveMailThread, {
     onSuccess: () => {
@@ -717,8 +876,13 @@ function MailThreadRow({
     <li
       className={cn(
         'message-item group relative border-b border-border/60 last:border-b-0',
-        localUnread && 'bg-sky-50/80 dark:bg-sky-950/25',
-        previewActive && 'bg-muted/40',
+        localUnread
+          ? 'bg-sky-50/80 dark:bg-sky-950/25'
+          : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_16%,transparent)]',
+        previewActive &&
+          (localUnread
+            ? 'bg-sky-100/90 dark:bg-sky-950/40'
+            : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_18%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_24%,transparent)]'),
         selected && 'bg-muted/50'
       )}
       onMouseEnter={onPreview}
@@ -765,7 +929,6 @@ function MailThreadRow({
         <ReadCircle
           unread={localUnread}
           color={circleColor}
-          count={thread.messageCount}
         />
 
         <div className="min-w-0 flex-1">
@@ -782,6 +945,14 @@ function MailThreadRow({
               {' '}
               · {label}
             </span>
+            {thread.messageCount > 1 ? (
+              <span
+                className="ml-1.5 inline-flex min-h-4 min-w-4 translate-y-[-1px] items-center justify-center rounded-none bg-[#070607] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#070607]"
+                title={`${thread.messageCount} emails`}
+              >
+                {thread.messageCount > 99 ? '99+' : thread.messageCount}
+              </span>
+            ) : null}
           </p>
 
           <p className="mt-0.5 min-w-0 truncate text-xs text-muted-foreground">

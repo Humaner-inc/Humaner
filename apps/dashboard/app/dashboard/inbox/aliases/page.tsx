@@ -57,8 +57,7 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
             <div>
               <p className="font-mono text-sm font-medium">{alias.address}</p>
               <p className="text-xs text-muted-foreground">
-                via {alias.connectionEmail} · {alias.provider.toLowerCase()} ·{' '}
-                {alias.memberCount} member
+                via {alias.providerName} · {alias.memberCount} member
                 {alias.memberCount === 1 ? '' : 's'}
               </p>
             </div>
@@ -68,11 +67,6 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
           </li>
         ))}
       </ul>
-
-      <p className="text-xs text-muted-foreground">
-        Teammate assignment UI is next — the connector is already a member on
-        each alias.
-      </p>
     </div>
   );
 }
