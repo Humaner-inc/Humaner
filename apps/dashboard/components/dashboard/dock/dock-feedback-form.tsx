@@ -32,7 +32,7 @@ import {
 } from '@/schemas/feedback/send-feedback-schema';
 
 export function DockFeedbackForm(): React.JSX.Element {
-  const { openDock, closeDock } = useDashboardDock();
+  const { openDock } = useDashboardDock();
   const methods = useZodForm({
     schema: sendFeedbackSchema,
     mode: 'onSubmit',

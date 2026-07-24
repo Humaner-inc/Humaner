@@ -575,6 +575,9 @@ function MailHoverPreview({
 
   React.useEffect(() => {
     setLocalUnread(thread?.isUnread ?? false);
+  }, [thread?.id, thread?.isUnread]);
+
+  React.useEffect(() => {
     setSuggestions([]);
     setLoadingSuggestions(false);
     setRequested(false);
@@ -770,7 +773,7 @@ function MailHoverPreview({
                     key={`${thread.id}-${suggestion.label}-${index}`}
                     type="button"
                     onClick={() => openDraft(suggestion)}
-                    className="flex items-center gap-2 rounded-none px-2 py-2 text-left text-xs transition-colors hover:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_14%,transparent)]"
+                    className="flex items-center gap-2 rounded-none p-2 text-left text-xs transition-colors hover:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_14%,transparent)]"
                   >
                     <span className="flex size-5 shrink-0 items-center justify-center rounded-none bg-muted font-mono text-[10px] text-muted-foreground">
                       {index + 1}
@@ -947,7 +950,7 @@ function MailThreadRow({
             </span>
             {thread.messageCount > 1 ? (
               <span
-                className="ml-1.5 inline-flex min-h-4 min-w-4 translate-y-[-1px] items-center justify-center rounded-none bg-[#070607] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#070607]"
+                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-none bg-[#070607] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#070607]"
                 title={`${thread.messageCount} emails`}
               >
                 {thread.messageCount > 99 ? '99+' : thread.messageCount}

@@ -375,7 +375,7 @@ export function ConnectImapForm({
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           {selectedProvider ? (
             <>
-              <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b px-3 py-3">
+              <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b p-3">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border/60">
                   <BrandLogo
                     domain={selectedProvider.logoDomain}
