@@ -11,9 +11,24 @@ import { getIndustry, SKILLZ_VERSION } from 'customer-support-skillz';
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
 /**
- * Catalog industry shape (skills-based). Declared locally so the adapter does
- * not depend on stale workspace copies of `IndustryPackage` during local
- * `file:` linking. Keep in sync with customer-support-skillz dist/index.d.ts.
+ * Vertical Configuration for Agent Training
+ *
+ * Structural content (behavioral rules, escalation triggers, guardrails, eval
+ * scenarios, vocabulary, problem-solving skills) comes from the open
+ * `customer-support-skillz` catalog:
+ * https://github.com/Humaner-inc/customer-support-skillz
+ *
+ * Persona presets (character, verbosity, formality, emoji mode, opener style)
+ * are Humaner's Core Skillz (Layer 1) and stay private in this file.
+ *
+ * Do not hand-author structural content here. Edit the markdown skill files in
+ * the catalog repo (`industries/<name>/<skill>/SKILL.md`) instead.
+ */
+
+/**
+ * Catalog industry shape (skills-based). Declared locally so the adapter stays
+ * stable across `file:` / git installs. Keep in sync with
+ * https://github.com/Humaner-inc/customer-support-skillz dist/index.d.ts.
  */
 type SkillzCoreSkill = {
   name: string;
@@ -284,7 +299,7 @@ function requireSkillzPackage(industry: IndustryType): SkillzIndustryPackage {
   if (!pkg) {
     throw new Error(
       `customer-support-skillz package "${packageId}" not found for industry "${industry}". ` +
-        'Run `npm run build` in the customer-support-skillz repo, then reinstall the dependency ' +
+        'Run `npm run build` in https://github.com/Humaner-inc/customer-support-skillz, then reinstall ' +
         '(pnpm install --filter @humaner/dashboard).'
     );
   }
