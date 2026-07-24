@@ -62,6 +62,7 @@ export enum Routes {
   Members = '/settings/organization/members',
   Billing = '/settings/organization/billing',
   Developers = '/settings/organization/developers',
+  AuditLogs = '/settings/organization/audit-logs',
 
   Invitations = '/invitations',
   InvitationRequest = '/invitations/request',

@@ -5,6 +5,7 @@ import { startOfDay } from 'date-fns';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { generateApiKey, hashApiKey } from '@/lib/auth/api-keys';
 import {
   getOrganizationCapabilities,
@@ -31,7 +32,7 @@ export const createApiKey = ownerActionClient
     }
 
     const apiKey = generateApiKey();
-    await prisma.apiKey.create({
+    const created = await prisma.apiKey.create({
       data: {
         description: parsedInput.description,
         hashedKey: hashApiKey(apiKey),
@@ -41,7 +42,22 @@ export const createApiKey = ownerActionClient
         organizationId: session.user.organizationId
       },
       select: {
-        id: true // SELECT NONE
+        id: true,
+        description: true,
+        expiresAt: true
+      }
+    });
+
+    await recordAuditEvent({
+      organizationId: session.user.organizationId,
+      eventType: 'api_key.created',
+      actorId: session.user.id,
+      actorEmail: session.user.email,
+      resourceType: 'api_key',
+      resourceId: created.id,
+      after: {
+        description: created.description,
+        expiresAt: created.expiresAt?.toISOString() ?? null
       }
     });
 

@@ -1,4 +1,5 @@
 import {
+  ActivityIcon,
   BellIcon,
   CreditCardIcon,
   LockKeyholeIcon,
@@ -51,6 +52,12 @@ export const organizationNavItems: NavItem[] = [
     title: 'Billing',
     href: Routes.Billing,
     icon: CreditCardIcon,
+    ownerOnly: true
+  },
+  {
+    title: 'Audit logs',
+    href: Routes.AuditLogs,
+    icon: ActivityIcon,
     ownerOnly: true
   }
 ];

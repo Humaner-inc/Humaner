@@ -1,7 +1,11 @@
 import type { NextRequest } from 'next/server';
 
-export function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
+type HeaderReader = {
+  get(name: string): string | null;
+};
+
+export function getClientIpFromHeaders(headers: HeaderReader): string {
+  const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
     const first = forwarded.split(',')[0]?.trim();
     if (first) {
@@ -9,10 +13,14 @@ export function getClientIp(request: NextRequest): string {
     }
   }
 
-  const realIp = request.headers.get('x-real-ip')?.trim();
+  const realIp = headers.get('x-real-ip')?.trim();
   if (realIp) {
     return realIp;
   }
 
   return 'unknown';
+}
+
+export function getClientIp(request: NextRequest): string {
+  return getClientIpFromHeaders(request.headers);
 }

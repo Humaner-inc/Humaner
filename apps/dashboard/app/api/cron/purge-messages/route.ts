@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { purgeExpiredAuditLogs } from '@/lib/audit/purge-expired-audit-logs';
 import { purgeExpiredHandoffTickets } from '@/lib/data-retention/purge-expired-handoff-tickets';
 import { purgeExpiredMessages } from '@/lib/data-retention/purge-expired-messages';
 import { verifyCronSecret } from '@/lib/security/verify-cron-secret';
@@ -12,12 +13,13 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [messages, tickets] = await Promise.all([
+  const [messages, tickets, auditLogs] = await Promise.all([
     purgeExpiredMessages(),
-    purgeExpiredHandoffTickets()
+    purgeExpiredHandoffTickets(),
+    purgeExpiredAuditLogs()
   ]);
 
-  return NextResponse.json({ messages, tickets });
+  return NextResponse.json({ messages, tickets, auditLogs });
 }
 
 export async function POST(request: NextRequest): Promise<Response> {

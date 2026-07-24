@@ -1,17 +1,20 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { AuditActorType } from '@prisma/client';
 import { CredentialsSignin } from 'next-auth';
 import { returnValidationErrors } from 'next-safe-action';
 
 import { actionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { signIn } from '@/lib/auth';
 import {
   getSafeAuthCallbackUrl,
   toClientAuthRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
+import { prisma } from '@/lib/db/prisma';
 import { passThroughlogInSchema } from '@/schemas/auth/log-in-schema';
 import { IdentityProvider } from '@/types/identity-provider';
 
@@ -38,6 +41,23 @@ export const logIn = actionClient
       return { redirectTo };
     } catch (e) {
       if (e instanceof CredentialsSignin) {
+        const user = await prisma.user.findFirst({
+          where: { email: parsedInput.email.toLowerCase() },
+          select: { id: true, organizationId: true, email: true }
+        });
+        if (user?.organizationId) {
+          await recordAuditEvent({
+            organizationId: user.organizationId,
+            eventType: 'user.login_failed',
+            actorType: AuditActorType.USER,
+            actorId: user.id,
+            actorEmail: user.email,
+            resourceType: 'user',
+            resourceId: user.id,
+            metadata: { reason: e.code ?? 'credentials' }
+          });
+        }
+
         return returnValidationErrors(passThroughlogInSchema, {
           _errors: [e.code]
         });

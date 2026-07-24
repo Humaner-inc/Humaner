@@ -6,6 +6,7 @@ import { invalidateLangCacheForAgent } from '@/services/langcache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
 import { invalidateAgentConfigCache } from '@/lib/redis/agent-config-cache';
 import { NotFoundError } from '@/lib/validation/exceptions';
@@ -20,7 +21,7 @@ export const deleteAgent = pageActionClient('agents')
         id: parsedInput.id,
         organizationId: session.user.organizationId
       },
-      select: { id: true, publicId: true }
+      select: { id: true, publicId: true, name: true }
     });
     if (!agent) {
       throw new NotFoundError('Agent not found');
@@ -43,6 +44,16 @@ export const deleteAgent = pageActionClient('agents')
 
     await prisma.agent.delete({
       where: { id: agent.id }
+    });
+
+    await recordAuditEvent({
+      organizationId: session.user.organizationId,
+      eventType: 'agent.deleted',
+      actorId: session.user.id,
+      actorEmail: session.user.email,
+      resourceType: 'agent',
+      resourceId: agent.id,
+      before: { name: agent.name, publicId: agent.publicId }
     });
 
     revalidateTag(

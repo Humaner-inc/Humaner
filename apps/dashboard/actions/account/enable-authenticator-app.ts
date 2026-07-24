@@ -7,6 +7,7 @@ import { authenticator } from 'otplib';
 
 import { authActionClient } from '@/actions/safe-action';
 import { Caching, UserCacheKey } from '@/data/caching';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { prisma } from '@/lib/db/prisma';
 import { PreConditionError } from '@/lib/validation/exceptions';
@@ -53,6 +54,18 @@ export const enableAuthenticatorApp = authActionClient
           id: true // SELECT NONE
         }
       });
+
+      if (session.user.organizationId) {
+        await recordAuditEvent({
+          organizationId: session.user.organizationId,
+          eventType: 'user.mfa_enabled',
+          actorId: session.user.id,
+          actorEmail: session.user.email,
+          resourceType: 'user',
+          resourceId: session.user.id,
+          after: { mfa: 'authenticator_app' }
+        });
+      }
 
       revalidateTag(
         Caching.createUserTag(

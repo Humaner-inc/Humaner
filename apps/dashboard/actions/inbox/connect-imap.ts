@@ -7,6 +7,7 @@ import { MailProvider, Prisma } from '@prisma/client';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
 import {
   buildValidatedMailEndpoints,
@@ -110,6 +111,14 @@ export const connectImap = ownerActionClient
     try {
       await testImapAndSmtp(endpoints);
     } catch {
+      await recordAuditEvent({
+        organizationId,
+        eventType: 'mailbox.connection_failed',
+        actorId: session.user.id,
+        actorEmail: session.user.email,
+        resourceType: 'mailbox',
+        metadata: { email: primary, provider: 'imap' }
+      });
       throw new ValidationError(
         'Could not authenticate with these IMAP/SMTP settings. Check the credentials and try again.'
       );
@@ -215,6 +224,20 @@ export const connectImap = ownerActionClient
     revalidatePath(Routes.InboxAll);
     revalidatePath(Routes.InboxAliases);
     revalidatePath(Routes.InboxProviders);
+
+    await recordAuditEvent({
+      organizationId,
+      eventType: 'mailbox.connected',
+      actorId: session.user.id,
+      actorEmail: session.user.email,
+      resourceType: 'mailbox_connection',
+      resourceId: connection.id,
+      after: {
+        email: primary,
+        provider: 'imap',
+        aliasCount: uniqueAliases.length
+      }
+    });
 
     after(async () => {
       await syncImapMailboxes({ connectionId: connection.id });

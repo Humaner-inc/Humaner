@@ -35,7 +35,8 @@ export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
 export const OWNER_ONLY_ROUTE_PREFIXES = [
   Routes.OrganizationInformation,
   Routes.Billing,
-  Routes.Developers
+  Routes.Developers,
+  Routes.AuditLogs
 ] as const;
 
 export const ACCOUNT_ROUTE_PREFIXES = [

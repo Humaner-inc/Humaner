@@ -59,6 +59,29 @@ export const events = {
         data: { lastLogin: new Date() }
       });
 
+      const orgUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { organizationId: true, email: true }
+      });
+      if (orgUser?.organizationId) {
+        const { recordAuditEvent } = await import(
+          '@/lib/audit/record-audit-event'
+        );
+        await recordAuditEvent({
+          organizationId: orgUser.organizationId,
+          eventType: 'user.login',
+          actorId: user.id,
+          actorEmail: orgUser.email ?? user.email,
+          resourceType: 'user',
+          resourceId: user.id,
+          metadata: {
+            provider: account?.provider ?? 'credentials',
+            isNewUser: Boolean(isNewUser)
+          },
+          captureIp: true
+        });
+      }
+
       if (
         account?.provider === OAuthIdentityProvider.Google ||
         account?.provider === OAuthIdentityProvider.GitHub

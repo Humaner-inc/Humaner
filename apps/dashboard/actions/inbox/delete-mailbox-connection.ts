@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 
@@ -36,6 +37,19 @@ export const deleteMailboxConnection = ownerActionClient
     // Cascades: aliases → threads → messages / notes / tags / members.
     await prisma.mailboxConnection.delete({
       where: { id: connection.id }
+    });
+
+    await recordAuditEvent({
+      organizationId,
+      eventType: 'mailbox.disconnected',
+      actorId: session.user.id,
+      actorEmail: session.user.email,
+      resourceType: 'mailbox_connection',
+      resourceId: connection.id,
+      before: {
+        email: connection.email,
+        aliasCount: connection._count.aliases
+      }
     });
 
     revalidatePath(Routes.Inbox);

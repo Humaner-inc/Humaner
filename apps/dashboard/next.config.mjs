@@ -31,7 +31,7 @@ const svgLoader = {
 const nextConfig = {
   transpilePackages: ['@humaner/shared', 'lucide-animated'],
   // Keep skillz on the Node filesystem so catalog.json resolves via createRequire.
-  serverExternalPackages: ['customer-support-skillz'],
+  serverExternalPackages: ['@humaner/customer-support-skillz'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   turbopack: {
     rules: {

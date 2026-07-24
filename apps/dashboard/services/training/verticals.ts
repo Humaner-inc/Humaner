@@ -1,3 +1,4 @@
+import { getIndustry, SKILLZ_VERSION } from '@humaner/customer-support-skillz';
 import type {
   CharacterType,
   EmojiMode,
@@ -6,7 +7,6 @@ import type {
   OpenerStyle,
   Verbosity
 } from '@prisma/client';
-import { getIndustry, SKILLZ_VERSION } from 'customer-support-skillz';
 
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
@@ -15,7 +15,7 @@ import type { SystemPromptAgent } from '@/lib/build-system-prompt';
  *
  * Structural content (behavioral rules, escalation triggers, guardrails, eval
  * scenarios, vocabulary, problem-solving skills) comes from the open
- * `customer-support-skillz` catalog:
+ * `@humaner/customer-support-skillz` catalog:
  * https://github.com/Humaner-inc/customer-support-skillz
  *
  * Persona presets (character, verbosity, formality, emoji mode, opener style)
@@ -97,7 +97,7 @@ type SkillzIndustryPackage = {
  * Vertical Configuration for Agent Training
  *
  * Structural content (behavioral rules, escalation triggers, guardrails, eval
- * scenarios, vocabulary) comes from the open `customer-support-skillz` catalog.
+ * scenarios, vocabulary) comes from the open `@humaner/customer-support-skillz` catalog.
  * Persona presets (character, verbosity, formality, emoji mode, opener style)
  * are Humaner's Core Skillz (Layer 1) and stay private in this file.
  *
@@ -298,9 +298,8 @@ function requireSkillzPackage(industry: IndustryType): SkillzIndustryPackage {
   const pkg = getIndustry(packageId) as SkillzIndustryPackage | undefined;
   if (!pkg) {
     throw new Error(
-      `customer-support-skillz package "${packageId}" not found for industry "${industry}". ` +
-        'Run `npm run build` in https://github.com/Humaner-inc/customer-support-skillz, then reinstall ' +
-        '(pnpm install --filter @humaner/dashboard).'
+      `@humaner/customer-support-skillz package "${packageId}" not found for industry "${industry}". ` +
+        'Reinstall `@humaner/customer-support-skillz` (npm) and ensure the package version includes this industry.'
     );
   }
   return pkg;
