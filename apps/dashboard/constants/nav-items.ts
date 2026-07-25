@@ -56,7 +56,7 @@ export const organizationNavItems: NavItem[] = [
   },
   {
     title: 'Audit logs',
-    href: Routes.AuditLogs,
+    href: Routes.Security,
     icon: ActivityIcon,
     ownerOnly: true
   }

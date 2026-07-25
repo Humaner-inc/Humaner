@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { WorkspaceRole } from '@prisma/client';
 
 import { MfaRecommendedBanner } from '@/components/dashboard/settings/account/security/mfa-required-banner';
 import { AnnotatedLayout } from '@/components/ui/annotated';
@@ -13,16 +14,19 @@ export type SecurityLayoutProps = {
   connectedAccounts: React.ReactNode;
   multiFactorAuthentication: React.ReactNode;
   manageSessions: React.ReactNode;
+  auditLogs: React.ReactNode;
 };
 
 export default async function SecurityLayout({
   changePassword,
   connectedAccounts,
   multiFactorAuthentication,
-  manageSessions
+  manageSessions,
+  auditLogs
 }: SecurityLayoutProps): Promise<React.JSX.Element> {
   const authSession = await dedupedAuth();
   let showMfaRecommendation = false;
+  let isOwner = false;
 
   if (checkSession(authSession)) {
     const user = await prisma.user.findFirst({
@@ -30,6 +34,7 @@ export default async function SecurityLayout({
       select: { workspaceRole: true, role: true }
     });
     if (user) {
+      isOwner = user.workspaceRole === WorkspaceRole.OWNER;
       showMfaRecommendation = await shouldRecommendMfa(
         authSession.user.id,
         user.workspaceRole,
@@ -52,6 +57,12 @@ export default async function SecurityLayout({
           {manageSessions}
         </>
       )}
+      {isOwner ? (
+        <>
+          <Separator />
+          {auditLogs}
+        </>
+      ) : null}
     </AnnotatedLayout>
   );
 }

@@ -1,4 +1,7 @@
-import { getIndustry, SKILLZ_VERSION } from '@humaner/customer-support-skillz';
+import {
+  getIndustry,
+  SKILLZ_VERSION
+} from '@humaner/customer-support-skillz/runtime';
 import type {
   CharacterType,
   EmojiMode,
@@ -11,12 +14,11 @@ import type {
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
 /**
- * Vertical Configuration for Agent Training
+ * Vertical Configuration for Agent Training / Prompts
  *
- * Structural content (behavioral rules, escalation triggers, guardrails, eval
- * scenarios, vocabulary, problem-solving skills) comes from the open
- * `@humaner/customer-support-skillz` catalog:
- * https://github.com/Humaner-inc/customer-support-skillz
+ * Uses the slim `@humaner/customer-support-skillz/runtime` entry (baseline
+ * skills only — no problem-solving procedure markdown) so chat cold starts
+ * stay small and fast.
  *
  * Persona presets (character, verbosity, formality, emoji mode, opener style)
  * are Humaner's Core Skillz (Layer 1) and stay private in this file.
@@ -25,86 +27,44 @@ import type { SystemPromptAgent } from '@/lib/build-system-prompt';
  * the catalog repo (`industries/<name>/<skill>/SKILL.md`) instead.
  */
 
-/**
- * Catalog industry shape (skills-based). Declared locally so the adapter stays
- * stable across `file:` / git installs. Keep in sync with
- * https://github.com/Humaner-inc/customer-support-skillz dist/index.d.ts.
- */
-type SkillzCoreSkill = {
-  name: string;
-  description: string;
-  type: 'core';
-  baselineTone: string[];
-  fallback: string;
-  commonTopics: string[];
-  domainTerms: string;
-  exampleBusinessTypes: string;
-};
-
-type SkillzBehaviorSkill = {
-  name: string;
-  description: string;
-  type: 'behavior';
-  rules: string[];
-  evalCommon: string[];
-  evalEdge: string[];
-};
-
-type SkillzEscalationSkill = {
-  name: string;
-  description: string;
-  type: 'escalation';
-  triggers: string[];
-  evalEscalation: string[];
-};
-
-type SkillzGuardrailsSkill = {
-  name: string;
-  description: string;
-  type: 'guardrails';
-  forbiddenTopics: string[];
-  evalTraps: string[];
-};
-
-type SkillzProblemSolvingSkill = {
-  name: string;
-  description: string;
-  type: 'problem-solving';
-  id: string;
-  whenToUse: string;
-  procedure: string;
-  doNot: string[];
-};
-
-type SkillzSkill =
-  | SkillzCoreSkill
-  | SkillzBehaviorSkill
-  | SkillzEscalationSkill
-  | SkillzGuardrailsSkill
-  | SkillzProblemSolvingSkill;
-
-type SkillzIndustryPackage = {
+/** Runtime catalog shape — keep in sync with skillz `dist/runtime.d.ts`. */
+type SkillzRuntimePackage = {
   id: string;
   skills: {
-    core: SkillzCoreSkill;
-    behavior: SkillzBehaviorSkill;
-    escalation: SkillzEscalationSkill;
-    guardrails: SkillzGuardrailsSkill;
-    [key: string]: SkillzSkill;
+    core: {
+      name: string;
+      description: string;
+      type: 'core';
+      baselineTone: string[];
+      fallback: string;
+      commonTopics: string[];
+      domainTerms: string;
+      exampleBusinessTypes: string;
+    };
+    behavior: {
+      name: string;
+      description: string;
+      type: 'behavior';
+      rules: string[];
+      evalCommon: string[];
+      evalEdge: string[];
+    };
+    escalation: {
+      name: string;
+      description: string;
+      type: 'escalation';
+      triggers: string[];
+      evalEscalation: string[];
+    };
+    guardrails: {
+      name: string;
+      description: string;
+      type: 'guardrails';
+      forbiddenTopics: string[];
+      evalTraps: string[];
+    };
   };
 };
-/**
- * Vertical Configuration for Agent Training
- *
- * Structural content (behavioral rules, escalation triggers, guardrails, eval
- * scenarios, vocabulary) comes from the open `@humaner/customer-support-skillz` catalog.
- * Persona presets (character, verbosity, formality, emoji mode, opener style)
- * are Humaner's Core Skillz (Layer 1) and stay private in this file.
- *
- * Do not hand-author structural content here. Edit the markdown skill files in
- * the catalog repo (`industries/<name>/<skill>/SKILL.md`) instead, run
- * `npm run build` there, and reinstall the dependency.
- */
 
 export type PersonaPreset = {
   character: CharacterType;
@@ -117,15 +77,6 @@ export type PersonaPreset = {
   role: string;
   name: string;
   fallbackMessage: string;
-};
-
-export type ProblemSolvingSkill = {
-  id: string;
-  name: string;
-  description: string;
-  whenToUse: string;
-  procedure: string;
-  doNot: string[];
 };
 
 export type VerticalConfig = {
@@ -147,7 +98,6 @@ export type VerticalConfig = {
   escalationTriggers: string[];
   forbiddenTopics: string[];
   exampleBusinessTypes: string[];
-  problemSolvingSkills: ProblemSolvingSkill[];
 };
 
 /** Maps Humaner's Prisma `IndustryType` to the catalog's package id. */
@@ -157,6 +107,8 @@ const PACKAGE_ID_BY_INDUSTRY: Record<IndustryType, string> = {
   FITNESS: 'wellness',
   TRAVEL: 'hospitality'
 };
+
+const INDUSTRY_IDS = Object.keys(PACKAGE_ID_BY_INDUSTRY) as IndustryType[];
 
 /**
  * PRIVATE persona presets per industry (Layer 1 Core Skillz).
@@ -238,35 +190,14 @@ function parseTermsList(paragraph: string): string[] {
     .filter(Boolean);
 }
 
-const BASELINE_SKILL_IDS = new Set([
-  'core',
-  'behavior',
-  'escalation',
-  'guardrails'
-]);
-
 function adaptIndustry(
   industry: IndustryType,
-  pkg: SkillzIndustryPackage
+  pkg: SkillzRuntimePackage
 ): VerticalConfig {
   const { skills } = pkg;
   const persona = { ...PERSONA_PRESETS[industry] };
   persona.fallbackMessage = skills.core.fallback;
   const meta = INDUSTRY_META[industry];
-
-  const problemSolvingSkills: ProblemSolvingSkill[] = Object.entries(skills)
-    .filter(([key]) => !BASELINE_SKILL_IDS.has(key))
-    .map(([, skill]) => {
-      const ps = skill as SkillzProblemSolvingSkill;
-      return {
-        id: ps.id ?? ps.name,
-        name: ps.name,
-        description: ps.description,
-        whenToUse: ps.whenToUse ?? '',
-        procedure: ps.procedure ?? '',
-        doNot: ps.doNot ?? []
-      };
-    });
 
   return {
     id: industry,
@@ -288,80 +219,98 @@ function adaptIndustry(
     forbiddenTopics: skills.guardrails.forbiddenTopics,
     exampleBusinessTypes: skills.core.exampleBusinessTypes
       ? parseTermsList(skills.core.exampleBusinessTypes)
-      : [],
-    problemSolvingSkills
+      : []
   };
 }
 
-function requireSkillzPackage(industry: IndustryType): SkillzIndustryPackage {
+function requireSkillzPackage(industry: IndustryType): SkillzRuntimePackage {
   const packageId = PACKAGE_ID_BY_INDUSTRY[industry];
-  const pkg = getIndustry(packageId) as SkillzIndustryPackage | undefined;
+  const pkg = getIndustry(packageId) as SkillzRuntimePackage | undefined;
   if (!pkg) {
     throw new Error(
-      `@humaner/customer-support-skillz package "${packageId}" not found for industry "${industry}". ` +
-        'Reinstall `@humaner/customer-support-skillz` (npm) and ensure the package version includes this industry.'
+      `@humaner/customer-support-skillz/runtime package "${packageId}" not found for industry "${industry}". ` +
+        'Reinstall `@humaner/customer-support-skillz` (>=0.3.2) and ensure the package version includes this industry.'
     );
   }
   return pkg;
 }
 
-function buildVerticalConfigs(): Record<IndustryType, VerticalConfig> {
-  const industries = Object.keys(PACKAGE_ID_BY_INDUSTRY) as IndustryType[];
-  return Object.fromEntries(
-    industries.map((industry) => [
-      industry,
-      adaptIndustry(industry, requireSkillzPackage(industry))
-    ])
-  ) as Record<IndustryType, VerticalConfig>;
+/** Adapt one industry on first use — avoid paying for all four at cold start. */
+const verticalConfigCache = new Map<IndustryType, VerticalConfig>();
+
+export function getVerticalConfig(industry: IndustryType): VerticalConfig {
+  const cached = verticalConfigCache.get(industry);
+  if (cached) return cached;
+  const config = adaptIndustry(industry, requireSkillzPackage(industry));
+  verticalConfigCache.set(industry, config);
+  return config;
 }
 
-export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> =
-  buildVerticalConfigs();
-
 /**
- * Per-vertical release version.
- * Now uses the catalog-level SKILLZ_VERSION since individual industry
- * packages no longer carry their own version field.
+ * Lazy record view over `getVerticalConfig` so existing
+ * `VERTICAL_CONFIGS[industry]` call sites stay valid without eager adaptation.
  */
+export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = new Proxy(
+  {} as Record<IndustryType, VerticalConfig>,
+  {
+    get(_target, prop) {
+      if (typeof prop === 'string' && prop in PACKAGE_ID_BY_INDUSTRY) {
+        return getVerticalConfig(prop as IndustryType);
+      }
+      return undefined;
+    },
+    ownKeys() {
+      return INDUSTRY_IDS;
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      if (typeof prop === 'string' && prop in PACKAGE_ID_BY_INDUSTRY) {
+        return {
+          configurable: true,
+          enumerable: true,
+          value: getVerticalConfig(prop as IndustryType)
+        };
+      }
+      return undefined;
+    },
+    has(_target, prop) {
+      return typeof prop === 'string' && prop in PACKAGE_ID_BY_INDUSTRY;
+    }
+  }
+);
+
+/** Catalog-level skillz version (same for every industry). */
 export const VERTICAL_VERSIONS: Record<IndustryType, string> =
   Object.fromEntries(
-    (Object.keys(PACKAGE_ID_BY_INDUSTRY) as IndustryType[]).map((industry) => [
-      industry,
-      SKILLZ_VERSION
-    ])
+    INDUSTRY_IDS.map((industry) => [industry, SKILLZ_VERSION])
   ) as Record<IndustryType, string>;
 
 export function getVerticalVersion(industry: IndustryType): string {
   return VERTICAL_VERSIONS[industry];
 }
 
-export function getVerticalConfig(industry: IndustryType): VerticalConfig {
-  return VERTICAL_CONFIGS[industry];
-}
-
 export function getAllVerticals(): VerticalConfig[] {
-  return Object.values(VERTICAL_CONFIGS);
+  return INDUSTRY_IDS.map((industry) => getVerticalConfig(industry));
 }
 
 export function getVerticalColor(industry: IndustryType): string {
-  return VERTICAL_CONFIGS[industry].color;
+  return getVerticalConfig(industry).color;
 }
 
 export function getVerticalIcon(industry: IndustryType): string {
-  return VERTICAL_CONFIGS[industry].icon;
+  return getVerticalConfig(industry).icon;
 }
 
 export function getVerticalPersonaPreset(
   industry: IndustryType
 ): PersonaPreset {
-  return VERTICAL_CONFIGS[industry].personaPreset;
+  return getVerticalConfig(industry).personaPreset;
 }
 
 /** Synthetic agent used for platform / vertical training runs. */
 export function buildPlatformTrainingAgent(
   industry: IndustryType
 ): SystemPromptAgent {
-  const config = VERTICAL_CONFIGS[industry];
+  const config = getVerticalConfig(industry);
   return {
     industry,
     character: config.personaPreset.character,

@@ -1,11 +1,11 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { getVerticalConfig } from '@/services/training/verticals';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
-import { getIndustry } from '@/lib/industries';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateOrganizationIndustrySchema } from '@/schemas/organization/update-organization-industry-schema';
 
@@ -21,7 +21,8 @@ export const updateOrganizationIndustry = ownerActionClient
       throw new NotFoundError('Organization not found');
     }
 
-    const preset = getIndustry(parsedInput.industry);
+    const vertical = getVerticalConfig(parsedInput.industry);
+    const persona = vertical.personaPreset;
 
     // Changing the industry re-anchors every agent to the new vertical's
     // defaults — this intentionally overwrites prior persona/style tuning.
@@ -35,13 +36,13 @@ export const updateOrganizationIndustry = ownerActionClient
         where: { organizationId: session.user.organizationId },
         data: {
           industry: parsedInput.industry,
-          character: preset.defaultCharacter,
-          forbiddenTopics: preset.forbiddenTopics,
-          verbosity: 'BALANCED',
-          formality: 'STANDARD',
-          emojiMode: 'NONE',
-          openerStyle: 'DIRECT',
-          allowTypos: false
+          character: persona.character,
+          forbiddenTopics: vertical.forbiddenTopics,
+          verbosity: persona.verbosity,
+          formality: persona.formality,
+          emojiMode: persona.emojiMode,
+          openerStyle: persona.openerStyle,
+          allowTypos: persona.allowTypos
         }
       })
     ]);
