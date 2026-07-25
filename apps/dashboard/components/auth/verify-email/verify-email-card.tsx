@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { CheckIcon } from '@humaner/shared/icons';
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp';
 import { type SubmitHandler } from 'react-hook-form';
@@ -46,7 +45,6 @@ export function VerifyEmailCard({
   email,
   className
 }: VerifyEmailCardProps): React.JSX.Element {
-  const router = useRouter();
   const [verifySuccess, setVerifySuccess] = React.useState(false);
   const [isResendingEmailVerification, setIsResendingEmailVerification] =
     React.useState<boolean>(false);
@@ -82,7 +80,9 @@ export function VerifyEmailCard({
       await new Promise((resolve) => {
         window.setTimeout(resolve, 550);
       });
-      router.push(result.data.redirectTo);
+      // Full navigation so the session cookie from the server action is applied
+      // before the next page reads auth (router.push can race → /auth/login).
+      window.location.assign(result.data.redirectTo);
       return;
     }
     if (result?.serverError || result?.validationErrors) {

@@ -29,22 +29,27 @@ export async function organizationAllowsModelTraining(
 }
 
 /**
- * Consent + plan gates for org-scoped improvement pipelines
- * (embeddings / content gaps / resolution clusters).
+ * Plan + consent gates for training pipelines.
  *
- * Visitor Iris memory is separate and is not gated here.
+ * Org-scoped Desk features (runbooks, content gaps, resolution clusters /
+ * auto-training) require plan capability only — they serve the customer's own
+ * agents under the DPA and do not need "Help improve Humaner" consent.
+ *
+ * {@link canContributePlatformPatterns} is the optional product-improvement
+ * opt-in (anonymised patterns for Humaner platform / model enhancement).
  * Model fine-tuning requires {@link organizationAllowsModelTraining} separately.
+ * Visitor Iris memory is not gated here.
  */
 export type OrganizationTrainingAccess = {
   consent: boolean;
   modelTrainingConsent: boolean;
-  /** Embed user messages + run HDBSCAN content-gap clustering. */
+  /** Embed user messages + run HDBSCAN content-gap clustering (org-scoped). */
   canDetectContentGaps: boolean;
-  /** Feed Human Desk resolutions into ResolutionCluster training. */
+  /** Feed Human Desk resolutions into org ResolutionClusters (org-scoped). */
   canAutoTrainClusters: boolean;
   /**
    * Contribute anonymised patterns to platform Skills / Runbooks / failure scores.
-   * Same gate as data improvement + Frontier capabilities.
+   * Requires optional data-improvement consent + Frontier capabilities.
    */
   canContributePlatformPatterns: boolean;
 };
@@ -68,8 +73,8 @@ export async function getOrganizationTrainingAccess(
   return {
     consent,
     modelTrainingConsent,
-    canDetectContentGaps: consent && capabilities.contentGaps,
-    canAutoTrainClusters: consent && capabilities.autoTraining,
+    canDetectContentGaps: capabilities.contentGaps,
+    canAutoTrainClusters: capabilities.autoTraining,
     canContributePlatformPatterns:
       consent && (capabilities.contentGaps || capabilities.autoTraining)
   };

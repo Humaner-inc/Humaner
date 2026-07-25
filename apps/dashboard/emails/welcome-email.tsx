@@ -20,8 +20,8 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
     <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
     <EmailText>Glad you&apos;re here.</EmailText>
     <EmailText>
-      Hope this email sounds Human enouhg for you. (even added typo as your
-      Humaner agents will do.)
+      Hope this email sounds Human enouhg for you. (yes I left the typo on
+      purpose)
     </EmailText>
     <EmailText>
       We want to give Customer Support the attention and the tools it deserves.{' '}

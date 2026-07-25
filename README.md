@@ -77,7 +77,7 @@ Grey exists to break rhythm inside the brand: use it sparingly on a few section 
 ## Pricing
 
 - **Classic** (free): 50 messages/mo · 1 agent · Humaner v1.0 (with limitations)
-- **Refined:** from $69/mo · 1,000 messages · Humaner v1.0 (full capacity)
+- **Refined:** from $89/mo · 1,000 messages · Humaner v2.0 · cross-session memory
 - **Frontier:** from $249/mo · 4,000 messages · Humaner v2.0 · live chat · REST API · 3 agents
 - **Delegate:** custom · Humaner v3.0 · coming soon.
 

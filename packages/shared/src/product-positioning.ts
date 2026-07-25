@@ -8,7 +8,7 @@ export const HUMANER_DIFFERENTIATORS = [
   "Cross-session memory means customers never repeat themselves.",
   "Escalation and desks keep urgency, history, and context when a human needs to take over.",
   "Org inbox connects support aliases so teams collaborate on mail in Humaner.",
-  "Recursive agents improve from your business data | gaps, runbooks, and solved issues feed the loop.",
+  "Recursive agents improve from your business data | gaps, clusters, and solved issues feed the Frontier loop.",
   "Security-first guardrails: grounding gates, industry bans, domain allowlists, and clear data privacy.",
   "Ship everywhere from one agent config,  widget, link, API, React.",
 ] as const;

@@ -1,15 +1,12 @@
 import * as React from 'react';
 import Link from 'next/link';
-import {
-  getPlanForTier,
-  normalizePlanTier,
-  type PlanTier
-} from '@humaner/shared/plans';
+import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
 import { HintLabel } from '@/components/ui/hint-label';
 import { Routes } from '@/constants/routes';
+import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
 import { getIndustry } from '@/lib/industries';
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
@@ -24,14 +21,6 @@ export type DashboardOverviewStripProps = {
   className?: string;
 };
 
-const TIER_ACCENT: Record<PlanTier, string> = {
-  free: '#7b7b73',
-  classic: '#6b8cae',
-  refined: '#0047ab',
-  frontier: '#c9ae84',
-  humaner: '#e1ccaf'
-};
-
 export function DashboardOverviewStrip({
   organizationName,
   website,
@@ -44,13 +33,18 @@ export function DashboardOverviewStrip({
   const normalizedTier = normalizePlanTier(tier);
   const plan = getPlanForTier(tier);
   const isFreePlan = normalizedTier === 'free';
-  const tierAccent = TIER_ACCENT[normalizedTier];
+  const tierAccent = PLAN_TIER_ACCENT[normalizedTier];
   const domain = website ? toHostname(website) : null;
   const logoSrc = logoUrl ?? (domain ? getLogoUrl(domain, 40, true) : null);
   const industryLabel = industry ? getIndustry(industry).label : null;
   const audienceLabel =
     targetAudience === 'B2B' ? 'B2B' : targetAudience === 'B2C' ? 'B2C' : null;
-  const context = [industryLabel, audienceLabel].filter(Boolean).join(' · ');
+  const audienceFontClass =
+    targetAudience === 'B2B'
+      ? 'font-fellix'
+      : targetAudience === 'B2C'
+        ? 'font-display'
+        : null;
 
   return (
     <section
@@ -88,7 +82,7 @@ export function DashboardOverviewStrip({
             <span className="font-mono text-xs tabular-nums">
               {plan.includedMessages.toLocaleString()} msg/mo
             </span>
-            {context ? (
+            {industryLabel ? (
               <>
                 <span
                   aria-hidden
@@ -96,7 +90,25 @@ export function DashboardOverviewStrip({
                 >
                   ·
                 </span>
-                <span className="text-xs">{context}</span>
+                <span className="font-mono text-xs">{industryLabel}</span>
+              </>
+            ) : null}
+            {audienceLabel && audienceFontClass ? (
+              <>
+                <span
+                  aria-hidden
+                  className="text-border"
+                >
+                  ·
+                </span>
+                <span
+                  className={cn(
+                    'text-xs font-semibold tracking-tight',
+                    audienceFontClass
+                  )}
+                >
+                  {audienceLabel}
+                </span>
               </>
             ) : null}
           </p>

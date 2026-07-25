@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
+import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
+import { prisma } from '@/lib/db/prisma';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
 
@@ -39,12 +41,40 @@ function isLogoutRoute(): boolean {
   return !!pathname && pathname.startsWith(Routes.Logout);
 }
 
+function isVerifyEmailRoute(): boolean {
+  const pathname = getPathname();
+  return !!pathname && pathname.startsWith(Routes.VerifyEmail);
+}
+
+async function getAuthenticatedRedirect(userId: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      completedOnboarding: true,
+      organization: { select: { completedOnboarding: true } }
+    }
+  });
+
+  return getPostVerificationRedirect({
+    completedOnboarding: user?.completedOnboarding ?? false,
+    organizationCompletedOnboarding:
+      user?.organization?.completedOnboarding ?? false
+  });
+}
+
 export default async function AuthLayout({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
-  if (!isChangeEmailRoute() && !isLogoutRoute() && session) {
-    return redirect(Routes.Home);
+  // Let verify-email finish (OTP action + client redirect). Auto-bouncing to a
+  // protected route here races the new session cookie and lands on /auth/login.
+  if (
+    !isChangeEmailRoute() &&
+    !isLogoutRoute() &&
+    !isVerifyEmailRoute() &&
+    session?.user?.id
+  ) {
+    return redirect(await getAuthenticatedRedirect(session.user.id));
   }
   return (
     <div className="relative flex min-h-screen bg-[#070607]">

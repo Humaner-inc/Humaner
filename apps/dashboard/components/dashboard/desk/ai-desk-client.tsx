@@ -84,7 +84,7 @@ export function AIDeskClient({
       <EmptyState
         icon={<BotIcon className="size-8 text-muted-foreground" />}
         title="No AI Desk tickets yet"
-        description="Low-priority tickets will be routed here automatically when clusters and runbooks are configured."
+        description="Low-priority tickets will be routed here when they match approved runbooks (and clusters on Frontier+)."
       />
     );
   }
@@ -95,8 +95,10 @@ export function AIDeskClient({
         <div>
           <h2 className="font-display text-2xl leading-none">AI Desk</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Tickets handled autonomously using {labels.clusters.toLowerCase()}{' '}
-            and {labels.runbooks.toLowerCase()}.
+            Tickets handled autonomously from approved{' '}
+            {labels.runbooks.toLowerCase()}
+            {', with '}
+            {labels.clusters.toLowerCase()} on Frontier+.
           </p>
         </div>
         <div className="flex items-center gap-3">
