@@ -1,6 +1,7 @@
-export const HUMANER_TAGLINE = "The customer support layer for developers.";
+export const HUMANER_TAGLINE =
+  "The support layer built for the AI era, designed for developers.";
 
-export const HUMANER_ELEVATOR_PITCH = `Humaner is the customer support layer for developers. Agents speak in your brand voice, remember customers across sessions, and hand off to your team with auto-training loop so care scales without becoming indifference.`;
+export const HUMANER_ELEVATOR_PITCH = `Humaner: Customer support agents that scale care instead of indifference. They learn, remermber, train and get better overtime.`;
 
 export const HUMANER_DIFFERENTIATORS = [
   "Personas and industry Skillz make agents sound and act like your brand.",
