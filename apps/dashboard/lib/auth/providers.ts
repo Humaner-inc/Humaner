@@ -23,6 +23,7 @@ import {
   UnverifiedEmailError
 } from '@/lib/validation/exceptions';
 import { logInSchema } from '@/schemas/auth/log-in-schema';
+import { submitEmailVerificationSchema } from '@/schemas/auth/submit-email-verification-schema';
 import { submitRecoveryCodeSchema } from '@/schemas/auth/submit-recovery-code-schema';
 import { submitTotpCodeSchema } from '@/schemas/auth/submit-totp-code-schema';
 import { IdentityProvider } from '@/types/identity-provider';
@@ -302,6 +303,72 @@ export const providers = [
           id: true // SELECT NONE
         }
       });
+
+      return {
+        id: user.id,
+        organizationId: user.organizationId,
+        email: user.email,
+        name: user.name
+      };
+    }
+  }),
+  CredentialsProvider({
+    id: IdentityProvider.EmailVerification,
+    name: IdentityProvider.EmailVerification,
+    credentials: {
+      token: { label: 'Token', type: 'text' },
+      expiry: { label: 'Expiry', type: 'text' }
+    },
+    async authorize(credentials) {
+      if (!process.env.AUTH_SECRET) {
+        console.error(
+          'Missing encryption key; cannot proceed with email verification login.'
+        );
+        throw new InternalServerError();
+      }
+
+      if (!credentials) {
+        throw new InternalServerError();
+      }
+
+      const result = submitEmailVerificationSchema.safeParse(credentials);
+      if (!result.success) {
+        throw new InternalServerError();
+      }
+
+      const parsedCredentials = result.data;
+      let userId: string;
+      let expiry: Date;
+      try {
+        userId = symmetricDecrypt(
+          parsedCredentials.token,
+          process.env.AUTH_SECRET
+        );
+        expiry = new Date(
+          symmetricDecrypt(parsedCredentials.expiry, process.env.AUTH_SECRET)
+        );
+      } catch {
+        throw new InternalServerError();
+      }
+
+      if (!isValid(expiry) || isBefore(expiry, new Date())) {
+        throw new RequestExpiredError();
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          organizationId: true,
+          email: true,
+          emailVerified: true,
+          name: true
+        }
+      });
+
+      if (!user?.email || !isEmailVerified(user.emailVerified)) {
+        throw new UnverifiedEmailError();
+      }
 
       return {
         id: user.id,

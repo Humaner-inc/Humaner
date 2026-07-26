@@ -54,8 +54,8 @@ export function EmailLayout({
               <Img
                 src={logoSrc}
                 alt=""
-                width="140"
-                height="140"
+                width="110"
+                height="110"
                 className="mx-auto"
               />
             </Section>

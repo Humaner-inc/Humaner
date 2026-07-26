@@ -14,7 +14,8 @@ const dashboardCtaCaseClassName = 'normal-case';
 const neutralCtaClasses = cn(
   ctaPrimaryOnLightClassName,
   dashboardCtaCaseClassName,
-  'dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:bg-frame dark:hover:text-frame-foreground'
+  // On dark shells stay cream; soft white lift on hover (never frame grey).
+  'dark:bg-[#fff8f2] dark:text-[#070607] dark:hover:border-white dark:hover:bg-white dark:hover:text-[#070607]'
 );
 
 const upgradeCtaClasses =
@@ -72,7 +73,7 @@ const Button = React.forwardRef<ButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
       >

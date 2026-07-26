@@ -182,6 +182,7 @@ export function SignUpCard(): React.JSX.Element {
           )}
           <Button
             type="submit"
+            variant="ghost"
             className={authPrimaryButtonClassName}
             disabled={methods.formState.isSubmitting}
             loading={methods.formState.isSubmitting}
