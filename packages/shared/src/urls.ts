@@ -33,7 +33,7 @@ export function getPricingUrl(): string {
 }
 
 export function getBookDemoUrl(): string {
-  return "mailto:hello@humaner.io?subject=Book%20a%20demo";
+  return "https://cal.com/alex-neyret/15min";
 }
 
 export function getPrivacyUrl(): string {
