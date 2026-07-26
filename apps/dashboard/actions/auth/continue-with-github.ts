@@ -18,13 +18,9 @@ export const continueWithGitHub = actionClient
       Routes.Home
     );
 
-    await signIn(
-      IdentityProvider.GitHub,
-      {
-        redirectTo
-      },
-      {
-        prompt: 'login'
-      }
-    );
+    // GitHub OAuth does not use OIDC `prompt`; keep authorization params empty
+    // so Auth.js uses the provider default scope (read:user user:email).
+    await signIn(IdentityProvider.GitHub, {
+      redirectTo
+    });
   });

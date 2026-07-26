@@ -108,8 +108,14 @@ export const callbacks = {
       }
     }
 
-    if (account.provider === OAuthIdentityProvider.GitHub && !user.email) {
-      return `${Routes.AuthError}?error=${AuthErrorCode.UnverifiedEmail}`;
+    if (account.provider === OAuthIdentityProvider.GitHub) {
+      if (!user.email) {
+        return `${Routes.AuthError}?error=${AuthErrorCode.UnverifiedEmail}`;
+      }
+      // Reject only when GitHub explicitly marks the email unverified.
+      if (profile.email_verified === false) {
+        return `${Routes.AuthError}?error=${AuthErrorCode.UnverifiedEmail}`;
+      }
     }
 
     if (user?.id && (await isAuthenticatorAppEnabled(user.id))) {

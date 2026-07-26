@@ -4,7 +4,7 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 
 import { AuthContainer } from '@/components/auth/auth-container';
 import { AuthErrorCard } from '@/components/auth/error/auth-error-card';
-import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { resolveAuthErrorMessage } from '@/lib/auth/errors';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
 
@@ -20,11 +20,7 @@ export default async function AuthErrorPage({
   searchParams
 }: NextPageProps): Promise<React.JSX.Element> {
   const { error } = await searchParamsCache.parse(searchParams);
-
-  const errorMessage =
-    error in authErrorMessages
-      ? authErrorMessages[error as AuthErrorCode]
-      : authErrorMessages[AuthErrorCode.UnknownError];
+  const errorMessage = resolveAuthErrorMessage(error);
   return (
     <AuthContainer maxWidth="sm">
       <AuthErrorCard errorMessage={errorMessage} />

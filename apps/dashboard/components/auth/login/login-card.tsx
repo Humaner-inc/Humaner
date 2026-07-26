@@ -50,10 +50,19 @@ import {
   type PassThroughLogInSchema
 } from '@/schemas/auth/log-in-schema';
 
-export function LoginCard(): React.JSX.Element {
+export type LoginCardProps = {
+  /** Auth.js redirects here with ?error=… (e.g. OAuthAccountNotLinked). */
+  initialErrorMessage?: string;
+};
+
+export function LoginCard({
+  initialErrorMessage
+}: LoginCardProps = {}): React.JSX.Element {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [loginSuccess, setLoginSuccess] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState<string>();
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>(
+    initialErrorMessage
+  );
   const [highlightInputs, setHighlightInputs] = React.useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = React.useState<
     string | undefined

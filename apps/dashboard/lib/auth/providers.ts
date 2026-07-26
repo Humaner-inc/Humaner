@@ -316,6 +316,9 @@ export const providers = [
     name: IdentityProvider.Google,
     clientId: process.env.AUTH_GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET as string,
+    // Google verifies emails; link to an existing Humaner user with the same
+    // address instead of failing with OAuthAccountNotLinked.
+    allowDangerousEmailAccountLinking: true,
     authorization: {
       params: {
         scope: 'openid email profile',
@@ -329,6 +332,65 @@ export const providers = [
     id: IdentityProvider.GitHub,
     name: IdentityProvider.GitHub,
     clientId: process.env.AUTH_GITHUB_CLIENT_ID as string,
-    clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET as string
+    clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET as string,
+    // GitHub verifies emails via user:email; link to an existing Humaner user
+    // with the same address instead of failing with OAuthAccountNotLinked.
+    allowDangerousEmailAccountLinking: true,
+    authorization: {
+      params: {
+        scope: 'read:user user:email'
+      }
+    },
+    userinfo: {
+      url: 'https://api.github.com/user',
+      async request({
+        tokens,
+        provider
+      }: {
+        tokens: { access_token?: string };
+        provider: { userinfo?: { url?: string } };
+      }) {
+        const profile = (await fetch(provider.userinfo!.url as string, {
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            'User-Agent': 'humaner-auth'
+          }
+        }).then(async (res) => await res.json())) as {
+          email?: string | null;
+          email_verified?: boolean;
+          [key: string]: unknown;
+        };
+
+        if (!profile.email) {
+          const res = await fetch('https://api.github.com/user/emails', {
+            headers: {
+              Authorization: `Bearer ${tokens.access_token}`,
+              'User-Agent': 'humaner-auth',
+              Accept: 'application/vnd.github+json'
+            }
+          });
+          if (res.ok) {
+            const emails = (await res.json()) as Array<{
+              email: string;
+              primary: boolean;
+              verified: boolean;
+            }>;
+            const preferred =
+              emails.find((e) => e.primary && e.verified) ??
+              emails.find((e) => e.verified) ??
+              emails.find((e) => e.primary) ??
+              emails[0];
+            if (preferred) {
+              profile.email = preferred.email;
+              profile.email_verified = preferred.verified;
+            }
+          }
+        } else {
+          profile.email_verified = true;
+        }
+
+        return profile;
+      }
+    }
   })
 ] satisfies NextAuthConfig['providers'];

@@ -29,8 +29,8 @@ export function getCtaDashboardClassName(surface: "light" | "dark"): string {
     : ctaDashboardOnLightClassName;
 }
 
-/** Cream button — use on dark surfaces. */
-export const ctaPrimaryClassName = `${CTA_BASE} border border-[#fff8f2]/30 bg-[#fff8f2] px-4 py-2 text-[#070607] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.4)] hover:border-white hover:bg-white hover:text-[#070607] hover:shadow-[0_0_32px_rgb(255_255_255_/_0.58),0_0_0_1px_rgb(255_255_255_/_0.95),inset_0_1px_0_rgb(255_255_255_/_1)]`;
+/** Cream button — use on dark surfaces. Soft hover lift, no heavy glow. */
+export const ctaPrimaryClassName = `${CTA_BASE} border border-[#fff8f2]/30 bg-[#fff8f2] px-4 py-2 text-[#070607] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.4)] hover:border-white hover:bg-white hover:text-[#070607] hover:shadow-[0_0_10px_rgb(255_255_255_/_0.18),inset_0_1px_0_rgb(255_255_255_/_0.7)]`;
 
 /** Black button — use on light surfaces. Text always stays cream. */
 export const ctaPrimaryOnLightClassName = `${CTA_BASE} border border-[#070607]/15 bg-[#070607] px-4 py-2 text-[#fff8f2] hover:bg-[#070607]/85 hover:text-[#fff8f2]`;
@@ -50,8 +50,8 @@ export const ctaFrameClassName = `${CTA_BASE} border border-[#7b7b73]/40 bg-[#7b
 
 const CTA_TRY_HUMANER_BASE = `${CTA_BASE} gap-2.5 px-5 py-3`;
 
-/** Cream pill — use when floating over dark sections. */
-export const ctaTryHumanerOnDarkClassName = `${CTA_TRY_HUMANER_BASE} border border-white/15 bg-[#fff8f2] text-[#070607] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.4)] hover:border-white hover:bg-white hover:text-[#070607] hover:shadow-[0_0_32px_rgb(255_255_255_/_0.58),0_0_0_1px_rgb(255_255_255_/_0.95),inset_0_1px_0_rgb(255_255_255_/_1)]`;
+/** Cream pill — use when floating over dark sections. Soft hover lift, no heavy glow. */
+export const ctaTryHumanerOnDarkClassName = `${CTA_TRY_HUMANER_BASE} border border-white/15 bg-[#fff8f2] text-[#070607] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.4)] hover:border-white hover:bg-white hover:text-[#070607] hover:shadow-[0_0_10px_rgb(255_255_255_/_0.18),inset_0_1px_0_rgb(255_255_255_/_0.7)]`;
 
 /** Black pill — use when floating over light sections. */
 export const ctaTryHumanerOnLightClassName = `${CTA_TRY_HUMANER_BASE} border border-[#070607]/10 bg-[#070607] text-[#fff8f2] hover:bg-[#070607]/90 hover:text-[#fff8f2]`;
