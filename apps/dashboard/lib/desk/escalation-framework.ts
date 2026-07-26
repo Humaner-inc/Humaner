@@ -11,7 +11,7 @@ export type EscalationTier = {
 export const ESCALATION_TIERS: EscalationTier[] = [
   {
     mode: 'LIVE',
-    label: 'Live',
+    label: 'Critical',
     trigger: 'Safety, payment failure, stranded user',
     sla: '< 5 min',
     action: 'Human takes chat'
@@ -32,18 +32,18 @@ export const ESCALATION_TIERS: EscalationTier[] = [
   },
   {
     mode: 'SELF_RESOLVING',
-    label: 'Self-resolve',
-    trigger: 'Knowledge gap, not desk-worthy',
-    sla: '—',
-    action: 'Update KB, no human'
+    label: 'Low',
+    trigger: 'Known pattern - routes to AI Desk',
+    sla: 'AI Desk',
+    action: 'AI Desk (runbooks + clusters)'
   }
 ];
 
 export const MODE_LABEL: Record<EscalationMode, string> = {
-  LIVE: 'Live',
+  LIVE: 'Critical',
   PRIORITY: 'Priority',
   STANDARD: 'Standard',
-  SELF_RESOLVING: 'Self-resolve'
+  SELF_RESOLVING: 'Low'
 };
 
 export const URGENCY_LABEL = {
