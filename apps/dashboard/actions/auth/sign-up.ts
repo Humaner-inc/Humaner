@@ -19,25 +19,44 @@ export const signUp = actionClient
   .schema(signUpSchema)
   .action(async ({ parsedInput }) => {
     const normalizedEmail = parsedInput.email.toLowerCase();
-    const count = await prisma.user.count({
-      where: { email: normalizedEmail }
+    const redirectTo = `${Routes.VerifyEmail}?email=${encodeURIComponent(parsedInput.email)}`;
+
+    const existingUser = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+      select: { id: true, emailVerified: true }
     });
-    if (count > 0) {
-      return returnValidationErrors(signUpSchema, {
-        email: {
-          _errors: ['Email address is already taken.']
-        }
-      });
+
+    if (existingUser) {
+      if (existingUser.emailVerified) {
+        return returnValidationErrors(signUpSchema, {
+          email: {
+            _errors: ['Email address is already taken.']
+          }
+        });
+      }
+      return { redirectTo };
     }
 
     const hashedPassword = await hashPassword(parsedInput.password);
 
-    await createUserWithOrganization({
-      name: parsedInput.name,
-      email: normalizedEmail,
-      hashedPassword,
-      locale: 'en-US'
-    });
+    try {
+      await createUserWithOrganization({
+        name: parsedInput.name,
+        email: normalizedEmail,
+        hashedPassword,
+        locale: 'en-US'
+      });
+    } catch (e) {
+      console.error('[sign-up] createUserWithOrganization error:', e);
+      const userCreatedAnyway = await prisma.user.findFirst({
+        where: { email: normalizedEmail },
+        select: { id: true }
+      });
+      if (userCreatedAnyway) {
+        return { redirectTo };
+      }
+      throw e;
+    }
 
     try {
       const otp = randomString(3).toUpperCase();
@@ -50,7 +69,7 @@ export const signUp = actionClient
           expires: addHours(new Date(), EMAIL_VERIFICATION_EXPIRY_HOURS)
         },
         select: {
-          identifier: true // SELECT NONE
+          identifier: true
         }
       });
 
@@ -61,10 +80,8 @@ export const signUp = actionClient
         verificationLink: `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`
       });
     } catch (e) {
-      console.error(e);
+      console.error('[sign-up] verification email error:', e);
     }
 
-    return {
-      redirectTo: `${Routes.VerifyEmail}?email=${encodeURIComponent(parsedInput.email)}`
-    };
+    return { redirectTo };
   });

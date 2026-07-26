@@ -1,5 +1,5 @@
 export const HUMANER_TAGLINE =
-  "The support layer built for the AI era, designed for developers.";
+  "The support layer built for the AI era and designed for developers.";
 
 export const HUMANER_ELEVATOR_PITCH = `Humaner: Customer support agents that scale care instead of indifference. They learn, remermber, train and get better overtime.`;
 

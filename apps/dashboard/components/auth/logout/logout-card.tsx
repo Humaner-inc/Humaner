@@ -52,9 +52,6 @@ export function LogoutCard(): React.JSX.Element {
         <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
           <ShieldCheck className="size-5 text-[#e1ccaf]" />
         </div>
-        <span className="text-sm font-medium text-[#fff8f2]">
-          Secure logout
-        </span>
       </div>
 
       <p className={cn('text-sm', authMutedTextClassName)}>
