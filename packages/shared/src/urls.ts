@@ -67,3 +67,8 @@ export function getGithubUrl(): string {
 export function getXUrl(): string {
   return "https://x.com/usehumaner";
 }
+
+/** Account notification settings — used as the email unsubscribe destination. */
+export function getUnsubscribeUrl(): string {
+  return `${getAppUrl()}/settings/account/notifications`;
+}

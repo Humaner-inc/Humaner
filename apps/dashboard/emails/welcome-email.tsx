@@ -1,10 +1,4 @@
-import {
-  EmailButton,
-  EmailDivider,
-  EmailLayout,
-  EmailMuted,
-  EmailText
-} from '@humaner/shared/email-ui';
+import { EmailButton, EmailLayout, EmailText } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
@@ -39,9 +33,5 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
       <br />
       Alexandre
     </EmailText>
-    <EmailDivider />
-    <EmailMuted>
-      You receive this email because you signed up on {AppInfo.APP_NAME}.
-    </EmailMuted>
   </EmailLayout>
 );

@@ -20,7 +20,6 @@ import {
   EMAIL_BUTTON_PRIMARY_CLASS,
   EMAIL_BUTTON_SECTION_CLASS,
   EMAIL_CONTAINER_CLASS,
-  EMAIL_FOOTER_CONTAINER_CLASS,
   EMAIL_FOOTER_LINK_CLASS,
   EMAIL_FOOTER_TEXT_CLASS,
   EMAIL_HR_CLASS,
@@ -39,6 +38,7 @@ import {
   getDocsUrl,
   getEmailLogoUrl,
   getGithubUrl,
+  getUnsubscribeUrl,
   getXUrl,
 } from "./urls";
 
@@ -52,12 +52,15 @@ const EMAIL_FOOTER_LINKS = [
 export type EmailLayoutProps = {
   preview: string;
   logoSrc?: string;
+  /** Optional note shown in the footer zone above the unsubscribe line. */
+  footerNote?: React.ReactNode;
   children: React.ReactNode;
 };
 
 export function EmailLayout({
   preview,
   logoSrc = getEmailLogoUrl(),
+  footerNote,
   children,
 }: EmailLayoutProps): React.JSX.Element {
   return (
@@ -77,8 +80,8 @@ export function EmailLayout({
               />
             </Section>
             {children}
-          </Container>
-          <Container className={EMAIL_FOOTER_CONTAINER_CLASS}>
+            <EmailDivider />
+            {footerNote ? <EmailMuted>{footerNote}</EmailMuted> : null}
             <EmailFooter />
           </Container>
         </Body>
@@ -90,7 +93,13 @@ export function EmailLayout({
 function EmailFooter(): React.JSX.Element {
   return (
     <>
-      <Text className={EMAIL_FOOTER_TEXT_CLASS}>
+      <Text className={EMAIL_MUTED_CLASS}>
+        If you no longer want to receive mails from us simply{" "}
+        <Link href={getUnsubscribeUrl()} className={EMAIL_FOOTER_LINK_CLASS}>
+          Unsubscribe
+        </Link>
+      </Text>
+      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`}>
         {EMAIL_FOOTER_LINKS.map((link, index) => (
           <React.Fragment key={link.label}>
             {index > 0 ? " | " : null}

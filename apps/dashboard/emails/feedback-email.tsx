@@ -1,12 +1,4 @@
-import {
-  EmailDivider,
-  EmailLayout,
-  EmailMuted,
-  EmailText,
-  EmailTitle
-} from '@humaner/shared/email-ui';
-
-import { AppInfo } from '@/constants/app-info';
+import { EmailLayout, EmailText, EmailTitle } from '@humaner/shared/email-ui';
 
 export type FeedbackEmailData = {
   recipient: string;
@@ -31,10 +23,5 @@ export const FeedbackEmail = ({
     <EmailText>Email: {email}</EmailText>
     <EmailText>Category: {category}</EmailText>
     <EmailText>Message: {message}</EmailText>
-    <EmailDivider />
-    <EmailMuted>
-      You receive this email because someone submitted feedback on{' '}
-      {AppInfo.APP_NAME}.
-    </EmailMuted>
   </EmailLayout>
 );

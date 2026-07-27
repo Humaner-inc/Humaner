@@ -1,6 +1,5 @@
 import {
   EmailButton,
-  EmailDivider,
   EmailLayout,
   EmailMuted,
   EmailOtp,
@@ -22,7 +21,10 @@ export const VerifyEmailAddressEmail = ({
   otp,
   verificationLink
 }: VerifyEmailAddressEmailData) => (
-  <EmailLayout preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}>
+  <EmailLayout
+    preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}
+    footerNote={`If you didn't create a ${AppInfo.APP_NAME} account, you can ignore this email.`}
+  >
     <EmailTitle>Verify your email</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
@@ -34,10 +36,5 @@ export const VerifyEmailAddressEmail = ({
       Or use the button below to open {AppInfo.APP_NAME}.
     </EmailMuted>
     <EmailButton href={verificationLink}>Open {AppInfo.APP_NAME}</EmailButton>
-    <EmailDivider />
-    <EmailMuted>
-      If you didn&apos;t create a {AppInfo.APP_NAME} account, you can ignore
-      this email.
-    </EmailMuted>
   </EmailLayout>
 );

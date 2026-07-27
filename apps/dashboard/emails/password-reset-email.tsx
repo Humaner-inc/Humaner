@@ -1,9 +1,7 @@
 import {
   EmailButton,
-  EmailDivider,
   EmailInlineLink,
   EmailLayout,
-  EmailMuted,
   EmailText,
   EmailTitle
 } from '@humaner/shared/email-ui';
@@ -20,7 +18,10 @@ export const PasswordResetEmail = ({
   name,
   resetPasswordLink
 }: PasswordResetEmailData) => (
-  <EmailLayout preview={`${AppInfo.APP_NAME} reset your password`}>
+  <EmailLayout
+    preview={`${AppInfo.APP_NAME} reset your password`}
+    footerNote="If you don't want to change your password or didn't request this, just ignore and delete this message. To keep your account secure, please don't forward this email to anyone."
+  >
     <EmailTitle>Reset instructions</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
@@ -34,11 +35,5 @@ export const PasswordResetEmail = ({
         {resetPasswordLink}
       </EmailInlineLink>
     </EmailText>
-    <EmailDivider />
-    <EmailMuted>
-      If you don&apos;t want to change your password or didn&apos;t request
-      this, just ignore and delete this message. To keep your account secure,
-      please don&apos;t forward this email to anyone.
-    </EmailMuted>
   </EmailLayout>
 );

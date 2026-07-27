@@ -1,12 +1,4 @@
-import {
-  EmailDivider,
-  EmailLayout,
-  EmailMuted,
-  EmailText,
-  EmailTitle
-} from '@humaner/shared/email-ui';
-
-import { AppInfo } from '@/constants/app-info';
+import { EmailLayout, EmailText, EmailTitle } from '@humaner/shared/email-ui';
 
 export type ConnectedAccountSecurityAlertEmailData = {
   recipient: string;
@@ -27,10 +19,5 @@ export const ConnectedAccountSecurityAlertEmail = ({
       The login &apos;{provider}&apos; has been {action}{' '}
       {action === 'disconnected' ? 'from' : 'to'} your account.
     </EmailText>
-    <EmailDivider />
-    <EmailMuted>
-      You receive this message because there has been account security changes
-      on {AppInfo.APP_NAME}.
-    </EmailMuted>
   </EmailLayout>
 );

@@ -1,9 +1,7 @@
 import {
   EmailButton,
-  EmailDivider,
   EmailInlineLink,
   EmailLayout,
-  EmailMuted,
   EmailText,
   EmailTitle
 } from '@humaner/shared/email-ui';
@@ -18,7 +16,10 @@ export const ConfirmEmailAddressChangeEmail = ({
   name,
   confirmLink
 }: ConfirmEmailAddressChangeEmailData) => (
-  <EmailLayout preview="Confirm new email address">
+  <EmailLayout
+    preview="Confirm new email address"
+    footerNote="If you don't want to change your email address or didn't request this, just ignore and delete this message. To keep your account secure, please don't forward this email to anyone."
+  >
     <EmailTitle>Confirm new email address</EmailTitle>
     <EmailText>Hello {name},</EmailText>
     <EmailText>
@@ -30,11 +31,5 @@ export const ConfirmEmailAddressChangeEmail = ({
       or copy and paste this URL into your browser:{' '}
       <EmailInlineLink href={confirmLink}>{confirmLink}</EmailInlineLink>
     </EmailText>
-    <EmailDivider />
-    <EmailMuted>
-      If you don&apos;t want to change your email address or didn&apos;t request
-      this, just ignore and delete this message. To keep your account secure,
-      please don&apos;t forward this email to anyone.
-    </EmailMuted>
   </EmailLayout>
 );
