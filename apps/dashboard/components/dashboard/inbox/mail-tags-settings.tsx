@@ -120,7 +120,7 @@ export function MailTagsSettings({
             <Input
               value={color}
               onChange={(event) => setColor(event.target.value)}
-              className="max-w-[10rem] font-mono text-xs"
+              className="max-w-40 font-mono text-xs"
               maxLength={7}
             />
           </div>

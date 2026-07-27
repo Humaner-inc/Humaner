@@ -46,12 +46,12 @@ export function DashboardDockPanel(): React.JSX.Element {
       className={cn(
         'shrink-0 overflow-hidden border-l border-border/50 transition-[width] duration-300 ease-out',
         isOpen
-          ? 'w-[24rem] max-lg:fixed max-lg:inset-y-0 max-lg:right-0 max-lg:z-50 max-lg:w-full max-lg:border-l-0'
+          ? 'w-96 max-lg:fixed max-lg:inset-y-0 max-lg:right-0 max-lg:z-50 max-lg:w-full max-lg:border-l-0'
           : 'w-0 border-l-0'
       )}
     >
       {activeMode ? (
-        <div className="flex h-full w-[24rem] max-lg:w-full flex-col bg-background">
+        <div className="flex h-full w-96 max-lg:w-full flex-col bg-background">
           {activeMode !== 'ask' ? (
             <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
               {BACK_MODES[activeMode] ? (

@@ -84,7 +84,7 @@ export function SkillzCubeLoader({
         fillProgress={fillProgress}
         active
         spec={SKILLZ_GLYPH_SPEC}
-        className="h-full w-full text-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)]"
+        className="size-full text-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)]"
         fillClassName="text-[var(--accent-color,#e1ccaf)]"
       />
     </span>

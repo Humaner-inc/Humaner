@@ -35,7 +35,7 @@ export function InboxDomainSwitcher({
   if (inboxes.length === 1) {
     return (
       <p
-        className="max-w-[18rem] truncate text-right font-mono text-xs text-muted-foreground"
+        className="max-w-72 truncate text-right font-mono text-xs text-muted-foreground"
         title={singleLabel}
       >
         {singleLabel}
@@ -58,7 +58,7 @@ export function InboxDomainSwitcher({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 max-w-[18rem] gap-1.5 px-2 font-mono text-xs text-muted-foreground"
+          className="h-8 max-w-72 gap-1.5 px-2 font-mono text-xs text-muted-foreground"
           title={multiLabel}
         >
           <span className="truncate">{multiLabel}</span>
