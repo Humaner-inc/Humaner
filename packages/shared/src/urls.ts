@@ -55,3 +55,15 @@ export function getSecurityUrl(): string {
 export function getContactUrl(): string {
   return `${getLandingUrl()}/contact`;
 }
+
+export function getDocsUrl(): string {
+  return process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.humaner.io";
+}
+
+export function getGithubUrl(): string {
+  return "https://github.com/Humaner-inc";
+}
+
+export function getXUrl(): string {
+  return "https://x.com/usehumaner";
+}

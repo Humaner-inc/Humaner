@@ -20,6 +20,9 @@ import {
   EMAIL_BUTTON_PRIMARY_CLASS,
   EMAIL_BUTTON_SECTION_CLASS,
   EMAIL_CONTAINER_CLASS,
+  EMAIL_FOOTER_CONTAINER_CLASS,
+  EMAIL_FOOTER_LINK_CLASS,
+  EMAIL_FOOTER_TEXT_CLASS,
   EMAIL_HR_CLASS,
   EMAIL_LINK_CLASS,
   EMAIL_LOGO_SECTION_CLASS,
@@ -30,7 +33,21 @@ import {
   EMAIL_TEXT_CLASS,
   EMAIL_TITLE_CLASS,
 } from "./email-brand";
-import { getEmailLogoUrl } from "./urls";
+import { HUMANER_ADDRESS_LINE } from "./company";
+import {
+  getContactUrl,
+  getDocsUrl,
+  getEmailLogoUrl,
+  getGithubUrl,
+  getXUrl,
+} from "./urls";
+
+const EMAIL_FOOTER_LINKS = [
+  { label: "Docs", href: getDocsUrl },
+  { label: "Contact", href: getContactUrl },
+  { label: "Github", href: getGithubUrl },
+  { label: "X", href: getXUrl },
+] as const;
 
 export type EmailLayoutProps = {
   preview: string;
@@ -61,9 +78,32 @@ export function EmailLayout({
             </Section>
             {children}
           </Container>
+          <Container className={EMAIL_FOOTER_CONTAINER_CLASS}>
+            <EmailFooter />
+          </Container>
         </Body>
       </Tailwind>
     </Html>
+  );
+}
+
+function EmailFooter(): React.JSX.Element {
+  return (
+    <>
+      <Text className={EMAIL_FOOTER_TEXT_CLASS}>
+        {EMAIL_FOOTER_LINKS.map((link, index) => (
+          <React.Fragment key={link.label}>
+            {index > 0 ? " | " : null}
+            <Link href={link.href()} className={EMAIL_FOOTER_LINK_CLASS}>
+              {link.label}
+            </Link>
+          </React.Fragment>
+        ))}
+      </Text>
+      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`}>
+        {HUMANER_ADDRESS_LINE}
+      </Text>
+    </>
   );
 }
 

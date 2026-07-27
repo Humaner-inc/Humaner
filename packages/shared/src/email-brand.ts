@@ -39,3 +39,11 @@ export const EMAIL_OTP_CLASS =
   "m-0 text-[36px] font-bold tracking-[10px] text-black";
 
 export const EMAIL_OTP_SECTION_CLASS = "my-[32px] text-center";
+
+export const EMAIL_FOOTER_CONTAINER_CLASS =
+  "mx-auto mb-[40px] max-w-[465px] px-[20px]";
+
+export const EMAIL_FOOTER_TEXT_CLASS =
+  "m-0 text-[12px] leading-[20px] text-[#666666]";
+
+export const EMAIL_FOOTER_LINK_CLASS = "text-[#666666] underline";

@@ -7,6 +7,7 @@ export * from "./visitor-id";
 export * from "./widget-bookmarks";
 export * from "./widget-bookmark-icon";
 export * from "./cta";
+export * from "./company";
 export * from "./typography";
 export * from "./widget-icons";
 export * from "./widget-radius";

@@ -5,7 +5,7 @@
   ·
   <a href="https://docs.humaner.io/integrations/api">API</a>
   ·
-  <a href="https://github.com/Humaner-inc/humaner">GitHub</a>
+  <a href="https://github.com/Humaner-inc">GitHub</a>
   ·
   <a href="https://humaner.io/security">Security</a>
 </p>
