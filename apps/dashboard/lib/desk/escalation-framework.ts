@@ -1,49 +1,69 @@
+import type { CSSProperties } from 'react';
 import type { EscalationMode } from '@prisma/client';
+
+import type { HandoffTicketUrgency } from '@/types/handoff-ticket';
 
 export type EscalationTier = {
   mode: EscalationMode;
   label: string;
+  /** Docs SLA target — short form for UI. */
   sla: string;
-  action: string;
-  trigger: string;
+  /** Default SLA minutes when creating a policy on this tier. */
+  defaultSlaMinutes: number | null;
+  /** Matching ticket urgency stored on the policy. */
+  urgencyLevel: HandoffTicketUrgency;
+  /** Hex color for swatches (inline styles — reliable on dark UI). */
+  color: string;
 };
 
+/** Critical · Priority · Medium · Low */
 export const ESCALATION_TIERS: EscalationTier[] = [
   {
     mode: 'LIVE',
     label: 'Critical',
-    trigger: 'Safety, payment failure, stranded user',
     sla: '< 5 min',
-    action: 'Human takes chat'
+    defaultSlaMinutes: 5,
+    urgencyLevel: 'HIGH',
+    color: '#DC143C'
   },
   {
     mode: 'PRIORITY',
     label: 'Priority',
-    trigger: 'Billing dispute, access blocked',
     sla: '< 2 hr',
-    action: 'Async reply with context'
+    defaultSlaMinutes: 120,
+    urgencyLevel: 'MEDIUM',
+    color: '#EA580C'
   },
   {
     mode: 'STANDARD',
-    label: 'Standard',
-    trigger: 'Policy or feature questions',
+    label: 'Medium',
     sla: '< 24 hr',
-    action: 'Async or template'
+    defaultSlaMinutes: 1440,
+    urgencyLevel: 'MEDIUM',
+    color: '#3B82F6'
   },
   {
     mode: 'SELF_RESOLVING',
     label: 'Low',
-    trigger: 'Known pattern - routes to AI Desk',
-    sla: 'AI Desk',
-    action: 'AI Desk (runbooks + clusters)'
+    sla: 'No human queue',
+    defaultSlaMinutes: null,
+    urgencyLevel: 'LOW',
+    color: '#22C55E'
   }
 ];
 
 export const MODE_LABEL: Record<EscalationMode, string> = {
   LIVE: 'Critical',
   PRIORITY: 'Priority',
-  STANDARD: 'Standard',
+  STANDARD: 'Medium',
   SELF_RESOLVING: 'Low'
+};
+
+export const MODE_COLOR: Record<EscalationMode, string> = {
+  LIVE: '#DC143C',
+  PRIORITY: '#EA580C',
+  STANDARD: '#3B82F6',
+  SELF_RESOLVING: '#22C55E'
 };
 
 export const URGENCY_LABEL = {
@@ -52,13 +72,13 @@ export const URGENCY_LABEL = {
   LOW: 'Low'
 } as const;
 
-/** Subtle row wash — replaces left-border urgency cues. */
-export const URGENCY_GRADIENT: Record<keyof typeof URGENCY_LABEL, string> = {
-  HIGH: 'bg-[linear-gradient(90deg,color-mix(in_srgb,var(--accent-color,#e1ccaf)_22%,transparent)_0%,transparent_60%)]',
-  MEDIUM:
-    'bg-[linear-gradient(90deg,hsl(var(--foreground)/0.07)_0%,transparent_55%)]',
-  LOW: 'bg-[linear-gradient(90deg,hsl(var(--foreground)/0.03)_0%,transparent_45%)]'
-};
+/** Inline gradient wash for policy rows (Tailwind arbitrary color-mix is unreliable). */
+export function modeGradientStyle(mode: EscalationMode): CSSProperties {
+  const color = MODE_COLOR[mode];
+  return {
+    backgroundImage: `linear-gradient(90deg, ${color}42 0%, ${color}14 38%, transparent 68%)`
+  };
+}
 
 export function formatSla(minutes: number | null): string {
   if (minutes === null) {

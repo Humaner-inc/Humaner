@@ -245,8 +245,10 @@ export function AgentCard({
     <>
       <article
         className={cn(
-          'group relative flex min-h-[22rem] flex-col overflow-hidden rounded-none border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
-          compact ? 'px-5 pb-4 pt-5' : 'px-6 pb-5 pt-6',
+          'group relative flex flex-col overflow-hidden rounded-none border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
+          compact
+            ? 'min-h-[16.5rem] px-4 pb-3.5 pt-4'
+            : 'min-h-[20rem] px-6 pb-5 pt-6',
           isPaused && 'opacity-90'
         )}
       >
@@ -310,14 +312,14 @@ export function AgentCard({
         <div
           className={cn(
             'flex flex-1 flex-col items-center justify-center text-center',
-            compact ? 'px-1 pt-8' : 'px-2 pt-10'
+            compact ? 'px-1 pt-6' : 'px-2 pt-8'
           )}
         >
           <AgentAvatarUpload
             agentId={agent.id}
             character={agent.character}
             image={avatarImage}
-            size="card"
+            size={compact ? 'compact' : 'card'}
             onImageChange={(image) => {
               setAvatarImage(image);
               router.refresh();
@@ -326,8 +328,8 @@ export function AgentCard({
 
           <h3
             className={cn(
-              'mt-6 max-w-full truncate font-display leading-none tracking-tight',
-              compact ? 'text-2xl' : 'text-[1.75rem]'
+              'mt-4 max-w-full truncate font-display leading-none tracking-tight',
+              compact ? 'text-xl' : 'text-[1.5rem]'
             )}
           >
             {linkToWorkspace ? (

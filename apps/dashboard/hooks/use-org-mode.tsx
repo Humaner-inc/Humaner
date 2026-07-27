@@ -29,15 +29,15 @@ const OrgModeCtx = React.createContext<OrgModeContext>({
 });
 
 const B2C_LABELS = {
-  clusters: 'Resolution Templates',
+  clusters: 'Clusters',
   runbooks: 'Runbooks',
   ticketGrouping: 'By urgency',
   assignment: 'First available'
 } as const;
 
 const B2B_LABELS = {
-  clusters: 'Account Playbooks',
-  runbooks: 'Technical Runbooks',
+  clusters: 'Clusters',
+  runbooks: 'Runbooks',
   ticketGrouping: 'By account',
   assignment: 'Knowledge-area matched'
 } as const;

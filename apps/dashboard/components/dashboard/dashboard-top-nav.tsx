@@ -27,11 +27,10 @@ export function DashboardTopNav({
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-1 border-b border-border/50 bg-background/95 px-4 backdrop-blur-xl sm:px-5',
+        'sticky top-0 z-30 flex h-14 shrink-0 items-center justify-end gap-2 border-b border-border/50 bg-background/95 px-4 backdrop-blur-xl sm:px-5',
         className
       )}
     >
-      <AskHumanerTrigger />
       <Button
         type="button"
         variant="ghost"
@@ -65,10 +64,13 @@ export function DashboardTopNav({
         variant="ghost"
         className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
       />
-      <NavUser
-        profile={profile}
-        variant="navbar"
-      />
+      <div className="flex h-9 items-center gap-2">
+        <AskHumanerTrigger />
+        <NavUser
+          profile={profile}
+          variant="navbar"
+        />
+      </div>
     </header>
   );
 }

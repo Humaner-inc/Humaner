@@ -62,7 +62,7 @@ export function IndustryTag({
   const badge = (
     <Badge
       variant="secondary"
-      className="gap-1.5 px-2.5 py-1"
+      className="gap-1.5 rounded-none px-2.5 py-1"
     >
       {CurrentIcon ? <CurrentIcon className="size-3.5" /> : null}
       {current ? current.label : 'No industry set'}

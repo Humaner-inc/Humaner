@@ -84,7 +84,7 @@ export function AIDeskClient({
       <EmptyState
         icon={<BotIcon className="size-8 text-muted-foreground" />}
         title="No AI Desk tickets yet"
-        description="Low-priority tickets will be routed here when they match approved runbooks (and clusters on Frontier+)."
+        description="Low priority tickets are sent here when matching known issues (from runbooks or clusters)."
       />
     );
   }

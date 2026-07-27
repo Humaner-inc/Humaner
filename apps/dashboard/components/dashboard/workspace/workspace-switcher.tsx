@@ -64,7 +64,7 @@ function WorkspaceAvatar({
         src={logoUrl}
         alt=""
         className={cn(
-          'size-8 rounded-lg object-cover ring-1 ring-border/50',
+          'size-8 rounded-none object-cover ring-1 ring-border/50',
           className
         )}
       />
@@ -74,7 +74,7 @@ function WorkspaceAvatar({
   return (
     <span
       className={cn(
-        'flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white ring-1 ring-border/40',
+        'flex size-8 items-center justify-center rounded-none bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white ring-1 ring-border/40',
         className
       )}
     >
@@ -146,7 +146,7 @@ export function WorkspaceSwitcher({
         className="gap-2"
         onClick={handleCreateWorkspace}
       >
-        <span className="flex size-8 items-center justify-center rounded-lg border border-dashed border-border/80">
+        <span className="flex size-8 items-center justify-center rounded-none border border-dashed border-border/80">
           <PlusIcon className="size-4" />
         </span>
         Create workspace
@@ -169,7 +169,7 @@ export function WorkspaceSwitcher({
                 <SidebarMenuButton
                   size="lg"
                   tooltip={active.name}
-                  className="h-auto min-w-0 gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
+                  className="h-auto min-w-0 gap-3 rounded-none border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50"
                 >
                   <WorkspaceAvatar workspace={active} />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">
@@ -183,8 +183,9 @@ export function WorkspaceSwitcher({
         </SidebarGroup>
         <DropdownMenuContent
           align="start"
-          side="right"
-          className="w-72"
+          side="top"
+          sideOffset={8}
+          className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-none"
         >
           {menuContent}
         </DropdownMenuContent>
@@ -199,7 +200,7 @@ export function WorkspaceSwitcher({
           type="button"
           variant="ghost"
           className={cn(
-            'h-auto gap-2 rounded-lg border border-border/60 bg-card/40 px-2.5 py-1.5 hover:bg-accent/50',
+            'h-auto gap-2 rounded-none border border-border/60 bg-card/40 px-2.5 py-1.5 hover:bg-accent/50',
             'w-auto max-w-[min(100vw-12rem,16rem)] justify-center',
             className
           )}
@@ -213,7 +214,9 @@ export function WorkspaceSwitcher({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
-        className="w-72"
+        side="top"
+        sideOffset={8}
+        className="w-72 rounded-none"
       >
         {menuContent}
       </DropdownMenuContent>

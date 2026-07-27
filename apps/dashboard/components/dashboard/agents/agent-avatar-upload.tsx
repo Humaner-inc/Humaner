@@ -25,7 +25,7 @@ export type AgentAvatarUploadProps = {
   agentId?: string;
   character: CharacterType;
   image?: string | null;
-  size?: 'card' | 'dialog';
+  size?: 'card' | 'compact' | 'dialog';
   disabled?: boolean;
   onImageChange?: (image: string | null) => void;
 };
@@ -127,15 +127,24 @@ export function AgentAvatarUpload({
     toast.success('Profile picture removed');
   };
 
-  const avatarSize = 'size-24';
+  const avatarSize =
+    size === 'compact' ? 'size-16' : size === 'card' ? 'size-20' : 'size-24';
   const dropzoneSize =
-    size === 'card' ? 'size-24 p-0' : 'size-24 min-h-24 max-h-24 w-24 p-0';
+    size === 'compact'
+      ? 'size-16 p-0'
+      : size === 'card'
+        ? 'size-20 p-0'
+        : 'size-24 min-h-24 max-h-24 w-24 p-0';
+  const glowScale = size === 'compact' ? 'scale-[1.35]' : 'scale-[1.65]';
 
   return (
     <div className={cn('relative inline-flex', avatarSize)}>
       {displayImage ? (
         <div
-          className="pointer-events-none absolute inset-0 scale-[1.65] overflow-hidden rounded-full opacity-50 blur-2xl"
+          className={cn(
+            'pointer-events-none absolute inset-0 overflow-hidden rounded-full opacity-50 blur-2xl',
+            glowScale
+          )}
           aria-hidden
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}

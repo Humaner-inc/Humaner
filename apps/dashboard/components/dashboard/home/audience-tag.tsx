@@ -3,7 +3,6 @@ import { BriefcaseBusinessIcon, UsersIcon } from '@humaner/shared/icons';
 import type { TargetAudience } from '@prisma/client';
 
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 
 export type AudienceTagProps = {
   targetAudience: TargetAudience | null;
@@ -11,14 +10,10 @@ export type AudienceTagProps = {
 
 const AUDIENCE_META: Record<
   TargetAudience,
-  { label: string; Icon: typeof UsersIcon; labelClassName: string }
+  { label: string; Icon: typeof UsersIcon }
 > = {
-  B2C: { label: 'B2C', Icon: UsersIcon, labelClassName: 'font-display' },
-  B2B: {
-    label: 'B2B',
-    Icon: BriefcaseBusinessIcon,
-    labelClassName: 'font-fellix'
-  }
+  B2C: { label: 'B2C', Icon: UsersIcon },
+  B2B: { label: 'B2B', Icon: BriefcaseBusinessIcon }
 };
 
 export function AudienceTag({
@@ -30,16 +25,11 @@ export function AudienceTag({
   return (
     <Badge
       variant="secondary"
-      className="gap-1.5 px-2.5 py-1"
+      className="gap-1.5 rounded-none px-2.5 py-1"
     >
       {Icon ? <Icon className="size-3.5" /> : null}
       {meta ? (
-        <span
-          className={cn(
-            'text-sm font-semibold tracking-tight',
-            meta.labelClassName
-          )}
-        >
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em]">
           {meta.label}
         </span>
       ) : (

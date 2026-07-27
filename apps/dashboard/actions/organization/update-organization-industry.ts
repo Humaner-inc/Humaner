@@ -23,13 +23,17 @@ export const updateOrganizationIndustry = ownerActionClient
 
     const vertical = getVerticalConfig(parsedInput.industry);
     const persona = vertical.personaPreset;
+    const verticalTopics = vertical.commonTopics;
 
     // Changing the industry re-anchors every agent to the new vertical's
     // defaults — this intentionally overwrites prior persona/style tuning.
     await prisma.$transaction([
       prisma.organization.update({
         where: { id: session.user.organizationId },
-        data: { industry: parsedInput.industry },
+        data: {
+          industry: parsedInput.industry,
+          verticalTopics
+        },
         select: { id: true }
       }),
       prisma.agent.updateMany({
@@ -38,6 +42,7 @@ export const updateOrganizationIndustry = ownerActionClient
           industry: parsedInput.industry,
           character: persona.character,
           forbiddenTopics: vertical.forbiddenTopics,
+          trainingTopics: verticalTopics,
           verbosity: persona.verbosity,
           formality: persona.formality,
           emojiMode: persona.emojiMode,

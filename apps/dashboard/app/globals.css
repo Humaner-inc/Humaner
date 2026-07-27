@@ -179,14 +179,14 @@
     @apply font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
   }
 
-  /* Dashboard section titles — page / panel headings */
+  /* Dashboard section titles — page / panel headings (The Seasons) */
   .section-title {
-    @apply font-mono text-base font-medium leading-none tracking-tight;
+    @apply font-display text-base font-medium leading-none tracking-tight;
   }
 
-  /* Dashboard subsection titles — in-card section headings */
+  /* Dashboard subsection titles — in-card section headings (The Seasons) */
   .subsection-title {
-    @apply text-base font-medium leading-tight;
+    @apply font-display text-base font-medium leading-tight;
   }
 
   /* Card hover — border lift, no shadow */
