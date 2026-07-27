@@ -27,6 +27,7 @@ import {
   filterNavItemsForProfile,
   isPlatformAdmin
 } from '@/lib/auth/workspace-access';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type NavMainProps = SidebarGroupProps & {
@@ -58,7 +59,7 @@ export function NavMain({
         {canAccessPage(profile, 'integrations') ? (
           <NavIntegrationsTree orgTier={orgTier} />
         ) : null}
-        {canAccessPage(profile, 'inbox') ? (
+        {!isOssDeployment() && canAccessPage(profile, 'inbox') ? (
           <NavInboxTree
             orgTier={orgTier}
             unreadCount={inboxUnreadCount}

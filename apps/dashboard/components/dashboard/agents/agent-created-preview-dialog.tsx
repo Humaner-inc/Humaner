@@ -1,8 +1,11 @@
 'use client';
 
 import * as React from 'react';
+import { AlertCircleIcon } from '@humaner/shared/icons';
 import type { CharacterType } from '@prisma/client';
 
+import { AgentAvatarUpload } from '@/components/dashboard/agents/agent-avatar-upload';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,11 +18,11 @@ import {
   CHARACTER_META,
   formatPersonaToneCaption
 } from '@/lib/character-presets';
-import { cn } from '@/lib/utils';
 
 export type AgentCreatedPreviewDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  agentId: string;
   name: string;
   role: string;
   character: CharacterType;
@@ -30,6 +33,7 @@ export type AgentCreatedPreviewDialogProps = {
 export function AgentCreatedPreviewDialog({
   open,
   onOpenChange,
+  agentId,
   name,
   role,
   character,
@@ -37,7 +41,6 @@ export function AgentCreatedPreviewDialog({
   onContinue
 }: AgentCreatedPreviewDialogProps): React.JSX.Element {
   const meta = CHARACTER_META[character];
-  const previewImage = image ?? (character === 'CUSTOM' ? null : meta.image);
   const displayRole = role.trim() || DEFAULT_AGENT_ROLE;
 
   return (
@@ -55,22 +58,24 @@ export function AgentCreatedPreviewDialog({
             Preview your new agent before editing persona settings.
           </DialogDescription>
 
-          <div
-            className={cn(
-              'relative size-24 shrink-0 overflow-hidden rounded-full ring-2 ring-foreground/10 ring-offset-2 ring-offset-background'
-            )}
+          <Alert
+            variant="info"
+            className="mb-5 w-full text-left"
           >
-            {previewImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={previewImage}
-                alt={name}
-                className="size-full object-cover"
-              />
-            ) : (
-              <div className="size-full bg-white" />
-            )}
-          </div>
+            <div className="flex flex-row items-start gap-2">
+              <AlertCircleIcon className="mt-0.5 size-[18px] shrink-0 text-blue-600 dark:text-blue-400" />
+              <AlertDescription className="text-foreground/80">
+                Customize your agent picture
+              </AlertDescription>
+            </div>
+          </Alert>
+
+          <AgentAvatarUpload
+            agentId={agentId}
+            character={character}
+            image={image}
+            size="dialog"
+          />
 
           <p className="mt-4 font-display text-2xl font-semibold tracking-tight">
             {name}
@@ -80,10 +85,6 @@ export function AgentCreatedPreviewDialog({
             {meta.personaName
               ? `${meta.personaName} · ${formatPersonaToneCaption(meta)}`
               : formatPersonaToneCaption(meta)}
-          </p>
-
-          <p className="mt-5 text-sm text-muted-foreground">
-            Add your brand picture?
           </p>
 
           <Button

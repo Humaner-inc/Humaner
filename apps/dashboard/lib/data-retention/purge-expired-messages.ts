@@ -13,13 +13,6 @@ export type PurgeExpiredMessagesResult = {
   cutoff: string;
 };
 
-/**
- * Hard-delete stale conversation transcripts (GDPR data minimisation / storage).
- *
- * Does **not** touch Redis Iris agent memory. Cross-session visitor memory is the
- * product layer for returning customers and must outlive transcript retention.
- * Iris is only cleared on explicit erasure (visitor delete, org delete, agent delete).
- */
 export async function purgeExpiredMessages(): Promise<PurgeExpiredMessagesResult> {
   const retentionDays = getMessageRetentionDays();
   const cutoff = subDays(new Date(), retentionDays);

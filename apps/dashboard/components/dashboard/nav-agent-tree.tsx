@@ -14,7 +14,10 @@ import {
   SidebarNavParent
 } from '@/components/dashboard/sidebar-nav-tree';
 import { SidebarGroup } from '@/components/ui/sidebar';
-import { AGENT_NAV_TABS, getActiveAgentTab } from '@/constants/agent-nav-items';
+import {
+  getActiveAgentTab,
+  getAgentNavTabs
+} from '@/constants/agent-nav-items';
 import { agentPersonaRoute } from '@/constants/routes';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { cn } from '@/lib/utils';
@@ -89,7 +92,7 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
         tooltip={agent.name}
       />
       <SidebarNavChildren expanded={open}>
-        {AGENT_NAV_TABS.map((tab) => (
+        {getAgentNavTabs().map((tab) => (
           <SidebarNavChild
             key={tab.id}
             href={tab.href(agent.id)}

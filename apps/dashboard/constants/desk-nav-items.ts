@@ -4,6 +4,7 @@ import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 
 export type DeskNavTabId = 'ai' | 'human' | 'clusters';
 
@@ -16,7 +17,7 @@ export type DeskNavTab = {
   requiredCapability?: keyof PlanCapabilities;
 };
 
-export const DESK_NAV_TABS: DeskNavTab[] = [
+const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
   {
     id: 'ai',
     label: 'AI Desk',
@@ -38,6 +39,28 @@ export const DESK_NAV_TABS: DeskNavTab[] = [
   }
 ];
 
+/** @deprecated Prefer getDeskNavTabs() — Cloud full list for type/legacy imports. */
+export const DESK_NAV_TABS: DeskNavTab[] = CLOUD_DESK_NAV_TABS;
+
+/** Visible desk tabs for the current deployment mode. */
+export function getDeskNavTabs(): DeskNavTab[] {
+  if (isOssDeployment()) {
+    return [
+      {
+        id: 'human',
+        label: 'Helpdesk',
+        iconKey: 'hand',
+        href: Routes.DeskHuman
+      }
+    ];
+  }
+  return CLOUD_DESK_NAV_TABS;
+}
+
+export function getDeskHomeHref(): string {
+  return isOssDeployment() ? Routes.DeskHuman : Routes.DeskAI;
+}
+
 export function getActiveDeskTab(pathname: string): DeskNavTabId | null {
   if (pathname.startsWith(Routes.DeskAI)) {
     return 'ai';
@@ -56,6 +79,7 @@ export function isDeskPath(pathname: string): boolean {
 }
 
 export function isDeskTabLocked(tab: DeskNavTab, orgTier: string): boolean {
+  if (isOssDeployment()) return false;
   if (!tab.requiredCapability) return false;
   const capabilities = getPlanCapabilities(orgTier);
   return !capabilities[tab.requiredCapability];

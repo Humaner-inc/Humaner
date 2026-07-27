@@ -17,6 +17,7 @@ import {
   agentRunbooksRoute,
   Routes
 } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type AgentNavTabId =
@@ -34,7 +35,7 @@ export type AgentNavTab = {
   href: (agentId: string) => string;
 };
 
-export const AGENT_NAV_TABS: AgentNavTab[] = [
+const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
   {
     id: 'persona',
     label: 'Persona',
@@ -73,6 +74,20 @@ export const AGENT_NAV_TABS: AgentNavTab[] = [
   }
 ];
 
+/** @deprecated Prefer getAgentNavTabs() */
+export const AGENT_NAV_TABS: AgentNavTab[] = CLOUD_AGENT_NAV_TABS;
+
+const OSS_HIDDEN_AGENT_TABS = new Set<AgentNavTabId>(['knowledge', 'runbooks']);
+
+export function getAgentNavTabs(): AgentNavTab[] {
+  if (isOssDeployment()) {
+    return CLOUD_AGENT_NAV_TABS.filter(
+      (tab) => !OSS_HIDDEN_AGENT_TABS.has(tab.id)
+    );
+  }
+  return CLOUD_AGENT_NAV_TABS;
+}
+
 export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
   const publicPath = toPublicPathname(pathname);
 
@@ -93,7 +108,7 @@ export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
     return 'persona';
   }
 
-  if (AGENT_NAV_TABS.some((tab) => tab.id === segment)) {
+  if (CLOUD_AGENT_NAV_TABS.some((tab) => tab.id === segment)) {
     return segment as AgentNavTabId;
   }
 

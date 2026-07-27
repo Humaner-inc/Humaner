@@ -13,21 +13,8 @@ import type {
 
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
-/**
- * Vertical Configuration for Agent Training / Prompts
- *
- * Uses the slim `@humaner/customer-support-skillz/runtime` entry (baseline
- * skills only — no problem-solving procedure markdown) so chat cold starts
- * stay small and fast.
- *
- * Persona presets (character, verbosity, formality, emoji mode, opener style)
- * are Humaner's Core Skillz (Layer 1) and stay private in this file.
- *
- * Do not hand-author structural content here. Edit the markdown skill files in
- * the catalog repo (`industries/<name>/<skill>/SKILL.md`) instead.
- */
+// Vertical Configuration for Agent Training / Prompts.Runtime catalog shape > keep in sync with skillz `dist/runtime.d.ts`.
 
-/** Runtime catalog shape — keep in sync with skillz `dist/runtime.d.ts`. */
 type SkillzRuntimePackage = {
   id: string;
   skills: {

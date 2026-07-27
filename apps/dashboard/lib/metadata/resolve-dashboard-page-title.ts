@@ -1,4 +1,5 @@
 import { agentOverviewRoute, Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 const EXACT_TITLES: Record<string, string> = {
@@ -59,6 +60,17 @@ export function stripSearchAndHash(pathname: string): string {
 
 export function resolveDashboardPageTitle(pathname: string): string {
   const publicPath = stripSearchAndHash(resolvePublicPathname(pathname));
+
+  if (
+    isOssDeployment() &&
+    (publicPath === Routes.DeskHuman || publicPath === Routes.HumanDesk)
+  ) {
+    return 'Helpdesk';
+  }
+
+  if (isOssDeployment() && publicPath === Routes.Desk) {
+    return 'Helpdesk';
+  }
 
   if (EXACT_TITLES[publicPath]) {
     return EXACT_TITLES[publicPath];
