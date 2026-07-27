@@ -120,8 +120,8 @@ export async function requireWorkspaceOwnerSession(): Promise<void> {
     redirect(getLoginRedirect());
   }
 
-  const context = await getUserAccessContext(session.user.id);
-  if (!context || context.workspaceRole !== WorkspaceRole.OWNER) {
-    throw new ForbiddenError('Workspace owner access required');
-  }
+  const { requireWorkspaceOwner } = await import(
+    '@/lib/auth/workspace-permissions'
+  );
+  await requireWorkspaceOwner(session.user.id, session.user.organizationId);
 }
