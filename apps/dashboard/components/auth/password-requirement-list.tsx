@@ -1,23 +1,34 @@
+'use client';
+
+import { useEffectEvent } from 'react';
 import * as React from 'react';
 
 import { MINIMUM_PASSWORD_LENGTH } from '@/constants/limits';
 import { passwordValidator } from '@/lib/auth/password';
+import { cn } from '@/lib/utils';
 import type { Maybe } from '@/types/maybe';
 
 export type PasswordRequirementListProps = {
   password: Maybe<string>;
 };
 
+type RequirementId = 'case' | 'length' | 'number';
+
 type Requirement = {
-  id: string;
+  id: RequirementId;
   met: boolean;
   label: string;
 };
 
-export function PasswordRequirementList({
-  password
-}: PasswordRequirementListProps): React.JSX.Element | null {
-  const requirements: Requirement[] = [
+type DismissPhase = 'green' | 'fading' | 'gone';
+
+/** Time to show green before opacity starts falling. */
+const GREEN_HOLD_MS = 420;
+/** Fade duration after the green hold. */
+const FADE_OUT_MS = 480;
+
+function getRequirements(password: Maybe<string>): Requirement[] {
+  return [
     {
       id: 'case',
       met: passwordValidator.containsLowerAndUpperCase(password),
@@ -34,28 +45,113 @@ export function PasswordRequirementList({
       label: 'Contain at least 1 number'
     }
   ];
+}
 
-  const unmet = requirements.filter((requirement) => !requirement.met);
-  if (unmet.length === 0) {
+export function PasswordRequirementList({
+  password
+}: PasswordRequirementListProps): React.JSX.Element | null {
+  const requirements = getRequirements(password);
+  const [phases, setPhases] = React.useState<
+    Partial<Record<RequirementId, DismissPhase>>
+  >({});
+  const timersRef = React.useRef<
+    Partial<Record<RequirementId, ReturnType<typeof setTimeout>[]>>
+  >({});
+  const startedRef = React.useRef<Partial<Record<RequirementId, boolean>>>({});
+
+  const clearTimers = useEffectEvent((id: RequirementId): void => {
+    const timers = timersRef.current[id];
+    if (timers) {
+      for (const timer of timers) {
+        clearTimeout(timer);
+      }
+      delete timersRef.current[id];
+    }
+    delete startedRef.current[id];
+  });
+
+  const startDismiss = useEffectEvent((id: RequirementId): void => {
+    if (startedRef.current[id]) return;
+    startedRef.current[id] = true;
+
+    setPhases((prev) => ({ ...prev, [id]: 'green' }));
+
+    const fadeTimer = setTimeout(() => {
+      setPhases((prev) => ({ ...prev, [id]: 'fading' }));
+    }, GREEN_HOLD_MS);
+
+    const goneTimer = setTimeout(() => {
+      setPhases((prev) => ({ ...prev, [id]: 'gone' }));
+      delete timersRef.current[id];
+    }, GREEN_HOLD_MS + FADE_OUT_MS);
+
+    timersRef.current[id] = [fadeTimer, goneTimer];
+  });
+
+  React.useEffect(() => {
+    for (const requirement of getRequirements(password)) {
+      if (!requirement.met) {
+        clearTimers(requirement.id);
+        setPhases((prev) => {
+          if (!prev[requirement.id]) return prev;
+          const next = { ...prev };
+          delete next[requirement.id];
+          return next;
+        });
+        continue;
+      }
+
+      startDismiss(requirement.id);
+    }
+  }, [password, clearTimers, startDismiss]);
+
+  React.useEffect(() => {
+    return () => {
+      for (const id of Object.keys(timersRef.current) as RequirementId[]) {
+        clearTimers(id);
+      }
+    };
+  }, [clearTimers]);
+
+  const visible = requirements.filter(
+    (requirement) => phases[requirement.id] !== 'gone'
+  );
+
+  if (visible.length === 0) {
     return null;
   }
 
   return (
     <ul className="list-none space-y-1 pb-2">
-      {unmet.map((requirement) => (
-        <li
-          key={requirement.id}
-          className="flex flex-row items-center px-4 text-muted-foreground"
-        >
-          <BulletPointIcon />
-          <p className="text-sm">{requirement.label}</p>
-        </li>
-      ))}
+      {visible.map((requirement) => {
+        const phase = phases[requirement.id];
+        const isMet = requirement.met || Boolean(phase);
+        const isFading = phase === 'fading';
+
+        return (
+          <li
+            key={requirement.id}
+            className={cn(
+              'flex flex-row items-center px-4 transition-[opacity,color,transform] ease-out',
+              isMet
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-muted-foreground',
+              isFading && 'translate-y-0.5 opacity-0'
+            )}
+            style={{
+              transitionDuration: isFading ? `${FADE_OUT_MS}ms` : '300ms'
+            }}
+          >
+            <BulletPointIcon met={isMet} />
+            <p className="text-sm">{requirement.label}</p>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-function BulletPointIcon(): React.JSX.Element {
+function BulletPointIcon({ met }: { met: boolean }): React.JSX.Element {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +163,10 @@ function BulletPointIcon(): React.JSX.Element {
       strokeLinejoin="round"
       strokeWidth="2"
       viewBox="0 0 24 24"
-      className="mr-2 inline-block"
+      className={cn(
+        'mr-2 inline-block transition-colors duration-300',
+        met ? 'text-emerald-600 dark:text-emerald-400' : undefined
+      )}
     >
       <circle
         cx="12"

@@ -31,7 +31,7 @@ export const EMAIL_HR_CLASS =
   "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";
 
 export const EMAIL_BUTTON_PRIMARY_CLASS =
-  "rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
+  "rounded-none bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
 
 export const EMAIL_BUTTON_SECTION_CLASS = "my-[32px] text-center";
 

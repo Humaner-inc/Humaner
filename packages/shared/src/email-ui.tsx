@@ -169,7 +169,11 @@ export function EmailButton({
 }): React.JSX.Element {
   return (
     <Section className={EMAIL_BUTTON_SECTION_CLASS}>
-      <Button className={EMAIL_BUTTON_PRIMARY_CLASS} href={href}>
+      <Button
+        className={EMAIL_BUTTON_PRIMARY_CLASS}
+        href={href}
+        style={{ borderRadius: 0 }}
+      >
         {children}
       </Button>
     </Section>

@@ -26,6 +26,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# local load-test secrets / output (see Docs/REAL_CONDITION_LOAD_TEST.md)
+Docs/scripts/load-chat.config.json
+Docs/scripts/load-chat-results.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
+import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
 import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
@@ -46,6 +47,11 @@ function isVerifyEmailRoute(): boolean {
   return !!pathname && pathname.startsWith(Routes.VerifyEmail);
 }
 
+function isLoginOrSignUpRoute(): boolean {
+  const pathname = getPathname();
+  return pathname === Routes.Login || pathname === Routes.SignUp;
+}
+
 async function getAuthenticatedRedirect(userId: string): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -76,11 +82,14 @@ export default async function AuthLayout({
   ) {
     return redirect(await getAuthenticatedRedirect(session.user.id));
   }
+  const showBackToMarketing = isLoginOrSignUpRoute();
+
   return (
     <div className="relative flex min-h-screen bg-[#070607]">
       <GrainAmbient className="fixed inset-0 z-0" />
       {/* Left: auth form */}
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
+        {showBackToMarketing ? <AuthBackToMarketing /> : null}
         {children}
       </main>
       {/* Right: image panel */}
