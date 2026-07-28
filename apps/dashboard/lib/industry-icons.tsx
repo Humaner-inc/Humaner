@@ -1,24 +1,25 @@
 'use client';
 
 import {
-  BuildingIcon,
-  GraduationCapIcon,
-  HeartPulse,
+  ActivityIcon,
+  MonitorIcon,
+  PlaneIcon,
   ShoppingBag,
   type LucideIcon
 } from '@humaner/shared/icons';
 
 import type { IndustryIconKey } from './industries';
 
+/** Same glyph set as landing `/industries` (cart, monitor, activity, plane). */
 export const INDUSTRY_ICONS: Record<IndustryIconKey, LucideIcon> = {
   'shopping-bag': ShoppingBag,
-  'graduation-cap': GraduationCapIcon,
-  'heart-pulse': HeartPulse,
-  building: BuildingIcon
+  monitor: MonitorIcon,
+  activity: ActivityIcon,
+  plane: PlaneIcon
 };
 
 export function getIndustryIcon(key: IndustryIconKey): LucideIcon {
   return INDUSTRY_ICONS[key];
 }
 
-export { BuildingIcon, GraduationCapIcon, HeartPulse, ShoppingBag };
+export { ActivityIcon, MonitorIcon, PlaneIcon, ShoppingBag };

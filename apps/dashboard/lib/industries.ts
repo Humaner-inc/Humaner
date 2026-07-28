@@ -1,10 +1,6 @@
 import type { CharacterType, IndustryType } from '@prisma/client';
 
-export type IndustryIconKey =
-  | 'shopping-bag'
-  | 'graduation-cap'
-  | 'heart-pulse'
-  | 'building';
+export type IndustryIconKey = 'shopping-bag' | 'monitor' | 'activity' | 'plane';
 
 export type IndustryDefinition = {
   id: IndustryType;
@@ -52,7 +48,7 @@ Never speculate on stock availability unless your knowledge base explicitly cove
     id: 'EDUCATION',
     label: 'Digital Services',
     description: 'SaaS and online courses',
-    iconKey: 'graduation-cap',
+    iconKey: 'monitor',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: [
       'Academic integrity advice',
@@ -81,7 +77,7 @@ For access/technical issues, collect basic info (browser, device) before suggest
     id: 'FITNESS',
     label: 'Wellness',
     description: 'Care and fitness',
-    iconKey: 'heart-pulse',
+    iconKey: 'activity',
     defaultCharacter: 'CASUAL',
     forbiddenTopics: [
       'Medical advice',
@@ -111,7 +107,7 @@ If a member asks something medical, acknowledge warmly and direct to a qualified
     id: 'TRAVEL',
     label: 'Hospitality',
     description: 'Guest services & travel',
-    iconKey: 'building',
+    iconKey: 'plane',
     defaultCharacter: 'CORPORATE',
     forbiddenTopics: ['Competitor comparisons', 'Legal dispute advice'],
     promptFragment: `You handle guest support for a travel or hospitality business.
