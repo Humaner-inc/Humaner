@@ -43,6 +43,8 @@ Only needed if you are running the monorepo locally (team / evaluator / SDK cont
 - Anthropic API key — `CLAUDE_API_KEY` or `ANTHROPIC_API_KEY`
 - OpenAI API key — `OPENAI_API_KEY` (embeddings; optional, falls back to keyword search)
 
+**Supabase pooler:** optional `DATABASE_CONNECTION_LIMIT` (default `5` per dashboard process) and `DATABASE_POOL_TIMEOUT` (default `20` seconds). Prisma adds `pgbouncer=true` on port 6543 automatically.
+
 ---
 
 ## Getting started

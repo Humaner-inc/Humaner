@@ -8,9 +8,9 @@ export async function GET(): Promise<Response> {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ version: AppInfo.VERSION });
   } catch (err) {
-    const { statusCode = 503 } = err;
+    console.error('[health] database unreachable', err);
     return new NextResponse(undefined, {
-      status: statusCode,
+      status: 503,
       headers: {
         'Cache-Control': 'no-store'
       }
