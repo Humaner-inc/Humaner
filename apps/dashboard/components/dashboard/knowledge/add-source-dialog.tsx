@@ -334,8 +334,7 @@ export function AddSourceDialog({
             Add a source
           </DialogTitle>
           <DialogDescription>
-            Scrape a page, crawl a whole site, drop .md files, or paste text.
-            Sources are chunked and embedded for grounded answers.
+            Insert your company's knowledge into your agent.
           </DialogDescription>
         </DialogHeader>
 

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget test — Hospitality</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="badge">TRAVEL · Hospitality</p>
+      <h1>Harborline Hotels</h1>
+      <p>Fake hospitality page for widget smoke testing.</p>
+      <div class="mock-page">
+        <h2>Reservations</h2>
+        <p>Ask about check-in, amenities, or modifying a stay.</p>
+      </div>
+      <div id="setup-hint" hidden>
+        <strong>Setup</strong>
+        <p data-hint-body></p>
+      </div>
+      <p class="nav"><a href="index.html">All test pages</a></p>
+    </div>
+    <script src="widget-config.example.js"></script>
+    <script src="widget-config.local.js"></script>
+    <script>
+      window.__HUMANER_VERTICAL__ = "TRAVEL";
+    </script>
+    <script src="embed.js"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget test — Retail</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="badge">ECOMMERCE · Retail</p>
+      <h1>Northwind Outfitters</h1>
+      <p>Fake storefront page for widget smoke testing.</p>
+      <div class="mock-page">
+        <h2>Featured</h2>
+        <p>Trail shell jacket — ask the bubble about sizing, shipping, or returns.</p>
+      </div>
+      <div id="setup-hint" hidden>
+        <strong>Setup</strong>
+        <p data-hint-body></p>
+      </div>
+      <p class="nav"><a href="index.html">All test pages</a></p>
+    </div>
+    <script src="widget-config.example.js"></script>
+    <script src="widget-config.local.js"></script>
+    <script>
+      window.__HUMANER_VERTICAL__ = "ECOMMERCE";
+    </script>
+    <script src="embed.js"></script>
+  </body>
+</html>
