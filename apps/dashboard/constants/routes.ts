@@ -90,6 +90,14 @@ export function agentKnowledgeRoute(agentId: string): string {
   return `/agents/${agentId}/knowledge`;
 }
 
+export function agentKnowledgeFixGapRoute(
+  agentId: string,
+  question: string
+): string {
+  const params = new URLSearchParams({ fixGap: question });
+  return `${agentKnowledgeRoute(agentId)}?${params.toString()}`;
+}
+
 export function agentRunbooksRoute(agentId: string): string {
   return `/agents/${agentId}/runbooks`;
 }

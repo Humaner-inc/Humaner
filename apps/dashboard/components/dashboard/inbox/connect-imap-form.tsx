@@ -788,10 +788,6 @@ export function ConnectImapForm({
                   <li>All synced threads and messages</li>
                   <li>Assignments, tags, and inbox history for this mailbox</li>
                 </ul>
-                <p>
-                  Your provider account itself is not deleted — only Humaner
-                  data for this mailbox.
-                </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>

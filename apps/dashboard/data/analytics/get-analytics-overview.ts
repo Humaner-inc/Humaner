@@ -16,6 +16,10 @@ import {
   formatSatisfactionDetail
 } from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
+import {
+  extractDetectedContentGaps,
+  type DetectedContentGap
+} from '@/lib/knowledge/extract-detected-gaps';
 
 export type AnalyticsVolumePoint = {
   date: string;
@@ -25,14 +29,7 @@ export type AnalyticsVolumePoint = {
   satisfactionRate: number;
 };
 
-export type AnalyticsKnowledgeGap = {
-  question: string;
-  count: number;
-  agentId: string;
-  agentName: string;
-  lastAskedAt: string;
-  conversationId: string;
-};
+export type AnalyticsKnowledgeGap = DetectedContentGap;
 
 export type AnalyticsOverview = {
   summary: {
@@ -110,85 +107,6 @@ function buildVolumeByDay(
           : 0
     };
   });
-}
-
-function extractKnowledgeGaps(
-  conversations: Array<{
-    id: string;
-    updatedAt: Date;
-    agent: { id: string; name: string };
-    messages: Array<{
-      role: MessageRole;
-      content: string;
-      unanswered: boolean;
-      createdAt: Date;
-    }>;
-  }>
-): AnalyticsKnowledgeGap[] {
-  const grouped = new Map<
-    string,
-    {
-      question: string;
-      count: number;
-      agentId: string;
-      agentName: string;
-      lastAskedAt: Date;
-      conversationId: string;
-    }
-  >();
-
-  for (const conversation of conversations) {
-    let lastUserQuestion: string | null = null;
-
-    for (const message of conversation.messages) {
-      if (message.role === 'USER') {
-        lastUserQuestion = message.content.trim();
-        continue;
-      }
-
-      if (
-        message.role === 'ASSISTANT' &&
-        message.unanswered &&
-        lastUserQuestion
-      ) {
-        const key = `${conversation.agent.id}:${lastUserQuestion.toLowerCase()}`;
-        const existing = grouped.get(key);
-
-        if (existing) {
-          existing.count += 1;
-          if (message.createdAt > existing.lastAskedAt) {
-            existing.lastAskedAt = message.createdAt;
-            existing.conversationId = conversation.id;
-          }
-        } else {
-          grouped.set(key, {
-            question: lastUserQuestion,
-            count: 1,
-            agentId: conversation.agent.id,
-            agentName: conversation.agent.name,
-            lastAskedAt: message.createdAt,
-            conversationId: conversation.id
-          });
-        }
-      }
-    }
-  }
-
-  return Array.from(grouped.values())
-    .sort((left, right) => {
-      if (right.count !== left.count) {
-        return right.count - left.count;
-      }
-      return right.lastAskedAt.getTime() - left.lastAskedAt.getTime();
-    })
-    .map((gap) => ({
-      question: gap.question,
-      count: gap.count,
-      agentId: gap.agentId,
-      agentName: gap.agentName,
-      lastAskedAt: gap.lastAskedAt.toISOString(),
-      conversationId: gap.conversationId
-    }));
 }
 
 export async function getAnalyticsOverview(options?: {
@@ -283,7 +201,7 @@ export async function getAnalyticsOverview(options?: {
   // Content-gap detection is a Frontier (v2.0) capability. Lower tiers still see the
   // unanswered count in analytics, but not the itemized gaps + suggested fixes.
   const contentGapsEnabled = getPlanCapabilities(tier).contentGaps;
-  const detectedGaps = extractKnowledgeGaps(gapConversations);
+  const detectedGaps = extractDetectedContentGaps(gapConversations);
   const knowledgeGaps = contentGapsEnabled ? detectedGaps : [];
   const unansweredCount = detectedGaps.reduce(
     (total, gap) => total + gap.count,

@@ -18,16 +18,7 @@ import { toast } from 'sonner';
 import { deleteAgent } from '@/actions/agents/delete-agent';
 import { toggleAgentPause } from '@/actions/agents/toggle-agent-pause';
 import { AgentAvatarUpload } from '@/components/dashboard/agents/agent-avatar-upload';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
+import { DeleteAgentDialog } from '@/components/dashboard/agents/delete-agent-dialog';
 import { Button } from '@/components/ui/button';
 import { DeleteActionMenuItem } from '@/components/ui/delete-action-button';
 import {
@@ -426,33 +417,13 @@ export function AgentCard({
         </div>
       </article>
 
-      <AlertDialog
+      <DeleteAgentDialog
+        agentName={agent.name}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {agent.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This removes the agent and all linked knowledge sources. This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={isDeleting}
-              onClick={(event) => {
-                event.preventDefault();
-                handleDelete();
-              }}
-            >
-              {isDeleting ? 'Deleting…' : 'Delete agent'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        isDeleting={isDeleting}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }
