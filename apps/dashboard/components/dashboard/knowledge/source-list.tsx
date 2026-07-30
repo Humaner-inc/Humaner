@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { deleteIconButtonClassName } from '@/components/ui/delete-action-button';
 import { ListRowActions } from '@/components/ui/status-pill';
 import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
+import { dashboardListSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 const TYPE_ICON: Record<SourceType, typeof GlobeIcon> = {
@@ -110,7 +111,7 @@ export function SourceList({
   };
 
   return (
-    <ul className="divide-y rounded-xl border">
+    <ul className={dashboardListSurfaceClassName}>
       {sources.map((source) => {
         const TypeIcon = TYPE_ICON[source.type];
         const canRescan = REMOTE_SOURCE_TYPES.includes(source.type);

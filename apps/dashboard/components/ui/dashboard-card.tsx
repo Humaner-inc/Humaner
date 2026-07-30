@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type DashboardCardProps = React.HTMLAttributes<HTMLElement>;
@@ -12,7 +13,7 @@ export function DashboardCard({
 }: DashboardCardProps): React.JSX.Element {
   return (
     <section
-      className={cn('border border-border/60 bg-card', className)}
+      className={cn(dashboardSurfaceClassName, className)}
       {...props}
     >
       {children}

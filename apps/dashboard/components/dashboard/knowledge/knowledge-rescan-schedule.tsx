@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { dashboardSurfaceDashedClassName } from '@/lib/dashboard/surface-styles';
+import { cn } from '@/lib/utils';
 
 const INTERVAL_OPTIONS: {
   value: KnowledgeRescanInterval;
@@ -75,7 +77,7 @@ export function KnowledgeRescanSchedule({
   };
 
   return (
-    <div className="mt-4 rounded-xl border border-dashed px-4 py-3">
+    <div className={cn(dashboardSurfaceDashedClassName, 'mt-4 px-4 py-3')}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <Label

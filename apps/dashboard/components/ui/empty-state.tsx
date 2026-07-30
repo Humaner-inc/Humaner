@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type EmptyStateElement = HTMLDivElement;
@@ -18,7 +19,8 @@ const EmptyState = React.forwardRef<EmptyStateElement, EmptyStateProps>(
         role="region"
         aria-label={title}
         className={cn(
-          'flex h-full flex-col items-center justify-center gap-6 rounded-lg border px-8 py-12 sm:px-10 md:px-12',
+          'flex h-full flex-col items-center justify-center gap-6 px-8 py-12 sm:px-10 md:px-12',
+          dashboardSurfaceClassName,
           className
         )}
         {...props}

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { SyncStatus } from '@prisma/client';
 
+import { AddSourceDialog } from '@/components/dashboard/knowledge/add-source-dialog';
 import { SourceList } from '@/components/dashboard/knowledge/source-list';
 import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
 
@@ -16,6 +17,10 @@ const ACTIVE_STATUSES: SyncStatus[] = [
 
 const POLL_INTERVAL_MS = 2000;
 
+export type AddSourceDialogOptions = {
+  textPrefill?: { title: string; content?: string };
+};
+
 type KnowledgeResourcesContextValue = {
   addSources: (sources: KnowledgeSourceItem[]) => void;
   removeSource: (id: string) => void;
@@ -24,6 +29,7 @@ type KnowledgeResourcesContextValue = {
     optimisticIds: string[],
     sources: KnowledgeSourceItem[]
   ) => void;
+  openAddSourceDialog: (options?: AddSourceDialogOptions) => void;
 };
 
 const KnowledgeResourcesContext =
@@ -88,16 +94,36 @@ function mergeSources(
 
 export type KnowledgeResourcesShellProps = {
   agentId: string;
+  agentName: string;
   initialSources: KnowledgeSourceItem[];
   children: React.ReactNode;
 };
 
 export function KnowledgeResourcesShell({
   agentId,
+  agentName,
   initialSources,
   children
 }: KnowledgeResourcesShellProps): React.JSX.Element {
   const [sources, setSources] = React.useState(initialSources);
+  const [addSourceOpen, setAddSourceOpen] = React.useState(false);
+  const [addSourcePrefill, setAddSourcePrefill] =
+    React.useState<AddSourceDialogOptions['textPrefill']>(undefined);
+
+  const openAddSourceDialog = React.useCallback(
+    (options?: AddSourceDialogOptions): void => {
+      setAddSourcePrefill(options?.textPrefill);
+      setAddSourceOpen(true);
+    },
+    []
+  );
+
+  const handleAddSourceOpenChange = React.useCallback((open: boolean): void => {
+    setAddSourceOpen(open);
+    if (!open) {
+      setAddSourcePrefill(undefined);
+    }
+  }, []);
 
   React.useEffect(() => {
     setSources((current) => mergeSources(current, initialSources));
@@ -190,15 +216,30 @@ export function KnowledgeResourcesShell({
       addSources,
       removeSource,
       markSourcePending,
-      reconcileSources
+      reconcileSources,
+      openAddSourceDialog
     }),
-    [addSources, removeSource, markSourcePending, reconcileSources]
+    [
+      addSources,
+      removeSource,
+      markSourcePending,
+      reconcileSources,
+      openAddSourceDialog
+    ]
   );
 
   return (
     <KnowledgeResourcesContext.Provider value={contextValue}>
       <KnowledgeResourcesSourcesContext.Provider value={sources}>
         {children}
+        <AddSourceDialog
+          agentId={agentId}
+          agentName={agentName}
+          open={addSourceOpen}
+          onOpenChange={handleAddSourceOpenChange}
+          hideTrigger
+          textPrefill={addSourcePrefill}
+        />
       </KnowledgeResourcesSourcesContext.Provider>
     </KnowledgeResourcesContext.Provider>
   );

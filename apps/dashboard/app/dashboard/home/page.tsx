@@ -22,8 +22,10 @@ import {
   hasReachedAgentLimit,
   userBypassesPlanLimits
 } from '@/lib/billing/plan-limits';
+import { dashboardSurfaceDashedClassName } from '@/lib/dashboard/surface-styles';
 import { prisma } from '@/lib/db/prisma';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = createDashboardPageMetadata(
   Routes.Home,
@@ -118,7 +120,10 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                 {!atLimit ? (
                   <Link
                     href={Routes.AgentNew}
-                    className="flex min-h-[16.5rem] flex-col items-center justify-center border border-dashed border-border/70 bg-muted/15 p-4 text-center shadow-[0_2px_0_0_rgb(0_0_0_/_0.03),0_18px_40px_-28px_rgb(0_0_0_/_0.18)] transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30"
+                    className={cn(
+                      dashboardSurfaceDashedClassName,
+                      'flex min-h-[16.5rem] flex-col items-center justify-center p-4 text-center shadow-[0_2px_0_0_rgb(0_0_0_/_0.03),0_18px_40px_-28px_rgb(0_0_0_/_0.18)] transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30'
+                    )}
                   >
                     <CircleDashedIcon
                       size={20}
@@ -132,7 +137,12 @@ export default async function HomePage(): Promise<React.JSX.Element> {
               </div>
 
               {atLimit ? (
-                <p className="border border-dashed border-border/60 px-4 py-3 text-center text-xs text-muted-foreground">
+                <p
+                  className={cn(
+                    dashboardSurfaceDashedClassName,
+                    'px-4 py-3 text-center text-xs text-muted-foreground'
+                  )}
+                >
                   Live agent limit reached. Pause an agent or upgrade your plan.
                 </p>
               ) : null}
