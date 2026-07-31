@@ -1,5 +1,6 @@
 const DEFAULT_LANDING_URL = "http://localhost:3000";
 const DEFAULT_APP_URL = "http://localhost:3001";
+const DEFAULT_INTO_MARKDOWN_URL = "https://markdown.humaner.io";
 
 export function getLandingUrl(): string {
   return process.env.NEXT_PUBLIC_LANDING_URL ?? DEFAULT_LANDING_URL;
@@ -58,6 +59,16 @@ export function getContactUrl(): string {
 
 export function getDocsUrl(): string {
   return process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.humaner.io";
+}
+
+export function getIntoMarkdownUrl(): string {
+  if (process.env.NEXT_PUBLIC_INTO_MARKDOWN_URL) {
+    return process.env.NEXT_PUBLIC_INTO_MARKDOWN_URL;
+  }
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3005";
+  }
+  return DEFAULT_INTO_MARKDOWN_URL;
 }
 
 export function getGithubUrl(): string {

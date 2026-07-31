@@ -12,14 +12,15 @@ This guide is for **Humaner team members**, **security evaluators** reading auth
 
 ## What you can run locally
 
-| Surface                         | Local? | Notes                                      |
-| ------------------------------- | ------ | ------------------------------------------ |
-| Landing (`apps/landing`)        | ✅     | Marketing site + vision handbook           |
-| Docs (`apps/documentation`)     | ✅     | Product documentation (`docs.humaner.io`)  |
-| Dashboard UI (`apps/dashboard`) | ✅     | Auth, settings, desk, billing UI           |
-| Widget iframe + `widget.js`     | ✅     | Point embed at `localhost:3001`            |
-| `@humaner/react`                | ✅     | `baseUrl="http://localhost:3001"`          |
-| API routes (`/api/v1/*`)        | ✅     | Requires your own keys + Redis (see below) |
+| Surface                              | Local? | Notes                                      |
+| ------------------------------------ | ------ | ------------------------------------------ |
+| Landing (`apps/landing`)             | ✅     | Marketing site + vision handbook           |
+| Docs (`apps/documentation`)          | ✅     | Product documentation (`docs.humaner.io`)  |
+| Into markdown (`apps/into-markdown`) | ✅     | Whole-site → agent-ready markdown KB       |
+| Dashboard UI (`apps/dashboard`)      | ✅     | Auth, settings, desk, billing UI           |
+| Widget iframe + `widget.js`          | ✅     | Point embed at `localhost:3001`            |
+| `@humaner/react`                     | ✅     | `baseUrl="http://localhost:3001"`          |
+| API routes (`/api/v1/*`)             | ✅     | Requires your own keys + Redis (see below) |
 
 ## What you cannot self-host today
 
@@ -59,11 +60,20 @@ pnpm --filter @humaner/dashboard exec prisma migrate dev
 pnpm dev
 ```
 
-| App       | URL                   | Command                  |
-| --------- | --------------------- | ------------------------ |
-| Landing   | http://localhost:3000 | `pnpm dev:landing`       |
-| Dashboard | http://localhost:3001 | `pnpm dev:dashboard`     |
-| Docs      | http://localhost:3004 | `pnpm dev:documentation` |
+| App           | URL                   | Command                  |
+| ------------- | --------------------- | ------------------------ |
+| Landing       | http://localhost:3000 | `pnpm dev:landing`       |
+| Dashboard     | http://localhost:3001 | `pnpm dev:dashboard`     |
+| Docs          | http://localhost:3004 | `pnpm dev:documentation` |
+| Into markdown | http://localhost:3005 | `pnpm dev:into-markdown` |
+
+Into markdown uses Playwright for JS-rendered sites. Once per machine:
+
+```bash
+pnpm --filter @humaner/into-markdown setup:browser
+```
+
+Production domain: `https://markdown.humaner.io` (see `apps/into-markdown/DEPLOY.md`).
 
 ```bash
 pnpm build       # production build
@@ -78,9 +88,10 @@ pnpm db:studio   # Prisma Studio
 
 ```
 apps/
-  landing/     → humaner.io        (port 3000)
-  documentation/ → docs.humaner.io   (port 3004)
-  dashboard/   → app.humaner.io    (port 3001)
+  landing/         → humaner.io        (port 3000)
+  documentation/   → docs.humaner.io   (port 3004)
+  into-markdown/   → Into markdown tool (port 3005)
+  dashboard/       → app.humaner.io    (port 3001)
 packages/
   react/       → @humaner/react
   shared/      → plans, URLs, shared types
