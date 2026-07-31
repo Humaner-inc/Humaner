@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { addKnowledgeSource } from '@/actions/knowledge/add-knowledge-source';
 import {
   KnowledgeIngestionPanel,
+  MIN_INGESTION_LOADING_MS,
   randomIngestionLoadingDelayMs,
   type KnowledgeIngestionPhase
 } from '@/components/dashboard/knowledge/knowledge-ingestion-panel';
@@ -46,6 +47,9 @@ import {
 } from '@/lib/knowledge/content-limits';
 import { buildOptimisticKnowledgeSources } from '@/lib/knowledge/optimistic-knowledge-source';
 import { cn } from '@/lib/utils';
+
+const REMOTE_INGESTION_POLL_MS = 2000;
+const REMOTE_INGESTION_MAX_WAIT_MS = 120_000;
 
 const highlightedInputClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
@@ -192,21 +196,86 @@ export function AddSourceDialog({
     setIngestionPhase('loading');
   }, [clearIngestionTimers]);
 
-  const startIngestionSequence = React.useCallback(
-    (onComplete: () => void): void => {
-      clearIngestionTimers();
-      setDialogView('ingestion');
-      setIngestionPhase('loading');
+  const showIngestionLoading = React.useCallback((): void => {
+    setDialogView('ingestion');
+    setIngestionPhase('loading');
+  }, []);
 
-      const loadingDelayMs = randomIngestionLoadingDelayMs();
+  const startIngestionSequence = React.useCallback(
+    (
+      onComplete: () => void,
+      options?: { remoteSourceIds?: string[]; skipViewSetup?: boolean }
+    ): void => {
+      clearIngestionTimers();
+      if (!options?.skipViewSetup) {
+        showIngestionLoading();
+      }
+
+      const markSuccess = (): void => {
+        setIngestionPhase('success');
+        onComplete();
+      };
+
+      const remoteSourceIds = options?.remoteSourceIds ?? [];
+      if (remoteSourceIds.length === 0) {
+        const loadingDelayMs = randomIngestionLoadingDelayMs();
+        ingestionTimersRef.current.push(
+          window.setTimeout(markSuccess, loadingDelayMs)
+        );
+        return;
+      }
+
+      const startedAt = Date.now();
+
+      const pollRemoteSources = async (): Promise<void> => {
+        const elapsed = Date.now() - startedAt;
+        if (elapsed >= REMOTE_INGESTION_MAX_WAIT_MS) {
+          markSuccess();
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/agents/${agentId}/knowledge-sources`,
+            { cache: 'no-store' }
+          );
+          if (response.ok) {
+            const payload = (await response.json()) as {
+              sources: Array<{ id: string; status: string }>;
+            };
+            const tracked = payload.sources.filter((source) =>
+              remoteSourceIds.includes(source.id)
+            );
+            const allSettled =
+              tracked.length > 0 &&
+              tracked.every(
+                (source) =>
+                  source.status === 'READY' || source.status === 'FAILED'
+              );
+
+            if (allSettled && elapsed >= MIN_INGESTION_LOADING_MS) {
+              markSuccess();
+              return;
+            }
+          }
+        } catch {
+          // Keep polling on transient errors.
+        }
+
+        ingestionTimersRef.current.push(
+          window.setTimeout(() => {
+            void pollRemoteSources();
+          }, REMOTE_INGESTION_POLL_MS)
+        );
+      };
+
       ingestionTimersRef.current.push(
         window.setTimeout(() => {
-          setIngestionPhase('success');
-          onComplete();
-        }, loadingDelayMs)
+          void pollRemoteSources();
+        }, MIN_INGESTION_LOADING_MS)
       );
     },
-    [clearIngestionTimers]
+    [agentId, clearIngestionTimers, showIngestionLoading]
   );
 
   const finishIngestionDialog = React.useCallback((): void => {
@@ -364,8 +433,9 @@ export function AddSourceDialog({
       title: type === 'TEXT' ? title.trim() : undefined
     });
     const optimisticIds = optimisticSources.map((source) => source.id);
+    const isRemoteSource = type === 'URL' || type === 'SITEMAP';
     knowledgeResources?.addSources(optimisticSources);
-    startIngestionSequence(finishIngestion);
+    showIngestionLoading();
 
     startTransition(async () => {
       const result = await addKnowledgeSource({
@@ -390,11 +460,19 @@ export function AddSourceDialog({
       }
 
       if (result?.data?.sources) {
-        knowledgeResources?.reconcileSources(
-          optimisticIds,
-          result.data.sources
-        );
+        const createdSources = result.data.sources;
+        knowledgeResources?.reconcileSources(optimisticIds, createdSources);
+
+        if (isRemoteSource) {
+          startIngestionSequence(finishIngestion, {
+            remoteSourceIds: createdSources.map((source) => source.id),
+            skipViewSetup: true
+          });
+          return;
+        }
       }
+
+      startIngestionSequence(finishIngestion);
     });
   };
 
@@ -481,7 +559,7 @@ export function AddSourceDialog({
                       mirrorClassName="px-3 py-2"
                     />
                     <p className="text-xs text-muted-foreground">
-                      One URL per line — add as many as you need.
+                      One URL per line — each URL is scraped as a single page.
                     </p>
                   </div>
                 )}

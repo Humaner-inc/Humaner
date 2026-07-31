@@ -119,7 +119,7 @@ export function KnowledgeIngestionPanel({
                 Resources available
               </p>
               <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-                Your knowledge is ready to use
+                Your knowledge is ready to be used
                 {agentName ? (
                   <>
                     {' '}
