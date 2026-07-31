@@ -115,6 +115,11 @@ export default async function DashboardLayout({
       : {})
   };
 
+  const humanerAgent = agents.find(
+    (agent) => agent.publicId === humanerAgentPublicId
+  );
+  const humanerAgentAvatarUrl = humanerAgent?.image ?? undefined;
+
   const dashboardShell = (
     <>
       <SidebarRenderer
@@ -167,6 +172,7 @@ export default async function DashboardLayout({
               {humanerAgentPublicId ? (
                 <HumanerChatProvider
                   agentPublicId={humanerAgentPublicId}
+                  agentAvatarUrl={humanerAgentAvatarUrl}
                   widgetColor={accentColor}
                   dashboardVisitorId={dashboardVisitorId}
                   visitorMetadata={visitorMetadata}
