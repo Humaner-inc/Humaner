@@ -53,7 +53,11 @@ function buildVolumeByDay(
   messages: { createdAt: Date }[],
   conversations: Array<{
     createdAt: Date;
-    messages: Array<{ role: MessageRole; unanswered: boolean }>;
+    messages: Array<{
+      role: MessageRole;
+      unanswered: boolean;
+      failureReason?: string | null;
+    }>;
     handoffTickets: Array<{ status: string }>;
   }>
 ): AnalyticsVolumePoint[] {
@@ -136,7 +140,7 @@ export async function getAnalyticsOverview(options?: {
       where: { agent: { organizationId, ...agentFilter } },
       select: {
         messages: {
-          select: { role: true, unanswered: true }
+          select: { role: true, unanswered: true, failureReason: true }
         },
         handoffTickets: {
           select: { status: true }
@@ -158,7 +162,7 @@ export async function getAnalyticsOverview(options?: {
       select: {
         createdAt: true,
         messages: {
-          select: { role: true, unanswered: true }
+          select: { role: true, unanswered: true, failureReason: true }
         },
         handoffTickets: {
           select: { status: true }

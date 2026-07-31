@@ -19,6 +19,8 @@ export type ResolveAssistantAnswerStateInput = {
   fallbackMessage: string;
 };
 
+export const UNGROUNDED_ANSWER_REASON = 'UNGROUNDED_ANSWER';
+
 export type AssistantAnswerState = {
   unanswered: boolean;
   failureReason: string | null;
@@ -77,7 +79,10 @@ export function resolveAssistantAnswerState(
   }
 
   if (!input.retrievalGrounded && isSubstantiveAnswer(content)) {
-    return { unanswered: false, failureReason: null };
+    return {
+      unanswered: false,
+      failureReason: UNGROUNDED_ANSWER_REASON
+    };
   }
 
   if (input.retrievalGrounded) {

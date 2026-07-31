@@ -71,6 +71,10 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
     gaps.push(
       `${outcomeCounts.unsolved} conversation${outcomeCounts.unsolved === 1 ? '' : 's'} left visitors without proper answers.`
     );
+  } else if (outcomeCounts.partial > 0) {
+    gaps.push(
+      `${outcomeCounts.partial} conversation${outcomeCounts.partial === 1 ? '' : 's'} had off-point answers — review knowledge coverage.`
+    );
   } else if (outcomeCounts.escalated > 0) {
     gaps.push(
       `${outcomeCounts.escalated} conversation${outcomeCounts.escalated === 1 ? '' : 's'} escalated to Human Desk.`

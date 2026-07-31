@@ -81,7 +81,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           conversations: {
             select: {
               messages: {
-                select: { role: true, unanswered: true }
+                select: { role: true, unanswered: true, failureReason: true }
               },
               handoffTickets: {
                 select: { status: true }
