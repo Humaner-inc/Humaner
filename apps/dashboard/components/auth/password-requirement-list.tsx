@@ -106,8 +106,9 @@ export function PasswordRequirementList({
   }, [password, clearTimers, startDismiss]);
 
   React.useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      for (const id of Object.keys(timersRef.current) as RequirementId[]) {
+      for (const id of Object.keys(timers) as RequirementId[]) {
         clearTimers(id);
       }
     };
