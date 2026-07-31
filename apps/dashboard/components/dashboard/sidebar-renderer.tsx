@@ -17,6 +17,7 @@ export type SidebarRendererProps = {
   agents: SidebarAgent[];
   orgTier: string;
   inboxUnreadCount?: number;
+  handoffOpenCount?: number;
 };
 
 export function SidebarRenderer({
@@ -25,7 +26,8 @@ export function SidebarRenderer({
   messageUsage,
   agents,
   orgTier,
-  inboxUnreadCount = 0
+  inboxUnreadCount = 0,
+  handoffOpenCount = 0
 }: SidebarRendererProps): React.JSX.Element {
   return (
     <>
@@ -36,6 +38,7 @@ export function SidebarRenderer({
         agents={agents}
         orgTier={orgTier}
         inboxUnreadCount={inboxUnreadCount}
+        handoffOpenCount={handoffOpenCount}
       />
       <SidebarOverlayBackdrop />
       <SidebarEdgeToggle />

@@ -35,6 +35,7 @@ export type NavMainProps = SidebarGroupProps & {
   agents: SidebarAgent[];
   orgTier: string;
   inboxUnreadCount?: number;
+  handoffOpenCount?: number;
 };
 
 export function NavMain({
@@ -42,6 +43,7 @@ export function NavMain({
   agents,
   orgTier,
   inboxUnreadCount = 0,
+  handoffOpenCount = 0,
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
@@ -66,7 +68,10 @@ export function NavMain({
           />
         ) : null}
         {canAccessPage(profile, 'desk') ? (
-          <NavDeskTree orgTier={orgTier} />
+          <NavDeskTree
+            orgTier={orgTier}
+            handoffOpenCount={handoffOpenCount}
+          />
         ) : null}
         <NavSettingsTree profile={profile} />
         {items.length > 0 ? (

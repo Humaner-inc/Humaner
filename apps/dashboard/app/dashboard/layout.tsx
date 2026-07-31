@@ -19,6 +19,7 @@ import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
+import { getHandoffOpenCount } from '@/data/handoff/get-handoff-open-count';
 import { getMailUnreadCount } from '@/data/inbox/get-mail-threads';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
@@ -26,6 +27,7 @@ import { OrgModeProvider } from '@/hooks/use-org-mode';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { CHARACTER_META } from '@/lib/character-presets';
 import { prisma } from '@/lib/db/prisma';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
@@ -80,14 +82,16 @@ export default async function DashboardLayout({
     workspaces,
     messageUsage,
     notificationsResult,
-    inboxUnreadCount
+    inboxUnreadCount,
+    handoffOpenCount
   ] = await Promise.all([
     getProfile(),
     getAgents(),
     getWorkspaceSwitcherData(),
     getSidebarMessageUsage(),
     getDashboardNotifications(),
-    getMailUnreadCount()
+    getMailUnreadCount(),
+    getHandoffOpenCount()
   ]);
   const { items: notifications } = notificationsResult;
 
@@ -118,7 +122,9 @@ export default async function DashboardLayout({
   const humanerAgent = agents.find(
     (agent) => agent.publicId === humanerAgentPublicId
   );
-  const humanerAgentAvatarUrl = humanerAgent?.image ?? undefined;
+  const humanerAgentAvatarUrl =
+    humanerAgent?.image ??
+    CHARACTER_META[humanerAgent?.character ?? 'CORPORATE'].image;
 
   const dashboardShell = (
     <>
@@ -128,6 +134,7 @@ export default async function DashboardLayout({
         messageUsage={messageUsage}
         orgTier={userFromDb!.organization!.tier ?? 'free'}
         inboxUnreadCount={inboxUnreadCount}
+        handoffOpenCount={handoffOpenCount}
         agents={agents.map((a) => ({
           id: a.id,
           name: a.name,
