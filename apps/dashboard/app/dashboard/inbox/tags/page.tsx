@@ -6,6 +6,7 @@ import {
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { MailTagsSettings } from '@/components/dashboard/inbox/mail-tags-settings';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
+import { getMailAliases } from '@/data/inbox/get-mail-aliases';
 import { getMailTags } from '@/data/inbox/get-mail-threads';
 
 export default async function InboxTagsPage(): Promise<React.JSX.Element> {
@@ -24,11 +25,15 @@ export default async function InboxTagsPage(): Promise<React.JSX.Element> {
     );
   }
 
-  const tags = await getMailTags();
+  const [tags, aliases] = await Promise.all([getMailTags(), getMailAliases()]);
 
   return (
     <MailTagsSettings
       tags={tags}
+      aliases={aliases.map((alias) => ({
+        id: alias.id,
+        address: alias.address
+      }))}
       canManage={overview.canManageProviders}
     />
   );

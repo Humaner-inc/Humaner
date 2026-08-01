@@ -3,8 +3,10 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  ArrowRightIcon,
   CheckIcon,
-  MoreHorizontalIcon,
+  ChevronRightIcon,
+  StarIcon,
   Trash2Icon,
   UserPlus2Icon
 } from '@humaner/shared/icons';
@@ -26,15 +28,12 @@ import {
   readSkipDeleteWarning,
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
+import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
@@ -47,6 +46,7 @@ import type {
   MailThreadDetail as MailThreadDetailDto
 } from '@/data/inbox/get-mail-threads';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import { tagsForAlias } from '@/lib/inbox/mail-tag-scope';
 import { cn } from '@/lib/utils';
 
 type Suggestion = { label: string; draft: string };
@@ -66,14 +66,20 @@ function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
 export function MailThreadDetail({
   thread,
   tags = [],
-  members = []
+  members = [],
+  embedded = false,
+  onClosed
 }: {
   thread: MailThreadDetailDto;
   tags?: MailTagItem[];
   members?: Array<{ id: string; name: string }>;
+  /** When true, fills a reading pane and skips leave-list navigation. */
+  embedded?: boolean;
+  onClosed?: () => void;
 }): React.JSX.Element {
   const router = useRouter();
   const { play } = useOnboardingSound();
+  const applicableTags = tagsForAlias(tags, thread.aliasId);
   const sendIconRef = React.useRef<SendIconHandle>(null);
   const successTimerRef = React.useRef<number | null>(null);
   const [body, setBody] = React.useState('');
@@ -92,6 +98,16 @@ export function MailThreadDetail({
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
   }, []);
+
+  const leaveOrClose = React.useCallback(() => {
+    if (embedded) {
+      onClosed?.();
+      router.refresh();
+      return;
+    }
+    router.push(Routes.InboxAll);
+    router.refresh();
+  }, [embedded, onClosed, router]);
 
   const { execute: sendReply, isExecuting } = useAction(replyMailThread, {
     onSuccess: () => {
@@ -127,7 +143,8 @@ export function MailThreadDetail({
     onSuccess: () => {
       toast.success(isArchived ? 'Moved to inbox' : 'Archived');
       if (!isArchived) {
-        router.push(Routes.InboxAll);
+        leaveOrClose();
+        return;
       }
       router.refresh();
     },
@@ -138,8 +155,7 @@ export function MailThreadDetail({
   const { execute: runDelete } = useAction(deleteMailThread, {
     onSuccess: () => {
       toast.success('Deleted');
-      router.push(Routes.InboxAll);
-      router.refresh();
+      leaveOrClose();
     },
     onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
   });
@@ -270,35 +286,96 @@ export function MailThreadDetail({
     suggesting && (loadingSuggestions || suggestions.length === 0);
 
   return (
-    <div className="space-y-3">
-      <header className="border-b border-border/70 pb-4">
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <div className="inline-flex min-w-0 items-center gap-2">
+    <div
+      className={cn(
+        embedded ? 'flex h-full min-h-0 flex-col bg-background' : 'space-y-3'
+      )}
+    >
+      <header
+        className={cn(
+          'flex shrink-0 items-center gap-3 border-b border-border',
+          embedded
+            ? cn(MAIL_SPLIT_ROW_HEIGHT_CLASS, 'px-4 sm:px-5')
+            : 'pb-4 pt-1'
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-2">
             <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
-            <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              {senderLabel}
-            </span>
+            <h1
+              className={cn(
+                'min-w-0 truncate font-display font-semibold tracking-tight',
+                embedded ? 'text-base leading-5' : 'text-2xl'
+              )}
+            >
+              {thread.subject}
+            </h1>
             {thread.tag ? (
-              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                <span
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: thread.tag.color }}
-                />
-                {thread.tag.name}
-              </span>
+              <span
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: thread.tag.color }}
+                title={thread.tag.name}
+                aria-label={thread.tag.name}
+              />
             ) : null}
           </div>
+          <p
+            className={cn(
+              'truncate font-mono uppercase tracking-wider text-muted-foreground/70',
+              embedded
+                ? 'mt-0.5 pl-[1.375rem] text-[9px] leading-3'
+                : 'mt-1 text-[10px] leading-4'
+            )}
+          >
+            {senderLabel}
+          </p>
+        </div>
 
+        <div className="flex shrink-0 items-center gap-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-none"
+            title="Reply"
+            onClick={() => {
+              setComposerOpen(true);
+              setSuggesting(false);
+            }}
+          >
+            <ArrowRightIcon className="size-4" />
+            <span className="sr-only">Reply</span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-none"
+            title="Forward"
+            onClick={() => {
+              toast.message('Forward is coming soon');
+            }}
+          >
+            <span
+              className="relative flex size-4 items-center justify-center"
+              aria-hidden
+            >
+              <ChevronRightIcon className="absolute size-3.5 -translate-x-1" />
+              <ChevronRightIcon className="absolute size-3.5 translate-x-0.5" />
+            </span>
+            <span className="sr-only">Forward</span>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 rounded-none px-2 font-mono"
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-none"
+                title="Assign"
               >
-                <MoreHorizontalIcon className="size-3.5" />
-                <span className="sr-only">Thread actions</span>
+                <UserPlus2Icon className="size-4" />
+                <span className="sr-only">Assign</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -314,348 +391,367 @@ export function MailThreadDetail({
                   Move to inbox
                 </DropdownMenuItem>
               ) : null}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <UserPlus2Icon className="mr-2 size-4" />
-                  Assign
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
+              <DropdownMenuItem
+                onSelect={() =>
+                  runAssign({
+                    threadId: thread.id,
+                    assigneeId: null
+                  })
+                }
+              >
+                Unassigned
+              </DropdownMenuItem>
+              {members.map((member) => (
+                <DropdownMenuItem
+                  key={member.id}
+                  onSelect={() =>
+                    runAssign({
+                      threadId: thread.id,
+                      assigneeId: member.id
+                    })
+                  }
+                >
+                  {member.name}
+                  {thread.assigneeId === member.id ? ' ✓' : ''}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {applicableTags.length > 0 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 rounded-none"
+                  title="Tag color"
+                >
+                  {thread.tag ? (
+                    <span
+                      className="size-3.5 rounded-none"
+                      style={{ backgroundColor: thread.tag.color }}
+                      aria-hidden
+                    />
+                  ) : (
+                    <StarIcon className="size-4" />
+                  )}
+                  <span className="sr-only">Tag color</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onSelect={() => runTag({ threadId: thread.id, tagId: null })}
+                >
+                  No tag
+                </DropdownMenuItem>
+                {applicableTags.map((tag) => (
                   <DropdownMenuItem
+                    key={tag.id}
                     onSelect={() =>
-                      runAssign({
+                      runTag({
                         threadId: thread.id,
-                        assigneeId: null
+                        tagId: tag.id
                       })
                     }
                   >
-                    Unassigned
+                    <span
+                      className="mr-2 size-2.5 rounded-full"
+                      style={{ backgroundColor: tag.color }}
+                    />
+                    {tag.name}
                   </DropdownMenuItem>
-                  {members.map((member) => (
-                    <DropdownMenuItem
-                      key={member.id}
-                      onSelect={() =>
-                        runAssign({
-                          threadId: thread.id,
-                          assigneeId: member.id
-                        })
-                      }
-                    >
-                      {member.name}
-                      {thread.assigneeId === member.id ? ' ✓' : ''}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              {tags.length > 0 ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        runTag({ threadId: thread.id, tagId: null })
-                      }
-                    >
-                      No tag
-                    </DropdownMenuItem>
-                    {tags.map((tag) => (
-                      <DropdownMenuItem
-                        key={tag.id}
-                        onSelect={() =>
-                          runTag({
-                            threadId: thread.id,
-                            tagId: tag.id
-                          })
-                        }
-                      >
-                        <span
-                          className="mr-2 size-2.5 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        {tag.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ) : null}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onSelect={() => {
-                  requestMailDelete(
-                    skipDeleteWarning,
-                    () => setDeleteOpen(true),
-                    () => runDelete({ threadId: thread.id })
-                  );
-                }}
-              >
-                <Trash2Icon className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-none text-destructive hover:text-destructive"
+            title="Delete"
+            onClick={() => {
+              requestMailDelete(
+                skipDeleteWarning,
+                () => setDeleteOpen(true),
+                () => runDelete({ threadId: thread.id })
+              );
+            }}
+          >
+            <Trash2Icon className="size-4" />
+            <span className="sr-only">Delete</span>
+          </Button>
         </div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          {thread.subject}
-        </h1>
       </header>
 
-      <ol className="space-y-3">
-        {thread.messages.map((message) => {
-          const outbound = message.direction === 'OUTBOUND';
+      <div
+        className={cn(
+          embedded
+            ? 'min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 sm:px-5'
+            : 'contents'
+        )}
+      >
+        <ol className="space-y-3">
+          {thread.messages.map((message) => {
+            const outbound = message.direction === 'OUTBOUND';
 
-          return (
-            <li
-              key={message.id}
-              className={cn(
-                'flex w-full',
-                outbound ? 'justify-end' : 'justify-start'
-              )}
-            >
-              <article
+            return (
+              <li
+                key={message.id}
                 className={cn(
-                  'w-full max-w-[88%] rounded-none border px-4 py-3.5 sm:max-w-[82%]',
-                  outbound
-                    ? cn(accentBorder, accentSoftBg)
-                    : 'border-border bg-background'
+                  'flex w-full',
+                  outbound ? 'justify-end' : 'justify-start'
                 )}
               >
+                <article
+                  className={cn(
+                    'w-full max-w-[88%] rounded-none border px-4 py-3.5 sm:max-w-[82%]',
+                    outbound
+                      ? cn(accentBorder, accentSoftBg)
+                      : 'border-border bg-background'
+                  )}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                    <div className="min-w-0 text-xs">
+                      <p className="truncate font-medium">
+                        {message.fromAddress}
+                      </p>
+                      <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                        to {message.toAddresses.join(', ')}
+                      </p>
+                    </div>
+                    <time
+                      dateTime={message.sentAt}
+                      className="shrink-0 font-mono text-[10px] text-muted-foreground"
+                    >
+                      {format(new Date(message.sentAt), 'PPp')}
+                    </time>
+                  </div>
+
+                  <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
+                    {message.bodyText || 'This message has no plain-text body.'}
+                  </div>
+                </article>
+              </li>
+            );
+          })}
+        </ol>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-none px-4"
+            onClick={() => {
+              setComposerOpen(true);
+              setSuggesting(false);
+            }}
+          >
+            Reply
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-none px-4"
+            onClick={() => {
+              toast.message('Forward is coming soon');
+            }}
+          >
+            Forward
+          </Button>
+        </div>
+
+        {suggesting ? (
+          <article className="w-full rounded-none border border-border bg-background px-4 py-3.5">
+            {suggestionsLoading ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <SkillzCubeLoader size={32} />
+                  <p className="text-sm text-muted-foreground">
+                    Suggesting reply
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-none px-4 font-mono"
+                  onClick={discardSuggestions}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <>
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                  <div className="min-w-0 text-xs">
-                    <p className="truncate font-medium">
-                      {message.fromAddress}
-                    </p>
-                    <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
-                      to {message.toAddresses.join(', ')}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <SkillzCubeLoader
+                        size={28}
+                        filled
+                      />
+                      <p className="truncate text-sm font-medium">
+                        {thread.subject}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      To:{' '}
+                      <span style={{ color: 'var(--accent-color, #0682de)' }}>
+                        {toName}
+                      </span>
                     </p>
                   </div>
-                  <time
-                    dateTime={message.sentAt}
-                    className="shrink-0 font-mono text-[10px] text-muted-foreground"
-                  >
-                    {format(new Date(message.sentAt), 'PPp')}
-                  </time>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-none px-4 font-mono"
+                      disabled={loadingSuggestions}
+                      onClick={suggestAgain}
+                    >
+                      Suggest again
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-none px-4 font-mono"
+                      onClick={discardSuggestions}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
-                  {message.bodyText || 'This message has no plain-text body.'}
-                </div>
-              </article>
-            </li>
-          );
-        })}
-      </ol>
+                {suggestionsReady ? (
+                  <ul className="mt-3 space-y-1">
+                    {suggestions.map((suggestion, index) => {
+                      const active = selectedIndex === index;
+                      return (
+                        <li key={`${suggestion.label}-${index}`}>
+                          <button
+                            type="button"
+                            onClick={() => pickSuggestion(index)}
+                            className={cn(
+                              'flex w-full items-center gap-3 rounded-none px-1 py-2.5 text-left text-sm transition-colors',
+                              active ? accentSoftBg : 'hover:bg-muted/60'
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'flex size-6 shrink-0 items-center justify-center rounded-none font-mono text-[11px]',
+                                active
+                                  ? 'text-foreground'
+                                  : 'bg-muted text-muted-foreground'
+                              )}
+                              style={
+                                active
+                                  ? {
+                                      backgroundColor:
+                                        'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {index + 1}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate">
+                              {suggestion.label}
+                            </span>
+                            {active ? (
+                              <CheckIcon
+                                className="size-3.5 shrink-0"
+                                style={{
+                                  color: 'var(--accent-color, #0682de)'
+                                }}
+                              />
+                            ) : null}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </>
+            )}
+          </article>
+        ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-none px-4"
-          onClick={() => {
-            setComposerOpen(true);
-            setSuggesting(false);
-          }}
-        >
-          Reply
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-none px-4"
-          onClick={() => {
-            toast.message('Forward is coming soon');
-          }}
-        >
-          Forward
-        </Button>
-      </div>
-
-      {suggesting ? (
-        <article className="w-full rounded-none border border-border bg-background px-4 py-3.5">
-          {suggestionsLoading ? (
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <SkillzCubeLoader size={32} />
-                <p className="text-sm text-muted-foreground">
-                  Suggesting reply
+        {composerOpen ? (
+          <section
+            className={cn(
+              'ml-auto w-full max-w-[88%] rounded-none border bg-background px-4 py-3.5 sm:max-w-[82%]',
+              accentBorder,
+              accentSoftBg
+            )}
+          >
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+              <div>
+                <p className="text-sm font-medium">Reply</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Sends from {thread.aliasAddress}
                 </p>
               </div>
+              {!suggesting ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-none px-4 font-mono"
+                  onClick={suggestAgain}
+                >
+                  Suggest again
+                </Button>
+              ) : null}
+            </div>
+            <Textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder="Write your reply…"
+              rows={6}
+              className="min-h-32 resize-y rounded-none bg-background"
+            />
+            <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-9 rounded-none px-4 font-mono"
-                onClick={discardSuggestions}
+                disabled={sendPhase !== 'idle'}
+                onClick={() => setComposerOpen(false)}
               >
                 Cancel
               </Button>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <SkillzCubeLoader
-                      size={28}
-                      filled
-                    />
-                    <p className="truncate text-sm font-medium">
-                      {thread.subject}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    To:{' '}
-                    <span style={{ color: 'var(--accent-color, #0682de)' }}>
-                      {toName}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-none px-4 font-mono"
-                    disabled={loadingSuggestions}
-                    onClick={suggestAgain}
-                  >
-                    Suggest again
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-none px-4 font-mono"
-                    onClick={discardSuggestions}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-
-              {suggestionsReady ? (
-                <ul className="mt-3 space-y-1">
-                  {suggestions.map((suggestion, index) => {
-                    const active = selectedIndex === index;
-                    return (
-                      <li key={`${suggestion.label}-${index}`}>
-                        <button
-                          type="button"
-                          onClick={() => pickSuggestion(index)}
-                          className={cn(
-                            'flex w-full items-center gap-3 rounded-none px-1 py-2.5 text-left text-sm transition-colors',
-                            active ? accentSoftBg : 'hover:bg-muted/60'
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              'flex size-6 shrink-0 items-center justify-center rounded-none font-mono text-[11px]',
-                              active
-                                ? 'text-foreground'
-                                : 'bg-muted text-muted-foreground'
-                            )}
-                            style={
-                              active
-                                ? {
-                                    backgroundColor:
-                                      'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
-                                  }
-                                : undefined
-                            }
-                          >
-                            {index + 1}
-                          </span>
-                          <span className="min-w-0 flex-1 truncate">
-                            {suggestion.label}
-                          </span>
-                          {active ? (
-                            <CheckIcon
-                              className="size-3.5 shrink-0"
-                              style={{ color: 'var(--accent-color, #0682de)' }}
-                            />
-                          ) : null}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : null}
-            </>
-          )}
-        </article>
-      ) : null}
-
-      {composerOpen ? (
-        <section
-          className={cn(
-            'ml-auto w-full max-w-[88%] rounded-none border bg-background px-4 py-3.5 sm:max-w-[82%]',
-            accentBorder,
-            accentSoftBg
-          )}
-        >
-          <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-            <div>
-              <p className="text-sm font-medium">Reply</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Sends from {thread.aliasAddress} over your connected SMTP.
-              </p>
-            </div>
-            {!suggesting ? (
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
-                className="h-9 rounded-none px-4 font-mono"
-                onClick={suggestAgain}
+                className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
+                disabled={
+                  sendPhase === 'sending' ||
+                  (sendPhase === 'idle' && body.trim().length === 0)
+                }
+                onClick={handleSend}
               >
-                Suggest again
+                {sendPhase === 'success' ? (
+                  <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <SendIcon
+                      ref={sendIconRef}
+                      size={16}
+                    />
+                    {sendPhase === 'idle' ? 'Send' : null}
+                  </span>
+                )}
               </Button>
-            ) : null}
-          </div>
-          <Textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder="Write your reply…"
-            rows={6}
-            className="min-h-32 resize-y rounded-none bg-background"
-          />
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-none px-4 font-mono"
-              disabled={sendPhase !== 'idle'}
-              onClick={() => setComposerOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
-              disabled={
-                sendPhase === 'sending' ||
-                (sendPhase === 'idle' && body.trim().length === 0)
-              }
-              onClick={handleSend}
-            >
-              {sendPhase === 'success' ? (
-                <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
-              ) : (
-                <span className="inline-flex items-center gap-2">
-                  <SendIcon
-                    ref={sendIconRef}
-                    size={16}
-                  />
-                  {sendPhase === 'idle' ? 'Send' : null}
-                </span>
-              )}
-            </Button>
-          </div>
-        </section>
-      ) : null}
+            </div>
+          </section>
+        ) : null}
+      </div>
 
       <DeleteMailThreadsDialog
         open={deleteOpen}

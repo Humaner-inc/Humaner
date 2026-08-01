@@ -7,7 +7,11 @@ import { authActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
-import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
+import {
+  NotFoundError,
+  PreConditionError,
+  ValidationError
+} from '@/lib/validation/exceptions';
 
 async function assertThreadAccess(
   threadId: string,
@@ -20,7 +24,7 @@ async function assertThreadAccess(
       organizationId,
       alias: { members: { some: { userId } } }
     },
-    select: { id: true }
+    select: { id: true, aliasId: true }
   });
 
   if (!thread) {
@@ -168,7 +172,7 @@ export const applyMailThreadTag = authActionClient
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    await assertThreadAccess(
+    const thread = await assertThreadAccess(
       parsedInput.threadId,
       session.user.id,
       organizationId
@@ -181,9 +185,14 @@ export const applyMailThreadTag = authActionClient
     if (parsedInput.tagId) {
       const tag = await prisma.mailTag.findFirst({
         where: { id: parsedInput.tagId, organizationId },
-        select: { id: true }
+        select: { id: true, aliasId: true }
       });
       if (!tag) throw new NotFoundError('Tag not found');
+      if (tag.aliasId && tag.aliasId !== thread.aliasId) {
+        throw new ValidationError(
+          'This tag is only available on another inbox'
+        );
+      }
 
       await prisma.mailThreadTag.create({
         data: {
@@ -202,7 +211,7 @@ async function assertThreadsAccess(
   threadIds: string[],
   userId: string,
   organizationId: string
-): Promise<string[]> {
+): Promise<Array<{ id: string; aliasId: string }>> {
   const uniqueIds = [...new Set(threadIds)];
   if (uniqueIds.length === 0) {
     throw new PreConditionError('No threads selected');
@@ -214,14 +223,14 @@ async function assertThreadsAccess(
       organizationId,
       alias: { members: { some: { userId } } }
     },
-    select: { id: true }
+    select: { id: true, aliasId: true }
   });
 
   if (threads.length !== uniqueIds.length) {
     throw new NotFoundError('One or more threads were not found');
   }
 
-  return uniqueIds;
+  return threads;
 }
 
 function revalidateMailListPaths(): void {
@@ -242,11 +251,12 @@ export const bulkArchiveMailThreads = authActionClient
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    const threadIds = await assertThreadsAccess(
+    const threads = await assertThreadsAccess(
       parsedInput.threadIds,
       session.user.id,
       organizationId
     );
+    const threadIds = threads.map((thread) => thread.id);
 
     await prisma.mailThread.updateMany({
       where: { id: { in: threadIds }, organizationId },
@@ -270,11 +280,12 @@ export const bulkDeleteMailThreads = authActionClient
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    const threadIds = await assertThreadsAccess(
+    const threads = await assertThreadsAccess(
       parsedInput.threadIds,
       session.user.id,
       organizationId
     );
+    const threadIds = threads.map((thread) => thread.id);
 
     await prisma.mailThread.deleteMany({
       where: { id: { in: threadIds }, organizationId }
@@ -296,11 +307,12 @@ export const bulkAssignMailThreads = authActionClient
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    const threadIds = await assertThreadsAccess(
+    const threads = await assertThreadsAccess(
       parsedInput.threadIds,
       session.user.id,
       organizationId
     );
+    const threadIds = threads.map((thread) => thread.id);
 
     if (parsedInput.assigneeId) {
       const member = await prisma.organizationMembership.findUnique({
@@ -338,11 +350,12 @@ export const bulkApplyMailThreadTag = authActionClient
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    const threadIds = await assertThreadsAccess(
+    const threads = await assertThreadsAccess(
       parsedInput.threadIds,
       session.user.id,
       organizationId
     );
+    const threadIds = threads.map((thread) => thread.id);
 
     await prisma.mailThreadTag.deleteMany({
       where: { threadId: { in: threadIds } }
@@ -351,9 +364,17 @@ export const bulkApplyMailThreadTag = authActionClient
     if (parsedInput.tagId) {
       const tag = await prisma.mailTag.findFirst({
         where: { id: parsedInput.tagId, organizationId },
-        select: { id: true }
+        select: { id: true, aliasId: true }
       });
       if (!tag) throw new NotFoundError('Tag not found');
+      if (
+        tag.aliasId &&
+        threads.some((thread) => thread.aliasId !== tag.aliasId)
+      ) {
+        throw new ValidationError(
+          'This tag is only available on a specific inbox'
+        );
+      }
 
       await prisma.mailThreadTag.createMany({
         data: threadIds.map((threadId) => ({

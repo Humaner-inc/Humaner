@@ -8,10 +8,10 @@ export function getPathname(): string | null {
     return null;
   }
 
-  const url = new URL(store.url.pathname + store.url.search, 'http://n');
-  if (hasBasePath(url.pathname)) {
-    return removeBasePath(url.pathname) + url.search;
+  const pathname = store.url.pathname;
+  if (hasBasePath(pathname)) {
+    return removeBasePath(pathname);
   }
 
-  return url.pathname + url.search;
+  return pathname;
 }

@@ -20,7 +20,6 @@ import { incrementRateLimit } from '@/lib/redis/upstash';
 import { encryptSensitiveField } from '@/lib/security/sensitive-fields';
 import {
   PreConditionError,
-  RateLimitExceededError,
   ValidationError
 } from '@/lib/validation/exceptions';
 import { connectImapSchema } from '@/schemas/inbox/connect-imap-schema';
@@ -48,10 +47,12 @@ export const connectImap = ownerActionClient
 
     const locallyRateLimited =
       distributedAttempts === 0 &&
-      connectMailboxLimiter.check(6, `mailbox-connect:${session.user.id}`)
+      connectMailboxLimiter.check(12, `mailbox-connect:${session.user.id}`)
         .isRateLimited;
-    if (distributedAttempts > 5 || locallyRateLimited) {
-      throw new RateLimitExceededError();
+    if (distributedAttempts > 12 || locallyRateLimited) {
+      throw new ValidationError(
+        'Too many connection attempts. Wait a few minutes and try again.'
+      );
     }
 
     const organization = await prisma.organization.findUnique({
@@ -108,6 +109,32 @@ export const connectImap = ownerActionClient
       );
     }
 
+    const [existingConnection, existingAliases] = await Promise.all([
+      prisma.mailboxConnection.findFirst({
+        where: { organizationId, email: primary },
+        select: { email: true }
+      }),
+      prisma.mailAlias.findMany({
+        where: {
+          organizationId,
+          address: { in: uniqueAliases }
+        },
+        select: { address: true }
+      })
+    ]);
+
+    if (existingConnection) {
+      throw new ValidationError(
+        `${existingConnection.email} is already connected to this workspace.`
+      );
+    }
+
+    if (existingAliases.length > 0) {
+      throw new ValidationError(
+        `${existingAliases[0].address} is already connected to this workspace.`
+      );
+    }
+
     try {
       await testImapAndSmtp(endpoints);
     } catch {
@@ -136,22 +163,10 @@ export const connectImap = ownerActionClient
     try {
       connection = await prisma.$transaction(
         async (tx) => {
-          const [currentAliasCount, existingAliases] = await Promise.all([
-            tx.mailAlias.count({ where: { organizationId } }),
-            tx.mailAlias.findMany({
-              where: {
-                organizationId,
-                address: { in: uniqueAliases }
-              },
-              select: { address: true }
-            })
-          ]);
+          const currentAliasCount = await tx.mailAlias.count({
+            where: { organizationId }
+          });
 
-          if (existingAliases.length > 0) {
-            throw new ValidationError(
-              `${existingAliases[0].address} is already connected to this workspace.`
-            );
-          }
           if (currentAliasCount + uniqueAliases.length > aliasLimit) {
             throw new ValidationError(
               `This plan allows ${aliasLimit} alias${aliasLimit === 1 ? '' : 'es'}.`
@@ -208,13 +223,22 @@ export const connectImap = ownerActionClient
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       );
     } catch (error) {
-      if (error instanceof ValidationError) throw error;
+      if (
+        error instanceof ValidationError ||
+        (error instanceof Error && error.name === 'ValidationError')
+      ) {
+        throw error instanceof ValidationError
+          ? error
+          : new ValidationError(error.message);
+      }
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         (error.code === 'P2002' || error.code === 'P2034')
       ) {
         throw new ValidationError(
-          'Mailbox settings changed during setup. Please try again.'
+          error.code === 'P2002'
+            ? 'That mailbox or alias is already connected to this workspace.'
+            : 'Mailbox settings changed during setup. Please try again.'
         );
       }
       throw error;

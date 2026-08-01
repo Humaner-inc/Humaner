@@ -8,7 +8,6 @@ import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
 import {
   PreConditionError,
-  RateLimitExceededError,
   ValidationError
 } from '@/lib/validation/exceptions';
 import { discoverImapAliasesSchema } from '@/schemas/inbox/connect-imap-schema';
@@ -27,7 +26,7 @@ export const discoverImapAliases = ownerActionClient
     let distributedAttempts = 0;
     try {
       distributedAttempts = await incrementRateLimit(
-        `rate-limit:mailbox-connect:${organizationId}`,
+        `rate-limit:mailbox-discover:${organizationId}`,
         15 * 60
       );
     } catch {
@@ -36,10 +35,12 @@ export const discoverImapAliases = ownerActionClient
 
     const locallyRateLimited =
       distributedAttempts === 0 &&
-      discoverMailboxLimiter.check(6, `mailbox-discover:${session.user.id}`)
+      discoverMailboxLimiter.check(12, `mailbox-discover:${session.user.id}`)
         .isRateLimited;
-    if (distributedAttempts > 5 || locallyRateLimited) {
-      throw new RateLimitExceededError();
+    if (distributedAttempts > 12 || locallyRateLimited) {
+      throw new ValidationError(
+        'Too many mailbox scans. Wait a few minutes and try again.'
+      );
     }
 
     const { primary, endpoints } =

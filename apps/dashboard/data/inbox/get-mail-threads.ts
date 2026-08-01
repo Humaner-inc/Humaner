@@ -13,6 +13,8 @@ export type MailTagItem = {
   id: string;
   name: string;
   color: string;
+  /** Null = available on all aliases. */
+  aliasId: string | null;
 };
 
 export type MailThreadListItem = {
@@ -37,6 +39,7 @@ export type MailThreadDetail = {
   subject: string;
   status: string;
   aliasAddress: string;
+  aliasId: string;
   lastMessageAt: string;
   isUnread: boolean;
   archivedAt: string | null;
@@ -58,6 +61,7 @@ export type MailInboxOption = {
   id: string;
   address: string;
   displayName: string | null;
+  unreadCount: number;
 };
 
 function previewText(value: string | null): string | null {
@@ -99,7 +103,39 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
     }
   });
 
-  return aliases;
+  if (aliases.length === 0) return [];
+
+  // Same unread rule as getMailUnreadCount, grouped per inbox.
+  const unreadThreads = await prisma.mailThread.findMany({
+    where: {
+      organizationId,
+      isUnread: true,
+      archivedAt: null,
+      aliasId: { in: aliases.map((alias) => alias.id) }
+    },
+    select: {
+      aliasId: true,
+      messages: {
+        orderBy: { sentAt: 'desc' },
+        take: 1,
+        select: { direction: true }
+      }
+    }
+  });
+
+  const unreadByAlias = new Map<string, number>();
+  for (const thread of unreadThreads) {
+    if (thread.messages[0]?.direction !== 'INBOUND') continue;
+    unreadByAlias.set(
+      thread.aliasId,
+      (unreadByAlias.get(thread.aliasId) ?? 0) + 1
+    );
+  }
+
+  return aliases.map((alias) => ({
+    ...alias,
+    unreadCount: unreadByAlias.get(alias.id) ?? 0
+  }));
 }
 
 export async function getMailUnreadCount(): Promise<number> {
@@ -179,7 +215,9 @@ export async function getMailThreads(options?: {
         take: 1,
         orderBy: { createdAt: 'asc' },
         select: {
-          tag: { select: { id: true, name: true, color: true } }
+          tag: {
+            select: { id: true, name: true, color: true, aliasId: true }
+          }
         }
       },
       messages: {
@@ -275,12 +313,14 @@ export async function getMailThread(
       archivedAt: true,
       assigneeId: true,
       lastMessageAt: true,
-      alias: { select: { address: true } },
+      alias: { select: { id: true, address: true } },
       tags: {
         take: 1,
         orderBy: { createdAt: 'asc' },
         select: {
-          tag: { select: { id: true, name: true, color: true } }
+          tag: {
+            select: { id: true, name: true, color: true, aliasId: true }
+          }
         }
       },
       messages: {
@@ -310,6 +350,7 @@ export async function getMailThread(
     subject: thread.subject,
     status: thread.status,
     aliasAddress: thread.alias.address,
+    aliasId: thread.alias.id,
     lastMessageAt: thread.lastMessageAt.toISOString(),
     isUnread: Boolean(thread.isUnread && awaitingReply),
     archivedAt: thread.archivedAt?.toISOString() ?? null,
@@ -337,8 +378,8 @@ export async function getMailTags(): Promise<MailTagItem[]> {
 
   return prisma.mailTag.findMany({
     where: { organizationId },
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true, color: true }
+    orderBy: [{ aliasId: 'asc' }, { name: 'asc' }],
+    select: { id: true, name: true, color: true, aliasId: true }
   });
 }
 

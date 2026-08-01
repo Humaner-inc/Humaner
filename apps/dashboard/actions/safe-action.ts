@@ -17,6 +17,7 @@ import {
   GatewayError,
   NotFoundError,
   PreConditionError,
+  RateLimitExceededError,
   ValidationError
 } from '@/lib/validation/exceptions';
 
@@ -28,6 +29,24 @@ export const actionClient = createSafeActionClient({
       e instanceof NotFoundError ||
       e instanceof PreConditionError ||
       e instanceof GatewayError
+    ) {
+      return e.message;
+    }
+
+    if (
+      e instanceof RateLimitExceededError ||
+      e?.name === 'RateLimitExceededError'
+    ) {
+      return 'Too many attempts. Wait a few minutes and try again.';
+    }
+
+    // Prisma interactive transactions can dilute `instanceof` across bundles.
+    if (
+      e instanceof Error &&
+      (e.name === 'ValidationError' ||
+        e.name === 'PreConditionError' ||
+        e.name === 'ForbiddenError' ||
+        e.name === 'NotFoundError')
     ) {
       return e.message;
     }

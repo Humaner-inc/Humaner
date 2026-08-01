@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffectEvent } from 'react';
 import * as React from 'react';
 
 import { MINIMUM_PASSWORD_LENGTH } from '@/constants/limits';
-import { passwordValidator } from '@/lib/auth/password';
+import { passwordValidator } from '@/lib/auth/password-validator';
 import { cn } from '@/lib/utils';
 import type { Maybe } from '@/types/maybe';
 
@@ -59,36 +58,36 @@ export function PasswordRequirementList({
   >({});
   const startedRef = React.useRef<Partial<Record<RequirementId, boolean>>>({});
 
-  const clearTimers = useEffectEvent((id: RequirementId): void => {
-    const timers = timersRef.current[id];
-    if (timers) {
-      for (const timer of timers) {
-        clearTimeout(timer);
-      }
-      delete timersRef.current[id];
-    }
-    delete startedRef.current[id];
-  });
-
-  const startDismiss = useEffectEvent((id: RequirementId): void => {
-    if (startedRef.current[id]) return;
-    startedRef.current[id] = true;
-
-    setPhases((prev) => ({ ...prev, [id]: 'green' }));
-
-    const fadeTimer = setTimeout(() => {
-      setPhases((prev) => ({ ...prev, [id]: 'fading' }));
-    }, GREEN_HOLD_MS);
-
-    const goneTimer = setTimeout(() => {
-      setPhases((prev) => ({ ...prev, [id]: 'gone' }));
-      delete timersRef.current[id];
-    }, GREEN_HOLD_MS + FADE_OUT_MS);
-
-    timersRef.current[id] = [fadeTimer, goneTimer];
-  });
-
   React.useEffect(() => {
+    const clearTimers = (id: RequirementId): void => {
+      const timers = timersRef.current[id];
+      if (timers) {
+        for (const timer of timers) {
+          clearTimeout(timer);
+        }
+        delete timersRef.current[id];
+      }
+      delete startedRef.current[id];
+    };
+
+    const startDismiss = (id: RequirementId): void => {
+      if (startedRef.current[id]) return;
+      startedRef.current[id] = true;
+
+      setPhases((prev) => ({ ...prev, [id]: 'green' }));
+
+      const fadeTimer = setTimeout(() => {
+        setPhases((prev) => ({ ...prev, [id]: 'fading' }));
+      }, GREEN_HOLD_MS);
+
+      const goneTimer = setTimeout(() => {
+        setPhases((prev) => ({ ...prev, [id]: 'gone' }));
+        delete timersRef.current[id];
+      }, GREEN_HOLD_MS + FADE_OUT_MS);
+
+      timersRef.current[id] = [fadeTimer, goneTimer];
+    };
+
     for (const requirement of getRequirements(password)) {
       if (!requirement.met) {
         clearTimers(requirement.id);
@@ -103,16 +102,13 @@ export function PasswordRequirementList({
 
       startDismiss(requirement.id);
     }
-  }, [password, clearTimers, startDismiss]);
 
-  React.useEffect(() => {
-    const timers = timersRef.current;
     return () => {
-      for (const id of Object.keys(timers) as RequirementId[]) {
+      for (const id of Object.keys(timersRef.current) as RequirementId[]) {
         clearTimers(id);
       }
     };
-  }, [clearTimers]);
+  }, [password]);
 
   const visible = requirements.filter(
     (requirement) => phases[requirement.id] !== 'gone'

@@ -17,7 +17,10 @@ export type MailProviderPickerProps = {
   value: string | null;
   onChange: (providerId: string) => void;
   connectedProviderIds?: string[];
-  /** Connected row click — edit existing mailbox instead of starting a new connect. */
+  /**
+   * Connected row click — start another mailbox on that provider.
+   * Falls back to `onChange` when omitted.
+   */
   onSelectConnected?: (providerId: string) => void;
 };
 
@@ -47,15 +50,15 @@ export function MailProviderPicker({
       );
     };
 
+    // Keep connected providers in the catalog so another inbox can be added
+    // from the same host (Connected is a badge, not a lock).
     return groups
       .map((group) => ({
         ...group,
-        providers: filterProviders(
-          group.providers.filter((provider) => !connectedSet.has(provider.id))
-        )
+        providers: filterProviders(group.providers)
       }))
       .filter((group) => group.providers.length > 0);
-  }, [groups, normalizedQuery, connectedSet]);
+  }, [groups, normalizedQuery]);
 
   const filteredConnected = React.useMemo(() => {
     if (!normalizedQuery) return connectedProviders;
@@ -88,16 +91,17 @@ export function MailProviderPicker({
               <ul className="space-y-0.5">
                 {filteredConnected.map((provider) => (
                   <ProviderListItem
-                    key={provider.id}
+                    key={`connected-${provider.id}`}
                     provider={provider}
                     selected={value === provider.id}
                     connected
                     onSelect={() => {
+                      if (!provider.imapAvailable) return;
                       if (onSelectConnected) {
                         onSelectConnected(provider.id);
                         return;
                       }
-                      if (provider.imapAvailable) onChange(provider.id);
+                      onChange(provider.id);
                     }}
                   />
                 ))}

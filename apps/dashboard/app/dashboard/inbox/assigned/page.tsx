@@ -28,8 +28,8 @@ export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
   ]);
 
   return (
-    <div className="space-y-5">
-      <div>
+    <div className="flex min-h-0 flex-1 flex-col gap-5">
+      <div className="shrink-0">
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           Assigned to me
         </h1>
@@ -38,7 +38,7 @@ export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
         </p>
       </div>
 
-      <PullToRefreshInbox>
+      <PullToRefreshInbox className="min-h-0 flex-1">
         {threads.length > 0 ? (
           <MailThreadList
             threads={threads}

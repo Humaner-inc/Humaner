@@ -161,6 +161,13 @@ export type SidebarNavChildProps = {
   disabled?: boolean;
   badge?: React.ReactNode;
   tabIndex?: number;
+  /** Hover-revealed quick action (e.g. compose +). */
+  quickAction?: {
+    label: string;
+    icon: React.ReactNode;
+    href?: string;
+    onClick?: () => void;
+  };
 };
 
 export function SidebarNavChild({
@@ -169,17 +176,57 @@ export function SidebarNavChild({
   active = false,
   disabled = false,
   badge,
-  tabIndex
+  tabIndex,
+  quickAction
 }: SidebarNavChildProps): React.JSX.Element {
   return (
-    <Link
-      href={href}
-      tabIndex={tabIndex}
-      className={sidebarNavChildClassName(active, disabled)}
+    <div
+      className={cn(
+        'group/child relative flex w-full items-center',
+        disabled && 'pointer-events-none opacity-40'
+      )}
     >
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {badge}
-    </Link>
+      <Link
+        href={href}
+        tabIndex={tabIndex}
+        className={cn(
+          sidebarNavChildClassName(active, false),
+          quickAction && 'pr-8'
+        )}
+      >
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {badge}
+      </Link>
+      {quickAction && !disabled ? (
+        quickAction.onClick ? (
+          <button
+            type="button"
+            aria-label={quickAction.label}
+            title={quickAction.label}
+            tabIndex={tabIndex}
+            className="absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-none text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              quickAction.onClick?.();
+            }}
+          >
+            {quickAction.icon}
+          </button>
+        ) : quickAction.href ? (
+          <Link
+            href={quickAction.href}
+            aria-label={quickAction.label}
+            title={quickAction.label}
+            tabIndex={tabIndex}
+            className="absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-none text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {quickAction.icon}
+          </Link>
+        ) : null
+      ) : null}
+    </div>
   );
 }
 

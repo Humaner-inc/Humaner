@@ -2,7 +2,12 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon, Trash2Icon } from '@humaner/shared/icons';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  PlusIcon,
+  Trash2Icon
+} from '@humaner/shared/icons';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -12,9 +17,17 @@ import {
   updateMailTag
 } from '@/actions/inbox/manage-mail-tags';
 import { Button } from '@/components/ui/button';
+import { ColorPicker } from '@/components/ui/color-picker';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { MailTagItem } from '@/data/inbox/get-mail-threads';
+import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
   '#3B82F6',
@@ -27,16 +40,92 @@ const PRESET_COLORS = [
   '#64748B'
 ];
 
+export type MailTagAliasOption = {
+  id: string;
+  address: string;
+};
+
+function scopeLabel(
+  aliasId: string | null,
+  aliases: MailTagAliasOption[]
+): string {
+  if (!aliasId) return 'On all';
+  return aliases.find((alias) => alias.id === aliasId)?.address ?? 'Inbox';
+}
+
+function TagScopeSelect({
+  aliases,
+  value,
+  onChange
+}: {
+  aliases: MailTagAliasOption[];
+  value: string | null;
+  onChange: (aliasId: string | null) => void;
+}): React.JSX.Element {
+  const label = scopeLabel(value, aliases);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 max-w-48 gap-1.5 px-2 font-mono text-xs"
+        >
+          <span className="truncate">{label}</span>
+          <ChevronDownIcon className="size-3.5 shrink-0 opacity-60" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-72"
+      >
+        <DropdownMenuItem
+          onSelect={() => onChange(null)}
+          className={cn(!value && 'bg-accent font-medium')}
+        >
+          <span className="min-w-0 flex-1 truncate">On all</span>
+          {!value ? (
+            <CheckIcon className="size-3.5 shrink-0 text-emerald-600" />
+          ) : null}
+        </DropdownMenuItem>
+        {aliases.map((alias) => {
+          const selected = value === alias.id;
+          return (
+            <DropdownMenuItem
+              key={alias.id}
+              onSelect={() => onChange(alias.id)}
+              className={cn(selected && 'bg-accent font-medium')}
+            >
+              <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                {alias.address}
+              </span>
+              {selected ? (
+                <CheckIcon className="size-3.5 shrink-0 text-emerald-600" />
+              ) : null}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function MailTagsSettings({
   tags,
+  aliases,
   canManage
 }: {
   tags: MailTagItem[];
+  aliases: MailTagAliasOption[];
   canManage: boolean;
 }): React.JSX.Element {
   const router = useRouter();
   const [name, setName] = React.useState('');
   const [color, setColor] = React.useState(PRESET_COLORS[0]);
+
+  const showScopeSelector = aliases.length > 1;
 
   const { execute: createTag, isExecuting: creating } = useAction(
     createMailTag,
@@ -76,7 +165,7 @@ export function MailTagsSettings({
           Mail tags
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Define colors for the unread/read circle on threads.
+          Define colors and tags to label your mails.
         </p>
       </div>
 
@@ -86,7 +175,11 @@ export function MailTagsSettings({
           onSubmit={(event) => {
             event.preventDefault();
             if (!name.trim()) return;
-            createTag({ name: name.trim(), color });
+            createTag({
+              name: name.trim(),
+              color,
+              aliasId: null
+            });
           }}
         >
           <div className="space-y-2">
@@ -101,13 +194,23 @@ export function MailTagsSettings({
           </div>
           <div className="space-y-2">
             <Label>Color</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <ColorPicker
+                value={color}
+                onChange={setColor}
+                className="size-7 rounded-none border"
+                title="Open full palette"
+              />
+              <div
+                className="h-5 w-px shrink-0 bg-border"
+                aria-hidden
+              />
               {PRESET_COLORS.map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setColor(preset)}
-                  className="size-7 rounded-full ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="size-7 rounded-none ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   style={{
                     backgroundColor: preset,
                     boxShadow:
@@ -116,13 +219,13 @@ export function MailTagsSettings({
                   aria-label={preset}
                 />
               ))}
+              <Input
+                value={color}
+                onChange={(event) => setColor(event.target.value)}
+                className="h-8 max-w-40 font-mono text-xs"
+                maxLength={7}
+              />
             </div>
-            <Input
-              value={color}
-              onChange={(event) => setColor(event.target.value)}
-              className="max-w-40 font-mono text-xs"
-              maxLength={7}
-            />
           </div>
           <Button
             type="submit"
@@ -150,7 +253,7 @@ export function MailTagsSettings({
               className="flex items-center gap-3 px-4 py-3"
             >
               <span
-                className="size-3 rounded-full"
+                className="size-3 shrink-0 rounded-full"
                 style={{ backgroundColor: tag.color }}
               />
               {canManage ? (
@@ -164,25 +267,31 @@ export function MailTagsSettings({
                         saveTag({
                           tagId: tag.id,
                           name: next,
-                          color: tag.color
+                          color: tag.color,
+                          aliasId: tag.aliasId
                         });
                       }
                     }}
                   />
-                  <Input
-                    defaultValue={tag.color}
-                    className="h-8 w-24 font-mono text-xs"
-                    onBlur={(event) => {
-                      const next = event.target.value.trim().toUpperCase();
-                      if (/^#[0-9A-F]{6}$/.test(next) && next !== tag.color) {
-                        saveTag({
-                          tagId: tag.id,
-                          name: tag.name,
-                          color: next
-                        });
-                      }
-                    }}
-                  />
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {tag.color}
+                  </span>
+                  {showScopeSelector ? (
+                    <TagScopeSelect
+                      aliases={aliases}
+                      value={tag.aliasId}
+                      onChange={(aliasId) => {
+                        if (aliasId !== tag.aliasId) {
+                          saveTag({
+                            tagId: tag.id,
+                            name: tag.name,
+                            color: tag.color,
+                            aliasId
+                          });
+                        }
+                      }}
+                    />
+                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"
@@ -196,9 +305,16 @@ export function MailTagsSettings({
               ) : (
                 <>
                   <span className="text-sm">{tag.name}</span>
-                  <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                  <span className="font-mono text-[10px] text-muted-foreground">
                     {tag.color}
                   </span>
+                  {showScopeSelector ? (
+                    <span className="ml-auto truncate font-mono text-[10px] text-muted-foreground">
+                      {scopeLabel(tag.aliasId, aliases)}
+                    </span>
+                  ) : (
+                    <span className="ml-auto" />
+                  )}
                 </>
               )}
             </li>

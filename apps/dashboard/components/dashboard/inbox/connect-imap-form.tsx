@@ -231,6 +231,19 @@ export function ConnectImapForm({
     }
   );
 
+  const startNewForProvider = (nextProviderId: string): void => {
+    setProviderId(nextProviderId);
+    setEmail('');
+    setPassword('');
+    setSmtpSameAsImap(true);
+    setSmtpUser('');
+    setSmtpPassword('');
+    setStep('credentials');
+    setDiscoveredAliases([]);
+    setSelectedAliases([]);
+    setManualAlias('');
+  };
+
   const editConnection = (connection: ConnectedMailboxItem): void => {
     if (connection.providerId) {
       setProviderId(connection.providerId);
@@ -242,6 +255,14 @@ export function ConnectImapForm({
     setSelectedAliases([]);
     setManualAlias('');
   };
+
+  const providerConnections = React.useMemo(
+    () =>
+      providerId
+        ? connections.filter((item) => item.providerId === providerId)
+        : [],
+    [connections, providerId]
+  );
 
   const toggleAlias = (address: string): void => {
     if (address === primaryEmail) return;
@@ -359,16 +380,9 @@ export function ConnectImapForm({
         <aside className="flex min-h-64 w-full shrink-0 flex-col border-b bg-muted/20 lg:min-h-0 lg:w-72 lg:border-b-0 lg:border-r xl:w-80">
           <MailProviderPicker
             value={providerId}
-            onChange={setProviderId}
+            onChange={startNewForProvider}
             connectedProviderIds={connectedProviderIds}
-            onSelectConnected={(connectedId) => {
-              const connection = connections.find(
-                (item) => item.providerId === connectedId
-              );
-              if (connection) {
-                editConnection(connection);
-              }
-            }}
+            onSelectConnected={startNewForProvider}
           />
         </aside>
 
@@ -384,11 +398,17 @@ export function ConnectImapForm({
                     className="size-5"
                   />
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium leading-tight">
                     {selectedProvider.name}
                   </p>
-                  {selectedProvider.setupNote ? (
+                  {providerConnections.length > 0 ? (
+                    <p className="truncate text-xs text-muted-foreground">
+                      {providerConnections.length} mailbox
+                      {providerConnections.length === 1 ? '' : 'es'} connected —
+                      add another below.
+                    </p>
+                  ) : selectedProvider.setupNote ? (
                     <p className="truncate text-xs text-muted-foreground">
                       {selectedProvider.setupNote}
                     </p>
@@ -401,6 +421,35 @@ export function ConnectImapForm({
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+                {providerConnections.length > 0 ? (
+                  <div className="mb-5 space-y-2 rounded-none border border-border/70 bg-muted/20 px-3 py-2.5">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Already on {selectedProvider.name}
+                    </p>
+                    <ul className="space-y-1">
+                      {providerConnections.map((connection) => (
+                        <li
+                          key={connection.id}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <span className="min-w-0 truncate font-mono text-xs">
+                            {connection.email}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 shrink-0 rounded-none px-2 font-mono text-[10px]"
+                            onClick={() => editConnection(connection)}
+                          >
+                            Edit
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 {!selectedProvider.setupNote ? (
                   <div className="mb-5 text-sm text-muted-foreground">
                     Credentials are fully encrypted at rest.{' '}
@@ -720,6 +769,20 @@ export function ConnectImapForm({
                           >
                             Edit credentials
                           </DropdownMenuItem>
+                          {connection.providerId ? (
+                            <DropdownMenuItem
+                              onSelect={() =>
+                                startNewForProvider(connection.providerId!)
+                              }
+                            >
+                              Add new
+                            </DropdownMenuItem>
+                          ) : null}
+                          <DropdownMenuItem asChild>
+                            <Link href={Routes.InboxAliases}>
+                              Manage aliases
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
@@ -736,7 +799,8 @@ export function ConnectImapForm({
               </ul>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t px-2 pt-3">
                 <p className="text-xs text-muted-foreground">
-                  Select a provider on the left to add another mailbox.
+                  Select a provider on the left, including ones already
+                  connected — to add another mailbox.
                 </p>
                 <Button
                   type="button"

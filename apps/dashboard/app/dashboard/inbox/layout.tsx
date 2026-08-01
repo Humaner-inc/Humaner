@@ -10,7 +10,8 @@ export default function InboxLayout({
 }: React.PropsWithChildren): React.JSX.Element {
   return (
     <SectionPage
-      width="xl"
+      width="full"
+      className="flex min-h-0 flex-1 flex-col"
       style={{ '--accent-color': INBOX_ACCENT } as React.CSSProperties}
     >
       {children}

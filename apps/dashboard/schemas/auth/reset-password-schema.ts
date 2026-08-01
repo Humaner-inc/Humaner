@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { passwordValidator } from '@/lib/auth/password';
+import { passwordValidator } from '@/lib/auth/password-validator';
 
 export const resetPasswordSchema = z.object({
   requestId: z

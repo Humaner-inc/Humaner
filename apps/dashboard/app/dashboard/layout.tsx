@@ -11,6 +11,7 @@ import { DataImprovementConsentGate } from '@/components/dashboard/data-improvem
 import { DashboardDockProvider } from '@/components/dashboard/dock/dashboard-dock-context';
 import { DashboardDockPanel } from '@/components/dashboard/dock/dashboard-dock-panel';
 import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-notifications-context';
+import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
@@ -20,7 +21,10 @@ import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getHandoffOpenCount } from '@/data/handoff/get-handoff-open-count';
-import { getMailUnreadCount } from '@/data/inbox/get-mail-threads';
+import {
+  getMailInboxes,
+  getMailUnreadCount
+} from '@/data/inbox/get-mail-threads';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
@@ -29,6 +33,7 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { CHARACTER_META } from '@/lib/character-presets';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
@@ -83,7 +88,8 @@ export default async function DashboardLayout({
     messageUsage,
     notificationsResult,
     inboxUnreadCount,
-    handoffOpenCount
+    handoffOpenCount,
+    mailInboxes
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -91,7 +97,8 @@ export default async function DashboardLayout({
     getSidebarMessageUsage(),
     getDashboardNotifications(),
     getMailUnreadCount(),
-    getHandoffOpenCount()
+    getHandoffOpenCount(),
+    isOssDeployment() ? Promise.resolve([]) : getMailInboxes()
   ]);
   const { items: notifications } = notificationsResult;
 
@@ -174,23 +181,25 @@ export default async function DashboardLayout({
         />
         <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
         <SidebarProvider>
-          <DashboardDockProvider>
-            <DockNotificationsProvider notifications={notifications}>
-              {humanerAgentPublicId ? (
-                <HumanerChatProvider
-                  agentPublicId={humanerAgentPublicId}
-                  agentAvatarUrl={humanerAgentAvatarUrl}
-                  widgetColor={accentColor}
-                  dashboardVisitorId={dashboardVisitorId}
-                  visitorMetadata={visitorMetadata}
-                >
-                  {dashboardShell}
-                </HumanerChatProvider>
-              ) : (
-                dashboardShell
-              )}
-            </DockNotificationsProvider>
-          </DashboardDockProvider>
+          <ComposeMailProvider inboxes={mailInboxes}>
+            <DashboardDockProvider>
+              <DockNotificationsProvider notifications={notifications}>
+                {humanerAgentPublicId ? (
+                  <HumanerChatProvider
+                    agentPublicId={humanerAgentPublicId}
+                    agentAvatarUrl={humanerAgentAvatarUrl}
+                    widgetColor={accentColor}
+                    dashboardVisitorId={dashboardVisitorId}
+                    visitorMetadata={visitorMetadata}
+                  >
+                    {dashboardShell}
+                  </HumanerChatProvider>
+                ) : (
+                  dashboardShell
+                )}
+              </DockNotificationsProvider>
+            </DashboardDockProvider>
+          </ComposeMailProvider>
         </SidebarProvider>
       </div>
     </OrgModeProvider>

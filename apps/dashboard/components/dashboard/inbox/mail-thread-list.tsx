@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   CheckIcon,
@@ -13,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { fetchMailThread } from '@/actions/inbox/get-mail-thread';
 import {
   applyMailThreadTag,
   archiveMailThread,
@@ -23,13 +23,13 @@ import {
   bulkDeleteMailThreads,
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
-import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
-import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
+import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
+import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -43,14 +43,19 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from '@/components/ui/resizable';
 import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
-import { Textarea } from '@/components/ui/textarea';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import type {
   MailTagItem,
+  MailThreadDetail as MailThreadDetailDto,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
+import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -80,7 +85,7 @@ function ReadCircle({
 }): React.JSX.Element {
   return (
     <span
-      className="mt-1.5 size-2.5 shrink-0 rounded-full"
+      className="size-2.5 shrink-0 rounded-full"
       style={
         unread
           ? { backgroundColor: color }
@@ -123,14 +128,25 @@ export function MailThreadList({
   selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
 }): React.JSX.Element {
   const router = useRouter();
-  const [hoveredId, setHoveredId] = React.useState<string | null>(null);
+  const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
+    null
+  );
+  const activeThreadIdRef = React.useRef<string | null>(null);
+  const [paneThread, setPaneThread] =
+    React.useState<MailThreadDetailDto | null>(null);
+  const [paneLoading, setPaneLoading] = React.useState(false);
+  const detailCacheRef = React.useRef(new Map<string, MailThreadDetailDto>());
+
+  React.useEffect(() => {
+    activeThreadIdRef.current = activeThreadId;
+  }, [activeThreadId]);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
     () => new Set()
   );
   const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
-  /** Optimistic read/time updates after quick answers until refresh lands. */
+  /** Optimistic read/time updates after opening a thread until refresh lands. */
   const [localOverrides, setLocalOverrides] = React.useState<
     Record<
       string,
@@ -150,6 +166,47 @@ export function MailThreadList({
     }));
   }, []);
 
+  const clearPane = React.useCallback(() => {
+    activeThreadIdRef.current = null;
+    setActiveThreadId(null);
+    setPaneThread(null);
+    setPaneLoading(false);
+  }, []);
+
+  const { execute: loadThread } = useAction(fetchMailThread, {
+    onSuccess: ({ data, input }) => {
+      if (!data || input.threadId !== activeThreadIdRef.current) return;
+      detailCacheRef.current.set(input.threadId, data);
+      setPaneThread(data);
+      setPaneLoading(false);
+      markThreadOpened(input.threadId);
+    },
+    onError: ({ error, input }) => {
+      if (input.threadId !== activeThreadIdRef.current) return;
+      setPaneLoading(false);
+      setPaneThread(null);
+      toast.error(error.serverError || 'Could not open thread');
+    }
+  });
+
+  const selectThread = React.useCallback(
+    (threadId: string) => {
+      activeThreadIdRef.current = threadId;
+      setActiveThreadId(threadId);
+      const cached = detailCacheRef.current.get(threadId);
+      if (cached) {
+        setPaneThread(cached);
+        setPaneLoading(false);
+        markThreadOpened(threadId);
+        return;
+      }
+      setPaneThread(null);
+      setPaneLoading(true);
+      loadThread({ threadId });
+    },
+    [loadThread, markThreadOpened]
+  );
+
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
   }, []);
@@ -160,7 +217,15 @@ export function MailThreadList({
       const next = new Set([...current].filter((id) => valid.has(id)));
       return next.size === current.size ? current : next;
     });
-  }, [threads]);
+    if (activeThreadId && !valid.has(activeThreadId)) {
+      clearPane();
+    }
+    for (const id of detailCacheRef.current.keys()) {
+      if (!valid.has(id)) {
+        detailCacheRef.current.delete(id);
+      }
+    }
+  }, [threads, activeThreadId, clearPane]);
 
   React.useEffect(() => {
     setLocalOverrides((current) => {
@@ -193,8 +258,22 @@ export function MailThreadList({
     });
   }, [threads]);
 
-  const hovered =
-    threads.find((thread) => thread.id === hoveredId) ?? threads[0] ?? null;
+  // After a reply/refresh, drop cached detail so the pane reloads fresh content.
+  React.useEffect(() => {
+    if (!activeThreadId) return;
+    const listItem = threads.find((thread) => thread.id === activeThreadId);
+    if (!listItem) return;
+    const cached = detailCacheRef.current.get(activeThreadId);
+    if (!cached) return;
+    if (
+      listItem.messageCount !== cached.messages.length ||
+      listItem.lastMessageAt !== cached.lastMessageAt
+    ) {
+      detailCacheRef.current.delete(activeThreadId);
+      setPaneLoading(true);
+      loadThread({ threadId: activeThreadId });
+    }
+  }, [threads, activeThreadId, loadThread]);
 
   const allSelected = threads.length > 0 && selectedIds.size === threads.length;
   const someSelected =
@@ -284,6 +363,13 @@ export function MailThreadList({
     [runBulkDelete, skipDeleteWarning]
   );
 
+  const selectableTags = React.useMemo(() => {
+    const selectedAliasIds = threads
+      .filter((thread) => selectedIds.has(thread.id))
+      .map((thread) => thread.aliasId);
+    return tagsForAliasIds(tags, selectedAliasIds);
+  }, [threads, selectedIds, tags]);
+
   const selectionApi: MailListSelectionApi = {
     selectedCount: selectedIds.size,
     allSelected,
@@ -299,10 +385,81 @@ export function MailThreadList({
     assignSelected: (assigneeId) =>
       runBulkAssign({ threadIds: selectedList, assigneeId }),
     tagSelected: (tagId) => runBulkTag({ threadIds: selectedList, tagId }),
-    tags,
+    tags: selectableTags,
     members,
     archivedView
   };
+
+  const listPanel = (
+    <ul className="flex h-full min-h-0 flex-col overflow-y-auto border border-border bg-background md:border-0">
+      {!selectionHeader ? (
+        <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
+          <Checkbox
+            checked={
+              allSelected ? true : someSelected ? 'indeterminate' : false
+            }
+            onCheckedChange={() => toggleAll()}
+            aria-label="Select all conversations"
+            data-no-pull
+          />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
+          </span>
+        </li>
+      ) : null}
+      {threads.map((thread) => {
+        const override = localOverrides[thread.id];
+        const displayThread =
+          override == null
+            ? thread
+            : {
+                ...thread,
+                isUnread: override.isUnread ?? thread.isUnread,
+                awaitingReply: override.awaitingReply ?? thread.awaitingReply,
+                lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt
+              };
+
+        return (
+          <MailThreadRow
+            key={thread.id}
+            thread={displayThread}
+            tags={tags}
+            members={members}
+            archivedView={archivedView}
+            previewActive={activeThreadId === thread.id}
+            selected={selectedIds.has(thread.id)}
+            onToggleSelected={(checked) => toggleOne(thread.id, checked)}
+            onSelect={() => selectThread(thread.id)}
+            onAskDelete={() => askDelete([thread.id])}
+          />
+        );
+      })}
+    </ul>
+  );
+
+  const readingPane = (
+    <div className="flex h-full min-h-0 flex-col overflow-hidden border border-border bg-background md:border-0 md:border-l">
+      {paneLoading && !paneThread ? (
+        <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
+          <SkillzCubeLoader size={28} />
+          Opening conversation…
+        </div>
+      ) : paneThread ? (
+        <MailThreadDetail
+          key={paneThread.id}
+          thread={paneThread}
+          tags={tags}
+          members={members}
+          embedded
+          onClosed={clearPane}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+          Select a thread to open it
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-3">
@@ -312,78 +469,30 @@ export function MailThreadList({
         <MailBulkActionBar selection={selectionApi} />
       ) : null}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
-        <ul className="min-w-0 self-start overflow-hidden border border-border bg-background">
-          {!selectionHeader ? (
-            <li className="flex items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
-              <Checkbox
-                checked={
-                  allSelected ? true : someSelected ? 'indeterminate' : false
-                }
-                onCheckedChange={() => toggleAll()}
-                aria-label="Select all conversations"
-                data-no-pull
-              />
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                {selectedIds.size > 0
-                  ? `${selectedIds.size} selected`
-                  : 'Select'}
-              </span>
-            </li>
-          ) : null}
-          {threads.map((thread) => {
-            const override = localOverrides[thread.id];
-            const displayThread =
-              override == null
-                ? thread
-                : {
-                    ...thread,
-                    isUnread: override.isUnread ?? thread.isUnread,
-                    awaitingReply:
-                      override.awaitingReply ?? thread.awaitingReply,
-                    lastMessageAt:
-                      override.lastMessageAt ?? thread.lastMessageAt
-                  };
-
-            return (
-              <MailThreadRow
-                key={thread.id}
-                thread={displayThread}
-                tags={tags}
-                members={members}
-                archivedView={archivedView}
-                previewActive={hovered?.id === thread.id}
-                selected={selectedIds.has(thread.id)}
-                onToggleSelected={(checked) => toggleOne(thread.id, checked)}
-                onPreview={() => setHoveredId(thread.id)}
-                onAskDelete={() => askDelete([thread.id])}
-              />
-            );
-          })}
-        </ul>
-
-        <div className="hidden min-w-0 self-start lg:block">
-          <MailHoverPreview
-            key={hovered?.id ?? 'empty'}
-            thread={
-              hovered
-                ? {
-                    ...hovered,
-                    isUnread:
-                      localOverrides[hovered.id]?.isUnread ?? hovered.isUnread,
-                    awaitingReply:
-                      localOverrides[hovered.id]?.awaitingReply ??
-                      hovered.awaitingReply,
-                    lastMessageAt:
-                      localOverrides[hovered.id]?.lastMessageAt ??
-                      hovered.lastMessageAt
-                  }
-                : null
-            }
-            archivedView={archivedView}
-            onOpened={markThreadOpened}
-          />
+      <div className="h-[min(72vh,calc(100vh-12rem))] min-h-[420px] overflow-hidden border border-border bg-background">
+        <div className="hidden h-full md:block">
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="h-full"
+          >
+            <ResizablePanel
+              defaultSize={38}
+              minSize={24}
+              maxSize={50}
+            >
+              {listPanel}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={62}
+              minSize={40}
+            >
+              {readingPane}
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
+
+        <div className="h-full md:hidden">{listPanel}</div>
       </div>
 
       <DeleteMailThreadsDialog
@@ -503,308 +612,6 @@ function MailBulkActionBar({
   );
 }
 
-function MailHoverPreview({
-  thread,
-  archivedView,
-  onOpened
-}: {
-  thread: MailThreadListItem | null;
-  archivedView: boolean;
-  onOpened?: (threadId: string) => void;
-}): React.JSX.Element {
-  const router = useRouter();
-  const sendIconRef = React.useRef<SendIconHandle>(null);
-  const threadId = thread?.id ?? null;
-  const [localUnread, setLocalUnread] = React.useState(
-    thread?.isUnread ?? false
-  );
-  const [suggestions, setSuggestions] = React.useState<
-    Array<{ label: string; draft: string }>
-  >([]);
-  const [loadingSuggestions, setLoadingSuggestions] = React.useState(false);
-  const [requested, setRequested] = React.useState(false);
-  const [draftBody, setDraftBody] = React.useState<string | null>(null);
-  const [draftLabel, setDraftLabel] = React.useState<string | null>(null);
-
-  const { execute: markRead, isExecuting } = useAction(markMailThreadRead, {
-    onSuccess: ({ data, input }) => {
-      if (input.threadId !== threadId) return;
-      if (data?.success) {
-        setLocalUnread(input.isUnread);
-        router.refresh();
-      }
-    },
-    onError: ({ error }) =>
-      toast.error(error.serverError || 'Could not update read state')
-  });
-
-  const { execute: loadSuggestions } = useAction(suggestMailThreadReplies, {
-    onSuccess: ({ data, input }) => {
-      if (input.threadId !== threadId) return;
-      setSuggestions(data?.suggestions ?? []);
-      setLoadingSuggestions(false);
-    },
-    onError: ({ input }) => {
-      if (input.threadId !== threadId) return;
-      setSuggestions([]);
-      setLoadingSuggestions(false);
-      toast.error('Could not load quick answers');
-    }
-  });
-
-  const { execute: sendReply, isExecuting: isSending } = useAction(
-    replyMailThread,
-    {
-      onSuccess: ({ input }) => {
-        if (input.threadId !== threadId) return;
-        toast.success('Reply sent');
-        setDraftBody(null);
-        setDraftLabel(null);
-        setLocalUnread(false);
-        onOpened?.(input.threadId);
-        sendIconRef.current?.stopAnimation();
-        router.refresh();
-      },
-      onError: ({ error, input }) => {
-        if (input.threadId !== threadId) return;
-        sendIconRef.current?.stopAnimation();
-        toast.error(error.serverError || 'Could not send reply');
-      }
-    }
-  );
-
-  React.useEffect(() => {
-    setLocalUnread(thread?.isUnread ?? false);
-  }, [thread?.id, thread?.isUnread]);
-
-  React.useEffect(() => {
-    setSuggestions([]);
-    setLoadingSuggestions(false);
-    setRequested(false);
-    setDraftBody(null);
-    setDraftLabel(null);
-  }, [thread?.id]);
-
-  // Auto-run for unopened inbound mail; already-read threads stay manual.
-  React.useEffect(() => {
-    if (!thread || archivedView) return;
-    if (!thread.isUnread || !thread.awaitingReply) return;
-
-    setRequested(true);
-    setLoadingSuggestions(true);
-    setSuggestions([]);
-    loadSuggestions({ threadId: thread.id });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thread?.id, thread?.isUnread, thread?.awaitingReply, archivedView]);
-
-  if (!thread) {
-    return (
-      <div className="border border-border bg-muted/10 p-6 text-sm text-muted-foreground">
-        Hover a thread to preview it and use quick answers.
-      </div>
-    );
-  }
-
-  const label = senderLabel(thread);
-
-  const startQuickAnswers = (): void => {
-    if (!threadId || archivedView || loadingSuggestions) return;
-    setRequested(true);
-    setLoadingSuggestions(true);
-    setSuggestions([]);
-    setDraftBody(null);
-    setDraftLabel(null);
-    loadSuggestions({ threadId });
-  };
-
-  const openDraft = (suggestion: { label: string; draft: string }): void => {
-    setDraftLabel(suggestion.label);
-    setDraftBody(suggestion.draft);
-  };
-
-  const clearDraft = (): void => {
-    setDraftBody(null);
-    setDraftLabel(null);
-  };
-
-  const handleSend = (): void => {
-    if (!threadId || !draftBody?.trim() || isSending) return;
-    sendIconRef.current?.startAnimation();
-    sendReply({ threadId, body: draftBody });
-  };
-
-  const showQuickAnswers = !archivedView;
-  const drafting = draftBody !== null;
-  const showingLoader =
-    requested && loadingSuggestions && suggestions.length === 0 && !drafting;
-  const showingResults =
-    requested && !loadingSuggestions && suggestions.length > 0 && !drafting;
-  const showingEmpty =
-    requested && !loadingSuggestions && suggestions.length === 0 && !drafting;
-
-  return (
-    <aside className="sticky top-0 flex w-full flex-col overflow-hidden border border-border bg-background">
-      <div className="flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{thread.subject}</p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {label}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-none"
-            disabled={isExecuting || !localUnread}
-            title={localUnread ? 'Mark as read' : 'Already read'}
-            onClick={() => {
-              setLocalUnread(false);
-              onOpened?.(thread.id);
-              markRead({ threadId: thread.id, isUnread: false });
-            }}
-          >
-            <CheckIcon
-              className={cn(
-                'size-4',
-                localUnread ? 'text-sky-600' : 'text-muted-foreground'
-              )}
-            />
-            <span className="sr-only">Mark as read</span>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-none font-mono text-[10px]"
-            asChild
-          >
-            <Link href={inboxThreadRoute(thread.id)}>Open</Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="max-h-40 overflow-y-auto px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-        {thread.preview ?? 'No preview available for this thread.'}
-      </div>
-
-      {showQuickAnswers ? (
-        <div className="space-y-2 border-t px-4 py-3">
-          {drafting ? (
-            <>
-              {draftLabel ? (
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {draftLabel}
-                </p>
-              ) : null}
-              <Textarea
-                value={draftBody ?? ''}
-                onChange={(event) => setDraftBody(event.target.value)}
-                placeholder="Write your reply…"
-                rows={5}
-                className="min-h-24 resize-y rounded-none bg-background text-sm"
-                disabled={isSending}
-              />
-              <p className="text-xs italic text-muted-foreground">
-                Sends from {thread.aliasAddress}
-              </p>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-none font-mono text-[10px]"
-                  disabled={isSending}
-                  onClick={clearDraft}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-8 min-w-[6.5rem] rounded-none px-3 font-mono text-[10px]"
-                  disabled={isSending || !draftBody?.trim()}
-                  onClick={handleSend}
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <SendIcon
-                      ref={sendIconRef}
-                      size={14}
-                    />
-                    {isSending ? 'Sending…' : 'Send'}
-                  </span>
-                </Button>
-              </div>
-            </>
-          ) : null}
-
-          {!requested || showingLoader ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={showingLoader}
-              onClick={startQuickAnswers}
-              className={cn(
-                'h-9 w-full justify-start gap-2.5 rounded-none px-4 font-mono',
-                showingLoader && 'text-muted-foreground'
-              )}
-            >
-              {showingLoader ? (
-                <>
-                  <SkillzCubeLoader size={24} />
-                  Matching replies…
-                </>
-              ) : (
-                'Quick answers'
-              )}
-            </Button>
-          ) : null}
-
-          {showingResults ? (
-            <>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Quick answers
-              </p>
-              <div className="flex flex-col gap-1.5">
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    key={`${thread.id}-${suggestion.label}-${index}`}
-                    type="button"
-                    onClick={() => openDraft(suggestion)}
-                    className="flex items-center gap-2 rounded-none p-2 text-left text-xs transition-colors hover:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_14%,transparent)]"
-                  >
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-none bg-muted font-mono text-[10px] text-muted-foreground">
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0 truncate">{suggestion.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          {showingEmpty ? (
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">No suggestions</p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 rounded-none font-mono text-[10px]"
-                onClick={startQuickAnswers}
-              >
-                Try again
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-    </aside>
-  );
-}
-
 function MailThreadRow({
   thread,
   tags,
@@ -813,7 +620,7 @@ function MailThreadRow({
   previewActive,
   selected,
   onToggleSelected,
-  onPreview,
+  onSelect,
   onAskDelete
 }: {
   thread: MailThreadListItem;
@@ -823,13 +630,14 @@ function MailThreadRow({
   previewActive: boolean;
   selected: boolean;
   onToggleSelected: (checked: boolean) => void;
-  onPreview: () => void;
+  onSelect: () => void;
   onAskDelete: () => void;
 }): React.JSX.Element {
   const router = useRouter();
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
+  const applicableTags = tagsForAlias(tags, thread.aliasId);
   // Replied threads are opened even if isUnread was left stale in the DB.
   const effectivelyUnread = thread.isUnread && thread.awaitingReply;
   const [localUnread, setLocalUnread] = React.useState(effectivelyUnread);
@@ -872,13 +680,22 @@ function MailThreadRow({
   });
 
   const openThread = (): void => {
+    // Desktop: keep selection in the reading pane. Mobile: full thread page.
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(min-width: 768px)').matches
+    ) {
+      onSelect();
+      return;
+    }
     router.push(inboxThreadRoute(thread.id));
   };
 
   return (
     <li
       className={cn(
-        'message-item group relative border-b border-border/60 last:border-b-0',
+        'message-item group relative border-b border-border last:border-b-0',
+        MAIL_SPLIT_ROW_HEIGHT_CLASS,
         localUnread
           ? 'bg-sky-50/80 dark:bg-sky-950/25'
           : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_16%,transparent)]',
@@ -888,13 +705,11 @@ function MailThreadRow({
             : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_18%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_24%,transparent)]'),
         selected && 'bg-muted/50'
       )}
-      onMouseEnter={onPreview}
-      onFocusCapture={onPreview}
     >
       <div
-        role="link"
+        role="button"
         tabIndex={0}
-        className="flex cursor-pointer gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-muted/30 sm:px-5 sm:pr-28"
+        className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-muted/30 sm:px-5 sm:pr-28"
         onClick={openThread}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -904,7 +719,7 @@ function MailThreadRow({
         }}
       >
         <div
-          className="mt-2.5 shrink-0"
+          className="shrink-0"
           data-no-pull
           onClick={stopRowEvent}
           onPointerDown={stopRowEvent}
@@ -917,7 +732,7 @@ function MailThreadRow({
           />
         </div>
 
-        <Avatar className="mt-0.5 size-9 shrink-0">
+        <Avatar className="size-9 shrink-0">
           {domain ? (
             <AvatarImage
               src={getLogoUrl(domain, 72, true)}
@@ -937,7 +752,7 @@ function MailThreadRow({
         <div className="min-w-0 flex-1">
           <p
             className={cn(
-              'min-w-0 truncate pr-1 text-sm tracking-tight',
+              'min-w-0 truncate pr-1 text-sm leading-5 tracking-tight',
               localUnread
                 ? 'font-semibold text-foreground'
                 : 'font-medium text-foreground/90'
@@ -958,14 +773,14 @@ function MailThreadRow({
             ) : null}
           </p>
 
-          <p className="mt-0.5 min-w-0 truncate text-xs text-muted-foreground">
+          <p className="mt-0.5 min-w-0 truncate text-xs leading-4 text-muted-foreground">
             {thread.preview ?? 'No preview'}
           </p>
         </div>
       </div>
 
       <div
-        className="pointer-events-none absolute right-3 top-3.5 z-20 flex h-7 items-center sm:right-4"
+        className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-7 -translate-y-1/2 items-center sm:right-4"
         data-no-pull
       >
         <time
@@ -1062,7 +877,7 @@ function MailThreadRow({
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-              {tags.length > 0 ? (
+              {applicableTags.length > 0 ? (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
@@ -1073,7 +888,7 @@ function MailThreadRow({
                     >
                       No tag
                     </DropdownMenuItem>
-                    {tags.map((tag) => (
+                    {applicableTags.map((tag) => (
                       <DropdownMenuItem
                         key={tag.id}
                         onSelect={() =>
