@@ -22,7 +22,8 @@ const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
     id: 'ai',
     label: 'AI Desk',
     icon: BotIcon,
-    href: Routes.DeskAI
+    href: Routes.DeskAI,
+    requiredCapability: 'aiDesk'
   },
   {
     id: 'human',
@@ -35,7 +36,8 @@ const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
     id: 'clusters',
     label: 'Clusters',
     icon: Layers,
-    href: Routes.DeskClusters
+    href: Routes.DeskClusters,
+    requiredCapability: 'autoTraining'
   }
 ];
 
@@ -57,8 +59,12 @@ export function getDeskNavTabs(): DeskNavTab[] {
   return CLOUD_DESK_NAV_TABS;
 }
 
-export function getDeskHomeHref(): string {
-  return isOssDeployment() ? Routes.DeskHuman : Routes.DeskAI;
+export function getDeskHomeHref(orgTier?: string): string {
+  if (isOssDeployment()) return Routes.DeskHuman;
+  if (orgTier && !getPlanCapabilities(orgTier).aiDesk) {
+    return Routes.DeskHuman;
+  }
+  return Routes.DeskAI;
 }
 
 export function getActiveDeskTab(pathname: string): DeskNavTabId | null {

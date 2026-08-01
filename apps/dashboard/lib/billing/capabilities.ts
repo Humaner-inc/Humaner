@@ -8,6 +8,7 @@ import {
 import type { CharacterType } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
+import { PreConditionError } from '@/lib/validation/exceptions';
 
 /**
  * Resolve the runtime capability matrix for an organization from its plan tier.
@@ -22,6 +23,19 @@ export async function getOrganizationCapabilities(
   });
 
   return getPlanCapabilities(organization?.tier ?? 'free');
+}
+
+/** Throw when a paid capability is missing for the org's current plan. */
+export async function requireOrganizationCapability(
+  organizationId: string,
+  capability: keyof PlanCapabilities,
+  message: string
+): Promise<PlanCapabilities> {
+  const capabilities = await getOrganizationCapabilities(organizationId);
+  if (!capabilities[capability]) {
+    throw new PreConditionError(message);
+  }
+  return capabilities;
 }
 
 /** Enforce plan personality access when persisting agent character settings. */

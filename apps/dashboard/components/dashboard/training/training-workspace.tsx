@@ -148,7 +148,7 @@ export function AgentAccuracyCard({
 }
 
 export type TrainingModelInfo = {
-  /** e.g. "Humaner v1.0 light" */
+  /** e.g. "Humaner v1.0" */
   label: string;
   /** e.g. "Haiku 4.5" or "Sonnet 4.6" */
   modelLabel: string;

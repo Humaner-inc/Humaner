@@ -104,7 +104,10 @@ export function NavMain({
         {agents.length > 0 ? (
           <>
             <SidebarSeparator className="my-1.5 opacity-50" />
-            <NavAgentTree agents={agents} />
+            <NavAgentTree
+              agents={agents}
+              orgTier={orgTier}
+            />
           </>
         ) : null}
       </div>

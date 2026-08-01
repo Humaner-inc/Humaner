@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
-import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
+import { getEffectivePlan, getPlanCapabilities } from '@humaner/shared/plans';
 import type { MessageRole } from '@prisma/client';
 import { format, startOfDay, subDays } from 'date-fns';
 
@@ -134,7 +134,7 @@ export async function getAnalyticsOverview(options?: {
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
-      select: { tier: true }
+      select: { tier: true, includedMessages: true }
     }),
     prisma.conversation.findMany({
       where: { agent: { organizationId, ...agentFilter } },
@@ -200,7 +200,7 @@ export async function getAnalyticsOverview(options?: {
       : 0;
 
   const tier = normalizeTier(organization?.tier ?? 'free');
-  const plan = getPlanForTier(tier);
+  const plan = getEffectivePlan(tier, organization?.includedMessages);
 
   // Content-gap detection is a Frontier (v2.0) capability. Lower tiers still see the
   // unanswered count in analytics, but not the itemized gaps + suggested fixes.

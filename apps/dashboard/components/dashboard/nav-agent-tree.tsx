@@ -16,7 +16,8 @@ import {
 import { SidebarGroup } from '@/components/ui/sidebar';
 import {
   getActiveAgentTab,
-  getAgentNavTabs
+  getAgentNavTabs,
+  isAgentTabLocked
 } from '@/constants/agent-nav-items';
 import { agentPersonaRoute } from '@/constants/routes';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
@@ -32,6 +33,7 @@ export type SidebarAgent = {
 
 export type NavAgentTreeProps = {
   agents: SidebarAgent[];
+  orgTier: string;
 };
 
 function AgentAvatarIcon({
@@ -65,7 +67,13 @@ function AgentAvatarIcon({
   );
 }
 
-function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
+function AgentTreeNode({
+  agent,
+  orgTier
+}: {
+  agent: SidebarAgent;
+  orgTier: string;
+}): React.JSX.Element {
   const pathname = usePathname();
   const activeTab = getActiveAgentTab(pathname);
   const inAgent = pathname.startsWith(`/agents/${agent.id}`);
@@ -92,20 +100,35 @@ function AgentTreeNode({ agent }: { agent: SidebarAgent }): React.JSX.Element {
         tooltip={agent.name}
       />
       <SidebarNavChildren expanded={open}>
-        {getAgentNavTabs().map((tab) => (
-          <SidebarNavChild
-            key={tab.id}
-            href={tab.href(agent.id)}
-            label={tab.label}
-            active={inAgent && activeTab === tab.id}
-          />
-        ))}
+        {getAgentNavTabs().map((tab) => {
+          const locked = isAgentTabLocked(tab, orgTier);
+          return (
+            <SidebarNavChild
+              key={tab.id}
+              href={tab.href(agent.id)}
+              label={tab.label}
+              active={inAgent && activeTab === tab.id}
+              disabled={locked}
+              tabIndex={locked ? -1 : undefined}
+              badge={
+                locked ? (
+                  <span className="shrink-0 font-mono text-[9px] text-muted-foreground">
+                    Upgrade
+                  </span>
+                ) : undefined
+              }
+            />
+          );
+        })}
       </SidebarNavChildren>
     </div>
   );
 }
 
-export function NavAgentTree({ agents }: NavAgentTreeProps): React.JSX.Element {
+export function NavAgentTree({
+  agents,
+  orgTier
+}: NavAgentTreeProps): React.JSX.Element {
   if (agents.length === 0) {
     return <></>;
   }
@@ -117,6 +140,7 @@ export function NavAgentTree({ agents }: NavAgentTreeProps): React.JSX.Element {
           <AgentTreeNode
             key={agent.id}
             agent={agent}
+            orgTier={orgTier}
           />
         ))}
       </div>

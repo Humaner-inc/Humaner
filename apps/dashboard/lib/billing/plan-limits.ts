@@ -1,13 +1,16 @@
 import 'server-only';
 
-import type { PlanDefinition } from '@humaner/shared/plans';
+import {
+  UNLIMITED_AGENTS as SHARED_UNLIMITED_AGENTS,
+  type PlanDefinition
+} from '@humaner/shared/plans';
 import { Role } from '@prisma/client';
 
 import { isAdmin } from '@/lib/auth/permissions';
 import { prisma } from '@/lib/db/prisma';
 
 /** Unlimited agent slots when plan limits are bypassed. */
-export const UNLIMITED_AGENTS = 999;
+export const UNLIMITED_AGENTS = SHARED_UNLIMITED_AGENTS;
 export const UNLIMITED_MEMBERS = 999;
 
 export async function userBypassesPlanLimits(userId: string): Promise<boolean> {
@@ -47,7 +50,7 @@ export function hasReachedAgentLimit(
   plan: PlanDefinition,
   bypassLimits: boolean
 ): boolean {
-  if (bypassLimits) {
+  if (bypassLimits || plan.agents >= UNLIMITED_AGENTS) {
     return false;
   }
 

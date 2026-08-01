@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
-import { getPlanForTier } from '@humaner/shared/plans';
+import { getEffectivePlan } from '@humaner/shared/plans';
 import { subDays } from 'date-fns';
 
 import { Routes } from '@/constants/routes';
@@ -84,7 +84,12 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
-      select: { tier: true, polarCustomerId: true, humanDeskEnabled: true }
+      select: {
+        tier: true,
+        includedMessages: true,
+        polarCustomerId: true,
+        humanDeskEnabled: true
+      }
     }),
     prisma.agent.count({ where: { organizationId } }),
     prisma.user.count({ where: { organizationId } }),
@@ -145,7 +150,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   }
 
   const tier = normalizeTier(organization.tier);
-  const plan = getPlanForTier(tier);
+  const plan = getEffectivePlan(tier, organization.includedMessages);
   const messagesUsed = await getMessagesUsedThisMonth(
     session.user.organizationId,
     tier

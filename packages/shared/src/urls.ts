@@ -21,8 +21,21 @@ export function getEmailLogoUrl(): string {
   return `${getAppUrl()}${EMAIL_LOGO_PATH}`;
 }
 
-export function getDashboardSignUpUrl(): string {
-  return `${getAppUrl()}/auth/signup`;
+export function getDashboardSignUpUrl(options?: {
+  plan?: string;
+  messages?: number;
+}): string {
+  const base = `${getAppUrl()}/auth/signup`;
+  if (!options?.plan) return base;
+  const params = new URLSearchParams({ plan: options.plan });
+  if (
+    options.messages != null &&
+    Number.isFinite(options.messages) &&
+    options.messages > 0
+  ) {
+    params.set("messages", String(Math.floor(options.messages)));
+  }
+  return `${base}?${params.toString()}`;
 }
 
 export function getDashboardLoginUrl(): string {

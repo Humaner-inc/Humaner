@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getPlanForTier } from '@humaner/shared/plans';
+import { formatAgents, getEffectivePlan } from '@humaner/shared/plans';
 
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
 import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-overview-strip';
@@ -55,6 +55,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             website: true,
             industry: true,
             tier: true,
+            includedMessages: true,
             targetAudience: true,
             logoUrl: true
           }
@@ -69,12 +70,15 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     getInboxHomeOverview()
   ]);
 
-  const plan = getPlanForTier(organization?.tier ?? 'free');
+  const plan = getEffectivePlan(
+    organization?.tier ?? 'free',
+    organization?.includedMessages
+  );
   const agentLimit = getEffectiveAgentLimit(plan, bypassLimits);
   const atLimit = hasReachedAgentLimit(liveAgentCount, plan, bypassLimits);
   const slotLabel = bypassLimits
     ? `${agents.length} agent${agents.length === 1 ? '' : 's'}`
-    : `${liveAgentCount}/${agentLimit} live`;
+    : `${liveAgentCount}/${formatAgents(agentLimit) === 'Unlimited' ? '∞' : agentLimit} live`;
 
   return (
     <SectionPage width="lg">
@@ -86,6 +90,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           industry={organization?.industry ?? null}
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}
+          includedMessages={organization?.includedMessages}
         />
 
         <section className="space-y-4">

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { getPlanForTier, normalizePlanTier } from '@humaner/shared/plans';
+import { getEffectivePlan, normalizePlanTier } from '@humaner/shared/plans';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ export type DashboardOverviewStripProps = {
   industry: IndustryType | null;
   targetAudience: TargetAudience | null;
   tier: string;
+  includedMessages?: number;
   className?: string;
 };
 
@@ -28,10 +29,11 @@ export function DashboardOverviewStrip({
   industry,
   targetAudience,
   tier,
+  includedMessages,
   className
 }: DashboardOverviewStripProps): React.JSX.Element {
   const normalizedTier = normalizePlanTier(tier);
-  const plan = getPlanForTier(tier);
+  const plan = getEffectivePlan(tier, includedMessages);
   const isFreePlan = normalizedTier === 'free';
   const tierAccent = PLAN_TIER_ACCENT[normalizedTier];
   const domain = website ? toHostname(website) : null;

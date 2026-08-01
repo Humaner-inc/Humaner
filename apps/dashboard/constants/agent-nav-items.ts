@@ -7,6 +7,8 @@ import {
   ShieldIcon,
   UserIcon
 } from '@humaner/shared/icons';
+import type { PlanCapabilities } from '@humaner/shared/plans';
+import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import {
   agentAnalyticsRoute,
@@ -33,6 +35,7 @@ export type AgentNavTab = {
   label: string;
   icon: LucideIcon;
   href: (agentId: string) => string;
+  requiredCapability?: keyof PlanCapabilities;
 };
 
 const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
@@ -52,7 +55,8 @@ const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
     id: 'runbooks',
     label: 'Runbooks',
     icon: FileTextIcon,
-    href: (agentId) => agentRunbooksRoute(agentId)
+    href: (agentId) => agentRunbooksRoute(agentId),
+    requiredCapability: 'aiDesk'
   },
   {
     id: 'escalation',
@@ -118,4 +122,11 @@ export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
 export function isAgentWorkspacePath(pathname: string): boolean {
   const publicPath = toPublicPathname(pathname);
   return /^\/agents\/(?!new(?:\/|$))[^/]+/.test(publicPath);
+}
+
+export function isAgentTabLocked(tab: AgentNavTab, orgTier: string): boolean {
+  if (isOssDeployment()) return false;
+  if (!tab.requiredCapability) return false;
+  const capabilities = getPlanCapabilities(orgTier);
+  return !capabilities[tab.requiredCapability];
 }
