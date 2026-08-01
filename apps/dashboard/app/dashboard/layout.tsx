@@ -28,10 +28,10 @@ import {
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
+import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
-import { CHARACTER_META } from '@/lib/character-presets';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
@@ -126,12 +126,18 @@ export default async function DashboardLayout({
       : {})
   };
 
-  const humanerAgent = agents.find(
-    (agent) => agent.publicId === humanerAgentPublicId
+  // Platform Ask Humaner agent may live outside the current org — look up by
+  // publicId so the header/message avatars use its real profile image.
+  const humanerAgentRecord = humanerAgentPublicId
+    ? await prisma.agent.findUnique({
+        where: { publicId: humanerAgentPublicId },
+        select: { image: true, character: true }
+      })
+    : null;
+  const humanerAgentAvatarUrl = resolveAgentAvatarSrc(
+    humanerAgentRecord?.image,
+    humanerAgentRecord?.character ?? 'CORPORATE'
   );
-  const humanerAgentAvatarUrl =
-    humanerAgent?.image ??
-    CHARACTER_META[humanerAgent?.character ?? 'CORPORATE'].image;
 
   const dashboardShell = (
     <>
