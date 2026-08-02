@@ -154,6 +154,22 @@ export function SidebarNavChildren({
   );
 }
 
+/** Single upgrade cue between a section title and its locked children. */
+export function SidebarNavUpgradeHeader({
+  href
+}: {
+  href: string;
+}): React.JSX.Element {
+  return (
+    <Link
+      href={href}
+      className="mb-0.5 flex w-full items-center px-4 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+    >
+      Upgrade
+    </Link>
+  );
+}
+
 export type SidebarNavChildProps = {
   href: string;
   label: string;
