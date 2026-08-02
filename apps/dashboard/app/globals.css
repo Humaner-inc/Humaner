@@ -545,3 +545,143 @@ input[type='number'] {
   }
 }
 
+/* Auth hero panel — matches landing Hero right frame */
+.auth-hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-hero-background__image {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    rgb(0 0 0 / 0.92) 72%,
+    rgb(0 0 0 / 0.62) 84%,
+    rgb(0 0 0 / 0.22) 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    rgb(0 0 0 / 0.92) 72%,
+    rgb(0 0 0 / 0.62) 84%,
+    rgb(0 0 0 / 0.22) 94%,
+    transparent 100%
+  );
+}
+
+.hero-screen-logo__layer--warm,
+.hero-screen-logo__layer--cyan,
+.hero-screen-logo__scanlines {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-screen-logo--glitch .hero-screen-logo__layer--base {
+  animation: hero-screen-logo-base 0.11s steps(2) infinite;
+}
+
+.hero-screen-logo--glitch .hero-screen-logo__layer--warm {
+  opacity: 0.72;
+  mix-blend-mode: multiply;
+  filter: sepia(1) saturate(4) hue-rotate(8deg) brightness(0.95);
+  animation: hero-screen-logo-warm 0.09s steps(3) infinite;
+}
+
+.hero-screen-logo--glitch .hero-screen-logo__layer--cyan {
+  opacity: 0.68;
+  mix-blend-mode: multiply;
+  filter: sepia(1) saturate(6) hue-rotate(145deg) brightness(0.95);
+  animation: hero-screen-logo-cyan 0.1s steps(3) infinite;
+}
+
+.hero-screen-logo--glitch .hero-screen-logo__scanlines {
+  opacity: 0.14;
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(0 0 0 / 0.18) 0,
+    rgb(0 0 0 / 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: hero-screen-scanline-flicker 0.13s steps(2) infinite;
+}
+
+@keyframes hero-screen-logo-base {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -1px);
+  }
+}
+
+@keyframes hero-screen-logo-warm {
+  0% {
+    transform: translate(-3px, 0);
+  }
+  33% {
+    transform: translate(-5px, 2px);
+  }
+  66% {
+    transform: translate(-2px, -1px);
+  }
+  100% {
+    transform: translate(-4px, 1px);
+  }
+}
+
+@keyframes hero-screen-logo-cyan {
+  0% {
+    transform: translate(3px, 0);
+  }
+  33% {
+    transform: translate(5px, -1px);
+  }
+  66% {
+    transform: translate(2px, 2px);
+  }
+  100% {
+    transform: translate(4px, 0);
+  }
+}
+
+@keyframes hero-screen-scanline-flicker {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-screen-logo--glitch .hero-screen-logo__layer--base,
+  .hero-screen-logo--glitch .hero-screen-logo__layer--warm,
+  .hero-screen-logo--glitch .hero-screen-logo__layer--cyan,
+  .hero-screen-logo--glitch .hero-screen-logo__scanlines {
+    animation: none;
+  }
+
+  .hero-screen-logo--glitch .hero-screen-logo__layer--warm,
+  .hero-screen-logo--glitch .hero-screen-logo__layer--cyan,
+  .hero-screen-logo--glitch .hero-screen-logo__scanlines {
+    opacity: 0;
+  }
+}
+

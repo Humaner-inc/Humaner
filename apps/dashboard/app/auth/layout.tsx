@@ -1,9 +1,9 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
+import { AuthHeroPanel } from '@/components/auth/auth-hero-panel';
 import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
@@ -92,18 +92,10 @@ export default async function AuthLayout({
         {showBackToMarketing ? <AuthBackToMarketing /> : null}
         {children}
       </main>
-      {/* Right: image panel */}
+      {/* Right: landing Hero frame */}
       <div className="relative z-10 hidden lg:block lg:w-1/2">
         <div className="absolute inset-4 overflow-hidden rounded-2xl">
-          <Image
-            src="/lazy_work.png"
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="50vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070607]/30 via-transparent to-transparent" />
+          <AuthHeroPanel />
         </div>
       </div>
     </div>
