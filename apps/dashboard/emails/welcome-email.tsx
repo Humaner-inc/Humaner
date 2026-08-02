@@ -30,20 +30,18 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
         Follow us on:{' '}
         <Link
           href={getXUrl()}
-          className="text-blue-600 no-underline"
+          className="no-underline"
         >
           <Img
             src={getEmailXIconUrl()}
-            alt=""
+            alt="X"
             width="16"
             height="16"
             style={{
               display: 'inline-block',
-              verticalAlign: 'middle',
-              marginRight: 6
+              verticalAlign: 'middle'
             }}
           />
-          <span style={{ verticalAlign: 'middle' }}>X</span>
         </Link>
       </Text>
     </Section>
