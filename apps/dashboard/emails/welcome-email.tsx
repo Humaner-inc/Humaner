@@ -1,8 +1,8 @@
-import { EmailButton, EmailLayout, EmailText } from '@humaner/shared/email-ui';
+import { EmailLayout, EmailText } from '@humaner/shared/email-ui';
+import { getEmailXIconUrl, getXUrl } from '@humaner/shared/urls';
+import { Img, Link, Section, Text } from '@react-email/components';
 
 import { AppInfo } from '@/constants/app-info';
-import { Routes } from '@/constants/routes';
-import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 export type WelcomeEmailData = {
   recipient: string;
@@ -25,9 +25,28 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
     <EmailText>
       Stay tuned, we will thank you with more than words for being here first.
     </EmailText>
-    <EmailButton href={`${getBaseUrl()}${Routes.Dashboard}`}>
-      Get started
-    </EmailButton>
+    <Section className="my-[24px]">
+      <Text className="m-0 text-[14px] leading-[24px] text-black">
+        Follow us on:{' '}
+        <Link
+          href={getXUrl()}
+          className="text-blue-600 no-underline"
+        >
+          <Img
+            src={getEmailXIconUrl()}
+            alt=""
+            width="16"
+            height="16"
+            style={{
+              display: 'inline-block',
+              verticalAlign: 'middle',
+              marginRight: 6
+            }}
+          />
+          <span style={{ verticalAlign: 'middle' }}>X</span>
+        </Link>
+      </Text>
+    </Section>
     <EmailText>
       Lovely day,
       <br />

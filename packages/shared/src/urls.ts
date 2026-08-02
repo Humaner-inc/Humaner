@@ -17,8 +17,15 @@ export function getAppUrl(): string {
 /** PNG logo for transactional email (SVG is blocked by most clients). */
 export const EMAIL_LOGO_PATH = "/humaner-email.png";
 
+/** X / Twitter mark for transactional email (same glyph as landing footer). */
+export const EMAIL_X_ICON_PATH = "/x-email.png";
+
 export function getEmailLogoUrl(): string {
   return `${getAppUrl()}${EMAIL_LOGO_PATH}`;
+}
+
+export function getEmailXIconUrl(): string {
+  return `${getAppUrl()}${EMAIL_X_ICON_PATH}`;
 }
 
 export function getDashboardSignUpUrl(options?: {
