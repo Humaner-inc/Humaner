@@ -42,6 +42,20 @@ export function getDashboardLoginUrl(): string {
   return `${getAppUrl()}/auth/login`;
 }
 
+/** Default authenticated landing in the dashboard (org overview). */
+export function getDashboardHomeUrl(): string {
+  return `${getAppUrl()}/organization/overview`;
+}
+
+export function getDashboardOnboardingUrl(): string {
+  return `${getAppUrl()}/onboarding`;
+}
+
+/** Public session probe used by the marketing site navbar. */
+export function getDashboardNavSessionUrl(): string {
+  return `${getAppUrl()}/api/public/nav-session`;
+}
+
 export function getPricingUrl(): string {
   return `${getLandingUrl()}/pricing`;
 }

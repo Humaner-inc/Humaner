@@ -78,11 +78,7 @@ export const callbacks = {
       cookieStore.set({
         name: AuthCookies.SessionToken,
         value: sessionToken,
-        expires: sessionExpiry,
-        httpOnly: true,
-        secure: AuthCookies.isSecure,
-        sameSite: 'lax',
-        path: '/'
+        ...AuthCookies.sessionCookieOptions(sessionExpiry)
       });
 
       // already authorized

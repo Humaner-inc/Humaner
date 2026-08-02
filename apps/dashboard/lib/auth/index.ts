@@ -5,6 +5,7 @@ import { encode } from 'next-auth/jwt';
 import { Routes } from '@/constants/routes';
 import { adapter } from '@/lib/auth/adapter';
 import { callbacks } from '@/lib/auth/callbacks';
+import { AuthCookies } from '@/lib/auth/cookies';
 import { events } from '@/lib/auth/events';
 import { providers } from '@/lib/auth/providers';
 import { session } from '@/lib/auth/session';
@@ -43,6 +44,12 @@ export const authConfig = {
     signOut: Routes.Logout,
     error: Routes.AuthError, // Error code passed in query string as ?error=ERROR_CODE
     newUser: Routes.Onboarding
+  },
+  cookies: {
+    sessionToken: {
+      name: AuthCookies.SessionToken,
+      options: AuthCookies.sessionCookieOptions()
+    }
   },
   callbacks,
   events,
