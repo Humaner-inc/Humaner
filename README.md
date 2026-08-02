@@ -77,8 +77,8 @@ Grey exists to break rhythm inside the brand: use it sparingly on a few section 
 ## Pricing
 
 - **Free:** 50 messages/mo · 1 agent · Corporate personality · no inboxes
-- **Classic:** from $29/mo · 250–1k messages · Humaner v1.0 · inboxes · refined desk · 2 agents
-- **Frontier:** from $166/mo · 2k–5k messages · Humaner v2.0 · cross-session memory · API · training loop · unlimited agents
+- **Classic:** from $20/mo · 200–1k messages · Humaner v1.0 · inboxes · refined desk · 2 agents · hard stop (no overage)
+- **Frontier:** from $150/mo · 2k–5k messages · Humaner v2.0 · cross-session memory · API · training loop · unlimited agents · overage from $0.015/msg
 - **Humaner:** custom · Humaner v3.0 · coming soon.
 
 [Full pricing →](https://humaner.io/pricing)

@@ -7,7 +7,7 @@ ALTER TABLE "Organization" ADD COLUMN "includedMessages" INTEGER NOT NULL DEFAUL
 -- Backfill from current tier defaults (legacy single-SKU products).
 UPDATE "User"
 SET "includedMessages" = CASE "tier"
-  WHEN 'classic' THEN 250
+  WHEN 'classic' THEN 200
   WHEN 'refined' THEN 1000
   WHEN 'frontier' THEN 3000
   WHEN 'humaner' THEN 20000
@@ -16,7 +16,7 @@ END;
 
 UPDATE "Organization"
 SET "includedMessages" = CASE "tier"
-  WHEN 'classic' THEN 250
+  WHEN 'classic' THEN 200
   WHEN 'refined' THEN 1000
   WHEN 'frontier' THEN 3000
   WHEN 'humaner' THEN 20000
