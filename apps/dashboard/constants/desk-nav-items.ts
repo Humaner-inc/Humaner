@@ -3,6 +3,7 @@ import { BotIcon, Layers } from '@humaner/shared/icons';
 import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
+import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
@@ -50,7 +51,7 @@ export function getDeskNavTabs(): DeskNavTab[] {
     return [
       {
         id: 'human',
-        label: 'Helpdesk',
+        label: AppInfo.HELPDESK_LABEL,
         iconKey: 'hand',
         href: Routes.DeskHuman
       }

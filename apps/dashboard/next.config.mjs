@@ -27,8 +27,13 @@ const svgLoader = {
   }
 };
 
+const isSelfHostBuild =
+  process.env.NEXT_PUBLIC_DEPLOYMENT_MODE?.trim().toLowerCase() === 'oss';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Docker / self-host: emit standalone server bundle
+  ...(isSelfHostBuild ? { output: 'standalone' } : {}),
   transpilePackages: ['@humaner/shared', 'lucide-animated'],
   // Prefer skillz/runtime on hot paths; full package stays external on the server.
   serverExternalPackages: ['@humaner/customer-support-skillz'],

@@ -1,0 +1,45 @@
+# Humaner Self-Host — one-command local deploy
+# Usage:
+#   cp apps/dashboard/.env.example .env.self-host
+#   # set AUTH_SECRET + ANTHROPIC_API_KEY (or OPENAI_API_KEY)
+#   docker compose up --build
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      NEXT_PUBLIC_DEPLOYMENT_MODE: oss
+      DATABASE_URL: postgresql://humaner:humaner@postgres:5432/humaner
+      DIRECT_URL: postgresql://humaner:humaner@postgres:5432/humaner
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-to-a-long-random-string}
+      AUTH_TRUST_HOST: 'true'
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3001}
+      KNOWLEDGE_DIR: /app/data/knowledge
+    volumes:
+      - ./data/knowledge:/app/data/knowledge
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: humaner
+      POSTGRES_PASSWORD: humaner
+      POSTGRES_DB: humaner
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U humaner']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

@@ -26,34 +26,38 @@ Humaner is your support layer to manage agents, helpdesk and inboxes all-in one 
 - **Inboxes** to manage your mails and support within the same tool.
 - **Training loop** across the help desk to learn from human behavior and content gaps.
 
-### Self-hosting vs Humaner intelligence.
+### Self-Host vs Humaner Cloud
 
-Widget, React SDK, REST API, **Organization**, and **Desk Center** (handoff framework, Human Desk, tickets — **bring your own support agent**) are **source-available** in this repo. On Humaner Cloud, **Agent Intelligence** fills the Support Agent slot; **Desk Intelligence** adds async tiers, AI Desk, runbooks, and clusters.
+**Self-Host** ships the dashboard, org management, async **Helpdesk**, and a **starter agent** (open Industry Skillz + markdown knowledge + your LLM key). White-label via `brand.config.ts`. See [`SELF_HOST.md`](./SELF_HOST.md).
+
+**Humaner Cloud** fills the agent slot with Agent Intelligence (Core Skillz, RAG, memory) and Desk Intelligence (AI Desk, runbooks, clusters, live chat, Inbox).
 
 ```mermaid
 flowchart TB
   SITE[Customer site / app]
 
-  subgraph OSS["Open Source — source-available in this repo"]
+  subgraph SH["Self-Host — this repo"]
     INT["Integration layer<br/>Widget · React SDK · REST API"]
-    ORG["Organization system<br/>multi-workspace · members · RBAC"]
-    DC["Desk Center<br/>handoff framework · Human Desk · tickets<br/>Support Agent slot: BYO API"]
+    ORG["Organization<br/>multi-workspace · members · RBAC"]
+    SA["Starter agent<br/>Industry Skillz · markdown KB · BYO LLM"]
+    HD["Helpdesk<br/>async tickets · urgency · assignees"]
   end
 
-  subgraph HOSTED["Hosted — app.humaner.io only"]
-    HAI["Humaner Agent Intelligence<br/>fills Support Agent slot"]
-    HDI["Humaner Desk Intelligence<br/>async tiers · AI Desk · runbooks · clusters"]
+  subgraph HOSTED["Cloud — app.humaner.io"]
+    HAI["Agent Intelligence<br/>Core Skillz · RAG · memory"]
+    HDI["Desk Intelligence<br/>AI Desk · runbooks · clusters · live chat"]
   end
 
   SITE --> INT
-  INT -->|your agent API| DC
-  INT -->|or Humaner Cloud| HAI
-  HAI --> DC
-  DC <-->|learning loop| HDI
-  ORG --- DC
+  INT --> SA
+  SA --> HD
+  INT -->|or Cloud| HAI
+  HAI --> HD
+  HD <-->|learning loop| HDI
+  ORG --- HD
 ```
 
-[Full docs →](https://docs.humaner.io) · [Open-source strategy →](./Docs/OPEN_SOURCING.md)
+[Self-Host setup →](./SELF_HOST.md) · [Full docs →](https://docs.humaner.io) · [Strategy →](./Docs/SELF_HOST_PLAN.md)
 
 ### Built for developer integrations
 
