@@ -5,8 +5,6 @@ export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
   free: '#7b7b73',
   /** Cobalt — matches Humaner v1.0 */
   classic: '#0682de',
-  /** Legacy tier — keep distinct from Classic cobalt */
-  refined: '#0047ab',
   /** Accent — matches Humaner v2.0 */
   frontier: '#e1ccaf',
   humaner: '#e1ccaf'
