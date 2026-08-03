@@ -5,6 +5,7 @@ import {
   AirplaneIcon,
   AttachFileIcon,
   BadgeAlertIcon,
+  BanIcon as BanIconSource,
   BellIcon as BellIconSource,
   BicepsFlexedIcon,
   BlocksIcon as BlocksIconSource,
@@ -26,7 +27,7 @@ import {
   ChevronRightIcon as ChevronRightIconSource,
   ChevronsUpDownIcon as ChevronsUpDownIconSource,
   ChevronUpIcon as ChevronUpIconSource,
-  CircleCheckIcon,
+  CircleCheckIcon as CircleCheckIconSource,
   CircleHelpIcon,
   ClockIcon as ClockIconSource,
   CompassIcon as CompassIconSource,
@@ -46,6 +47,7 @@ import {
   GraduationCapIcon as GraduationCapIconSource,
   GripHorizontalIcon,
   GripVerticalIcon as GripVerticalIconSource,
+  HandHeartIcon as HandHeartIconSource,
   HeartPulseIcon as HeartPulseIconSource,
   HomeIcon as HomeIconSource,
   ItalicIcon as ItalicIconSource,
@@ -114,6 +116,7 @@ export const ArrowUp = createAnimatedIcon(ArrowUpIconSource);
 export const ArrowUpIcon = createAnimatedIcon(ArrowUpIconSource);
 export const ArrowUpRight = createAnimatedIcon(ArrowUpRightIconSource);
 export const ArrowUpRightIcon = createAnimatedIcon(ArrowUpRightIconSource);
+export const BanIcon = createAnimatedIcon(BanIconSource);
 export const BarChart3 = createAnimatedIcon(ChartBarIncreasingIcon);
 export const BarChart3Icon = createAnimatedIcon(ChartBarIncreasingIcon);
 export const BellIcon = createAnimatedIcon(BellIconSource);
@@ -142,7 +145,8 @@ export const ChevronRightIcon = createAnimatedIcon(ChevronRightIconSource);
 export const ChevronsUpDownIcon = createAnimatedIcon(ChevronsUpDownIconSource);
 export const ChevronUpIcon = createAnimatedIcon(ChevronUpIconSource);
 export const CircleAlert = createAnimatedIcon(BadgeAlertIcon);
-export const CircleCheck = createAnimatedIcon(CircleCheckIcon);
+export const CircleCheck = createAnimatedIcon(CircleCheckIconSource);
+export const CircleCheckIcon = createAnimatedIcon(CircleCheckIconSource);
 export const CircleUser = createAnimatedIcon(UserIconSource);
 export const ClockIcon = createAnimatedIcon(ClockIconSource);
 export const Code2 = createAnimatedIcon(TerminalIcon);
@@ -167,6 +171,7 @@ export const GraduationCap = createAnimatedIcon(GraduationCapIconSource);
 export const GraduationCapIcon = createAnimatedIcon(GraduationCapIconSource);
 export const GripVerticalIcon = createAnimatedIcon(GripVerticalIconSource);
 export const GridIcon = createAnimatedIcon(LayoutGridIcon);
+export const HandHeartIcon = createAnimatedIcon(HandHeartIconSource);
 export const HeadsetIcon = createAnimatedIcon(ConciergeBellIcon);
 export const HotelIcon = createAnimatedIcon(ConciergeBellIcon);
 export const HeartPulse = createAnimatedIcon(HeartPulseIconSource);

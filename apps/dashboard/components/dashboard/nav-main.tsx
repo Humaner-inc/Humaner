@@ -36,6 +36,7 @@ export type NavMainProps = SidebarGroupProps & {
   orgTier: string;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
+  aiDeskOpenCount?: number;
 };
 
 export function NavMain({
@@ -44,6 +45,7 @@ export function NavMain({
   orgTier,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
+  aiDeskOpenCount = 0,
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
@@ -71,6 +73,7 @@ export function NavMain({
           <NavDeskTree
             orgTier={orgTier}
             handoffOpenCount={handoffOpenCount}
+            aiDeskOpenCount={aiDeskOpenCount}
           />
         ) : null}
         <NavSettingsTree profile={profile} />

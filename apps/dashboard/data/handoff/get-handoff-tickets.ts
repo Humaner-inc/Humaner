@@ -62,6 +62,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       where: { organizationId },
       select: {
         id: true,
+        ticketNumber: true,
         visitorEmail: true,
         visitorFirstName: true,
         visitorLastName: true,
@@ -80,6 +81,9 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         clusterId: true,
         runbookId: true,
         resolvedAt: true,
+        resolvedBy: true,
+        resolvedByName: true,
+        resolutionSolution: true,
         assignedAt: true,
         createdAt: true,
         updatedAt: true,
@@ -132,6 +136,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
     })),
     tickets: tickets.map((ticket) => ({
       id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
       agentName: ticket.agent.name,
       visitorEmail: ticket.visitorEmail,
       visitorFirstName: ticket.visitorFirstName ?? null,
@@ -151,6 +156,9 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       clusterId: ticket.clusterId,
       runbookId: ticket.runbookId,
       resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
+      resolvedBy: ticket.resolvedBy ?? null,
+      resolvedByName: ticket.resolvedByName ?? null,
+      resolutionSolution: ticket.resolutionSolution ?? null,
       assignee: ticket.assignee
         ? {
             id: ticket.assignee.id,

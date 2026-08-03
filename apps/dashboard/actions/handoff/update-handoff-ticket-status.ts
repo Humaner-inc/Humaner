@@ -6,6 +6,7 @@ import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
+import { notifyTicketResolved } from '@/lib/desk/notify-ticket-resolved';
 import { extractResolutionPattern } from '@/lib/platform-intelligence/extract-resolution-pattern';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
@@ -37,12 +38,20 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
     const isResolving =
       parsedInput.status === 'RESOLVED' || parsedInput.status === 'CLOSED';
 
+    const resolverName = session.user.name || 'Team member';
+
     await prisma.$transaction([
       prisma.handoffTicket.update({
         where: { id: ticket.id },
         data: {
           status: parsedInput.status,
-          ...(isResolving ? { resolvedAt: new Date() } : {})
+          ...(isResolving
+            ? {
+                resolvedAt: new Date(),
+                resolvedBy: 'human',
+                resolvedByName: resolverName
+              }
+            : {})
         }
       }),
       ...(ticket.conversationId && isResolving
@@ -69,12 +78,21 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
         existingClusterId: ticket.clusterId
       });
 
-      // Anonymised platform signal — no org/visitor IDs stored.
       await extractResolutionPattern({
         organizationId: session.user.organizationId,
         agentId: ticket.agentId,
         issueType: parsedInput.issueType?.trim() || 'general',
         solution: parsedInput.resolutionSolution.trim()
+      });
+    }
+
+    if (isResolving) {
+      await notifyTicketResolved({
+        ticketId: ticket.id,
+        organizationId: session.user.organizationId,
+        resolvedBy: 'human',
+        resolvedByName: resolverName,
+        resolutionSolution: parsedInput.resolutionSolution?.trim()
       });
     }
 

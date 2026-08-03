@@ -9,9 +9,11 @@ import {
   useSidebarNavDrawer
 } from '@/components/dashboard/sidebar-nav-accordion';
 import {
+  shouldShowSidebarUpgradeBanner,
   SidebarNavChild,
   SidebarNavChildren,
-  SidebarNavParent
+  SidebarNavParent,
+  SidebarNavUpgradeHeader
 } from '@/components/dashboard/sidebar-nav-tree';
 import { SidebarGroup } from '@/components/ui/sidebar';
 import {
@@ -19,7 +21,7 @@ import {
   getAgentNavTabs,
   isAgentTabLocked
 } from '@/constants/agent-nav-items';
-import { agentPersonaRoute } from '@/constants/routes';
+import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { cn } from '@/lib/utils';
 
@@ -80,6 +82,11 @@ function AgentTreeNode({
   const { open, onOpenChange } = useSidebarNavDrawer(
     SIDEBAR_DRAWER_IDS.agent(agent.id)
   );
+  const tabs = getAgentNavTabs();
+  const lockedCount = tabs.filter((tab) =>
+    isAgentTabLocked(tab, orgTier)
+  ).length;
+  const showUpgradeBanner = shouldShowSidebarUpgradeBanner(lockedCount);
 
   return (
     <div>
@@ -100,7 +107,10 @@ function AgentTreeNode({
         tooltip={agent.name}
       />
       <SidebarNavChildren expanded={open}>
-        {getAgentNavTabs().map((tab) => {
+        {showUpgradeBanner ? (
+          <SidebarNavUpgradeHeader href={Routes.Billing} />
+        ) : null}
+        {tabs.map((tab) => {
           const locked = isAgentTabLocked(tab, orgTier);
           return (
             <SidebarNavChild
@@ -111,7 +121,7 @@ function AgentTreeNode({
               disabled={locked}
               tabIndex={locked ? -1 : undefined}
               badge={
-                locked ? (
+                locked && !showUpgradeBanner ? (
                   <span className="shrink-0 font-mono text-[9px] text-muted-foreground">
                     Upgrade
                   </span>

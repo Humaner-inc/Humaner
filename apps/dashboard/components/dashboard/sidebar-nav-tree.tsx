@@ -154,7 +154,14 @@ export function SidebarNavChildren({
   );
 }
 
-/** Single upgrade cue between a section title and its locked children. */
+/** Show one section banner instead of per-item Upgrade when more than this many pages are locked. */
+export const SIDEBAR_UPGRADE_BANNER_MIN_LOCKED = 2;
+
+export function shouldShowSidebarUpgradeBanner(lockedCount: number): boolean {
+  return lockedCount > SIDEBAR_UPGRADE_BANNER_MIN_LOCKED;
+}
+
+/** Minimal accent banner between a section title and its locked children. */
 export function SidebarNavUpgradeHeader({
   href
 }: {
@@ -163,7 +170,7 @@ export function SidebarNavUpgradeHeader({
   return (
     <Link
       href={href}
-      className="mb-0.5 flex w-full items-center px-4 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+      className="mb-1 mx-3 flex items-center justify-center bg-[#e1ccaf] px-2 py-1 font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-[#070607] transition-colors hover:bg-[#ebe0cd]"
     >
       Upgrade
     </Link>

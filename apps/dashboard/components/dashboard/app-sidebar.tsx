@@ -29,6 +29,7 @@ export type AppSidebarProps = {
   orgTier: string;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
+  aiDeskOpenCount?: number;
 };
 
 export function AppSidebar({
@@ -38,7 +39,8 @@ export function AppSidebar({
   agents,
   orgTier,
   inboxUnreadCount = 0,
-  handoffOpenCount = 0
+  handoffOpenCount = 0,
+  aiDeskOpenCount = 0
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
@@ -83,6 +85,7 @@ export function AppSidebar({
             orgTier={orgTier}
             inboxUnreadCount={inboxUnreadCount}
             handoffOpenCount={handoffOpenCount}
+            aiDeskOpenCount={aiDeskOpenCount}
           />
         </ScrollArea>
       </SidebarContent>

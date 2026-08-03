@@ -13,6 +13,7 @@ export type HandoffInboxAssignee = {
 
 export type HandoffInboxTicket = {
   id: string;
+  ticketNumber: number;
   agentName: string;
   visitorEmail: string | null;
   visitorFirstName: string | null;
@@ -32,6 +33,9 @@ export type HandoffInboxTicket = {
   clusterId: string | null;
   runbookId: string | null;
   resolvedAt: string | null;
+  resolvedBy: string | null;
+  resolvedByName: string | null;
+  resolutionSolution: string | null;
   assignee: HandoffInboxAssignee | null;
   assignedAt: string | null;
   createdAt: string;
@@ -120,6 +124,8 @@ export function filterHandoffInboxTickets(
     }
 
     const haystack = [
+      String(ticket.ticketNumber),
+      `#${String(ticket.ticketNumber).padStart(5, '0')}`,
       ticket.subject,
       ticket.summary,
       ticket.visitorEmail ?? '',

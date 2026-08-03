@@ -18,6 +18,7 @@ export type SidebarRendererProps = {
   orgTier: string;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
+  aiDeskOpenCount?: number;
 };
 
 export function SidebarRenderer({
@@ -27,7 +28,8 @@ export function SidebarRenderer({
   agents,
   orgTier,
   inboxUnreadCount = 0,
-  handoffOpenCount = 0
+  handoffOpenCount = 0,
+  aiDeskOpenCount = 0
 }: SidebarRendererProps): React.JSX.Element {
   return (
     <>
@@ -39,6 +41,7 @@ export function SidebarRenderer({
         orgTier={orgTier}
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCount}
+        aiDeskOpenCount={aiDeskOpenCount}
       />
       <SidebarOverlayBackdrop />
       <SidebarEdgeToggle />

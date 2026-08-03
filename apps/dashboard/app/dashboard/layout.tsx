@@ -20,7 +20,7 @@ import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
-import { getHandoffOpenCount } from '@/data/handoff/get-handoff-open-count';
+import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import {
   getMailInboxes,
   getMailUnreadCount
@@ -88,7 +88,7 @@ export default async function DashboardLayout({
     messageUsage,
     notificationsResult,
     inboxUnreadCount,
-    handoffOpenCount,
+    handoffOpenCounts,
     mailInboxes
   ] = await Promise.all([
     getProfile(),
@@ -97,7 +97,7 @@ export default async function DashboardLayout({
     getSidebarMessageUsage(),
     getDashboardNotifications(),
     getMailUnreadCount(),
-    getHandoffOpenCount(),
+    getHandoffOpenCounts(),
     isOssDeployment() ? Promise.resolve([]) : getMailInboxes()
   ]);
   const { items: notifications } = notificationsResult;
@@ -147,7 +147,8 @@ export default async function DashboardLayout({
         messageUsage={messageUsage}
         orgTier={userFromDb!.organization!.tier ?? 'free'}
         inboxUnreadCount={inboxUnreadCount}
-        handoffOpenCount={handoffOpenCount}
+        handoffOpenCount={handoffOpenCounts.humanOpen}
+        aiDeskOpenCount={handoffOpenCounts.aiOpen}
         agents={agents.map((a) => ({
           id: a.id,
           name: a.name,

@@ -16,16 +16,17 @@
 
 ---
 
-## Humaner: Customer support that feels human.
+There was a time when asking support to a company meant something, that's why we built Humaner, to scale care instead of indifference.
 
-We want Customer Support to mean something again. Humaner is the frontier between automation and human care, built for customers, designed for developers.
+Humaner is your support layer to manage agents, helpdesk and inboxes all-in one tool:
 
 - **Unique caracters** to suits brand identity and give the human feel people remember.
-- **Cross-Session Memory** using metadata and visitoId to go straight to the point and personalize conversations.
-- **Human desk** for escalations, ticketing and live support within the same dashboard.
+- **Cross-Session Memory** using metadata and visitoId to remembers customers problems/preferences across time.
+- **Helpdesk** for escalations, ticketing and live support within your ORG.
+- **Inboxes** to manage your mails and support within the same tool.
 - **Training loop** across the help desk to learn from human behavior and content gaps.
 
-### Open platform + hosted intelligence
+### Self-hosting vs Humaner intelligence.
 
 Widget, React SDK, REST API, **Organization**, and **Desk Center** (handoff framework, Human Desk, tickets — **bring your own support agent**) are **source-available** in this repo. On Humaner Cloud, **Agent Intelligence** fills the Support Agent slot; **Desk Intelligence** adds async tiers, AI Desk, runbooks, and clusters.
 

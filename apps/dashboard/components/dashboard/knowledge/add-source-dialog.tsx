@@ -6,6 +6,7 @@ import { HighlightedTextarea, HighlightedTextInput } from '@humaner/react';
 import type { HighlightedFieldTone } from '@humaner/react';
 import { ctaSecondaryAdaptiveClassName } from '@humaner/shared/cta';
 import {
+  ArrowUpRightIcon,
   FileTextIcon,
   PlusIcon,
   UploadIcon,
@@ -61,10 +62,10 @@ type SourceType = 'URL' | 'SITEMAP' | 'TEXT' | 'MARKDOWN';
 type DialogView = 'form' | 'ingestion';
 
 const TYPE_OPTIONS: { value: SourceType; label: string }[] = [
+  { value: 'MARKDOWN', label: 'Markdown' },
   { value: 'URL', label: 'Pages' },
   { value: 'SITEMAP', label: 'Crawl site' },
-  { value: 'TEXT', label: 'Plain text' },
-  { value: 'MARKDOWN', label: 'Markdown' }
+  { value: 'TEXT', label: 'Plain text' }
 ];
 
 const sourceTypeButtonSizeClassName =
@@ -160,7 +161,7 @@ export function AddSourceDialog({
   const setOpen = onOpenChange ?? setInternalOpen;
   const [isPending, startTransition] = React.useTransition();
 
-  const [type, setType] = React.useState<SourceType>('URL');
+  const [type, setType] = React.useState<SourceType>('MARKDOWN');
   const [title, setTitle] = React.useState('');
   const [urls, setUrls] = React.useState('');
   const [url, setUrl] = React.useState('');
@@ -175,7 +176,7 @@ export function AddSourceDialog({
   const ingestionTimersRef = React.useRef<number[]>([]);
 
   const reset = React.useCallback((): void => {
-    setType('URL');
+    setType('MARKDOWN');
     setTitle('');
     setUrls('');
     setUrl('');
@@ -678,6 +679,15 @@ export function AddSourceDialog({
                         ))}
                       </div>
                     )}
+                    <a
+                      href="https://markdown.humaner.io"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Convert a full site into a .md file
+                      <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" />
+                    </a>
                   </div>
                 )}
               </div>

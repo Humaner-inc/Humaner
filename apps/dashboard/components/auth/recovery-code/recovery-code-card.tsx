@@ -101,8 +101,7 @@ export function RecoveryCodeCard({
       <AuthInnerCardHeader>
         <AuthInnerCardTitle>2FA Recovery</AuthInnerCardTitle>
         <AuthInnerCardDescription>
-          Enter one of your recovery codes to sign in without your authenticator
-          app.
+          Enter one of your recovery seed to get your access back.
         </AuthInnerCardDescription>
       </AuthInnerCardHeader>
       <AuthInnerCardContent>

@@ -4,23 +4,45 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 
-/** Active Human Desk tickets for the org — used as the Desk sidebar badge. */
-export async function getHandoffOpenCount(): Promise<number> {
+export type HandoffOpenCounts = {
+  humanOpen: number;
+  aiOpen: number;
+};
+
+/** Active desk tickets for the org — used as Desk sidebar badges. */
+export async function getHandoffOpenCounts(): Promise<HandoffOpenCounts> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
-    return 0;
+    return { humanOpen: 0, aiOpen: 0 };
   }
 
   const organizationId = session.user.organizationId;
   if (!organizationId) {
-    return 0;
+    return { humanOpen: 0, aiOpen: 0 };
   }
 
-  return prisma.handoffTicket.count({
-    where: {
-      organizationId,
-      status: { in: ['OPEN', 'IN_PROGRESS'] },
-      routedTo: 'HUMAN'
-    }
-  });
+  const [humanOpen, aiOpen] = await Promise.all([
+    prisma.handoffTicket.count({
+      where: {
+        organizationId,
+        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        routedTo: 'HUMAN'
+      }
+    }),
+    prisma.handoffTicket.count({
+      where: {
+        organizationId,
+        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        routedTo: 'AI'
+      }
+    })
+  ]);
+
+  return { humanOpen, aiOpen };
+}
+
+/** @deprecated Prefer getHandoffOpenCounts — kept for call sites that only need Human. */
+export async function getHandoffOpenCount(): Promise<number> {
+  const counts = await getHandoffOpenCounts();
+  return counts.humanOpen;
 }

@@ -12,6 +12,7 @@ import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
+import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
 import { reportBugTabLabel } from '@/lib/report-bug-context-options';
 import { supportTicketStatusLabel } from '@/lib/support-ticket-labels';
@@ -100,6 +101,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       },
       select: {
         id: true,
+        ticketNumber: true,
         subject: true,
         summary: true,
         status: true,
@@ -254,7 +256,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       items.push({
         id: `human-desk-${ticket.id}`,
         kind: 'human_desk',
-        title: ticket.subject,
+        title: `${formatTicketRef(ticket.ticketNumber)} · ${ticket.subject}`,
         description: `${ticket.agent.name} · ${ticket.summary}`,
         href: Routes.HumanDesk,
         severity:
