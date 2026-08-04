@@ -21,9 +21,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const URGENCY_CLASS: Record<string, string> = {
-  HIGH: 'border-l-red-500',
-  MEDIUM: 'border-l-amber-500',
-  LOW: 'border-l-emerald-500'
+  HIGH: 'border-l-[#DC143C]',
+  MEDIUM: 'border-l-[#EA580C]',
+  LOW: 'border-l-[#22C55E]'
 };
 
 export type DeskIssuesOverviewCardProps = {

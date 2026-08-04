@@ -17,6 +17,7 @@ export async function sendTicketResolvedEmail(
     recipient: data.recipient,
     subject: `${data.ticketRef} — Your issue has been resolved`,
     html,
-    text
+    text,
+    replyTo: data.supportEmail || undefined
   });
 }

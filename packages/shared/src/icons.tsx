@@ -87,6 +87,7 @@ import {
   UserIcon as UserIconSource,
   UserRoundPlusIcon,
   UsersIcon as UsersIconSource,
+  WaypointsIcon as WaypointsIconSource,
   WebhookIcon as WebhookIconSource,
   XIcon as XIconSource,
   ArrowDownIcon as ArrowDownIconSource,
@@ -237,6 +238,9 @@ export const User = createAnimatedIcon(UserIconSource);
 export const UserIcon = createAnimatedIcon(UserIconSource);
 export const UserPlus2Icon = createAnimatedIcon(UserRoundPlusIcon);
 export const UsersIcon = createAnimatedIcon(UsersIconSource);
+export const WaypointsIcon = createAnimatedIcon(WaypointsIconSource);
+/** Resolved pattern / issue-type marker for desk clusters. */
+export const ResolvedPatternIcon = createAnimatedIcon(WaypointsIconSource);
 export const WebhookIcon = createAnimatedIcon(WebhookIconSource);
 export const X = createAnimatedIcon(XIconSource);
 export const XIcon = createAnimatedIcon(XIconSource);

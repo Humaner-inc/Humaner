@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-
+// Use the app-generated client (custom output). Bare `@prisma/client` can resolve
+// to a stale copy in the pnpm store at runtime and miss newer schema fields.
 import { resolveDatabaseUrl } from '@/lib/db/database-url';
+import { PrismaClient } from '@/lib/generated/prisma';
 
 declare global {
   // allow global `var` declarations

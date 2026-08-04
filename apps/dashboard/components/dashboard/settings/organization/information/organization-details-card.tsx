@@ -60,6 +60,8 @@ export function OrganizationDetailsCard({
     }
   });
   const canSubmit = !methods.formState.isSubmitting;
+  const watchedName = methods.watch('name');
+  const watchedWebsite = methods.watch('website');
   const onSubmit: SubmitHandler<UpdateOrganizationDetailsSchema> = async (
     values
   ) => {
@@ -82,28 +84,37 @@ export function OrganizationDetailsCard({
             onSubmit={methods.handleSubmit(onSubmit)}
           >
             {brandHeader === 'logo' ? (
-              <div className="flex items-center gap-4 rounded-lg border bg-secondary/30 p-4">
-                <div className="size-14 shrink-0 overflow-hidden rounded-xl border bg-background">
-                  <BusinessLogo
-                    website={methods.watch('website')}
-                    name={methods.watch('name')}
-                    size={96}
+              <div className="relative rounded-none border border-border/60 bg-secondary/30 p-4">
+                <div className="absolute right-3 top-3">
+                  <IndustryTag
+                    industry={industry}
+                    editable
                   />
                 </div>
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div>
-                    <p className="subsection-title">Brand logo</p>
-                    <p className="text-xs text-muted-foreground">
-                      Auto-detected from your website and used across your
-                      dashboard.
-                    </p>
+                <div className="flex items-center gap-4">
+                  <div className="size-14 shrink-0 overflow-hidden rounded-none border border-border/60 bg-background">
+                    {details.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={details.logoUrl}
+                        alt={watchedName ? `${watchedName} logo` : 'Brand logo'}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <BusinessLogo
+                        website={watchedWebsite}
+                        name={watchedName}
+                        size={96}
+                      />
+                    )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <IndustryTag
-                      industry={industry}
-                      editable
-                    />
-                    <AudienceTag targetAudience={targetAudience} />
+                  <div className="min-w-0 flex-1">
+                    <p className="subsection-title truncate">
+                      {watchedName || details.name || 'Organization'}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <AudienceTag targetAudience={targetAudience} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -196,6 +207,7 @@ export function OrganizationDetailsCard({
                       type="url"
                       maxLength={2000}
                       autoComplete="url"
+                      placeholder="https://yourcompany.com"
                       disabled={methods.formState.isSubmitting}
                       {...field}
                     />

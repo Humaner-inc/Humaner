@@ -12,7 +12,8 @@ export class ResendMailer implements Mailer {
       to: payload.recipient,
       subject: payload.subject,
       html: payload.html,
-      text: payload.text
+      text: payload.text,
+      ...(payload.replyTo ? { replyTo: payload.replyTo } : {})
     });
     if (response.error) {
       throw Error(response.error.message ?? 'Could not send mail.');

@@ -47,15 +47,18 @@ function resolveWorkspaceLogo(workspace: UserWorkspaceSummary): string | null {
   return getLogoUrl(domain, 64, true);
 }
 
-function WorkspaceAvatar({
+export function WorkspaceAvatar({
   workspace,
-  className
+  className,
+  rounded = 'none'
 }: {
   workspace: UserWorkspaceSummary;
   className?: string;
+  rounded?: 'none' | 'full';
 }): React.JSX.Element {
   const logoUrl = resolveWorkspaceLogo(workspace);
   const initial = workspace.name.trim().charAt(0).toUpperCase() || 'W';
+  const radius = rounded === 'full' ? 'rounded-full' : 'rounded-none';
 
   if (logoUrl) {
     return (
@@ -64,7 +67,8 @@ function WorkspaceAvatar({
         src={logoUrl}
         alt=""
         className={cn(
-          'size-8 rounded-none object-cover ring-1 ring-border/50',
+          'size-8 object-cover ring-1 ring-border/50',
+          radius,
           className
         )}
       />
@@ -74,7 +78,8 @@ function WorkspaceAvatar({
   return (
     <span
       className={cn(
-        'flex size-8 items-center justify-center rounded-none bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white ring-1 ring-border/40',
+        'flex size-8 items-center justify-center bg-gradient-to-br from-violet-500 to-rose-500 text-xs font-semibold text-white ring-1 ring-border/40',
+        radius,
         className
       )}
     >

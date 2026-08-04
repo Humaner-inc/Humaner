@@ -9,16 +9,25 @@ import { useDockNotifications } from '@/components/dashboard/dock/dock-notificat
 import { NavUser } from '@/components/dashboard/nav-user';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type DashboardTopNavProps = {
   profile: ProfileDto;
+  workspaces: UserWorkspaceSummary[];
+  planName: string;
+  industryLabel: string | null;
+  audienceLabel: string | null;
   className?: string;
 };
 
 export function DashboardTopNav({
   profile,
+  workspaces,
+  planName,
+  industryLabel,
+  audienceLabel,
   className
 }: DashboardTopNavProps): React.JSX.Element {
   const { toggleDock } = useDashboardDock();
@@ -68,7 +77,10 @@ export function DashboardTopNav({
         <AskHumanerTrigger />
         <NavUser
           profile={profile}
-          variant="navbar"
+          workspaces={workspaces}
+          planName={planName}
+          industryLabel={industryLabel}
+          audienceLabel={audienceLabel}
         />
       </div>
     </header>

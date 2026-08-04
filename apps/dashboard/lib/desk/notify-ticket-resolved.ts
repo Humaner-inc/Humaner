@@ -10,6 +10,7 @@ export type NotifyResolutionInput = {
   resolvedBy: 'human' | 'ai';
   resolvedByName: string;
   resolutionSolution?: string | null;
+  sendEmail?: boolean;
 };
 
 /**
@@ -68,8 +69,9 @@ export async function notifyTicketResolved(
       })
     : Promise.resolve(null);
 
+  const shouldSendEmail = input.sendEmail !== false;
   const emailPromise =
-    ticket.visitorEmail && ticket.organization
+    shouldSendEmail && ticket.visitorEmail && ticket.organization
       ? sendTicketResolvedEmail({
           recipient: ticket.visitorEmail,
           visitorName: ticket.visitorFirstName || null,

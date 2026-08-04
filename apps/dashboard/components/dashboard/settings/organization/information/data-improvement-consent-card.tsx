@@ -1,6 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import {
+  ArrowDownIcon,
+  BotIcon,
+  Brain,
+  Layers,
+  LockIcon,
+  ShieldCheck
+} from '@humaner/shared/icons';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -10,12 +18,16 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
   type CardProps
 } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
@@ -26,6 +38,37 @@ export type DataImprovementConsentCardProps = CardProps & {
   modelTrainingConsentedAt: string | null;
   isOwner: boolean;
 };
+
+function PipelineStep({
+  icon: Icon,
+  title,
+  description
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/50">
+        <Icon className="size-4 text-muted-foreground" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+const downArrow = (
+  <div className="flex justify-center py-0.5">
+    <ArrowDownIcon className="size-3 text-muted-foreground/50" />
+  </div>
+);
+
+const switchClassName =
+  'data-[state=checked]:bg-foreground data-[state=unchecked]:bg-input';
 
 export function DataImprovementConsentCard({
   consent,
@@ -38,6 +81,7 @@ export function DataImprovementConsentCard({
   const [enabled, setEnabled] = React.useState(consent === true);
   const [modelEnabled, setModelEnabled] = React.useState(modelTrainingConsent);
   const [isPending, startTransition] = React.useTransition();
+  const [tourOpen, setTourOpen] = React.useState(false);
 
   React.useEffect(() => {
     setEnabled(consent === true);
@@ -58,8 +102,8 @@ export function DataImprovementConsentCard({
       }
       toast.success(
         next
-          ? 'Data improvement consent enabled.'
-          : 'Data improvement consent disabled.'
+          ? 'Pattern contributions enabled.'
+          : 'Pattern contributions disabled.'
       );
     });
   };
@@ -74,39 +118,84 @@ export function DataImprovementConsentCard({
         return;
       }
       toast.success(
-        next
-          ? 'Model training contribution enabled.'
-          : 'Model training contribution disabled.'
+        next ? 'Model fine-tuning enabled.' : 'Model fine-tuning disabled.'
       );
     });
   };
 
   return (
     <Card {...props}>
-      <CardHeader>
-        <CardTitle>Data &amp; privacy</CardTitle>
-        <CardDescription>
-          Two separate opt-ins. Product improvements use anonymised patterns
-          only. Model fine-tuning is a different purpose and stays off unless
-          you enable it.
-        </CardDescription>
+      <CardHeader className="pb-2">
+        <CardTitle>Data agreement</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Following DPA and GDPR regulations.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-4">
+        <Collapsible
+          open={tourOpen}
+          onOpenChange={setTourOpen}
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 rounded-none border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
+            >
+              <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
+              <span className="flex-1">How Humaner uses data</span>
+              <ArrowDownIcon
+                className={`size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${tourOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-1 border border-t-0 border-border/60 bg-muted/10 px-4 pb-5 pt-4">
+              <PipelineStep
+                icon={Layers}
+                title="Anonymised patterns"
+                description="Humaner uses industries patterns to improve agents."
+              />
+              {downArrow}
+              <PipelineStep
+                icon={LockIcon}
+                title="Encrypted in transit and at rest"
+                description="Patterns are encrypted at rest before any processing."
+              />
+              {downArrow}
+              <p className="py-1 text-center text-xs font-medium text-muted-foreground">
+                Then used for either
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-none border border-border/60 bg-background/50 p-3">
+                  <PipelineStep
+                    icon={Brain}
+                    title="Model fine-tuning"
+                    description="Improving Humaner model as a whole."
+                  />
+                </div>
+                <div className="rounded-none border border-border/60 bg-background/50 p-3">
+                  <PipelineStep
+                    icon={BotIcon}
+                    title="Org agents"
+                    description="Improving your agent's behavior within your Organization"
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <div className="flex items-start justify-between gap-4 rounded-none border border-border/60 bg-muted/30 p-4">
           <div className="space-y-1">
             <Label
               htmlFor="data-improvement-consent"
               className="text-base"
             >
-              Allow anonymised pattern contributions
+              Anonymised pattern contributions
             </Label>
             <p className="text-sm text-muted-foreground">
-              When enabled (Frontier+), we may extract anonymised knowledge-gap
-              patterns, Human Desk resolution motions, and aggregate failure
-              statistics to improve Skills and Runbooks. Patterns are promoted
-              only after they appear across multiple workspaces (k-anonymity).
-              Source transcripts still delete on schedule. We never store org
-              IDs or conversation content with promoted patterns.
+              Share anonymised patterns to improve Skills, Runbooks and
+              recursive learning for your agents.
             </p>
             {consentedAt ? (
               <p className="text-xs text-muted-foreground">
@@ -119,22 +208,21 @@ export function DataImprovementConsentCard({
             checked={enabled}
             disabled={!isOwner || isPending || consent === null}
             onCheckedChange={onToggleImprovement}
+            className={switchClassName}
           />
         </div>
 
-        <div className="flex items-start justify-between gap-4 rounded-lg border bg-muted/30 p-4">
+        <div className="flex items-start justify-between gap-4 rounded-none border border-border/60 bg-muted/30 p-4">
           <div className="space-y-1">
             <Label
               htmlFor="model-training-consent"
               className="text-base"
             >
-              Allow contribution to Humaner model fine-tuning
+              Improve Humaner Model
             </Label>
             <p className="text-sm text-muted-foreground">
-              Separate from product improvements. Opt in only if you want your
-              workspace&apos;s anonymised patterns to help fine-tune Humaner
-              models. Default is off. Raw transcripts are never used for
-              training.
+              Allowing your anonymised patterns to help fine-tune Humaner's
+              model as a whole.
             </p>
             {modelTrainingConsentedAt ? (
               <p className="text-xs text-muted-foreground">
@@ -147,6 +235,7 @@ export function DataImprovementConsentCard({
             checked={modelEnabled}
             disabled={!isOwner || isPending}
             onCheckedChange={onToggleModelTraining}
+            className={switchClassName}
           />
         </div>
 
@@ -157,8 +246,8 @@ export function DataImprovementConsentCard({
         ) : null}
         {consent === null && isOwner ? (
           <p className="text-sm text-amber-600 dark:text-amber-500">
-            You have not answered the data improvement prompt yet. It will
-            appear on your next dashboard visit, or choose below.
+            You haven&apos;t responded to the data improvement prompt yet.
+            Choose below or it will appear on your next visit.
           </p>
         ) : null}
       </CardContent>

@@ -105,28 +105,105 @@ function headerAddresses(mail: ParsedMail): string[] {
   return [...addresses];
 }
 
+const MAIL_HTML_TAGS = sanitizeHtml.defaults.allowedTags.concat([
+  'img',
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'td',
+  'th',
+  'center',
+  'font',
+  'picture',
+  'source',
+  'figure',
+  'figcaption'
+]);
+
+const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
+  ...sanitizeHtml.defaults.allowedAttributes,
+  '*': [
+    'style',
+    'class',
+    'align',
+    'valign',
+    'bgcolor',
+    'width',
+    'height',
+    'border',
+    'role',
+    'dir',
+    'lang'
+  ],
+  a: ['href', 'name', 'target', 'rel', 'style', 'class'],
+  img: [
+    'src',
+    'srcset',
+    'alt',
+    'title',
+    'width',
+    'height',
+    'style',
+    'class',
+    'align',
+    'border',
+    'loading'
+  ],
+  table: [
+    'width',
+    'height',
+    'cellpadding',
+    'cellspacing',
+    'border',
+    'align',
+    'bgcolor',
+    'role',
+    'style',
+    'class'
+  ],
+  td: [
+    'colspan',
+    'rowspan',
+    'width',
+    'height',
+    'align',
+    'valign',
+    'bgcolor',
+    'style',
+    'class'
+  ],
+  th: [
+    'colspan',
+    'rowspan',
+    'width',
+    'height',
+    'align',
+    'valign',
+    'bgcolor',
+    'style',
+    'class'
+  ],
+  tr: ['align', 'valign', 'bgcolor', 'style', 'class'],
+  font: ['color', 'face', 'size', 'style'],
+  source: ['srcset', 'media', 'type', 'sizes']
+};
+
 function sanitizedMailHtml(value: string | false | undefined): string | null {
   if (!value) return null;
 
   return sanitizeHtml(value, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-      'img',
-      'table',
-      'thead',
-      'tbody',
-      'tfoot',
-      'tr',
-      'td',
-      'th'
-    ]),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      a: ['href', 'name', 'target', 'rel'],
-      img: ['src', 'alt', 'width', 'height'],
-      td: ['colspan', 'rowspan'],
-      th: ['colspan', 'rowspan']
-    },
+    allowedTags: MAIL_HTML_TAGS,
+    allowedAttributes: MAIL_HTML_ATTRS,
     allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemesByTag: {
+      // Remote + data-URI images (tracking pixels / small embeds). cid: needs
+      // a separate attachment rewrite pipeline and is intentionally omitted.
+      img: ['http', 'https', 'data']
+    },
+    // Keep marketing-email inline CSS; scripts/handlers are still stripped.
+    parseStyleAttributes: false,
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', {
         rel: 'noopener noreferrer',
@@ -231,7 +308,7 @@ async function persistMessages(
             providerMessageId: message.providerMessageId
           }
         },
-        select: { id: true }
+        select: { id: true, bodyHtml: true, bodyText: true }
       });
 
       if (!existing) {
@@ -259,11 +336,28 @@ async function persistMessages(
               : { isUnread: false })
           }
         });
-      } else if (message.sentAt > thread.lastMessageAt) {
-        await tx.mailThread.update({
-          where: { id: thread.id },
-          data: { lastMessageAt: message.sentAt }
-        });
+      } else {
+        // Refresh bodies when re-fetched so sanitizer/layout improvements apply
+        // to already-imported messages (idempotent; no unread side effects).
+        if (
+          existing.bodyHtml !== message.bodyHtml ||
+          existing.bodyText !== message.bodyText
+        ) {
+          await tx.mailMessage.update({
+            where: { id: existing.id },
+            data: {
+              bodyText: message.bodyText,
+              bodyHtml: message.bodyHtml
+            }
+          });
+        }
+
+        if (message.sentAt > thread.lastMessageAt) {
+          await tx.mailThread.update({
+            where: { id: thread.id },
+            data: { lastMessageAt: message.sentAt }
+          });
+        }
       }
     });
     imported += 1;

@@ -1,5 +1,5 @@
 import type { LucideIcon } from '@humaner/shared/icons';
-import { BotIcon, Layers } from '@humaner/shared/icons';
+import { BotIcon, Layers, SettingsIcon } from '@humaner/shared/icons';
 import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
@@ -7,7 +7,7 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
-export type DeskNavTabId = 'ai' | 'human' | 'clusters';
+export type DeskNavTabId = 'ai' | 'human' | 'clusters' | 'settings';
 
 export type DeskNavTab = {
   id: DeskNavTabId;
@@ -39,6 +39,12 @@ const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
     icon: Layers,
     href: Routes.DeskClusters,
     requiredCapability: 'autoTraining'
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: SettingsIcon,
+    href: Routes.DeskSettings
   }
 ];
 
@@ -54,6 +60,12 @@ export function getDeskNavTabs(): DeskNavTab[] {
         label: AppInfo.HELPDESK_LABEL,
         iconKey: 'hand',
         href: Routes.DeskHuman
+      },
+      {
+        id: 'settings',
+        label: 'Settings',
+        icon: SettingsIcon,
+        href: Routes.DeskSettings
       }
     ];
   }
@@ -77,6 +89,9 @@ export function getActiveDeskTab(pathname: string): DeskNavTabId | null {
   }
   if (pathname.startsWith(Routes.DeskClusters)) {
     return 'clusters';
+  }
+  if (pathname.startsWith(Routes.DeskSettings)) {
+    return 'settings';
   }
   return null;
 }

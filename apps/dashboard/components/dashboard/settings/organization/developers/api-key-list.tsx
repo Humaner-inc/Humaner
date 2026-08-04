@@ -2,7 +2,11 @@
 
 import * as React from 'react';
 import NiceModal from '@ebay/nice-modal-react';
-import { KeyRoundIcon, MoreHorizontalIcon } from '@humaner/shared/icons';
+import {
+  CheckIcon,
+  KeyRoundIcon,
+  MoreHorizontalIcon
+} from '@humaner/shared/icons';
 import { formatDistanceToNow, isBefore } from 'date-fns';
 
 import { EditApiKeyModal } from '@/components/dashboard/settings/organization/developers/edit-api-key-modal';
@@ -36,19 +40,6 @@ function getApiKeyStatus(apiKey: ApiKeyDto): ApiKeyStatus {
   return 'inactive';
 }
 
-const STATUS_LABEL: Record<ApiKeyStatus, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  broken: 'Broken'
-};
-
-const STATUS_CLASS: Record<ApiKeyStatus, string> = {
-  active:
-    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  inactive: 'border-border bg-muted/50 text-muted-foreground',
-  broken: 'border-destructive/25 bg-destructive/10 text-destructive'
-};
-
 export function ApiKeyList({
   apiKeys,
   className,
@@ -74,17 +65,43 @@ type ApiKeyListItemProps = React.HtmlHTMLAttributes<HTMLLIElement> & {
   apiKey: ApiKeyDto;
 };
 
-function ApiKeyStatusBadge({
+function ApiKeyStatusMark({
   status
 }: {
   status: ApiKeyStatus;
 }): React.JSX.Element {
+  if (status === 'active') {
+    return (
+      <span
+        className="inline-flex size-4 items-center justify-center text-[#22C55E]"
+        title="Active"
+        aria-label="Active"
+      >
+        <CheckIcon
+          className="size-3.5"
+          animateOnHover={false}
+        />
+      </span>
+    );
+  }
+
+  if (status === 'broken') {
+    return (
+      <Badge
+        variant="outline"
+        className="rounded-none border-destructive/30 px-1.5 py-0 text-[10px] font-medium tracking-wide text-destructive"
+      >
+        Broken
+      </Badge>
+    );
+  }
+
   return (
     <Badge
       variant="outline"
-      className={cn('gap-1 font-normal', STATUS_CLASS[status])}
+      className="rounded-none border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground"
     >
-      {STATUS_LABEL[status]}
+      Inactive
     </Badge>
   );
 }
@@ -121,7 +138,7 @@ function ApiKeyListItem({
           <span className="truncate text-sm font-medium">
             {apiKey.description}
           </span>
-          <ApiKeyStatusBadge status={status} />
+          <ApiKeyStatusMark status={status} />
         </div>
         <p
           suppressHydrationWarning

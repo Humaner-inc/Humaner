@@ -71,8 +71,7 @@ export function OrganizationVerticalTopics({
         </p>
       </div>
       <p className="text-sm text-muted-foreground">
-        Select the topics that best describe your organization. These sync to
-        every agent&apos;s persona.
+        These sync to every agent&apos;s persona.
       </p>
       <ul className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
         {commonTopics.map((topic) => {

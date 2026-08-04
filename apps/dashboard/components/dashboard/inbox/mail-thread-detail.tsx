@@ -28,6 +28,7 @@ import {
   readSkipDeleteWarning,
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
+import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -529,9 +530,10 @@ export function MailThreadDetail({
                     </time>
                   </div>
 
-                  <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
-                    {message.bodyText || 'This message has no plain-text body.'}
-                  </div>
+                  <MailMessageBody
+                    bodyHtml={message.bodyHtml}
+                    bodyText={message.bodyText}
+                  />
                 </article>
               </li>
             );

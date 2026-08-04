@@ -5,7 +5,6 @@ import { toPublicPathname } from '@/lib/routes/public-pathname';
 const EXACT_TITLES: Record<string, string> = {
   [Routes.Home]: 'Organization',
   [Routes.OrganizationTeam]: 'Team',
-  [Routes.OrganizationWorkspace]: 'Workspace',
   [Routes.Agents]: 'Agents',
   [Routes.AgentNew]: 'New agent',
   [Routes.Knowledge]: 'Knowledge',
@@ -33,7 +32,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Profile]: 'Profile',
   [Routes.Security]: 'Security',
   [Routes.Notifications]: 'Notifications',
-  [Routes.OrganizationInformation]: 'Organization information',
+  [Routes.OrganizationInformation]: 'Workspace settings',
   [Routes.Members]: 'Team members',
   [Routes.Billing]: 'Billing',
   [Routes.Developers]: 'Developers'

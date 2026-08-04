@@ -11,7 +11,6 @@ import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
-import { NavSettingsTree } from '@/components/dashboard/nav-settings-tree';
 import { SidebarMainNavHighlight } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
 import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
@@ -60,9 +59,6 @@ export function NavMain({
     <SidebarNavAccordionProvider agents={agents}>
       <SidebarMainNavHighlight className="flex flex-col gap-0 px-1 pt-1">
         <NavOrganizationTree />
-        {canAccessPage(profile, 'integrations') ? (
-          <NavIntegrationsTree orgTier={orgTier} />
-        ) : null}
         {!isOssDeployment() && canAccessPage(profile, 'inbox') ? (
           <NavInboxTree
             orgTier={orgTier}
@@ -76,7 +72,9 @@ export function NavMain({
             aiDeskOpenCount={aiDeskOpenCount}
           />
         ) : null}
-        <NavSettingsTree profile={profile} />
+        {canAccessPage(profile, 'integrations') ? (
+          <NavIntegrationsTree orgTier={orgTier} />
+        ) : null}
         {items.length > 0 ? (
           <SidebarGroup
             {...props}

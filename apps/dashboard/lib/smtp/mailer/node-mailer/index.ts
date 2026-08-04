@@ -13,7 +13,8 @@ export class NodeMailer implements Mailer {
       to: payload.recipient,
       subject: payload.subject,
       html: payload.html,
-      text: payload.text
+      text: payload.text,
+      ...(payload.replyTo ? { replyTo: payload.replyTo } : {})
     });
   }
 }

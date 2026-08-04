@@ -66,3 +66,76 @@ export function inferDocsUrlFromWebsite(
     return null;
   }
 }
+
+function tryParseUrl(value: string): URL | null {
+  try {
+    return new URL(normalizeWebsiteInput(value));
+  } catch {
+    return null;
+  }
+}
+
+export function isDocsWebsiteUrl(value: string | null | undefined): boolean {
+  if (!value?.trim()) {
+    return false;
+  }
+  const url = tryParseUrl(value);
+  if (!url) {
+    return /docs\./i.test(value);
+  }
+  return (
+    url.hostname.startsWith('docs.') ||
+    url.pathname === '/docs' ||
+    url.pathname.startsWith('/docs/')
+  );
+}
+
+/** Recover the business site when a docs URL was stored as `website`. */
+export function businessWebsiteFromDocsUrl(
+  docsUrl: string | null | undefined
+): string | null {
+  if (!docsUrl?.trim()) {
+    return null;
+  }
+  const url = tryParseUrl(docsUrl);
+  if (!url) {
+    return null;
+  }
+  if (url.hostname.startsWith('docs.')) {
+    return `${url.protocol}//${url.hostname.slice('docs.'.length)}/`;
+  }
+  return `${url.origin}/`;
+}
+
+/**
+ * Business website for display/edit — prefers the onboarding site URL, never
+ * the docs page (`docsUrl` / docs subdomain / `/docs` path).
+ */
+export function resolveBusinessWebsite(
+  website: string | null | undefined,
+  docsUrl?: string | null | undefined
+): string | undefined {
+  const trimmed = website?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const normalizedWebsite = normalizeWebsiteInput(trimmed);
+  const normalizedDocs = docsUrl?.trim()
+    ? normalizeWebsiteInput(docsUrl.trim())
+    : null;
+
+  if (
+    isDocsWebsiteUrl(normalizedWebsite) ||
+    (normalizedDocs &&
+      tryParseUrl(normalizedWebsite)?.href ===
+        tryParseUrl(normalizedDocs)?.href)
+  ) {
+    return (
+      businessWebsiteFromDocsUrl(normalizedDocs ?? normalizedWebsite) ??
+      undefined
+    );
+  }
+
+  return normalizedWebsite;
+}

@@ -14,7 +14,10 @@ export type HandoffInboxAssignee = {
 export type HandoffInboxTicket = {
   id: string;
   ticketNumber: number;
+  agentId: string;
   agentName: string;
+  /** Escalation SLA target in minutes for this ticket's urgency (business hours). */
+  slaMinutes: number | null;
   visitorEmail: string | null;
   visitorFirstName: string | null;
   visitorLastName: string | null;
@@ -36,6 +39,7 @@ export type HandoffInboxTicket = {
   resolvedBy: string | null;
   resolvedByName: string | null;
   resolutionSolution: string | null;
+  liveChatTimedOut: boolean;
   assignee: HandoffInboxAssignee | null;
   assignedAt: string | null;
   createdAt: string;
@@ -140,14 +144,21 @@ export function filterHandoffInboxTickets(
   });
 }
 
+const STATUS_SORT_RANK: Record<HandoffTicketStatus, number> = {
+  OPEN: 0,
+  IN_PROGRESS: 1,
+  RESOLVED: 2,
+  CLOSED: 3
+};
+
 export function sortHandoffInboxTickets(
   tickets: HandoffInboxTicket[]
 ): HandoffInboxTicket[] {
   return [...tickets].sort((left, right) => {
-    const leftActive = ACTIVE_STATUSES.has(left.status) ? 0 : 1;
-    const rightActive = ACTIVE_STATUSES.has(right.status) ? 0 : 1;
-    if (leftActive !== rightActive) {
-      return leftActive - rightActive;
+    const statusDiff =
+      STATUS_SORT_RANK[left.status] - STATUS_SORT_RANK[right.status];
+    if (statusDiff !== 0) {
+      return statusDiff;
     }
 
     const leftUnassigned = left.assignee ? 1 : 0;

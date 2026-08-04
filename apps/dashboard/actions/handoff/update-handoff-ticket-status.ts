@@ -92,7 +92,8 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
         organizationId: session.user.organizationId,
         resolvedBy: 'human',
         resolvedByName: resolverName,
-        resolutionSolution: parsedInput.resolutionSolution?.trim()
+        resolutionSolution: parsedInput.resolutionSolution?.trim(),
+        sendEmail: parsedInput.sendSolutionEmail !== false
       });
     }
 

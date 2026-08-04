@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/drawer';
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -179,6 +180,11 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
                     />
                   </PopoverContent>
                 </Popover>
+                {!neverExpires ? (
+                  <FormDescription>
+                    <i>A reminder is sent 72 hours before expiration.</i>
+                  </FormDescription>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}

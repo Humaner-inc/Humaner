@@ -36,6 +36,7 @@ import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
+import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
 
@@ -64,6 +65,7 @@ export default async function DashboardLayout({
           completedOnboarding: true,
           dataImprovementConsent: true,
           targetAudience: true,
+          industry: true,
           tier: true,
           accentColor: true,
           name: true,
@@ -161,7 +163,17 @@ export default async function DashboardLayout({
         id="skip"
         className="min-h-0 min-w-0 flex-1"
       >
-        <DashboardTopNav profile={profile} />
+        <DashboardTopNav
+          profile={profile}
+          workspaces={workspaces}
+          planName={getPlanForTier(userFromDb!.organization!.tier).name}
+          industryLabel={
+            userFromDb!.organization!.industry
+              ? getIndustry(userFromDb!.organization!.industry).label
+              : null
+          }
+          audienceLabel={userFromDb!.organization!.targetAudience ?? null}
+        />
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
             <PageAccessGate profile={profile}>{children}</PageAccessGate>

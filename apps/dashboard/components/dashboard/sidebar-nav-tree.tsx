@@ -295,7 +295,8 @@ export function SidebarNavTree({
 
 export type SidebarNavLinkProps = {
   href: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  leading?: React.ReactNode;
   label: string;
   active?: boolean;
   external?: boolean;
@@ -306,6 +307,7 @@ export type SidebarNavLinkProps = {
 export function SidebarNavLink({
   href,
   icon: Icon,
+  leading,
   label,
   active = false,
   external = false,
@@ -332,7 +334,8 @@ export function SidebarNavLink({
         disabled && 'pointer-events-none opacity-40'
       )}
     >
-      <Icon className={sidebarNavIconClassName()} />
+      {leading ??
+        (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
       {!isIconRail ? <span className="flex-1 truncate">{label}</span> : null}
     </Link>
   );

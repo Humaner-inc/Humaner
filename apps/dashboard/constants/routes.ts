@@ -27,6 +27,7 @@ export enum Routes {
   Dashboard = '/organization/overview',
   Home = '/organization/overview',
   OrganizationTeam = '/organization/team',
+  /** @deprecated Redirects to {@link Routes.OrganizationInformation}. */
   OrganizationWorkspace = '/organization/workspace',
   Agents = '/agents',
   AgentNew = '/agents/new',
@@ -41,6 +42,7 @@ export enum Routes {
   DeskClusters = '/desk/clusters',
   DeskEscalation = '/desk/escalation',
   DeskTeam = '/desk/team',
+  DeskSettings = '/desk/settings',
   HumanDesk = '/human-desk',
   Inbox = '/inbox',
   InboxAll = '/inbox/all',

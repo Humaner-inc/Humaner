@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CheckIcon } from '@humaner/shared/icons';
+import { CheckIcon, XIcon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,7 @@ export type StatusGlyphKind =
   | 'unopened'
   | 'progress'
   | 'resolved'
+  | 'closed'
   | 'snoozed';
 
 export function StatusGlyph({
@@ -73,6 +74,15 @@ export function StatusGlyph({
     );
   }
 
+  if (kind === 'closed') {
+    return (
+      <XIcon
+        className={cn('size-3.5 shrink-0 text-muted-foreground', className)}
+        aria-hidden
+      />
+    );
+  }
+
   return (
     <CheckIcon
       className={cn('size-3.5 shrink-0 text-emerald-500', className)}
@@ -104,6 +114,8 @@ export function mailStatusToGlyph(status: string): StatusGlyphKind {
       return 'progress';
     case 'RESOLVED':
       return 'resolved';
+    case 'CLOSED':
+      return 'closed';
     case 'SNOOZED':
       return 'snoozed';
     default:

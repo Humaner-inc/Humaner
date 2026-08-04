@@ -3,6 +3,7 @@ export type MailerPayload = {
   subject: string;
   text: string;
   html: string;
+  replyTo?: string;
 };
 
 export interface Mailer {

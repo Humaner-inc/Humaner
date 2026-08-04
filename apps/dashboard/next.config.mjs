@@ -266,6 +266,11 @@ const nextConfig = {
     ];
   },
   webpack(config) {
+    // Keep runtime resolution aligned with tsconfig paths → generated client.
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@prisma/client': path.join(__dirname, 'lib/generated/prisma')
+    };
     config.module.rules.push({
       test: /\.svg$/i,
       use: [svgLoader]

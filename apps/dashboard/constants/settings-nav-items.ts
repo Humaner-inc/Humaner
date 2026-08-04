@@ -3,16 +3,24 @@ import {
   BellIcon,
   CreditCardIcon,
   LockKeyholeIcon,
-  UserIcon
+  SettingsIcon,
+  UserIcon,
+  UsersIcon
 } from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
 
-export type SettingsNavTabId =
+export type AccountSettingsNavTabId =
   | 'profile'
   | 'security'
   | 'notifications'
   | 'billing';
+
+export type WorkspaceSettingsNavTabId = 'workspace' | 'members';
+
+export type SettingsNavTabId =
+  | AccountSettingsNavTabId
+  | WorkspaceSettingsNavTabId;
 
 export type SettingsNavTab = {
   id: SettingsNavTabId;
@@ -22,7 +30,7 @@ export type SettingsNavTab = {
   ownerOnly?: boolean;
 };
 
-export const SETTINGS_NAV_TABS: SettingsNavTab[] = [
+export const ACCOUNT_SETTINGS_NAV_TABS: SettingsNavTab[] = [
   {
     id: 'profile',
     label: 'Profile',
@@ -50,10 +58,51 @@ export const SETTINGS_NAV_TABS: SettingsNavTab[] = [
   }
 ];
 
+export const WORKSPACE_SETTINGS_NAV_TABS: SettingsNavTab[] = [
+  {
+    id: 'workspace',
+    label: 'Workspace',
+    icon: SettingsIcon,
+    href: Routes.OrganizationInformation,
+    ownerOnly: true
+  },
+  {
+    id: 'members',
+    label: 'Team Members',
+    icon: UsersIcon,
+    href: Routes.Members,
+    ownerOnly: true
+  }
+];
+
+/** @deprecated Prefer ACCOUNT / WORKSPACE tab lists. */
+export const SETTINGS_NAV_TABS: SettingsNavTab[] = [
+  ...ACCOUNT_SETTINGS_NAV_TABS,
+  ...WORKSPACE_SETTINGS_NAV_TABS
+];
+
+export function isWorkspaceSettingsPath(pathname: string): boolean {
+  if (pathname.startsWith(Routes.Billing)) {
+    return false;
+  }
+  return (
+    pathname.startsWith(Routes.OrganizationInformation) ||
+    pathname.startsWith(Routes.Members) ||
+    pathname.startsWith(Routes.Developers) ||
+    pathname.startsWith(Routes.AuditLogs) ||
+    pathname.startsWith(`${Routes.Organization}/`)
+  );
+}
+
 export function getActiveSettingsTab(
   pathname: string
 ): SettingsNavTabId | null {
-  for (const tab of SETTINGS_NAV_TABS) {
+  const tabs = isWorkspaceSettingsPath(pathname)
+    ? WORKSPACE_SETTINGS_NAV_TABS
+    : ACCOUNT_SETTINGS_NAV_TABS;
+
+  const ordered = [...tabs].toSorted((a, b) => b.href.length - a.href.length);
+  for (const tab of ordered) {
     if (pathname.startsWith(tab.href)) {
       return tab.id;
     }

@@ -683,7 +683,7 @@ export function AddSourceDialog({
                       href="https://markdown.humaner.io"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-[#0682de]"
                     >
                       Convert a full site into a .md file
                       <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" />

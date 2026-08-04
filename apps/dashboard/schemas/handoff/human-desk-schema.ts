@@ -30,7 +30,8 @@ export const updateHandoffTicketStatusSchema = z.object({
   resolutionPattern: z.string().trim().max(255).optional(),
   issueType: z.string().trim().max(128).optional(),
   resolutionSolution: z.string().trim().max(8000).optional(),
-  feedCluster: z.boolean().optional()
+  feedCluster: z.boolean().optional(),
+  sendSolutionEmail: z.boolean().optional()
 });
 
 export type UpdateHandoffTicketStatusSchema = z.infer<
@@ -62,4 +63,12 @@ export const updateLiveChatSettingsSchema = z.object({
 
 export type UpdateLiveChatSettingsSchema = z.infer<
   typeof updateLiveChatSettingsSchema
+>;
+
+export const setNoreplyEmailRepliesEnabledSchema = z.object({
+  enabled: z.boolean()
+});
+
+export type SetNoreplyEmailRepliesEnabledSchema = z.infer<
+  typeof setNoreplyEmailRepliesEnabledSchema
 >;

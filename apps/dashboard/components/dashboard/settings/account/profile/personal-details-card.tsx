@@ -75,7 +75,7 @@ export function PersonalDetailsCard({
         const base64Image: string = await NiceModal.show(CropPhotoModal, {
           file,
           aspectRatio: 1,
-          circularCrop: true
+          circularCrop: false
         });
         if (base64Image) {
           methods.setValue('action', FileUploadAction.Update);
@@ -125,14 +125,14 @@ export function PersonalDetailsCard({
                 <ImageDropzone
                   accept={{ 'image/*': [] }}
                   multiple={false}
-                  borderRadius="full"
+                  borderRadius="none"
                   onDrop={handleDrop}
                   src={image}
                   className="max-h-[120px] min-h-[120px] w-[120px] p-0.5"
                   disabled={methods.formState.isSubmitting}
                 >
-                  <Avatar className="size-28">
-                    <AvatarFallback className="size-28 text-2xl">
+                  <Avatar className="size-28 rounded-none">
+                    <AvatarFallback className="size-28 rounded-none text-2xl">
                       {name ? (
                         getInitials(name)
                       ) : (
