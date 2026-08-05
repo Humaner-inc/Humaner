@@ -1,30 +1,20 @@
+'use client';
+
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from '@humaner/shared/icons';
-import { formatDistanceToNow } from 'date-fns';
 
+import { DeskAssigneePicker } from '@/components/dashboard/desk/desk-assignee-picker';
+import { DeskTicketPreviewRow } from '@/components/dashboard/desk/desk-ticket-preview-row';
 import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader
 } from '@/components/ui/dashboard-card';
 import { MetricCell, MetricRow } from '@/components/ui/metric-cell';
-import { StatusTag } from '@/components/ui/micro-label';
 import { StatusGlyphMetricLabel } from '@/components/ui/status-glyph';
 import { Routes } from '@/constants/routes';
 import type { DeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
-import { cn } from '@/lib/utils';
-
-const STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Open',
-  IN_PROGRESS: 'In progress'
-};
-
-const URGENCY_CLASS: Record<string, string> = {
-  HIGH: 'border-l-[#DC143C]',
-  MEDIUM: 'border-l-[#EA580C]',
-  LOW: 'border-l-[#22C55E]'
-};
 
 export type DeskIssuesOverviewCardProps = {
   overview: DeskIssuesOverview;
@@ -35,7 +25,7 @@ export function DeskIssuesOverviewCard({
   overview,
   className
 }: DeskIssuesOverviewCardProps): React.JSX.Element {
-  const { counts, activeTickets } = overview;
+  const { counts, activeTickets, teamMembers, currentUserId } = overview;
   const needsAttention = counts.open + counts.inProgress;
 
   return (
@@ -89,26 +79,22 @@ export function DeskIssuesOverviewCard({
           <ul className="m-0 list-none divide-y divide-border/50 overflow-hidden border p-0">
             {activeTickets.map((ticket) => (
               <li key={ticket.id}>
-                <Link
+                <DeskTicketPreviewRow
+                  ticket={ticket}
                   href={Routes.DeskHuman}
-                  className={cn(
-                    'flex items-start gap-3 border-l-2 p-2 transition-colors hover:bg-muted/30',
-                    URGENCY_CLASS[ticket.urgency] ?? 'border-l-border'
-                  )}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm">{ticket.subject}</p>
-                    <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-                      {ticket.agentName} ·{' '}
-                      {formatDistanceToNow(new Date(ticket.updatedAt), {
-                        addSuffix: true
-                      })}
-                    </p>
-                  </div>
-                  <StatusTag className="shrink-0">
-                    {STATUS_LABELS[ticket.status] ?? ticket.status}
-                  </StatusTag>
-                </Link>
+                  metaSuffix={` · ${ticket.agentName}`}
+                  actions={
+                    teamMembers.length > 0 ? (
+                      <DeskAssigneePicker
+                        ticketId={ticket.id}
+                        teamMembers={teamMembers}
+                        currentUserId={currentUserId}
+                        value={ticket.assigneeId}
+                        compact
+                      />
+                    ) : null
+                  }
+                />
               </li>
             ))}
           </ul>

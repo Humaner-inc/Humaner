@@ -65,9 +65,7 @@ export function DashboardOverviewStrip({
           />
         ) : null}
         <div className="min-w-0 space-y-1.5">
-          <h1 className="truncate font-mono text-2xl font-medium tracking-tight">
-            {organizationName}
-          </h1>
+          <h1 className="page-title truncate">{organizationName}</h1>
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             <HintLabel
               hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}

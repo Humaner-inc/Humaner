@@ -17,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useDockNotifications } from '@/components/dashboard/dock/dock-notifications-context';
+import { HumanDeskNotificationItem } from '@/components/dashboard/notifications/human-desk-notification-item';
 import { UserTicketsSheet } from '@/components/support/user-tickets-sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,13 @@ const KIND_ORDER = Object.fromEntries(
 ) as Record<DashboardNotificationKind, number>;
 
 export function DockNotificationsView(): React.JSX.Element {
-  const { visibleNotifications, markSeen, dismissAll } = useDockNotifications();
+  const {
+    visibleNotifications,
+    markSeen,
+    dismissAll,
+    teamMembers,
+    currentUserId
+  } = useDockNotifications();
   const { closeDock } = useDashboardDock();
 
   React.useEffect(() => {
@@ -96,13 +103,23 @@ export function DockNotificationsView(): React.JSX.Element {
                 ) : null}
               </div>
               <div className="space-y-2">
-                {section.items.map((item) => (
-                  <NotificationItem
-                    key={item.id}
-                    item={item}
-                    onNavigate={closeDock}
-                  />
-                ))}
+                {section.items.map((item) =>
+                  item.kind === 'human_desk' ? (
+                    <HumanDeskNotificationItem
+                      key={item.id}
+                      item={item}
+                      teamMembers={teamMembers}
+                      currentUserId={currentUserId}
+                      onNavigate={closeDock}
+                    />
+                  ) : (
+                    <NotificationItem
+                      key={item.id}
+                      item={item}
+                      onNavigate={closeDock}
+                    />
+                  )
+                )}
               </div>
             </section>
           ))}
@@ -186,7 +203,7 @@ function NotificationItem({
   );
 
   const className = cn(
-    'flex w-full items-start gap-3 rounded-xl border border-border/60 px-4 py-3 text-left transition-colors',
+    'flex w-full items-start gap-3 rounded-none border border-border/60 px-4 py-3 text-left transition-colors',
     'hover:bg-muted/50'
   );
 

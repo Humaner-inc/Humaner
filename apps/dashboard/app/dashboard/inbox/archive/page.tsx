@@ -30,9 +30,7 @@ export default async function InboxArchivePage(): Promise<React.JSX.Element> {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5">
       <div className="shrink-0">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          Archive
-        </h1>
+        <h1 className="page-title">Archive</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Archived conversations. Restore them to the inbox from the row menu.
         </p>

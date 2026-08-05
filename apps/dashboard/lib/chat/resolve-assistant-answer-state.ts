@@ -4,6 +4,8 @@ const GAP_DEFERRAL_PATTERNS: RegExp[] = [
   /\bi don'?t have the specific details\b/i,
   /\bdon'?t have\b[^.]{0,80}\bin front of me\b/i,
   /\bnot in (the )?knowledge base\b/i,
+  /\bbased on what i have in (the )?knowledge base\b/i,
+  /\bdon'?t have that in (the |my )?knowledge base\b/i,
   /\bwould you like me to open a ticket\b/i,
   /\bwould you prefer (that )?i open\b/i,
   /\bopen a ticket so\b/i,

@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 
-import { ComposeMailButton } from '@/components/dashboard/inbox/compose-mail-button';
 import { InboxAllMailList } from '@/components/dashboard/inbox/inbox-all-mail-list';
-import { InboxDomainSwitcher } from '@/components/dashboard/inbox/inbox-domain-switcher';
 import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
@@ -12,7 +10,6 @@ import {
   InboxListHeader,
   type InboxListFilter
 } from '@/components/dashboard/inbox/inbox-list-header';
-import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import {
   getMailInboxes,
@@ -49,15 +46,21 @@ export default async function InboxAllPage({
   const autoCompose = composeParam === '1' || composeParam === 'true';
 
   if (!overview || overview.locked) {
-    return <InboxUpgradeEmptyState />;
+    return (
+      <div className="p-6 md:p-8">
+        <InboxUpgradeEmptyState />
+      </div>
+    );
   }
 
   if (!overview.hasConnections) {
     return (
-      <InboxOptionalEmptyState
-        title="No mail connected yet"
-        description="Connect IMAP or Gmail when you want shared support aliases in Humaner. Until then, agents and Desk work as usual."
-      />
+      <div className="p-6 md:p-8">
+        <InboxOptionalEmptyState
+          title="No mail connected yet"
+          description="Connect IMAP or Gmail when you want shared support aliases in Humaner. Until then, agents and Desk work as usual."
+        />
+      </div>
     );
   }
 
@@ -87,58 +90,42 @@ export default async function InboxAllPage({
           : undefined
   });
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex shrink-0 items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
-            All mail
-          </h1>
-          <ComposeMailButton
-            inboxes={inboxes}
-            defaultAliasId={activeAliasId}
-            autoOpen={autoCompose}
+  if (threads.length === 0) {
+    return (
+      <div className="-m-6 flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col overflow-hidden md:-m-8">
+        <div className="shrink-0 border-b border-border/50 px-4 py-3">
+          <InboxListHeader
+            activeFilter={activeFilter}
+            activeTagId={activeTagId}
+            tags={tags}
           />
         </div>
-        <InboxDomainSwitcher
-          inboxes={inboxes}
-          activeAliasId={activeAliasId}
-        />
+        <div className="min-h-0 flex-1 overflow-auto p-6">
+          <InboxOptionalEmptyState
+            title="No threads yet"
+            description="Sync to import recent messages for your aliases."
+            showConnect={false}
+          />
+        </div>
       </div>
+    );
+  }
 
-      <Suspense
-        fallback={<div className="h-11 rounded-lg border bg-background" />}
-      >
-        {threads.length > 0 ? (
-          <PullToRefreshInbox className="min-h-0 flex-1">
-            <InboxAllMailList
-              threads={threads}
-              tags={tags}
-              members={members.map((member) => ({
-                id: member.id,
-                name: member.name
-              }))}
-              activeFilter={activeFilter}
-              activeTagId={activeTagId}
-            />
-          </PullToRefreshInbox>
-        ) : (
-          <>
-            <InboxListHeader
-              activeFilter={activeFilter}
-              activeTagId={activeTagId}
-              tags={tags}
-            />
-            <PullToRefreshInbox>
-              <InboxOptionalEmptyState
-                title="No threads yet"
-                description="Tap sync in the header to import recent messages for your aliases."
-                showConnect={false}
-              />
-            </PullToRefreshInbox>
-          </>
-        )}
-      </Suspense>
-    </div>
+  return (
+    <Suspense fallback={null}>
+      <InboxAllMailList
+        threads={threads}
+        tags={tags}
+        members={members.map((member) => ({
+          id: member.id,
+          name: member.name
+        }))}
+        inboxes={inboxes}
+        activeAliasId={activeAliasId}
+        activeFilter={activeFilter}
+        activeTagId={activeTagId}
+        autoCompose={autoCompose}
+      />
+    </Suspense>
   );
 }

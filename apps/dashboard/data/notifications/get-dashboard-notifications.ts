@@ -20,21 +20,12 @@ import type {
   DashboardNotification,
   DashboardNotificationsSnapshot
 } from '@/types/dashboard-notification';
+import type {
+  HandoffTicketStatus,
+  HandoffTicketUrgency
+} from '@/types/handoff-ticket';
 
 const HISTORY_LOOKBACK_DAYS = 14;
-
-const HANDOFF_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Open',
-  IN_PROGRESS: 'In progress',
-  RESOLVED: 'Resolved',
-  CLOSED: 'Closed'
-};
-
-const HANDOFF_URGENCY_LABELS: Record<string, string> = {
-  LOW: 'Low urgency',
-  MEDIUM: 'Medium urgency',
-  HIGH: 'High urgency'
-};
 
 function severityRank(severity: DashboardNotification['severity']): number {
   switch (severity) {
@@ -81,7 +72,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     memberCount,
     handoffTickets,
     supportTickets,
-    recentConversations
+    recentConversations,
+    teamMembers
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
@@ -104,11 +96,13 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         ticketNumber: true,
         subject: true,
         summary: true,
+        note: true,
         status: true,
         urgency: true,
-        createdAt: true,
-        agent: { select: { name: true } }
+        assigneeId: true,
+        createdAt: true
       },
+
       orderBy: { createdAt: 'desc' },
       take: 8
     }),
@@ -144,11 +138,26 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       },
       orderBy: { updatedAt: 'desc' },
       take: 40
+    }),
+    prisma.user.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        email: true
+      },
+      orderBy: { name: 'asc' }
     })
   ]);
 
   if (!organization) {
-    return { items: [], unreadCount: 0 };
+    return {
+      items: [],
+      unreadCount: 0,
+      teamMembers: [],
+      currentUserId: userId
+    };
   }
 
   const tier = normalizeTier(organization.tier);
@@ -249,24 +258,28 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   if (organization.humanDeskEnabled) {
     for (const ticket of handoffTickets) {
-      const statusLabel = HANDOFF_STATUS_LABELS[ticket.status] ?? ticket.status;
-      const urgencyLabel =
-        HANDOFF_URGENCY_LABELS[ticket.urgency] ?? ticket.urgency;
-
+      const customerRequest =
+        ticket.note?.trim() || ticket.summary?.trim() || ticket.subject;
       items.push({
         id: `human-desk-${ticket.id}`,
         kind: 'human_desk',
-        title: `${formatTicketRef(ticket.ticketNumber)} · ${ticket.subject}`,
-        description: `${ticket.agent.name} · ${ticket.summary}`,
-        href: Routes.HumanDesk,
+        title: ticket.subject,
+        description: customerRequest,
+        tag: formatTicketRef(ticket.ticketNumber),
+        href: Routes.DeskHuman,
         severity:
           ticket.urgency === 'HIGH'
             ? 'critical'
             : ticket.status === 'OPEN'
               ? 'warning'
               : 'info',
-        tag: `${statusLabel} · ${urgencyLabel}`,
-        createdAt: ticket.createdAt.toISOString()
+        createdAt: ticket.createdAt.toISOString(),
+        handoff: {
+          ticketId: ticket.id,
+          status: ticket.status as HandoffTicketStatus,
+          urgency: ticket.urgency as HandoffTicketUrgency,
+          assigneeId: ticket.assigneeId
+        }
       });
     }
   }
@@ -310,6 +323,13 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   return {
     items: sorted,
-    unreadCount: sorted.length
+    unreadCount: sorted.length,
+    teamMembers: teamMembers.map((member) => ({
+      id: member.id,
+      name: member.name,
+      image: member.image,
+      email: member.email
+    })),
+    currentUserId: userId
   };
 }

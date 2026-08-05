@@ -29,7 +29,7 @@ export const INDUSTRIES: Record<IndustryType, IndustryDefinition> = {
     promptFragment: `You handle customer support for an ecommerce/retail business.
 Priority topics: product details, shipping timelines, returns, and order issues.
 When order-specific info is needed (tracking, specific order status), you don't have access to the order system — direct to the business's order portal or support email.
-Never speculate on stock availability unless your knowledge base explicitly covers it.`,
+Never speculate on stock availability unless your resources explicitly cover it.`,
     knowledgePages: [
       'Product catalog or FAQs',
       'Shipping policy',
@@ -114,7 +114,7 @@ If a member asks something medical, acknowledge warmly and direct to a qualified
 Priority topics: bookings, cancellations, refunds, property info, and disruption handling.
 Tone: reassuring and responsive — travel issues cause genuine stress.
 When a booking-specific question requires system access (reservation lookup, refund status), you cannot retrieve live data — direct to the booking portal or support line clearly.
-Never speculate on availability or pricing not present in your knowledge base.`,
+Never speculate on availability or pricing not present in your resources.`,
     knowledgePages: [
       'Booking & cancellation policy',
       'Property or service descriptions',

@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { formatAgents, getEffectivePlan } from '@humaner/shared/plans';
 
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
+import { CreateAgentCard } from '@/components/dashboard/home/create-agent-card';
 import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-overview-strip';
 import { DeskIssuesOverviewCard } from '@/components/dashboard/home/desk-issues-overview-card';
 import { InboxOverviewCard } from '@/components/dashboard/home/inbox-overview-card';
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
-import { CircleDashedIcon } from '@/components/ui/circle-dashed-icon';
 import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
@@ -81,7 +81,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     : `${liveAgentCount}/${formatAgents(agentLimit) === 'Unlimited' ? '∞' : agentLimit} live`;
 
   return (
-    <SectionPage width="lg">
+    <SectionPage width="xl">
       <div className="space-y-6">
         <DashboardOverviewStrip
           organizationName={organization?.name ?? 'Your organization'}
@@ -122,23 +122,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                     compact
                   />
                 ))}
-                {!atLimit ? (
-                  <Link
-                    href={Routes.AgentNew}
-                    className={cn(
-                      dashboardSurfaceDashedClassName,
-                      'flex min-h-[16.5rem] flex-col items-center justify-center p-4 text-center shadow-[0_2px_0_0_rgb(0_0_0_/_0.03),0_18px_40px_-28px_rgb(0_0_0_/_0.18)] transition-colors hover:border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)] hover:bg-muted/30'
-                    )}
-                  >
-                    <CircleDashedIcon
-                      size={20}
-                      className="mb-2 text-muted-foreground"
-                    />
-                    <span className="font-mono text-xs font-medium">
-                      Create agent
-                    </span>
-                  </Link>
-                ) : null}
+                {!atLimit ? <CreateAgentCard /> : null}
               </div>
 
               {atLimit ? (

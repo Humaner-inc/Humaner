@@ -119,13 +119,19 @@ export function MailThreadList({
   tags = [],
   members = [],
   archivedView = false,
-  selectionHeader
+  selectionHeader,
+  listChrome,
+  variant = 'card'
 }: {
   threads: MailThreadListItem[];
   tags?: MailTagItem[];
   members?: Array<{ id: string; name: string }>;
   archivedView?: boolean;
   selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
+  /** Extra chrome above the thread rows (title, filters) — desk triage sidebar. */
+  listChrome?: React.ReactNode;
+  /** `desk` = Human Desk full-bleed list/detail split. */
+  variant?: 'card' | 'desk';
 }): React.JSX.Element {
   const router = useRouter();
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
@@ -390,7 +396,71 @@ export function MailThreadList({
     archivedView
   };
 
-  const listPanel = (
+  const isDesk = variant === 'desk';
+
+  const threadRows = threads.map((thread) => {
+    const override = localOverrides[thread.id];
+    const displayThread =
+      override == null
+        ? thread
+        : {
+            ...thread,
+            isUnread: override.isUnread ?? thread.isUnread,
+            awaitingReply: override.awaitingReply ?? thread.awaitingReply,
+            lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt
+          };
+
+    return (
+      <MailThreadRow
+        key={thread.id}
+        thread={displayThread}
+        tags={tags}
+        members={members}
+        archivedView={archivedView}
+        previewActive={activeThreadId === thread.id}
+        selected={selectedIds.has(thread.id)}
+        onToggleSelected={(checked) => toggleOne(thread.id, checked)}
+        onSelect={() => selectThread(thread.id)}
+        onAskDelete={() => askDelete([thread.id])}
+      />
+    );
+  });
+
+  const listPanel = isDesk ? (
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      {listChrome ? (
+        <div className="shrink-0 border-b border-border/50">{listChrome}</div>
+      ) : null}
+      {selectionHeader ? (
+        <div className="shrink-0 border-b border-border/50">
+          {selectionHeader(selectionApi)}
+        </div>
+      ) : null}
+      {selectedIds.size > 0 && !selectionHeader ? (
+        <div className="shrink-0 border-b border-border/50 px-3 py-2">
+          <MailBulkActionBar selection={selectionApi} />
+        </div>
+      ) : null}
+      <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {!selectionHeader ? (
+          <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
+            <Checkbox
+              checked={
+                allSelected ? true : someSelected ? 'indeterminate' : false
+              }
+              onCheckedChange={() => toggleAll()}
+              aria-label="Select all conversations"
+              data-no-pull
+            />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
+            </span>
+          </li>
+        ) : null}
+        {threadRows}
+      </ul>
+    </div>
+  ) : (
     <ul className="flex h-full min-h-0 flex-col overflow-y-auto border border-border bg-background md:border-0">
       {!selectionHeader ? (
         <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
@@ -407,38 +477,17 @@ export function MailThreadList({
           </span>
         </li>
       ) : null}
-      {threads.map((thread) => {
-        const override = localOverrides[thread.id];
-        const displayThread =
-          override == null
-            ? thread
-            : {
-                ...thread,
-                isUnread: override.isUnread ?? thread.isUnread,
-                awaitingReply: override.awaitingReply ?? thread.awaitingReply,
-                lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt
-              };
-
-        return (
-          <MailThreadRow
-            key={thread.id}
-            thread={displayThread}
-            tags={tags}
-            members={members}
-            archivedView={archivedView}
-            previewActive={activeThreadId === thread.id}
-            selected={selectedIds.has(thread.id)}
-            onToggleSelected={(checked) => toggleOne(thread.id, checked)}
-            onSelect={() => selectThread(thread.id)}
-            onAskDelete={() => askDelete([thread.id])}
-          />
-        );
-      })}
+      {threadRows}
     </ul>
   );
 
   const readingPane = (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden border border-border bg-background md:border-0 md:border-l">
+    <div
+      className={cn(
+        'flex h-full min-h-0 flex-col overflow-hidden bg-background',
+        !isDesk && 'border border-border md:border-0 md:border-l'
+      )}
+    >
       {paneLoading && !paneThread ? (
         <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
           <SkillzCubeLoader size={28} />
@@ -461,6 +510,87 @@ export function MailThreadList({
     </div>
   );
 
+  const split = isDesk ? (
+    <>
+      <div className="hidden min-h-0 w-full md:block">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full"
+        >
+          <ResizablePanel
+            defaultSize={24}
+            minSize={18}
+            maxSize={34}
+          >
+            <div className="h-full border-r border-border/50">{listPanel}</div>
+          </ResizablePanel>
+          <ResizableHandle className="w-px bg-border/50 transition-colors hover:bg-border" />
+          <ResizablePanel defaultSize={76}>
+            <div className="h-full min-h-0 bg-background">{readingPane}</div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+      <div className="w-full md:hidden">
+        {activeThreadId && paneThread ? (
+          <div className="h-full min-h-0 bg-background">{readingPane}</div>
+        ) : (
+          <div className="h-full border-r border-border/50">{listPanel}</div>
+        )}
+      </div>
+    </>
+  ) : (
+    <div className="h-[min(72vh,calc(100vh-12rem))] min-h-[420px] overflow-hidden border border-border bg-background">
+      <div className="hidden h-full md:block">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full"
+        >
+          <ResizablePanel
+            defaultSize={38}
+            minSize={24}
+            maxSize={50}
+          >
+            {listPanel}
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            defaultSize={62}
+            minSize={40}
+          >
+            {readingPane}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+      <div className="h-full md:hidden">{listPanel}</div>
+    </div>
+  );
+
+  const deleteDialog = (
+    <DeleteMailThreadsDialog
+      open={deleteOpen}
+      count={deleteIds.length}
+      onOpenChange={(open) => {
+        setDeleteOpen(open);
+        if (!open) setDeleteIds([]);
+      }}
+      onConfirm={() => {
+        setSkipDeleteWarning(readSkipDeleteWarning());
+        runBulkDelete({ threadIds: deleteIds });
+      }}
+    />
+  );
+
+  if (isDesk) {
+    return (
+      <>
+        <div className="-m-6 flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden md:-m-8">
+          {split}
+        </div>
+        {deleteDialog}
+      </>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {selectionHeader ? selectionHeader(selectionApi) : null}
@@ -469,44 +599,8 @@ export function MailThreadList({
         <MailBulkActionBar selection={selectionApi} />
       ) : null}
 
-      <div className="h-[min(72vh,calc(100vh-12rem))] min-h-[420px] overflow-hidden border border-border bg-background">
-        <div className="hidden h-full md:block">
-          <ResizablePanelGroup
-            direction="horizontal"
-            className="h-full"
-          >
-            <ResizablePanel
-              defaultSize={38}
-              minSize={24}
-              maxSize={50}
-            >
-              {listPanel}
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel
-              defaultSize={62}
-              minSize={40}
-            >
-              {readingPane}
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-
-        <div className="h-full md:hidden">{listPanel}</div>
-      </div>
-
-      <DeleteMailThreadsDialog
-        open={deleteOpen}
-        count={deleteIds.length}
-        onOpenChange={(open) => {
-          setDeleteOpen(open);
-          if (!open) setDeleteIds([]);
-        }}
-        onConfirm={() => {
-          setSkipDeleteWarning(readSkipDeleteWarning());
-          runBulkDelete({ threadIds: deleteIds });
-        }}
-      />
+      {split}
+      {deleteDialog}
     </div>
   );
 }

@@ -138,12 +138,19 @@ export function AgentAvatarUpload({
   const glowScale = size === 'compact' ? 'scale-[1.35]' : 'scale-[1.65]';
 
   return (
-    <div className={cn('relative inline-flex', avatarSize)}>
+    <div
+      className={cn(
+        'group/avatar relative inline-flex',
+        avatarSize,
+        !disabled && 'cursor-pointer'
+      )}
+    >
       {displayImage ? (
         <div
           className={cn(
-            'pointer-events-none absolute inset-0 overflow-hidden rounded-full opacity-50 blur-2xl',
-            glowScale
+            'pointer-events-none absolute inset-0 overflow-hidden rounded-full opacity-25 blur-2xl transition-opacity duration-300',
+            glowScale,
+            !disabled && 'group-hover/avatar:opacity-55'
           )}
           aria-hidden
         >
@@ -156,7 +163,13 @@ export function AgentAvatarUpload({
         </div>
       ) : null}
 
-      <div className="relative size-full overflow-hidden rounded-full bg-white ring-2 ring-foreground/10 ring-offset-2 ring-offset-background">
+      <div
+        className={cn(
+          'relative size-full overflow-hidden rounded-full bg-white ring-2 ring-offset-2 transition-[box-shadow,ring-color] duration-300',
+          'ring-foreground/10 ring-offset-background',
+          !disabled && 'group-hover/avatar:ring-[#e1ccaf]'
+        )}
+      >
         <ImageDropzone
           accept={{ 'image/*': [] }}
           multiple={false}

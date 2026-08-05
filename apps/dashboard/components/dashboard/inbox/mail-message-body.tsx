@@ -36,20 +36,6 @@ export function MailMessageBody({
   const html = bodyHtml?.trim() ? bodyHtml : null;
   const srcDoc = html ? buildMailSrcDoc(html) : null;
 
-  const measure = React.useEffectEvent(() => {
-    const doc = iframeRef.current?.contentDocument;
-    if (!doc?.body) return;
-
-    const next = Math.ceil(
-      Math.max(
-        doc.body.scrollHeight,
-        doc.documentElement?.scrollHeight ?? 0,
-        80
-      )
-    );
-    setHeight((prev) => (prev === next ? prev : next));
-  });
-
   React.useEffect(() => {
     if (!srcDoc) return;
 
@@ -59,7 +45,21 @@ export function MailMessageBody({
     let resizeObserver: ResizeObserver | null = null;
     const imageListeners: Array<{ img: HTMLImageElement; fn: () => void }> = [];
 
-    const onLoad = () => {
+    const measure = (): void => {
+      const doc = frame.contentDocument;
+      if (!doc?.body) return;
+
+      const next = Math.ceil(
+        Math.max(
+          doc.body.scrollHeight,
+          doc.documentElement?.scrollHeight ?? 0,
+          80
+        )
+      );
+      setHeight((prev) => (prev === next ? prev : next));
+    };
+
+    const onLoad = (): void => {
       measure();
 
       const doc = frame.contentDocument;
@@ -79,7 +79,7 @@ export function MailMessageBody({
 
       for (const img of doc.querySelectorAll('img')) {
         if (img.complete) continue;
-        const fn = () => measure();
+        const fn = (): void => measure();
         img.addEventListener('load', fn);
         img.addEventListener('error', fn);
         imageListeners.push({ img, fn });

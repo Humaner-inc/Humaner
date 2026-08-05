@@ -161,18 +161,18 @@ export function NavUser({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-9 shrink-0 rounded-none p-0 hover:bg-accent/60',
+            'size-7 shrink-0 rounded-none p-0 hover:bg-accent/60',
             className
           )}
           aria-label="Open profile menu"
         >
-          <Avatar className="size-9 rounded-none ring-1 ring-border/60">
+          <Avatar className="size-7 rounded-none ring-1 ring-border/60">
             <AvatarImage
               src={profile.image}
               alt={profile.name}
               className="rounded-none"
             />
-            <AvatarFallback className="rounded-none text-xs">
+            <AvatarFallback className="rounded-none text-[10px]">
               {getInitials(profile.name)}
             </AvatarFallback>
           </Avatar>

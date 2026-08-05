@@ -60,4 +60,6 @@ export const assignHandoffTicket = pageActionClient('desk')
 
     revalidatePath(Routes.Desk);
     revalidatePath(Routes.DeskHuman);
+    revalidatePath(Routes.Home);
+    revalidatePath(Routes.HumanDesk);
   });

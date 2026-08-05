@@ -73,7 +73,7 @@ export function DashboardTopNav({
         variant="ghost"
         className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
       />
-      <div className="flex h-9 items-center gap-2">
+      <div className="flex h-7 items-center gap-1.5">
         <AskHumanerTrigger />
         <NavUser
           profile={profile}

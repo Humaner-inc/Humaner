@@ -3,11 +3,16 @@
 import * as React from 'react';
 
 import { useDashboardNotifications } from '@/hooks/use-dashboard-notifications';
-import type { DashboardNotification } from '@/types/dashboard-notification';
+import type {
+  DashboardNotification,
+  DashboardNotificationAssignee
+} from '@/types/dashboard-notification';
 
 type DockNotificationsContextValue = {
   visibleNotifications: DashboardNotification[];
   unreadCount: number;
+  teamMembers: DashboardNotificationAssignee[];
+  currentUserId: string;
   markSeen: () => void;
   dismissAll: () => void;
 };
@@ -27,9 +32,13 @@ export function useDockNotifications(): DockNotificationsContextValue {
 
 export function DockNotificationsProvider({
   notifications,
+  teamMembers,
+  currentUserId,
   children
 }: {
   notifications: DashboardNotification[];
+  teamMembers: DashboardNotificationAssignee[];
+  currentUserId: string;
   children: React.ReactNode;
 }): React.JSX.Element {
   const notifs = useDashboardNotifications(notifications);
@@ -38,6 +47,8 @@ export function DockNotificationsProvider({
     () => ({
       visibleNotifications: notifs.visibleNotifications,
       unreadCount: notifs.unreadCount,
+      teamMembers,
+      currentUserId,
       markSeen: notifs.markSeen,
       dismissAll: notifs.dismissAll
     }),
@@ -45,7 +56,9 @@ export function DockNotificationsProvider({
       notifs.visibleNotifications,
       notifs.unreadCount,
       notifs.markSeen,
-      notifs.dismissAll
+      notifs.dismissAll,
+      teamMembers,
+      currentUserId
     ]
   );
 

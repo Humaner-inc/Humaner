@@ -33,9 +33,7 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
-            Aliases
-          </h1>
+          <h1 className="page-title">Aliases</h1>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
             {overview.aliasCount} of {overview.mailboxAliasLimit} used
           </p>

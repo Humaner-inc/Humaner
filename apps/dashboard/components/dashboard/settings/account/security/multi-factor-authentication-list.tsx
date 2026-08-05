@@ -9,6 +9,10 @@ import { DisableAuthenticatorAppModal } from '@/components/dashboard/settings/ac
 import { EnableAuthenticatorAppModal } from '@/components/dashboard/settings/account/security/enable-authenticator-app-modal';
 import { RecoveryCodesModal } from '@/components/dashboard/settings/account/security/recovery-codes-modal';
 import { Button } from '@/components/ui/button';
+import {
+  FingerprintIcon,
+  type FingerprintIconHandle
+} from '@/components/ui/fingerprint-icon';
 import { cn } from '@/lib/utils';
 import type {
   AuthenticatorAppDto,
@@ -44,6 +48,7 @@ function AuthenticatorAppListItem({
   className,
   ...other
 }: MultiFactorAuthenticationListItemProps): React.JSX.Element {
+  const iconRef = React.useRef<FingerprintIconHandle>(null);
   const isEnabled = !!authenticatorApp;
   const handleShowEnableAuthenticatorAppModal = async (): Promise<void> => {
     const result = await generateTotpSetupData();
@@ -72,37 +77,16 @@ function AuthenticatorAppListItem({
     <li
       role="listitem"
       className={cn('flex w-full flex-row justify-between p-6', className)}
+      onMouseEnter={() => iconRef.current?.startAnimation()}
+      onMouseLeave={() => iconRef.current?.stopAnimation()}
       {...other}
     >
       <div className="flex min-w-0 flex-row items-center gap-4">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M19.4182 21.5453L19.5047 1.71902C19.5047 0.77099 18.6857 0 17.6780 0H6.71821C5.71049 0 4.89157 0.77099 4.89157 1.71902V21.7442C6.91486 23.2188 9.44835 24 12.1981 24C14.9480 24 17.3952 23.0218 19.4182 21.5453Z"
-            fill="currentColor"
-            className="text-black dark:text-neutral-300"
-          />
-          <path
-            d="M5.49157 1.44376H18.6916V16.1729H5.49157V1.44376Z"
-            fill="currentColor"
-            className="text-neutral-400 dark:text-neutral-950"
-          />
-          <path
-            d="M18.6916 22.0312V16.1729H5.49157V22.1536C7.36638 23.4046 9.65863 24 12.1099 24C14.7742 24 16.8170 23.2847 18.6916 22.0312Z"
-            fill="currentColor"
-            className="text-neutral-100 dark:text-neutral-900"
-          />
-          <path
-            d="M14.7660 18.7587H9.90357C9.45714 18.7587 9.09157 19.1108 9.09157 19.5458C9.09157 19.9808 9.45714 20.3329 9.90357 20.3329H14.7660C15.2125 20.3329 15.5780 19.9808 15.5780 19.5458C15.5780 19.1091 15.2125 18.7587 14.7660 18.7587Z"
-            fill="currentColor"
-            className="text-black dark:text-neutral-700"
-          />
-        </svg>
+        <FingerprintIcon
+          ref={iconRef}
+          size={24}
+          className="shrink-0 text-foreground"
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <h5 className="overflow-hidden truncate text-sm font-medium">
             Authenticator app

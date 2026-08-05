@@ -13,11 +13,25 @@ import type {
 
 export type DeskIssueOverviewItem = {
   id: string;
+  ticketNumber: number;
   subject: string;
   status: HandoffTicketStatus;
   urgency: HandoffTicketUrgency;
+  visitorEmail: string | null;
+  visitorFirstName: string | null;
+  visitorLastName: string | null;
+  summary: string;
+  note: string | null;
   agentName: string;
+  assigneeId: string | null;
   updatedAt: string;
+};
+
+export type DeskOverviewAssignee = {
+  id: string;
+  name: string;
+  image: string | null;
+  email: string | null;
 };
 
 export type DeskIssuesOverview = {
@@ -29,6 +43,8 @@ export type DeskIssuesOverview = {
     total: number;
   };
   activeTickets: DeskIssueOverviewItem[];
+  teamMembers: DeskOverviewAssignee[];
+  currentUserId: string;
 };
 
 export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
@@ -38,8 +54,9 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
   }
 
   const organizationId = session.user.organizationId;
+  const currentUserId = session.user.id;
 
-  const [statusCounts, activeTickets] = await Promise.all([
+  const [statusCounts, activeTickets, teamMembers] = await Promise.all([
     prisma.handoffTicket.groupBy({
       by: ['status'],
       where: { organizationId },
@@ -52,14 +69,31 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
       },
       select: {
         id: true,
+        ticketNumber: true,
         subject: true,
         status: true,
         urgency: true,
+        visitorEmail: true,
+        visitorFirstName: true,
+        visitorLastName: true,
+        summary: true,
+        note: true,
+        assigneeId: true,
         updatedAt: true,
         agent: { select: { name: true } }
       },
       orderBy: { updatedAt: 'desc' },
       take: 5
+    }),
+    prisma.user.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        email: true
+      },
+      orderBy: { name: 'asc' }
     })
   ]);
 
@@ -96,11 +130,25 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
     counts,
     activeTickets: activeTickets.map((ticket) => ({
       id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
       subject: ticket.subject,
       status: ticket.status as HandoffTicketStatus,
       urgency: ticket.urgency as HandoffTicketUrgency,
+      visitorEmail: ticket.visitorEmail,
+      visitorFirstName: ticket.visitorFirstName,
+      visitorLastName: ticket.visitorLastName,
+      summary: ticket.summary,
+      note: ticket.note,
       agentName: ticket.agent.name,
+      assigneeId: ticket.assigneeId,
       updatedAt: ticket.updatedAt.toISOString()
-    }))
+    })),
+    teamMembers: teamMembers.map((member) => ({
+      id: member.id,
+      name: member.name,
+      image: member.image,
+      email: member.email
+    })),
+    currentUserId
   };
 }

@@ -1,12 +1,10 @@
 import * as React from 'react';
-import Link from 'next/link';
 
 import { ConnectImapForm } from '@/components/dashboard/inbox/connect-imap-form';
 import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
-import { Routes } from '@/constants/routes';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import {
   getConnectedProviderPresetIds,
@@ -36,26 +34,11 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4">
-      {overview.hasConnections ? (
-        <p className="font-mono text-xs text-muted-foreground">
-          {overview.connectionCount} connection
-          {overview.connectionCount === 1 ? '' : 's'} ·{' '}
-          <Link
-            href={Routes.InboxAliases}
-            className="underline-offset-4 hover:underline"
-          >
-            Manage aliases
-          </Link>
-        </p>
-      ) : null}
-
-      <ConnectImapForm
-        aliasLimit={overview.mailboxAliasLimit}
-        aliasCount={overview.aliasCount}
-        connectedProviderIds={connectedProviderIds}
-        connections={connections}
-      />
-    </div>
+    <ConnectImapForm
+      aliasLimit={overview.mailboxAliasLimit}
+      aliasCount={overview.aliasCount}
+      connectedProviderIds={connectedProviderIds}
+      connections={connections}
+    />
   );
 }

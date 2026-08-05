@@ -102,7 +102,11 @@ export default async function DashboardLayout({
     getHandoffOpenCounts(),
     isOssDeployment() ? Promise.resolve([]) : getMailInboxes()
   ]);
-  const { items: notifications } = notificationsResult;
+  const {
+    items: notifications,
+    teamMembers: notificationTeamMembers,
+    currentUserId: notificationCurrentUserId
+  } = notificationsResult;
 
   const showDataImprovementPrompt =
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
@@ -202,7 +206,11 @@ export default async function DashboardLayout({
         <SidebarProvider>
           <ComposeMailProvider inboxes={mailInboxes}>
             <DashboardDockProvider>
-              <DockNotificationsProvider notifications={notifications}>
+              <DockNotificationsProvider
+                notifications={notifications}
+                teamMembers={notificationTeamMembers}
+                currentUserId={notificationCurrentUserId}
+              >
                 {humanerAgentPublicId ? (
                   <HumanerChatProvider
                     agentPublicId={humanerAgentPublicId}

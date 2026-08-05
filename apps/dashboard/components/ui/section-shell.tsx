@@ -16,7 +16,7 @@ const WIDTH_CLASS = {
 
 export function SectionContent({
   className,
-  width = 'lg',
+  width = 'xl',
   children,
   ...props
 }: SectionContentProps): React.JSX.Element {
@@ -39,7 +39,7 @@ export function SectionContent({
 /** Single-section pages — sidebar shows the name, no top header bar. */
 export function SectionPage({
   children,
-  width = 'lg',
+  width = 'xl',
   className,
   ...props
 }: Omit<SectionContentProps, 'children'> & {
@@ -68,7 +68,7 @@ export function DockSection({
   dock,
   children,
   contentClassName,
-  width = 'lg'
+  width = 'xl'
 }: DockSectionProps): React.JSX.Element {
   return (
     <div className="flex h-full flex-col overflow-hidden">

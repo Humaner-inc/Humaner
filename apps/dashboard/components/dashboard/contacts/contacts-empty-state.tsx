@@ -8,11 +8,7 @@ export function ContactsEmptyState(): React.JSX.Element {
   return (
     <div className="p-6">
       <EmptyState
-        icon={
-          <div className="flex size-12 items-center justify-center rounded-md border">
-            <UsersIcon className="size-6 shrink-0 text-muted-foreground" />
-          </div>
-        }
+        icon={<UsersIcon strokeWidth={1.25} />}
         title="No contact yet"
         description="Add contacts and they will show up here."
       >

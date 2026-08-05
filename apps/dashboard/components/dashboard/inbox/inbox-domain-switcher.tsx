@@ -41,7 +41,7 @@ export function InboxDomainSwitcher({
   if (inboxes.length === 1) {
     return (
       <p
-        className="max-w-72 truncate text-right font-mono text-xs text-muted-foreground"
+        className="max-w-72 truncate font-mono text-xs text-muted-foreground"
         title={singleLabel}
       >
         {singleLabel}
@@ -79,7 +79,7 @@ export function InboxDomainSwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="end"
+        align="start"
         className="w-72"
       >
         <DropdownMenuItem
