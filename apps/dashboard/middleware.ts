@@ -57,6 +57,7 @@ export const config = {
     '/human-desk/:path*',
     '/training',
     '/admin/:path*',
+    '/workspace',
     '/dashboard/:path*',
     // Cookie presence gate for authenticated dashboard APIs (routes still validate session).
     '/api/dashboard/:path*'

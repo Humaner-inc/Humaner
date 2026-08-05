@@ -27,6 +27,7 @@ export async function getOrganizationDetails(): Promise<OrganizationDetailsDto> 
       const organization = await prisma.organization.findFirst({
         where: { id: session.user.organizationId },
         select: {
+          id: true,
           name: true,
           address: true,
           phone: true,
@@ -41,6 +42,7 @@ export async function getOrganizationDetails(): Promise<OrganizationDetailsDto> 
       }
 
       const response: OrganizationDetailsDto = {
+        id: organization.id,
         name: organization.name,
         address: organization.address ? organization.address : undefined,
         phone: organization.phone ? organization.phone : undefined,

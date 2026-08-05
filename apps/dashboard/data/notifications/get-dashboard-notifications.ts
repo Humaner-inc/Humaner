@@ -13,6 +13,10 @@ import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
+import {
+  parseActivityNotificationPreferences,
+  shouldNotifyDeskInApp
+} from '@/lib/notifications/activity-notification-preferences';
 import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
 import { reportBugTabLabel } from '@/lib/report-bug-context-options';
 import { supportTicketStatusLabel } from '@/lib/support-ticket-labels';
@@ -73,7 +77,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     handoffTickets,
     supportTickets,
     recentConversations,
-    teamMembers
+    teamMembers,
+    currentUser
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
@@ -139,17 +144,29 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       orderBy: { updatedAt: 'desc' },
       take: 40
     }),
-    prisma.user.findMany({
+    prisma.organizationMembership.findMany({
       where: { organizationId },
       select: {
-        id: true,
-        name: true,
-        image: true,
-        email: true
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true
+          }
+        }
       },
-      orderBy: { name: 'asc' }
+      orderBy: { user: { name: 'asc' } }
+    }),
+    prisma.user.findFirst({
+      where: { id: userId },
+      select: { notificationPreferences: true }
     })
   ]);
+
+  const activityPrefs = parseActivityNotificationPreferences(
+    currentUser?.notificationPreferences
+  );
 
   if (!organization) {
     return {
@@ -258,6 +275,9 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   if (organization.humanDeskEnabled) {
     for (const ticket of handoffTickets) {
+      if (!shouldNotifyDeskInApp(activityPrefs, ticket.urgency)) {
+        continue;
+      }
       const customerRequest =
         ticket.note?.trim() || ticket.summary?.trim() || ticket.subject;
       items.push({
@@ -324,11 +344,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   return {
     items: sorted,
     unreadCount: sorted.length,
-    teamMembers: teamMembers.map((member) => ({
-      id: member.id,
-      name: member.name,
-      image: member.image,
-      email: member.email
+    teamMembers: teamMembers.map((membership) => ({
+      id: membership.user.id,
+      name: membership.user.name,
+      image: membership.user.image,
+      email: membership.user.email
     })),
     currentUserId: userId
   };

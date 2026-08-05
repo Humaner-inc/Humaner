@@ -1,11 +1,11 @@
 'use server';
 
-import { authActionClient } from '@/actions/safe-action';
+import { authenticatedActionClient } from '@/actions/safe-action';
 import { deleteUserAccount } from '@/lib/data-retention/delete-user';
 import { PreConditionError } from '@/lib/validation/exceptions';
 import { deleteAccountSchema } from '@/schemas/account/delete-account-schema';
 
-export const deleteAccount = authActionClient
+export const deleteAccount = authenticatedActionClient
   .metadata({ actionName: 'deleteAccount' })
   .schema(deleteAccountSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

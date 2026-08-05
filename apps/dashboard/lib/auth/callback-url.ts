@@ -21,48 +21,84 @@ const AUTH_CALLBACK_BLOCKLIST = new Set<string>([
   Routes.ChangeEmailExpired
 ]);
 
-function getCallbackPathname(callbackUrl: string): string | null {
-  try {
-    if (
-      callbackUrl.startsWith('http://') ||
-      callbackUrl.startsWith('https://')
-    ) {
-      return new URL(callbackUrl).pathname;
-    }
+/**
+ * Normalize any callback to same-origin relative path, or null.
+ * Rejects protocol-relative (`//evil.com`), auth routes, and `/api/auth/*`
+ */
+export function toSafeRelativeCallbackPath(
+  callbackUrl: string | undefined | null
+): string | null {
+  if (!callbackUrl?.trim()) {
+    return null;
+  }
 
-    return callbackUrl.split('?')[0]?.split('#')[0] ?? null;
+  let relative = callbackUrl.trim();
+
+  try {
+    if (relative.startsWith('http://') || relative.startsWith('https://')) {
+      const url = new URL(relative);
+      relative = `${url.pathname}${url.search}${url.hash}`;
+    }
   } catch {
     return null;
   }
-}
 
-export function isBlockedAuthCallbackUrl(callbackUrl: string): boolean {
-  const pathname = getCallbackPathname(callbackUrl);
+  if (!relative.startsWith('/') || relative.startsWith('//')) {
+    return null;
+  }
+
+  try {
+    const decoded = decodeURIComponent(relative);
+    if (
+      decoded.startsWith('//') ||
+      decoded.startsWith('/\\') ||
+      decoded.includes('\\')
+    ) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
   if (!pathname) {
-    return true;
+    return null;
   }
 
   if (AUTH_CALLBACK_BLOCKLIST.has(pathname)) {
-    return true;
+    return null;
   }
 
-  return pathname.startsWith(`${Routes.Auth}/`);
+  if (
+    pathname === Routes.Auth ||
+    pathname.startsWith(`${Routes.Auth}/`) ||
+    pathname.startsWith('/api/auth')
+  ) {
+    return null;
+  }
+
+  return relative;
+}
+
+export function isSafeRelativeCallbackPath(callbackUrl: string): boolean {
+  return toSafeRelativeCallbackPath(callbackUrl) !== null;
+}
+
+export function isBlockedAuthCallbackUrl(callbackUrl: string): boolean {
+  return toSafeRelativeCallbackPath(callbackUrl) === null;
 }
 
 export function getSafeAuthCallbackUrl(
   callbackUrl: string | undefined,
   fallback: string = Routes.Home
 ): string {
-  if (!callbackUrl || isBlockedAuthCallbackUrl(callbackUrl)) {
-    return fallback;
-  }
-
-  return callbackUrl;
+  return toSafeRelativeCallbackPath(callbackUrl) ?? fallback;
 }
 
 /**
  * Auth.js v5 `signIn(..., { redirect: false })` returns a string URL
  * (absolute or relative). Older shapes used `{ url, error }`.
+ * Always return a same-origin relative app path for `window.location.assign`.
  */
 export function toClientAuthRedirect(
   result: unknown,
@@ -81,22 +117,5 @@ export function toClientAuthRedirect(
     raw = (result as { url: string }).url.trim();
   }
 
-  if (!raw) {
-    return fallback;
-  }
-
-  try {
-    if (raw.startsWith('http://') || raw.startsWith('https://')) {
-      const url = new URL(raw);
-      return `${url.pathname}${url.search}${url.hash}`;
-    }
-  } catch {
-    return fallback;
-  }
-
-  if (raw.startsWith('/')) {
-    return raw;
-  }
-
-  return fallback;
+  return getSafeAuthCallbackUrl(raw, fallback);
 }

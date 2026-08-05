@@ -14,6 +14,7 @@ import {
   toClientAuthRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
+import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { prisma } from '@/lib/db/prisma';
 import { passThroughlogInSchema } from '@/schemas/auth/log-in-schema';
 import { IdentityProvider } from '@/types/identity-provider';
@@ -30,6 +31,8 @@ export const logIn = actionClient
 
     try {
       // Auth.js v5 returns a string URL when redirect: false (not { url, error }).
+      // That URL is often the Auth.js sign-in page — never trust it alone for
+      // client navigation; prefer our safe fallback when it points at /auth.
       const result = await signIn(IdentityProvider.Credentials, {
         email: parsedInput.email,
         password: parsedInput.password,
@@ -37,7 +40,23 @@ export const logIn = actionClient
         redirect: false
       });
 
-      const redirectTo = toClientAuthRedirect(result, fallbackRedirect);
+      let redirectTo = toClientAuthRedirect(result, fallbackRedirect);
+
+      const user = await prisma.user.findFirst({
+        where: { email: parsedInput.email.toLowerCase() },
+        select: {
+          id: true,
+          organizationId: true,
+          organizationMemberships: { select: { id: true }, take: 1 }
+        }
+      });
+      if (user) {
+        await reassertSessionCookieForUser(user.id);
+        if (!user.organizationId && user.organizationMemberships.length === 0) {
+          redirectTo = Routes.NoWorkspace;
+        }
+      }
+
       return { redirectTo };
     } catch (e) {
       if (e instanceof CredentialsSignin) {

@@ -57,14 +57,19 @@ async function getAuthenticatedRedirect(userId: string): Promise<string> {
     where: { id: userId },
     select: {
       completedOnboarding: true,
-      organization: { select: { completedOnboarding: true } }
+      organizationId: true,
+      organization: { select: { completedOnboarding: true } },
+      organizationMemberships: { select: { id: true }, take: 1 }
     }
   });
 
   return getPostVerificationRedirect({
     completedOnboarding: user?.completedOnboarding ?? false,
     organizationCompletedOnboarding:
-      user?.organization?.completedOnboarding ?? false
+      user?.organization?.completedOnboarding ?? false,
+    hasOrganization:
+      Boolean(user?.organizationId) ||
+      (user?.organizationMemberships.length ?? 0) > 0
   });
 }
 

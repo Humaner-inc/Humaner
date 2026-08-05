@@ -16,6 +16,9 @@ dist
 .DS_Store
 *.pem
 .turbo
+__pycache__/
+*.pyc
+package-lock.json
 
 # debug
 npm-debug.log*

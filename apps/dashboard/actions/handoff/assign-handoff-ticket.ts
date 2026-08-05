@@ -29,15 +29,15 @@ export const assignHandoffTicket = pageActionClient('desk')
     }
 
     if (parsedInput.assigneeId) {
-      const assignee = await prisma.user.findFirst({
+      const membership = await prisma.organizationMembership.findFirst({
         where: {
-          id: parsedInput.assigneeId,
+          userId: parsedInput.assigneeId,
           organizationId: session.user.organizationId
         },
         select: { id: true }
       });
 
-      if (!assignee) {
+      if (!membership) {
         throw new NotFoundError('Teammate not found');
       }
     }

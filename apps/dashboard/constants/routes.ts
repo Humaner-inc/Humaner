@@ -72,7 +72,9 @@ export enum Routes {
   InvitationRevoked = '/invitations/revoked',
   InvitationLogOutToAccept = '/invitations/log-out-to-accept',
 
-  Onboarding = '/onboarding'
+  Onboarding = '/onboarding',
+  /** Authenticated account with no workspace membership. */
+  NoWorkspace = '/workspace'
 }
 
 export function agentPersonaRoute(agentId: string): string {

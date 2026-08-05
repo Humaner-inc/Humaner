@@ -37,6 +37,12 @@ export class AuthCookies {
     ? '__Secure-authjs.session-token'
     : 'authjs.session-token';
 
+  /** Signup path: business_owner | team_member (OAuth + credentials). */
+  public static SignUpIntent = 'humaner.signup-intent';
+
+  /** Optional invitation UUID when signing up via invite link. */
+  public static SignUpInvitationId = 'humaner.signup-invitation';
+
   public static sessionCookieOptions(expires?: Date): {
     httpOnly: true;
     secure: boolean;

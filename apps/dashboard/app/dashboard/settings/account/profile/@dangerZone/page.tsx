@@ -1,10 +1,16 @@
 import * as React from 'react';
+import { WorkspaceRole } from '@prisma/client';
 
 import { DangerZoneCard } from '@/components/dashboard/settings/account/profile/danger-zone-card';
-import { getPersonalDetails } from '@/data/account/get-personal-details';
+import { getProfile } from '@/data/account/get-profile';
 
 export default async function DangerZonePage(): Promise<React.JSX.Element> {
-  const personalDetails = await getPersonalDetails();
+  const profile = await getProfile();
 
-  return <DangerZoneCard email={personalDetails.email ?? ''} />;
+  return (
+    <DangerZoneCard
+      email={profile.email ?? ''}
+      isOwner={profile.workspaceRole === WorkspaceRole.OWNER}
+    />
+  );
 }

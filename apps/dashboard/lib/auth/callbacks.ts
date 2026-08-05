@@ -165,7 +165,26 @@ export const callbacks = {
   },
   async session({ trigger, session, user }) {
     if (session && user) {
-      session.user.organizationId = user.organizationId;
+      let organizationId = user.organizationId;
+
+      // Active workspace was cleared (e.g. that org was deleted). Reattach to
+      // another membership so the session remains valid.
+      if (!organizationId) {
+        const membership = await prisma.organizationMembership.findFirst({
+          where: { userId: user.id },
+          select: { organizationId: true },
+          orderBy: { createdAt: 'asc' }
+        });
+        if (membership) {
+          organizationId = membership.organizationId;
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { organizationId }
+          });
+        }
+      }
+
+      session.user.organizationId = organizationId;
       session.user.id = user.id;
     }
 

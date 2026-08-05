@@ -70,7 +70,16 @@ export async function establishUserSession(
 export function getPostVerificationRedirect(input: {
   completedOnboarding: boolean;
   organizationCompletedOnboarding: boolean;
+  hasOrganization: boolean;
 }): string {
+  if (!input.hasOrganization) {
+    // Team-member accounts finish preferences / workspace request first.
+    if (!input.completedOnboarding) {
+      return Routes.Onboarding;
+    }
+    return Routes.NoWorkspace;
+  }
+
   if (input.completedOnboarding && input.organizationCompletedOnboarding) {
     return Routes.Home;
   }

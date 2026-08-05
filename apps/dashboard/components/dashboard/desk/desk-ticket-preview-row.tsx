@@ -36,6 +36,10 @@ export const DESK_TICKET_STATUS_LABELS: Record<HandoffTicketStatus, string> = {
   CLOSED: 'Closed'
 };
 
+/** Shared height/padding for status + assignee chips in ticket previews. */
+export const DESK_TICKET_ACTION_CHIP_CLASSNAME =
+  'inline-flex h-6 min-h-6 max-h-6 shrink-0 items-center gap-1 rounded-none border border-border/60 bg-background px-1.5 py-0 text-[10px] font-medium leading-none text-foreground shadow-none';
+
 const URGENCY_COLOR: Record<HandoffTicketUrgency, string> = {
   HIGH: MODE_COLOR.LIVE,
   MEDIUM: MODE_COLOR.PRIORITY,
@@ -115,10 +119,10 @@ export function DeskTicketPreviewRow({
 }: DeskTicketPreviewRowProps): React.JSX.Element {
   const preview = ticket.note?.trim() || ticket.summary || 'No preview';
   const statusBadge = (
-    <span className="inline-flex h-5 items-center gap-1 rounded-none border border-border/60 bg-background px-1.5 text-[10px] font-medium leading-none text-foreground">
+    <span className={DESK_TICKET_ACTION_CHIP_CLASSNAME}>
       <StatusGlyph
         kind={ticketStatusToGlyph(ticket.status)}
-        className="size-3"
+        className="size-3 shrink-0"
       />
       {DESK_TICKET_STATUS_LABELS[ticket.status]}
     </span>

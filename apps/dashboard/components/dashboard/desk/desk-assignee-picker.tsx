@@ -6,6 +6,7 @@ import { CheckIcon, ChevronDownIcon, UserIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
+import { DESK_TICKET_ACTION_CHIP_CLASSNAME } from '@/components/dashboard/desk/desk-ticket-preview-row';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -83,8 +84,9 @@ export function DeskAssigneePicker({
           size="sm"
           disabled={pending || teamMembers.length === 0}
           className={cn(
-            'gap-1.5 rounded-none',
-            compact ? 'h-5 px-1.5 text-[10px] font-medium leading-none' : 'h-7',
+            compact
+              ? DESK_TICKET_ACTION_CHIP_CLASSNAME
+              : 'h-7 gap-1.5 rounded-none px-2',
             className
           )}
           onClick={(event) => event.stopPropagation()}
@@ -93,10 +95,12 @@ export function DeskAssigneePicker({
           {selected ? (
             <AssigneeAvatar
               assignee={selected}
-              className={compact ? 'size-3.5' : 'size-4'}
+              className={compact ? 'size-3.5 shrink-0' : 'size-4 shrink-0'}
             />
           ) : (
-            <UserIcon className={compact ? 'size-3' : 'size-3.5'} />
+            <UserIcon
+              className={cn('shrink-0', compact ? 'size-3' : 'size-3.5')}
+            />
           )}
           <span className="max-w-20 truncate">
             {selected
@@ -106,7 +110,10 @@ export function DeskAssigneePicker({
               : 'Assign'}
           </span>
           <ChevronDownIcon
-            className={cn('opacity-50', compact ? 'size-3' : 'size-3.5')}
+            className={cn(
+              'shrink-0 opacity-50',
+              compact ? 'size-3' : 'size-3.5'
+            )}
           />
         </Button>
       </DropdownMenuTrigger>

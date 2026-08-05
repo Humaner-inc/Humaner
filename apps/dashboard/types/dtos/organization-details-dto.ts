@@ -1,4 +1,6 @@
 export type OrganizationDetailsDto = {
+  /** Workspace ID teammates use when requesting access without an invite. */
+  id: string;
   name: string;
   address?: string;
   phone?: string;

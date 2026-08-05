@@ -10,7 +10,8 @@ export enum UserCacheKey {
   MultiFactorAuthentication,
   Sessions,
   TransactionalEmails,
-  MarketingEmails
+  MarketingEmails,
+  ActivityNotifications
 }
 
 export enum OrganizationCacheKey {

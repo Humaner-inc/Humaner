@@ -7,6 +7,31 @@ import { isDefined, type IsDefinedGuard } from '@/lib/validation/is-defined';
 import { isString } from '@/lib/validation/is-string';
 import type { Maybe } from '@/types/maybe';
 
+/** Signed-in user with identity fields; organization may be absent. */
+export function checkAuthenticatedSession(
+  session: Maybe<Session>
+): session is IsDefinedGuard<
+  Session & {
+    user: IsDefinedGuard<Session['user']> & {
+      id: string;
+      email: string;
+      name: string;
+    };
+  }
+> {
+  return (
+    isDefined(session) &&
+    isDefined(session.user) &&
+    isDefined(session.user.id) &&
+    uuidValidate(session.user.id) &&
+    isDefined(session.user.email) &&
+    isString(session.user.email) &&
+    isDefined(session.user.name) &&
+    isString(session.user.name)
+  );
+}
+
+/** Authenticated user with an active workspace selected. */
 export function checkSession(
   session: Maybe<Session>
 ): session is IsDefinedGuard<
@@ -20,20 +45,7 @@ export function checkSession(
   }
 > {
   return (
-    // Session
-    isDefined(session) &&
-    // Session.User
-    isDefined(session.user) &&
-    // Session.User.Id
-    isDefined(session.user.id) &&
-    uuidValidate(session.user.id) &&
-    // Session.User.Email
-    isDefined(session.user.email) &&
-    isString(session.user.email) &&
-    // Session.User.Name
-    isDefined(session.user.name) &&
-    isString(session.user.name) &&
-    // Session.User.OrganizationId
+    checkAuthenticatedSession(session) &&
     isDefined(session.user.organizationId) &&
     uuidValidate(session.user.organizationId)
   );

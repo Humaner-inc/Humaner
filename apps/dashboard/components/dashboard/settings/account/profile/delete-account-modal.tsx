@@ -68,7 +68,7 @@ export const DeleteAccountModal = NiceModal.create<DeleteAccountModalProps>(
     });
     const title = 'Delete account?';
     const description =
-      'Type your account email below to confirm. This permanently removes your access and cannot be undone.';
+      'Type your account email below to confirm. Workspaces you own or are the sole member of must be deleted first. This permanently removes your access and cannot be undone.';
     const canSubmit =
       !methods.formState.isSubmitting &&
       methods.formState.isValid &&
@@ -164,7 +164,8 @@ export const DeleteAccountModal = NiceModal.create<DeleteAccountModalProps>(
                 />
               </FormControl>
               <FormLabel className="cursor-pointer leading-snug">
-                I understand I will lose access to this workspace and its data.
+                I understand my account and personal data will be permanently
+                deleted.
               </FormLabel>
             </FormItem>
           )}

@@ -99,7 +99,9 @@ export async function completeEmailVerification(
       name: true,
       emailVerified: true,
       completedOnboarding: true,
-      organization: { select: { completedOnboarding: true } }
+      organizationId: true,
+      organization: { select: { completedOnboarding: true } },
+      organizationMemberships: { select: { id: true }, take: 1 }
     }
   });
 
@@ -110,7 +112,9 @@ export async function completeEmailVerification(
   const redirectTo = getPostVerificationRedirect({
     completedOnboarding: user.completedOnboarding,
     organizationCompletedOnboarding:
-      user.organization?.completedOnboarding ?? false
+      user.organization?.completedOnboarding ?? false,
+    hasOrganization:
+      Boolean(user.organizationId) || user.organizationMemberships.length > 0
   });
 
   if (!user.emailVerified) {

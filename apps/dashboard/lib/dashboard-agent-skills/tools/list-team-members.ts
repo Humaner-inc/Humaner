@@ -19,16 +19,20 @@ export const listTeamMembersTool: DashboardAgentTool = {
   },
   requiredPages: ['settings'],
   execute: async (_input, context) => {
-    const [members, invitations] = await Promise.all([
-      prisma.user.findMany({
+    const [memberships, invitations] = await Promise.all([
+      prisma.organizationMembership.findMany({
         where: { organizationId: context.organizationId },
         select: {
-          name: true,
-          email: true,
           workspaceRole: true,
-          allowedPages: true
+          allowedPages: true,
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          }
         },
-        orderBy: { name: 'asc' }
+        orderBy: { user: { name: 'asc' } }
       }),
       prisma.invitation.findMany({
         where: {
@@ -45,13 +49,13 @@ export const listTeamMembersTool: DashboardAgentTool = {
     ]);
 
     return JSON.stringify({
-      memberCount: members.length,
+      memberCount: memberships.length,
       pendingInviteCount: invitations.length,
-      members: members.map((member) => ({
-        name: member.name,
-        email: member.email,
-        workspaceRole: member.workspaceRole,
-        allowedPages: member.allowedPages
+      members: memberships.map((membership) => ({
+        name: membership.user.name,
+        email: membership.user.email,
+        workspaceRole: membership.workspaceRole,
+        allowedPages: membership.allowedPages
       })),
       pendingInvitations: invitations.map((invite) => ({
         email: invite.email,

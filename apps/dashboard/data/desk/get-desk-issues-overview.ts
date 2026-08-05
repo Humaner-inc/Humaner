@@ -85,15 +85,19 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
       orderBy: { updatedAt: 'desc' },
       take: 5
     }),
-    prisma.user.findMany({
+    prisma.organizationMembership.findMany({
       where: { organizationId },
       select: {
-        id: true,
-        name: true,
-        image: true,
-        email: true
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true
+          }
+        }
       },
-      orderBy: { name: 'asc' }
+      orderBy: { user: { name: 'asc' } }
     })
   ]);
 
@@ -143,11 +147,11 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
       assigneeId: ticket.assigneeId,
       updatedAt: ticket.updatedAt.toISOString()
     })),
-    teamMembers: teamMembers.map((member) => ({
-      id: member.id,
-      name: member.name,
-      image: member.image,
-      email: member.email
+    teamMembers: teamMembers.map((membership) => ({
+      id: membership.user.id,
+      name: membership.user.name,
+      image: membership.user.image,
+      email: membership.user.email
     })),
     currentUserId
   };

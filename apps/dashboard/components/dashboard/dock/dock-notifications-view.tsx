@@ -15,6 +15,7 @@ import {
 } from '@humaner/shared/icons';
 import { formatDistanceToNow } from 'date-fns';
 
+import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
 import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useDockNotifications } from '@/components/dashboard/dock/dock-notifications-context';
 import { HumanDeskNotificationItem } from '@/components/dashboard/notifications/human-desk-notification-item';
@@ -72,15 +73,12 @@ export function DockNotificationsView(): React.JSX.Element {
   return (
     <div className="h-full overflow-y-auto p-4">
       {grouped.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 px-2 text-center">
-          <span className="flex size-11 items-center justify-center rounded-full bg-muted">
-            <BellIcon className="size-5 text-muted-foreground" />
-          </span>
-          <p className="text-sm font-medium">You&apos;re all caught up</p>
-          <p className="text-xs text-muted-foreground">
-            Nothing needs your attention right now.
-          </p>
-        </div>
+        <FeatureIntroEmpty
+          compact
+          icon={<BellIcon strokeWidth={1.25} />}
+          title="You're all caught up"
+          description="Nothing needs your attention right now."
+        />
       ) : (
         <div className="space-y-6">
           {grouped.map((section, index) => (

@@ -1,8 +1,7 @@
-import type { BuiltInProviderType } from '@auth/core/providers';
-import type { LiteralUnion } from 'next-auth/react';
+import type { ProviderId } from '@auth/core/providers';
 
 export type ConnectedAccountDto = {
-  id: LiteralUnion<BuiltInProviderType>;
+  id: ProviderId;
   name: string;
   type: string;
   linked: boolean;

@@ -31,7 +31,7 @@ import { OrgModeProvider } from '@/hooks/use-org-mode';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
-import { checkSession } from '@/lib/auth/session';
+import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
@@ -49,7 +49,7 @@ export default async function DashboardLayout({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
-  if (!checkSession(session)) {
+  if (!checkAuthenticatedSession(session)) {
     return redirect(getLoginRedirect());
   }
 
@@ -76,6 +76,14 @@ export default async function DashboardLayout({
       }
     }
   });
+
+  if (!checkSession(session)) {
+    if (!userFromDb?.completedOnboarding) {
+      return redirect(Routes.Onboarding);
+    }
+    return redirect(Routes.NoWorkspace);
+  }
+
   if (
     !userFromDb!.completedOnboarding ||
     !userFromDb!.organization!.completedOnboarding

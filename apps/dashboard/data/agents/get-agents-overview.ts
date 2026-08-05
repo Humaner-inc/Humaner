@@ -79,6 +79,9 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
           _count: { select: { chunks: true } },
           knowledgeSources: { select: { status: true } },
           conversations: {
+            // Bound per agent so overview stays O(agents × window), not lifetime history.
+            take: 500,
+            orderBy: { updatedAt: 'desc' },
             select: {
               messages: {
                 select: { role: true, unanswered: true, failureReason: true }

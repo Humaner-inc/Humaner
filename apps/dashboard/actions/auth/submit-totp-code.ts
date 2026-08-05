@@ -32,7 +32,10 @@ export const submitTotpCode = actionClient
         redirect: false
       });
 
-      return { redirectTo: toClientAuthRedirect(result, fallbackRedirect) };
+      // Prefer app destination — Auth.js often returns /api/auth/signin here.
+      return {
+        redirectTo: toClientAuthRedirect(result, fallbackRedirect)
+      };
     } catch (e) {
       if (e instanceof CredentialsSignin) {
         return returnValidationErrors(submitTotpCodeSchema, {

@@ -48,6 +48,8 @@ export type AnalyticsOverview = {
 
 const VOLUME_DAYS = 30;
 const GAP_CONVERSATION_LIMIT = 200;
+/** Cap lifetime outcome scan so analytics stays bounded as tenants grow. */
+const OUTCOME_CONVERSATION_LIMIT = 5000;
 
 function buildVolumeByDay(
   messages: { createdAt: Date }[],
@@ -125,17 +127,21 @@ export async function getAnalyticsOverview(options?: {
   const agentFilter = options?.agentId ? { id: options.agentId } : {};
   const volumeStart = subDays(startOfDay(new Date()), VOLUME_DAYS - 1);
 
+  const organization = await prisma.organization.findFirst({
+    where: { id: organizationId },
+    select: { tier: true, includedMessages: true }
+  });
+  const tier = normalizeTier(organization?.tier ?? 'free');
+  const plan = getEffectivePlan(tier, organization?.includedMessages);
+
   const [
-    organization,
     conversations,
     volumeMessages,
     volumeConversations,
-    gapConversations
+    gapConversations,
+    messagesUsed,
+    totalMessages
   ] = await Promise.all([
-    prisma.organization.findFirst({
-      where: { id: organizationId },
-      select: { tier: true, includedMessages: true }
-    }),
     prisma.conversation.findMany({
       where: { agent: { organizationId, ...agentFilter } },
       select: {
@@ -145,7 +151,9 @@ export async function getAnalyticsOverview(options?: {
         handoffTickets: {
           select: { status: true }
         }
-      }
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: OUTCOME_CONVERSATION_LIMIT
     }),
     prisma.message.findMany({
       where: {
@@ -190,6 +198,10 @@ export async function getAnalyticsOverview(options?: {
       },
       orderBy: { updatedAt: 'desc' },
       take: GAP_CONVERSATION_LIMIT
+    }),
+    getMessagesUsedThisMonth(organizationId, tier),
+    prisma.message.count({
+      where: { conversation: { agent: { organizationId, ...agentFilter } } }
     })
   ]);
 
@@ -199,11 +211,6 @@ export async function getAnalyticsOverview(options?: {
       ? Math.round((outcomeCounts.satisfied / outcomeCounts.total) * 100)
       : 0;
 
-  const tier = normalizeTier(organization?.tier ?? 'free');
-  const plan = getEffectivePlan(tier, organization?.includedMessages);
-
-  // Content-gap detection is a Frontier (v2.0) capability. Lower tiers still see the
-  // unanswered count in analytics, but not the itemized gaps + suggested fixes.
   const contentGapsEnabled = getPlanCapabilities(tier).contentGaps;
   const detectedGaps = extractDetectedContentGaps(gapConversations);
   const knowledgeGaps = contentGapsEnabled ? detectedGaps : [];
@@ -211,11 +218,6 @@ export async function getAnalyticsOverview(options?: {
     (total, gap) => total + gap.count,
     0
   );
-  const messagesUsed = await getMessagesUsedThisMonth(organizationId, tier);
-
-  const totalMessages = await prisma.message.count({
-    where: { conversation: { agent: { organizationId, ...agentFilter } } }
-  });
 
   return {
     summary: {

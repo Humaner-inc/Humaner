@@ -1,6 +1,12 @@
+import { cookies } from 'next/headers';
+import { InvitationStatus } from '@prisma/client';
 import type { NextAuthConfig, User } from 'next-auth';
 
-import { createOrganizationAndConnectUser } from '@/lib/auth/organization';
+import { AuthCookies } from '@/lib/auth/cookies';
+import {
+  acceptInvitationForExistingUser,
+  createOrganizationAndConnectUser
+} from '@/lib/auth/organization';
 import { verifyEmail } from '@/lib/auth/verification';
 import { prisma } from '@/lib/db/prisma';
 import { fetchAndResizeRemoteImage } from '@/lib/imaging/fetch-and-resize-remote-image';
@@ -104,7 +110,41 @@ export const events = {
       }
 
       if (isNewUser && user.email) {
-        if (!user.organizationId) {
+        const cookieStore = await cookies();
+        const signupIntent =
+          cookieStore.get(AuthCookies.SignUpIntent)?.value ?? 'business_owner';
+        const invitationId = cookieStore.get(
+          AuthCookies.SignUpInvitationId
+        )?.value;
+
+        cookieStore.delete(AuthCookies.SignUpIntent);
+        cookieStore.delete(AuthCookies.SignUpInvitationId);
+
+        if (signupIntent === 'team_member') {
+          if (invitationId) {
+            const invitation = await prisma.invitation.findFirst({
+              where: {
+                id: invitationId,
+                status: InvitationStatus.PENDING,
+                email: user.email.toLowerCase()
+              },
+              select: {
+                id: true,
+                organizationId: true,
+                allowedPages: true
+              }
+            });
+            if (invitation) {
+              await acceptInvitationForExistingUser({
+                invitationId: invitation.id,
+                userId: user.id,
+                organizationId: invitation.organizationId,
+                allowedPages: invitation.allowedPages
+              });
+            }
+          }
+          // No workspace yet — member onboarding handles join requests.
+        } else if (!user.organizationId) {
           await createOrganizationAndConnectUser({
             userId: user.id,
             normalizedEmail: user.email.toLowerCase()

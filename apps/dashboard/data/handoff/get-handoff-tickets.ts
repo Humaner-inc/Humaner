@@ -122,10 +122,6 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         visitorLeftAt: true,
         subject: true,
         summary: true,
-        whySummary: true,
-        howSummary: true,
-        transcript: true,
-        note: true,
         source: true,
         status: true,
         urgency: true,
@@ -135,9 +131,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         resolvedAt: true,
         resolvedBy: true,
         resolvedByName: true,
-        resolutionSolution: true,
         loopStatus: true,
-        draftSolution: true,
         loopSolvedAt: true,
         loopError: true,
         liveChatTimedOut: true,
@@ -157,15 +151,19 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
       take: HANDOFF_TICKET_LIMIT
     }),
-    prisma.user.findMany({
+    prisma.organizationMembership.findMany({
       where: { organizationId },
       select: {
-        id: true,
-        name: true,
-        image: true,
-        email: true
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true
+          }
+        }
       },
-      orderBy: { name: 'asc' }
+      orderBy: { user: { name: 'asc' } }
     }),
     prisma.apiKey.count({
       where: { organizationId }
@@ -250,11 +248,11 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
     mailFromAddresses,
     integrationProfile,
     currentUserId: session.user.id,
-    teamMembers: teamMembers.map((member) => ({
-      id: member.id,
-      name: member.name,
-      image: member.image,
-      email: member.email
+    teamMembers: teamMembers.map((membership) => ({
+      id: membership.user.id,
+      name: membership.user.name,
+      image: membership.user.image,
+      email: membership.user.email
     })),
     businessHours,
     tickets: tickets.map((ticket) => {
@@ -276,10 +274,11 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         visitorLeftAt: ticket.visitorLeftAt?.toISOString() ?? null,
         subject: ticket.subject,
         summary: ticket.summary,
-        whySummary: ticket.whySummary ?? null,
-        howSummary: ticket.howSummary ?? null,
-        transcript: ticket.transcript,
-        note: ticket.note,
+        // Heavy fields are loaded on ticket select via getHandoffTicketDetail.
+        whySummary: null,
+        howSummary: null,
+        transcript: '',
+        note: null,
         source: ticket.source,
         status: ticket.status as HandoffTicketStatus,
         urgency,
@@ -289,9 +288,9 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
         resolvedBy: ticket.resolvedBy ?? null,
         resolvedByName: ticket.resolvedByName ?? null,
-        resolutionSolution: ticket.resolutionSolution ?? null,
+        resolutionSolution: null,
         loopStatus: ticket.loopStatus ?? null,
-        draftSolution: ticket.draftSolution ?? null,
+        draftSolution: null,
         loopSolvedAt: ticket.loopSolvedAt?.toISOString() ?? null,
         loopError: ticket.loopError ?? null,
         liveChatTimedOut: ticket.liveChatTimedOut ?? false,

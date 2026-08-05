@@ -10,7 +10,7 @@ import {
   canAccessPageKey,
   getUserAccessContext
 } from '@/lib/auth/require-workspace-access';
-import { checkSession } from '@/lib/auth/session';
+import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
 import {
   ForbiddenError,
@@ -60,16 +60,28 @@ export const actionClient = createSafeActionClient({
   }
 });
 
-export const authActionClient = actionClient.use(async ({ next }) => {
+/** Signed in; workspace optional (create workspace, delete account, etc.). */
+export const authenticatedActionClient = actionClient.use(async ({ next }) => {
   const session = await dedupedAuth();
-  if (!checkSession(session)) {
-    // Do not redirect() from a Safe Action — it returns a non-RSC response and
-    // the client throws "An unexpected response was received from the server."
+  if (!checkAuthenticatedSession(session)) {
     throw new ForbiddenError('Please sign in again to continue');
   }
 
   return next({ ctx: { session } });
 });
+
+/** Signed in with an active workspace. */
+export const authActionClient = authenticatedActionClient.use(
+  async ({ next, ctx }) => {
+    if (!checkSession(ctx.session)) {
+      // Do not redirect() from a Safe Action — it returns a non-RSC response and
+      // the client throws "An unexpected response was received from the server."
+      throw new ForbiddenError('Select or create a workspace to continue');
+    }
+
+    return next({ ctx: { session: ctx.session } });
+  }
+);
 
 export async function requireDashboardPageAccess(
   userId: string,

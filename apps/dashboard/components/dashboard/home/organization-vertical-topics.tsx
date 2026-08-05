@@ -84,14 +84,14 @@ export function OrganizationVerticalTopics({
                 onClick={() => toggle(topic)}
                 aria-pressed={isSelected}
                 className={cn(
-                  'flex w-full items-center gap-2.5 rounded-none px-1 py-1.5 text-left transition-colors',
+                  'flex w-full items-start gap-2.5 rounded-none px-1 py-1.5 text-left transition-colors',
                   'hover:bg-muted/40 disabled:opacity-60',
                   isSelected ? 'text-foreground' : 'text-muted-foreground'
                 )}
               >
                 <span
                   className={cn(
-                    'flex size-4 shrink-0 items-center justify-center border',
+                    'mt-0.5 flex size-4 shrink-0 items-center justify-center border',
                     isSelected
                       ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                       : 'border-border/70 bg-transparent text-transparent'

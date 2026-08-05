@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { cache } from 'react';
 import {
   getPlanCapabilities,
   getPlanForTier,
@@ -13,17 +14,18 @@ import { PreConditionError } from '@/lib/validation/exceptions';
 /**
  * Resolve the runtime capability matrix for an organization from its plan tier.
  * Single source of truth for feature gating in server actions.
+ * Deduped within a single RSC request via React.cache.
  */
-export async function getOrganizationCapabilities(
-  organizationId: string
-): Promise<PlanCapabilities> {
-  const organization = await prisma.organization.findUnique({
-    where: { id: organizationId },
-    select: { tier: true }
-  });
+export const getOrganizationCapabilities = cache(
+  async (organizationId: string): Promise<PlanCapabilities> => {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { tier: true }
+    });
 
-  return getPlanCapabilities(organization?.tier ?? 'free');
-}
+    return getPlanCapabilities(organization?.tier ?? 'free');
+  }
+);
 
 /** Throw when a paid capability is missing for the org's current plan. */
 export async function requireOrganizationCapability(

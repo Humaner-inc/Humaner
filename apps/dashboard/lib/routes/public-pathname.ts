@@ -39,6 +39,7 @@ const PROTECTED_APP_PREFIXES = [
   '/human-desk',
   '/training',
   '/admin',
+  '/workspace',
   INTERNAL_APP_PREFIX
 ] as const;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CheckIcon, CopyIcon } from '@humaner/shared/icons';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/card';
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,6 +28,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useZodForm } from '@/hooks/use-zod-form';
 import {
   updateOrganizationDetailsSchema,
@@ -62,6 +65,8 @@ export function OrganizationDetailsCard({
   const canSubmit = !methods.formState.isSubmitting;
   const watchedName = methods.watch('name');
   const watchedWebsite = methods.watch('website');
+  const copyToClipboard = useCopyToClipboard();
+  const [copiedWorkspaceId, setCopiedWorkspaceId] = React.useState(false);
   const onSubmit: SubmitHandler<UpdateOrganizationDetailsSchema> = async (
     values
   ) => {
@@ -139,6 +144,39 @@ export function OrganizationDetailsCard({
                 </FormItem>
               )}
             />
+            <div className="flex w-full flex-col gap-2">
+              <FormLabel>Workspace ID</FormLabel>
+              <FormDescription>
+                Share with teammates who sign up as team members without an
+                invite.
+              </FormDescription>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={details.id}
+                  className="font-mono text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  aria-label="Copy workspace ID"
+                  onClick={async () => {
+                    await copyToClipboard(details.id);
+                    setCopiedWorkspaceId(true);
+                    toast.success('Workspace ID copied');
+                    window.setTimeout(() => setCopiedWorkspaceId(false), 1500);
+                  }}
+                >
+                  {copiedWorkspaceId ? (
+                    <CheckIcon className="size-4 text-emerald-500" />
+                  ) : (
+                    <CopyIcon className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
             <FormField
               control={methods.control}
               name="address"

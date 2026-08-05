@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { OrganizationDangerZoneSection } from '@/components/dashboard/settings/organization/information/organization-danger-zone-section';
 import { AnnotatedLayout } from '@/components/ui/annotated';
 import { Separator } from '@/components/ui/separator';
 
@@ -21,6 +22,8 @@ export default function OrganizationInformationLayout({
       {businessHours}
       <Separator />
       {socialMedia}
+      <Separator />
+      <OrganizationDangerZoneSection />
     </AnnotatedLayout>
   );
 }

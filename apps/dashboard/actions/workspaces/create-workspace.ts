@@ -2,13 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { authActionClient } from '@/actions/safe-action';
+import { authenticatedActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { createWorkspaceForUser } from '@/lib/auth/workspace-membership';
 import { PreConditionError } from '@/lib/validation/exceptions';
 import { createWorkspaceSchema } from '@/schemas/workspaces/workspace-schemas';
 
-export const createWorkspace = authActionClient
+export const createWorkspace = authenticatedActionClient
   .metadata({ actionName: 'createWorkspace' })
   .schema(createWorkspaceSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -24,6 +24,7 @@ export const createWorkspace = authActionClient
 
     revalidatePath(Routes.Home);
     revalidatePath(Routes.Onboarding);
+    revalidatePath(Routes.NoWorkspace);
 
     return { redirectTo: Routes.Onboarding };
   });

@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 import { passwordValidator } from '@/lib/auth/password-validator';
 
+export const signUpIntentSchema = z.enum(['business_owner', 'team_member']);
+
+export type SignUpIntent = z.infer<typeof signUpIntentSchema>;
+
 export const signUpSchema = z.object({
+  intent: signUpIntentSchema.default('business_owner'),
+  invitationId: z.union([z.string().uuid(), z.literal('')]).optional(),
   name: z
     .string({
       required_error: 'Name is required.',
