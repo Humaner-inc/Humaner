@@ -100,6 +100,6 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
     revalidatePath(Routes.Desk);
     revalidatePath(Routes.DeskHuman);
     revalidatePath(Routes.DeskClusters);
-    revalidatePath(Routes.DeskAI);
+    revalidatePath(Routes.DeskAgent);
     revalidatePath(Routes.History);
   });

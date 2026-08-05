@@ -3,7 +3,7 @@
 Deploy your own support helpdesk with a **starter agent** powered by our /customer-support-skillz. Bring your LLM API key. White-label via `brand.config.ts`.
 
 Not included within self-hosting:
-Humaner Intelligence, AI Desk, training-loop, runbooks, inboxes and live chat handoff.
+Humaner Intelligence, Agent Desk, training-loop, runbooks, inboxes and live chat handoff.
 
 ## Quick start (Docker)
 

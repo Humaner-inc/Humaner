@@ -39,6 +39,16 @@ export type HandoffInboxTicket = {
   resolvedBy: string | null;
   resolvedByName: string | null;
   resolutionSolution: string | null;
+  loopStatus:
+    | 'SOLVING'
+    | 'DRAFT_READY'
+    | 'APPROVED'
+    | 'REJECTED'
+    | 'FAILED'
+    | null;
+  draftSolution: string | null;
+  loopSolvedAt: string | null;
+  loopError: string | null;
   liveChatTimedOut: boolean;
   assignee: HandoffInboxAssignee | null;
   assignedAt: string | null;

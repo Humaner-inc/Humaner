@@ -136,6 +136,10 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         resolvedBy: true,
         resolvedByName: true,
         resolutionSolution: true,
+        loopStatus: true,
+        draftSolution: true,
+        loopSolvedAt: true,
+        loopError: true,
         liveChatTimedOut: true,
         assignedAt: true,
         createdAt: true,
@@ -286,6 +290,10 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
         resolvedBy: ticket.resolvedBy ?? null,
         resolvedByName: ticket.resolvedByName ?? null,
         resolutionSolution: ticket.resolutionSolution ?? null,
+        loopStatus: ticket.loopStatus ?? null,
+        draftSolution: ticket.draftSolution ?? null,
+        loopSolvedAt: ticket.loopSolvedAt?.toISOString() ?? null,
+        loopError: ticket.loopError ?? null,
         liveChatTimedOut: ticket.liveChatTimedOut ?? false,
         assignee: ticket.assignee
           ? {

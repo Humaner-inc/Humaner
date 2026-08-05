@@ -56,7 +56,7 @@ const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
     label: 'Runbooks',
     icon: FileTextIcon,
     href: (agentId) => agentRunbooksRoute(agentId),
-    requiredCapability: 'aiDesk'
+    requiredCapability: 'agentDesk'
   },
   {
     id: 'escalation',

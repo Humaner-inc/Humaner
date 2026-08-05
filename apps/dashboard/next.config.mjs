@@ -131,8 +131,13 @@ const nextConfig = {
       },
       {
         source: '/desk',
-        destination: '/desk/ai',
+        destination: '/desk/agent',
         permanent: false
+      },
+      {
+        source: '/desk/ai',
+        destination: '/desk/agent',
+        permanent: true
       },
       {
         source: '/inbox',

@@ -12,7 +12,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Analytics]: 'Analytics',
   [Routes.History]: 'History',
   [Routes.Desk]: 'Desk',
-  [Routes.DeskAI]: 'Desk',
+  [Routes.DeskAgent]: 'Agent Desk',
   [Routes.DeskHuman]: 'Human Desk',
   [Routes.DeskRunbooks]: 'Runbooks',
   [Routes.DeskClusters]: 'Clusters',

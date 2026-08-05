@@ -36,7 +36,7 @@ export enum Routes {
   Analytics = '/analytics',
   History = '/history',
   Desk = '/desk',
-  DeskAI = '/desk/ai',
+  DeskAgent = '/desk/agent',
   DeskHuman = '/desk/human',
   DeskRunbooks = '/desk/runbooks',
   DeskClusters = '/desk/clusters',

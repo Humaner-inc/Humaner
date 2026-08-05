@@ -150,7 +150,7 @@ export default async function DashboardLayout({
         orgTier={userFromDb!.organization!.tier ?? 'free'}
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCounts.humanOpen}
-        aiDeskOpenCount={handoffOpenCounts.aiOpen}
+        agentDeskOpenCount={handoffOpenCounts.agentOpen}
         agents={agents.map((a) => ({
           id: a.id,
           name: a.name,

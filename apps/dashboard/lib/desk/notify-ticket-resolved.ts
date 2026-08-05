@@ -46,7 +46,7 @@ export async function notifyTicketResolved(
     null;
   const ref = formatTicketRef(ticket.ticketNumber);
   const resolverLabel =
-    input.resolvedBy === 'ai' ? 'AI Desk' : input.resolvedByName;
+    input.resolvedBy === 'ai' ? 'Agent Desk' : input.resolvedByName;
 
   const summaryParts = [
     `Your issue ${ref} has been resolved by ${resolverLabel}.`

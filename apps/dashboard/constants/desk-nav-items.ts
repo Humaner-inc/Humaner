@@ -7,7 +7,7 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
-export type DeskNavTabId = 'ai' | 'human' | 'clusters' | 'settings';
+export type DeskNavTabId = 'agent' | 'human' | 'clusters' | 'settings';
 
 export type DeskNavTab = {
   id: DeskNavTabId;
@@ -20,11 +20,11 @@ export type DeskNavTab = {
 
 const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
   {
-    id: 'ai',
-    label: 'AI Desk',
+    id: 'agent',
+    label: 'Agent Desk',
     icon: BotIcon,
-    href: Routes.DeskAI,
-    requiredCapability: 'aiDesk'
+    href: Routes.DeskAgent,
+    requiredCapability: 'agentDesk'
   },
   {
     id: 'human',
@@ -74,15 +74,15 @@ export function getDeskNavTabs(): DeskNavTab[] {
 
 export function getDeskHomeHref(orgTier?: string): string {
   if (isOssDeployment()) return Routes.DeskHuman;
-  if (orgTier && !getPlanCapabilities(orgTier).aiDesk) {
+  if (orgTier && !getPlanCapabilities(orgTier).agentDesk) {
     return Routes.DeskHuman;
   }
-  return Routes.DeskAI;
+  return Routes.DeskAgent;
 }
 
 export function getActiveDeskTab(pathname: string): DeskNavTabId | null {
-  if (pathname.startsWith(Routes.DeskAI)) {
-    return 'ai';
+  if (pathname.startsWith(Routes.DeskAgent)) {
+    return 'agent';
   }
   if (pathname.startsWith(Routes.DeskHuman)) {
     return 'human';

@@ -30,7 +30,7 @@ Humaner is your support layer to manage agents, helpdesk and inboxes all-in one 
 
 **Self-Host** ships the dashboard, org management, async **Helpdesk**, and a **starter agent** (open Industry Skillz + markdown knowledge + your LLM key). White-label via `brand.config.ts`. See [`SELF_HOST.md`](./SELF_HOST.md).
 
-**Humaner Cloud** fills the agent slot with Agent Intelligence (Core Skillz, RAG, memory) and Desk Intelligence (AI Desk, runbooks, clusters, live chat, Inbox).
+**Humaner Cloud** fills the agent slot with Agent Intelligence (Core Skillz, RAG, memory) and Desk Intelligence (Agent Desk, runbooks, clusters, live chat, Inbox).
 
 ```mermaid
 flowchart TB
@@ -45,7 +45,7 @@ flowchart TB
 
   subgraph HOSTED["Cloud — app.humaner.io"]
     HAI["Agent Intelligence<br/>Core Skillz · RAG · memory"]
-    HDI["Desk Intelligence<br/>AI Desk · runbooks · clusters · live chat"]
+    HDI["Desk Intelligence<br/>Agent Desk · runbooks · clusters · live chat"]
   end
 
   SITE --> INT
@@ -147,11 +147,11 @@ packages/
 
 Humaner follows a **partial open-source** model: ship what operators need to embed and run desk workflows; keep managed intelligence on Cloud:
 
-| Self-host (this repo)                                         | Humaner Cloud                                   |
-| ------------------------------------------------------------- | ----------------------------------------------- |
-| Widget, React SDK, API, auth, rate limits                     | Everything in OSS, plus managed agent inference |
-| Workspaces, members, RBAC                                     | Grounded retrieval, memory, and live data       |
-| Desk handoff UI and Human Desk tickets (bring your own agent) | AI Desk, runbooks, clusters, and training gates |
+| Self-host (this repo)                                         | Humaner Cloud                                      |
+| ------------------------------------------------------------- | -------------------------------------------------- |
+| Widget, React SDK, API, auth, rate limits                     | Everything in OSS, plus managed agent inference    |
+| Workspaces, members, RBAC                                     | Grounded retrieval, memory, and live data          |
+| Desk handoff UI and Human Desk tickets (bring your own agent) | Agent Desk, runbooks, clusters, and training gates |
 
 Details: [Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)
 
