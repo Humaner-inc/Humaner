@@ -79,7 +79,7 @@ export function SignUpCard({
     }
   });
   const password = methods.watch('password');
-  const intent = methods.watch('intent');
+  const intent = methods.watch('intent') ?? 'business_owner';
   const emailLocked = Boolean(invitationEmail);
 
   const persistIntent = async (next: SignUpIntent): Promise<void> => {

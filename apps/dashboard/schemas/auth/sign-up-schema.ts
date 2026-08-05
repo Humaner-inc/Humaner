@@ -7,7 +7,7 @@ export const signUpIntentSchema = z.enum(['business_owner', 'team_member']);
 export type SignUpIntent = z.infer<typeof signUpIntentSchema>;
 
 export const signUpSchema = z.object({
-  intent: signUpIntentSchema.default('business_owner'),
+  intent: signUpIntentSchema,
   invitationId: z.union([z.string().uuid(), z.literal('')]).optional(),
   name: z
     .string({
