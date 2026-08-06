@@ -16,8 +16,7 @@ import {
   authLabelClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
-  authPageTitleClassName,
-  authPrimaryButtonClassName
+  authPageTitleClassName
 } from '@/components/auth/auth-form-styles';
 import { DangerZoneCard } from '@/components/dashboard/settings/account/profile/danger-zone-card';
 import { Button } from '@/components/ui/button';
@@ -381,9 +380,9 @@ export function NoWorkspacePage({
                       </Button>
                       <Button
                         type="submit"
-                        variant="ghost"
+                        variant="outline"
                         className={cn(
-                          authPrimaryButtonClassName,
+                          authOutlineButtonClassName,
                           'rounded-none sm:flex-1'
                         )}
                         loading={isSubmitting}
@@ -452,9 +451,9 @@ export function NoWorkspacePage({
                       </Button>
                       <Button
                         type="submit"
-                        variant="ghost"
+                        variant="outline"
                         className={cn(
-                          authPrimaryButtonClassName,
+                          authOutlineButtonClassName,
                           'rounded-none sm:flex-1'
                         )}
                         loading={isSubmitting}

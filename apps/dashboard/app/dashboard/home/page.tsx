@@ -11,11 +11,13 @@ import { InboxOverviewCard } from '@/components/dashboard/home/inbox-overview-ca
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
 import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
+import { getProfile } from '@/data/account/get-profile';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
 import { getDeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
 import { getInboxHomeOverview } from '@/data/inbox/get-inbox-home-overview';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
 import { dedupedAuth } from '@/lib/auth';
+import { canAccessPathname } from '@/lib/auth/workspace-access';
 import {
   getEffectiveAgentLimit,
   getLiveAgentCount,
@@ -36,6 +38,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
 
   const [
+    profile,
     bypassLimits,
     organization,
     agents,
@@ -44,6 +47,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
     members,
     inboxOverview
   ] = await Promise.all([
+    getProfile(),
     session?.user?.id
       ? userBypassesPlanLimits(session.user.id)
       : Promise.resolve(false),
@@ -91,6 +95,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}
           includedMessages={organization?.includedMessages}
+          canAccessBilling={canAccessPathname(profile, Routes.Billing)}
         />
 
         <section className="space-y-4">

@@ -7,12 +7,17 @@ import { pageActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import {
+  aliasIdFilter,
+  resolveMailAliasScope
+} from '@/lib/inbox/mail-alias-scope';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 import {
+  NotFoundError,
   PreConditionError,
   RateLimitExceededError,
   ValidationError
@@ -62,15 +67,20 @@ export const replyMailThread = pageActionClient('inbox')
       throw new RateLimitExceededError();
     }
 
+    const scope = await resolveMailAliasScope({
+      userId: session.user.id,
+      organizationId
+    });
+    const scopedAliasIds = aliasIdFilter(scope);
+    if (scope.type === 'ids' && scope.aliasIds.length === 0) {
+      throw new NotFoundError('Thread not found');
+    }
+
     const thread = await prisma.mailThread.findFirst({
       where: {
         id: parsedInput.threadId,
         organizationId,
-        alias: {
-          members: {
-            some: { userId: session.user.id }
-          }
-        }
+        ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
       },
       select: {
         id: true,

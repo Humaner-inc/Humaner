@@ -14,6 +14,7 @@ import {
   joinOrganization
 } from '@/lib/auth/organization';
 import { hashPassword } from '@/lib/auth/password';
+import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { createHash, randomString } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
@@ -86,6 +87,10 @@ export const signUp = actionClient
         hashedPassword,
         role: invitation.role,
         allowedPages: invitation.allowedPages
+      });
+
+      revalidateWorkspaceMembership({
+        organizationId: invitation.organizationId
       });
 
       return await signIn(IdentityProvider.Credentials, {

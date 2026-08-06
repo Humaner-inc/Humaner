@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { RefreshCwIcon } from '@humaner/shared/icons';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -32,19 +32,21 @@ const FILTERS: Array<{ id: InboxListFilter; label: string }> = [
 export function InboxListHeader({
   activeFilter = 'all',
   activeTagId = null,
+  activeAliasId = null,
   tags = [],
   selection,
   className
 }: {
   activeFilter?: InboxListFilter;
   activeTagId?: string | null;
+  /** Preserve the current inbox alias when changing filters/tags. */
+  activeAliasId?: string | null;
   tags?: MailTagItem[];
   selection?: MailListSelectionApi;
   className?: string;
 }): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const { execute, isExecuting } = useAction(syncInboxNow, {
     onSuccess: ({ data }) => {
@@ -65,24 +67,25 @@ export function InboxListHeader({
     filter?: InboxListFilter | null;
     tagId?: string | null;
   }): string => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (next.filter !== undefined) {
-      if (!next.filter || next.filter === 'all') {
-        params.delete('filter');
-      } else {
-        params.set('filter', next.filter);
-      }
-      params.delete('tag');
+    // Build from known props — avoids useSearchParams (Suspense / CSR bailout).
+    const params = new URLSearchParams();
+    if (activeAliasId) {
+      params.set('alias', activeAliasId);
     }
 
-    if (next.tagId !== undefined) {
-      if (!next.tagId) {
-        params.delete('tag');
-      } else {
-        params.set('tag', next.tagId);
-        params.delete('filter');
+    if (next.filter !== undefined) {
+      // Filter changes clear the tag (same as previous searchParams behavior).
+      if (next.filter && next.filter !== 'all') {
+        params.set('filter', next.filter);
       }
+    } else if (next.tagId !== undefined) {
+      if (next.tagId) {
+        params.set('tag', next.tagId);
+      }
+    } else if (activeTagId) {
+      params.set('tag', activeTagId);
+    } else if (activeFilter !== 'all') {
+      params.set('filter', activeFilter);
     }
 
     const query = params.toString();

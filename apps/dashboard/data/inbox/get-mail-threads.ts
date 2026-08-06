@@ -4,6 +4,10 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import {
+  aliasIdFilter,
+  resolveMailAliasScope
+} from '@/lib/inbox/mail-alias-scope';
+import {
   getMailProviderById,
   MAIL_PROVIDERS
 } from '@/lib/inbox/mail-providers';
@@ -89,11 +93,17 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];
 
+  const scope = await resolveMailAliasScope({
+    userId: session.user.id,
+    organizationId
+  });
+  const scopedAliasIds = aliasIdFilter(scope);
+
   const aliases = await prisma.mailAlias.findMany({
     where: {
       organizationId,
       enabled: true,
-      members: { some: { userId: session.user.id } }
+      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
     },
     orderBy: { address: 'asc' },
     select: {
@@ -145,15 +155,20 @@ export async function getMailUnreadCount(): Promise<number> {
   const organizationId = session.user.organizationId;
   if (!organizationId) return 0;
 
+  const scope = await resolveMailAliasScope({
+    userId: session.user.id,
+    organizationId
+  });
+  const scopedAliasIds = aliasIdFilter(scope);
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) return 0;
+
   // Unopened = flagged unread AND still waiting on an inbound (no reply yet).
   const threads = await prisma.mailThread.findMany({
     where: {
       organizationId,
       isUnread: true,
       archivedAt: null,
-      alias: {
-        members: { some: { userId: session.user.id } }
-      }
+      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
     },
     select: {
       id: true,
@@ -184,6 +199,19 @@ export async function getMailThreads(options?: {
   if (!organizationId) return [];
 
   const archived = options?.archived === true;
+  const scope = await resolveMailAliasScope({
+    userId: session.user.id,
+    organizationId
+  });
+  const scopedAliasIds = aliasIdFilter(scope);
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) return [];
+  if (
+    options?.aliasId &&
+    scope.type === 'ids' &&
+    !scope.aliasIds.includes(options.aliasId)
+  ) {
+    return [];
+  }
 
   const threads = await prisma.mailThread.findMany({
     where: {
@@ -192,12 +220,11 @@ export async function getMailThreads(options?: {
       ...(options?.unreadOnly ? { isUnread: true } : {}),
       ...(options?.status ? { status: options.status } : {}),
       ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
-      alias: {
-        members: {
-          some: { userId: session.user.id }
-        },
-        ...(options?.aliasId ? { id: options.aliasId } : {})
-      },
+      ...(options?.aliasId
+        ? { aliasId: options.aliasId }
+        : scopedAliasIds
+          ? { aliasId: scopedAliasIds }
+          : {}),
       ...(options?.assignedToCurrentUser ? { assigneeId: session.user.id } : {})
     },
     orderBy: { lastMessageAt: 'desc' },
@@ -295,15 +322,18 @@ export async function getMailThread(
   const organizationId = session.user.organizationId;
   if (!organizationId) return null;
 
+  const scope = await resolveMailAliasScope({
+    userId: session.user.id,
+    organizationId
+  });
+  const scopedAliasIds = aliasIdFilter(scope);
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) return null;
+
   const thread = await prisma.mailThread.findFirst({
     where: {
       id: threadId,
       organizationId,
-      alias: {
-        members: {
-          some: { userId: session.user.id }
-        }
-      }
+      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
     },
     select: {
       id: true,

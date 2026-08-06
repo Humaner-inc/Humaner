@@ -84,9 +84,12 @@ export default async function DashboardLayout({
     return redirect(Routes.NoWorkspace);
   }
 
+  // Owners must finish workspace setup. Teammates only need their own
+  // onboarding — they should not be trapped in the business-owner wizard.
+  const isWorkspaceOwner = userFromDb!.workspaceRole === WorkspaceRole.OWNER;
   if (
     !userFromDb!.completedOnboarding ||
-    !userFromDb!.organization!.completedOnboarding
+    (isWorkspaceOwner && !userFromDb!.organization!.completedOnboarding)
   ) {
     return redirect(Routes.Onboarding);
   }

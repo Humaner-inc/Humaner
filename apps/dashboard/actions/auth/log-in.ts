@@ -11,7 +11,8 @@ import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { signIn } from '@/lib/auth';
 import {
   getSafeAuthCallbackUrl,
-  toClientAuthRedirect
+  toClientAuthRedirect,
+  toMfaChallengeRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
 import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
@@ -33,6 +34,7 @@ export const logIn = actionClient
       // Auth.js v5 returns a string URL when redirect: false (not { url, error }).
       // That URL is often the Auth.js sign-in page — never trust it alone for
       // client navigation; prefer our safe fallback when it points at /auth.
+      // MFA challenge URLs (/auth/totp, /auth/recovery-code) are an exception.
       const result = await signIn(IdentityProvider.Credentials, {
         email: parsedInput.email,
         password: parsedInput.password,
@@ -40,7 +42,13 @@ export const logIn = actionClient
         redirect: false
       });
 
-      let redirectTo = toClientAuthRedirect(result, fallbackRedirect);
+      const redirectTo = toClientAuthRedirect(result, fallbackRedirect);
+
+      // Password was accepted but authenticator is required — do not mint or
+      // revive a session cookie before the TOTP / recovery step completes.
+      if (toMfaChallengeRedirect(redirectTo)) {
+        return { redirectTo };
+      }
 
       const user = await prisma.user.findFirst({
         where: { email: parsedInput.email.toLowerCase() },
@@ -53,7 +61,7 @@ export const logIn = actionClient
       if (user) {
         await reassertSessionCookieForUser(user.id);
         if (!user.organizationId && user.organizationMemberships.length === 0) {
-          redirectTo = Routes.NoWorkspace;
+          return { redirectTo: Routes.NoWorkspace };
         }
       }
 

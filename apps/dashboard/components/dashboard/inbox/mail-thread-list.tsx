@@ -152,13 +152,50 @@ export function MailThreadList({
   const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
-  /** Optimistic read/time updates after opening a thread until refresh lands. */
+  type ThreadOverride = {
+    removed?: boolean;
+    isUnread?: boolean;
+    awaitingReply?: boolean;
+    lastMessageAt?: string;
+    tag?: MailTagItem | null;
+    assigneeName?: string | null;
+  };
+
+  /** Optimistic patches until the server list refresh lands. */
   const [localOverrides, setLocalOverrides] = React.useState<
-    Record<
-      string,
-      { isUnread?: boolean; awaitingReply?: boolean; lastMessageAt?: string }
-    >
+    Record<string, ThreadOverride>
   >({});
+
+  const [splitReady, setSplitReady] = React.useState(false);
+  React.useEffect(() => {
+    setSplitReady(true);
+  }, []);
+
+  const patchThreads = React.useCallback(
+    (ids: string[], patch: ThreadOverride) => {
+      setLocalOverrides((current) => {
+        const next = { ...current };
+        for (const id of ids) {
+          next[id] = { ...next[id], ...patch };
+        }
+        return next;
+      });
+    },
+    []
+  );
+
+  const restoreThreads = React.useCallback((ids: string[]) => {
+    setLocalOverrides((current) => {
+      const next = { ...current };
+      for (const id of ids) {
+        if (!next[id]) continue;
+        const { removed: _removed, ...rest } = next[id];
+        if (Object.keys(rest).length === 0) delete next[id];
+        else next[id] = rest;
+      }
+      return next;
+    });
+  }, []);
 
   const markThreadOpened = React.useCallback((threadId: string) => {
     setLocalOverrides((current) => ({
@@ -178,6 +215,25 @@ export function MailThreadList({
     setPaneThread(null);
     setPaneLoading(false);
   }, []);
+
+  const removeThreads = React.useCallback(
+    (ids: string[]) => {
+      patchThreads(ids, { removed: true });
+      if (
+        activeThreadIdRef.current &&
+        ids.includes(activeThreadIdRef.current)
+      ) {
+        clearPane();
+      }
+      setSelectedIds((current) => {
+        if (ids.every((id) => !current.has(id))) return current;
+        const next = new Set(current);
+        for (const id of ids) next.delete(id);
+        return next;
+      });
+    },
+    [clearPane, patchThreads]
+  );
 
   const { execute: loadThread } = useAction(fetchMailThread, {
     onSuccess: ({ data, input }) => {
@@ -233,29 +289,67 @@ export function MailThreadList({
     }
   }, [threads, activeThreadId, clearPane]);
 
+  const displayThreads = React.useMemo(() => {
+    return threads
+      .filter((thread) => !localOverrides[thread.id]?.removed)
+      .map((thread) => {
+        const override = localOverrides[thread.id];
+        if (!override) return thread;
+        return {
+          ...thread,
+          isUnread: override.isUnread ?? thread.isUnread,
+          awaitingReply: override.awaitingReply ?? thread.awaitingReply,
+          lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt,
+          tag: override.tag === undefined ? thread.tag : override.tag,
+          assigneeName:
+            override.assigneeName === undefined
+              ? thread.assigneeName
+              : override.assigneeName
+        };
+      });
+  }, [threads, localOverrides]);
+
   React.useEffect(() => {
     setLocalOverrides((current) => {
       let changed = false;
       const next = { ...current };
-      const valid = new Set(threads.map((thread) => thread.id));
+      const byId = new Map(threads.map((thread) => [thread.id, thread]));
 
       for (const id of Object.keys(next)) {
-        if (!valid.has(id)) {
+        const override = next[id];
+        const thread = byId.get(id);
+
+        if (override.removed) {
+          // Keep until the server list confirms the thread is gone.
+          if (!thread) {
+            delete next[id];
+            changed = true;
+          }
+          continue;
+        }
+
+        if (!thread) {
           delete next[id];
           changed = true;
+          continue;
         }
-      }
 
-      for (const thread of threads) {
-        const override = next[thread.id];
-        if (!override) continue;
-        const unreadCaughtUp = !thread.isUnread;
+        const unreadCaughtUp =
+          override.isUnread === undefined ||
+          thread.isUnread === override.isUnread;
         const timeCaughtUp =
           !override.lastMessageAt ||
           new Date(thread.lastMessageAt).getTime() >=
             new Date(override.lastMessageAt).getTime() - 2000;
-        if (unreadCaughtUp && timeCaughtUp) {
-          delete next[thread.id];
+        const tagCaughtUp =
+          override.tag === undefined ||
+          (override.tag?.id ?? null) === (thread.tag?.id ?? null);
+        const assigneeCaughtUp =
+          override.assigneeName === undefined ||
+          (thread.assigneeName ?? null) === (override.assigneeName ?? null);
+
+        if (unreadCaughtUp && timeCaughtUp && tagCaughtUp && assigneeCaughtUp) {
+          delete next[id];
           changed = true;
         }
       }
@@ -267,7 +361,9 @@ export function MailThreadList({
   // After a reply/refresh, drop cached detail so the pane reloads fresh content.
   React.useEffect(() => {
     if (!activeThreadId) return;
-    const listItem = threads.find((thread) => thread.id === activeThreadId);
+    const listItem = displayThreads.find(
+      (thread) => thread.id === activeThreadId
+    );
     if (!listItem) return;
     const cached = detailCacheRef.current.get(activeThreadId);
     if (!cached) return;
@@ -279,11 +375,12 @@ export function MailThreadList({
       setPaneLoading(true);
       loadThread({ threadId: activeThreadId });
     }
-  }, [threads, activeThreadId, loadThread]);
+  }, [displayThreads, activeThreadId, loadThread]);
 
-  const allSelected = threads.length > 0 && selectedIds.size === threads.length;
+  const allSelected =
+    displayThreads.length > 0 && selectedIds.size === displayThreads.length;
   const someSelected =
-    selectedIds.size > 0 && selectedIds.size < threads.length;
+    selectedIds.size > 0 && selectedIds.size < displayThreads.length;
   const selectedList = React.useMemo(() => [...selectedIds], [selectedIds]);
 
   const toggleOne = React.useCallback((threadId: string, checked: boolean) => {
@@ -297,84 +394,115 @@ export function MailThreadList({
 
   const toggleAll = React.useCallback(() => {
     setSelectedIds((current) => {
-      if (threads.length > 0 && current.size === threads.length) {
+      if (displayThreads.length > 0 && current.size === displayThreads.length) {
         return new Set();
       }
-      return new Set(threads.map((thread) => thread.id));
+      return new Set(displayThreads.map((thread) => thread.id));
     });
-  }, [threads]);
+  }, [displayThreads]);
 
   const clearSelection = React.useCallback(() => {
     setSelectedIds(new Set());
   }, []);
 
+  const refreshInBackground = React.useCallback(() => {
+    router.refresh();
+  }, [router]);
+
   const { execute: runBulkArchive } = useAction(bulkArchiveMailThreads, {
-    onSuccess: ({ data }) => {
-      toast.success(
-        archivedView
-          ? `Moved ${data?.count ?? selectedList.length} to inbox`
-          : `Archived ${data?.count ?? selectedList.length}`
-      );
+    onSuccess: () => {
       clearSelection();
-      router.refresh();
+      refreshInBackground();
     },
-    onError: ({ error }) =>
-      toast.error(error.serverError || 'Could not update threads')
+    onError: ({ error, input }) => {
+      restoreThreads(input.threadIds);
+      toast.error(error.serverError || 'Could not update threads');
+    }
   });
 
   const { execute: runBulkDelete } = useAction(bulkDeleteMailThreads, {
-    onSuccess: ({ data }) => {
-      toast.success(`Deleted ${data?.count ?? deleteIds.length}`);
+    onSuccess: () => {
       clearSelection();
       setDeleteOpen(false);
       setDeleteIds([]);
-      router.refresh();
+      refreshInBackground();
     },
-    onError: ({ error }) =>
-      toast.error(error.serverError || 'Could not delete threads')
+    onError: ({ error, input }) => {
+      restoreThreads(input.threadIds);
+      toast.error(error.serverError || 'Could not delete threads');
+    }
   });
 
   const { execute: runBulkAssign } = useAction(bulkAssignMailThreads, {
-    onSuccess: ({ data }) => {
-      toast.success(`Assigned ${data?.count ?? selectedList.length}`);
+    onSuccess: () => {
       clearSelection();
-      router.refresh();
+      refreshInBackground();
     },
     onError: ({ error }) =>
       toast.error(error.serverError || 'Could not assign threads')
   });
 
   const { execute: runBulkTag } = useAction(bulkApplyMailThreadTag, {
-    onSuccess: ({ data }) => {
-      toast.success(`Tagged ${data?.count ?? selectedList.length}`);
+    onSuccess: () => {
       clearSelection();
-      router.refresh();
+      refreshInBackground();
     },
     onError: ({ error }) =>
       toast.error(error.serverError || 'Could not tag threads')
   });
 
+  const { execute: runRowArchive } = useAction(archiveMailThread, {
+    onSuccess: () => refreshInBackground(),
+    onError: ({ error, input }) => {
+      restoreThreads([input.threadId]);
+      toast.error(error.serverError || 'Could not archive');
+    }
+  });
+
+  const { execute: runRowAssign } = useAction(assignMailThread, {
+    onSuccess: () => refreshInBackground(),
+    onError: ({ error }) => toast.error(error.serverError || 'Could not assign')
+  });
+
+  const { execute: runRowTag } = useAction(applyMailThreadTag, {
+    onSuccess: () => refreshInBackground(),
+    onError: ({ error }) => toast.error(error.serverError || 'Could not tag')
+  });
+
+  const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
+    onSuccess: () => refreshInBackground(),
+    onError: ({ error, input }) => {
+      patchThreads([input.threadId], { isUnread: true, awaitingReply: true });
+      toast.error(error.serverError || 'Could not update read state');
+    }
+  });
+
   const askDelete = React.useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return;
+      const commit = (): void => {
+        removeThreads(ids);
+        toast.success(`Deleted ${ids.length}`);
+        runBulkDelete({ threadIds: ids });
+      };
       requestMailDelete(
         skipDeleteWarning,
         () => {
           setDeleteIds(ids);
           setDeleteOpen(true);
         },
-        () => runBulkDelete({ threadIds: ids })
+        commit
       );
     },
-    [runBulkDelete, skipDeleteWarning]
+    [removeThreads, runBulkDelete, skipDeleteWarning]
   );
 
   const selectableTags = React.useMemo(() => {
-    const selectedAliasIds = threads
+    const selectedAliasIds = displayThreads
       .filter((thread) => selectedIds.has(thread.id))
       .map((thread) => thread.aliasId);
     return tagsForAliasIds(tags, selectedAliasIds);
-  }, [threads, selectedIds, tags]);
+  }, [displayThreads, selectedIds, tags]);
 
   const selectionApi: MailListSelectionApi = {
     selectedCount: selectedIds.size,
@@ -383,14 +511,33 @@ export function MailThreadList({
     toggleAll,
     clearSelection,
     askDeleteSelected: () => askDelete(selectedList),
-    archiveSelected: () =>
+    archiveSelected: () => {
+      const ids = selectedList;
+      removeThreads(ids);
+      toast.success(
+        archivedView ? `Moved ${ids.length} to inbox` : `Archived ${ids.length}`
+      );
       runBulkArchive({
-        threadIds: selectedList,
+        threadIds: ids,
         archive: !archivedView
-      }),
-    assignSelected: (assigneeId) =>
-      runBulkAssign({ threadIds: selectedList, assigneeId }),
-    tagSelected: (tagId) => runBulkTag({ threadIds: selectedList, tagId }),
+      });
+    },
+    assignSelected: (assigneeId) => {
+      const memberName =
+        assigneeId == null
+          ? null
+          : (members.find((member) => member.id === assigneeId)?.name ?? null);
+      patchThreads(selectedList, { assigneeName: memberName });
+      toast.success(`Assigned ${selectedList.length}`);
+      runBulkAssign({ threadIds: selectedList, assigneeId });
+    },
+    tagSelected: (tagId) => {
+      const tag =
+        tagId == null ? null : (tags.find((item) => item.id === tagId) ?? null);
+      patchThreads(selectedList, { tag });
+      toast.success(`Tagged ${selectedList.length}`);
+      runBulkTag({ threadIds: selectedList, tagId });
+    },
     tags: selectableTags,
     members,
     archivedView
@@ -398,22 +545,11 @@ export function MailThreadList({
 
   const isDesk = variant === 'desk';
 
-  const threadRows = threads.map((thread) => {
-    const override = localOverrides[thread.id];
-    const displayThread =
-      override == null
-        ? thread
-        : {
-            ...thread,
-            isUnread: override.isUnread ?? thread.isUnread,
-            awaitingReply: override.awaitingReply ?? thread.awaitingReply,
-            lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt
-          };
-
+  const threadRows = displayThreads.map((thread) => {
     return (
       <MailThreadRow
         key={thread.id}
-        thread={displayThread}
+        thread={thread}
         tags={tags}
         members={members}
         archivedView={archivedView}
@@ -422,6 +558,37 @@ export function MailThreadList({
         onToggleSelected={(checked) => toggleOne(thread.id, checked)}
         onSelect={() => selectThread(thread.id)}
         onAskDelete={() => askDelete([thread.id])}
+        onArchive={(archive) => {
+          removeThreads([thread.id]);
+          toast.success(archive ? 'Archived' : 'Moved to inbox');
+          runRowArchive({ threadId: thread.id, archive });
+        }}
+        onAssign={(assigneeId) => {
+          const memberName =
+            assigneeId == null
+              ? null
+              : (members.find((member) => member.id === assigneeId)?.name ??
+                null);
+          patchThreads([thread.id], { assigneeName: memberName });
+          toast.success('Assigned');
+          runRowAssign({ threadId: thread.id, assigneeId });
+        }}
+        onTag={(tagId) => {
+          const tag =
+            tagId == null
+              ? null
+              : (tags.find((item) => item.id === tagId) ?? null);
+          patchThreads([thread.id], { tag });
+          toast.success('Tag updated');
+          runRowTag({ threadId: thread.id, tagId });
+        }}
+        onMarkRead={() => {
+          patchThreads([thread.id], {
+            isUnread: false,
+            awaitingReply: false
+          });
+          runRowMarkRead({ threadId: thread.id, isUnread: false });
+        }}
       />
     );
   });
@@ -501,6 +668,23 @@ export function MailThreadList({
           members={members}
           embedded
           onClosed={clearPane}
+          onRemoved={() => {
+            removeThreads([paneThread.id]);
+          }}
+          onPatched={(patch) => {
+            patchThreads([paneThread.id], patch);
+            setPaneThread((current) =>
+              current
+                ? {
+                    ...current,
+                    ...(patch.tag !== undefined ? { tag: patch.tag } : {}),
+                    ...(patch.isUnread !== undefined
+                      ? { isUnread: patch.isUnread }
+                      : {})
+                  }
+                : current
+            );
+          }}
         />
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
@@ -510,25 +694,56 @@ export function MailThreadList({
     </div>
   );
 
+  const deskSplitFallback = (
+    <div className="flex h-full min-h-0 w-full">
+      <div className="h-full w-[24%] min-w-[18%] max-w-[34%] shrink-0 border-r border-border/50">
+        {listPanel}
+      </div>
+      <div className="h-full min-h-0 min-w-0 flex-1 bg-background">
+        {readingPane}
+      </div>
+    </div>
+  );
+
+  const cardSplitFallback = (
+    <div className="flex h-full min-h-0 w-full">
+      <div className="h-full w-[38%] min-w-[24%] max-w-[50%] shrink-0">
+        {listPanel}
+      </div>
+      <div className="h-full min-h-0 min-w-0 flex-1">{readingPane}</div>
+    </div>
+  );
+
   const split = isDesk ? (
     <>
       <div className="hidden min-h-0 w-full md:block">
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="h-full"
-        >
-          <ResizablePanel
-            defaultSize={24}
-            minSize={18}
-            maxSize={34}
+        {splitReady ? (
+          <ResizablePanelGroup
+            id="inbox-desk-split"
+            direction="horizontal"
+            className="h-full"
           >
-            <div className="h-full border-r border-border/50">{listPanel}</div>
-          </ResizablePanel>
-          <ResizableHandle className="w-px bg-border/50 transition-colors hover:bg-border" />
-          <ResizablePanel defaultSize={76}>
-            <div className="h-full min-h-0 bg-background">{readingPane}</div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            <ResizablePanel
+              id="inbox-desk-list"
+              defaultSize={24}
+              minSize={18}
+              maxSize={34}
+            >
+              <div className="h-full border-r border-border/50">
+                {listPanel}
+              </div>
+            </ResizablePanel>
+            <ResizableHandle className="w-px bg-border/50 transition-colors hover:bg-border" />
+            <ResizablePanel
+              id="inbox-desk-reading"
+              defaultSize={76}
+            >
+              <div className="h-full min-h-0 bg-background">{readingPane}</div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          deskSplitFallback
+        )}
       </div>
       <div className="w-full md:hidden">
         {activeThreadId && paneThread ? (
@@ -541,25 +756,32 @@ export function MailThreadList({
   ) : (
     <div className="h-[min(72vh,calc(100vh-12rem))] min-h-[420px] overflow-hidden border border-border bg-background">
       <div className="hidden h-full md:block">
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="h-full"
-        >
-          <ResizablePanel
-            defaultSize={38}
-            minSize={24}
-            maxSize={50}
+        {splitReady ? (
+          <ResizablePanelGroup
+            id="inbox-card-split"
+            direction="horizontal"
+            className="h-full"
           >
-            {listPanel}
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel
-            defaultSize={62}
-            minSize={40}
-          >
-            {readingPane}
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            <ResizablePanel
+              id="inbox-card-list"
+              defaultSize={38}
+              minSize={24}
+              maxSize={50}
+            >
+              {listPanel}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              id="inbox-card-reading"
+              defaultSize={62}
+              minSize={40}
+            >
+              {readingPane}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          cardSplitFallback
+        )}
       </div>
       <div className="h-full md:hidden">{listPanel}</div>
     </div>
@@ -575,7 +797,12 @@ export function MailThreadList({
       }}
       onConfirm={() => {
         setSkipDeleteWarning(readSkipDeleteWarning());
-        runBulkDelete({ threadIds: deleteIds });
+        const ids = deleteIds;
+        setDeleteOpen(false);
+        setDeleteIds([]);
+        removeThreads(ids);
+        toast.success(`Deleted ${ids.length}`);
+        runBulkDelete({ threadIds: ids });
       }}
     />
   );
@@ -715,7 +942,11 @@ function MailThreadRow({
   selected,
   onToggleSelected,
   onSelect,
-  onAskDelete
+  onAskDelete,
+  onArchive,
+  onAssign,
+  onTag,
+  onMarkRead
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
@@ -726,6 +957,10 @@ function MailThreadRow({
   onToggleSelected: (checked: boolean) => void;
   onSelect: () => void;
   onAskDelete: () => void;
+  onArchive: (archive: boolean) => void;
+  onAssign: (assigneeId: string | null) => void;
+  onTag: (tagId: string | null) => void;
+  onMarkRead: () => void;
 }): React.JSX.Element {
   const router = useRouter();
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
@@ -733,45 +968,7 @@ function MailThreadRow({
   const label = senderLabel(thread);
   const applicableTags = tagsForAlias(tags, thread.aliasId);
   // Replied threads are opened even if isUnread was left stale in the DB.
-  const effectivelyUnread = thread.isUnread && thread.awaitingReply;
-  const [localUnread, setLocalUnread] = React.useState(effectivelyUnread);
-
-  React.useEffect(() => {
-    setLocalUnread(thread.isUnread && thread.awaitingReply);
-  }, [thread.isUnread, thread.awaitingReply]);
-
-  const { execute: runArchive } = useAction(archiveMailThread, {
-    onSuccess: () => {
-      toast.success(archivedView ? 'Moved to inbox' : 'Archived');
-      router.refresh();
-    },
-    onError: ({ error }) =>
-      toast.error(error.serverError || 'Could not archive')
-  });
-
-  const { execute: runAssign } = useAction(assignMailThread, {
-    onSuccess: () => {
-      toast.success('Assigned');
-      router.refresh();
-    },
-    onError: ({ error }) => toast.error(error.serverError || 'Could not assign')
-  });
-
-  const { execute: runTag } = useAction(applyMailThreadTag, {
-    onSuccess: () => {
-      toast.success('Tag updated');
-      router.refresh();
-    },
-    onError: ({ error }) => toast.error(error.serverError || 'Could not tag')
-  });
-
-  const { execute: markRead } = useAction(markMailThreadRead, {
-    onSuccess: () => router.refresh(),
-    onError: ({ error }) => {
-      setLocalUnread(true);
-      toast.error(error.serverError || 'Could not update read state');
-    }
-  });
+  const localUnread = thread.isUnread && thread.awaitingReply;
 
   const openThread = (): void => {
     // Desktop: keep selection in the reading pane. Mobile: full thread page.
@@ -829,7 +1026,7 @@ function MailThreadRow({
         <Avatar className="size-9 shrink-0">
           {domain ? (
             <AvatarImage
-              src={getLogoUrl(domain, 72, true)}
+              src={getLogoUrl(domain, 64, true)}
               alt=""
             />
           ) : null}
@@ -846,7 +1043,7 @@ function MailThreadRow({
         <div className="min-w-0 flex-1">
           <p
             className={cn(
-              'min-w-0 truncate pr-1 text-sm leading-5 tracking-tight',
+              'min-w-0 truncate pr-1 font-fellix text-sm leading-5 tracking-tight',
               localUnread
                 ? 'font-semibold text-foreground'
                 : 'font-medium text-foreground/90'
@@ -901,8 +1098,7 @@ function MailThreadRow({
               title="Mark as read"
               onClick={(event) => {
                 stopRowEvent(event);
-                setLocalUnread(false);
-                markRead({ threadId: thread.id, isUnread: false });
+                onMarkRead();
               }}
             >
               <CheckIcon className="size-3.5 text-sky-600" />
@@ -929,42 +1125,27 @@ function MailThreadRow({
               onCloseAutoFocus={(event) => event.preventDefault()}
             >
               {archivedView ? (
-                <DropdownMenuItem
-                  onSelect={() =>
-                    runArchive({
-                      threadId: thread.id,
-                      archive: false
-                    })
-                  }
-                >
+                <DropdownMenuItem onSelect={() => onArchive(false)}>
                   Move to inbox
                 </DropdownMenuItem>
-              ) : null}
+              ) : (
+                <DropdownMenuItem onSelect={() => onArchive(true)}>
+                  Archive
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <UserPlus2Icon className="mr-2 size-4" />
                   Assign
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      runAssign({
-                        threadId: thread.id,
-                        assigneeId: null
-                      })
-                    }
-                  >
+                  <DropdownMenuItem onSelect={() => onAssign(null)}>
                     Unassigned
                   </DropdownMenuItem>
                   {members.map((member) => (
                     <DropdownMenuItem
                       key={member.id}
-                      onSelect={() =>
-                        runAssign({
-                          threadId: thread.id,
-                          assigneeId: member.id
-                        })
-                      }
+                      onSelect={() => onAssign(member.id)}
                     >
                       {member.name}
                     </DropdownMenuItem>
@@ -975,22 +1156,13 @@ function MailThreadRow({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        runTag({ threadId: thread.id, tagId: null })
-                      }
-                    >
+                    <DropdownMenuItem onSelect={() => onTag(null)}>
                       No tag
                     </DropdownMenuItem>
                     {applicableTags.map((tag) => (
                       <DropdownMenuItem
                         key={tag.id}
-                        onSelect={() =>
-                          runTag({
-                            threadId: thread.id,
-                            tagId: tag.id
-                          })
-                        }
+                        onSelect={() => onTag(tag.id)}
                       >
                         <span
                           className="mr-2 size-2.5 rounded-full"

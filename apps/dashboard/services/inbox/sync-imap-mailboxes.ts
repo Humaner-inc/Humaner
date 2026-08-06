@@ -10,6 +10,10 @@ import { simpleParser, type AddressObject, type ParsedMail } from 'mailparser';
 import sanitizeHtml from 'sanitize-html';
 
 import { prisma } from '@/lib/db/prisma';
+import {
+  rewriteMailAssetUrls,
+  stripMailPreviewBlocks
+} from '@/lib/inbox/mail-body-display';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 
@@ -114,12 +118,20 @@ const MAIL_HTML_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   'tr',
   'td',
   'th',
+  'col',
+  'colgroup',
   'center',
   'font',
   'picture',
   'source',
   'figure',
-  'figcaption'
+  'figcaption',
+  'button',
+  'u',
+  's',
+  'strike',
+  'small',
+  'big'
 ]);
 
 const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
@@ -186,20 +198,67 @@ const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
     'class'
   ],
   tr: ['align', 'valign', 'bgcolor', 'style', 'class'],
+  col: ['span', 'width', 'style', 'class', 'align'],
+  colgroup: ['span', 'width', 'style', 'class', 'align'],
   font: ['color', 'face', 'size', 'style'],
   source: ['srcset', 'media', 'type', 'sizes']
 };
 
-function sanitizedMailHtml(value: string | false | undefined): string | null {
+const MAX_INLINE_CID_BYTES = 750_000;
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Rewrite cid: images to data URIs so logos/embeds survive sanitize + iframe. */
+function inlineCidImages(html: string, mail: ParsedMail): string {
+  const attachments = mail.attachments ?? [];
+  if (attachments.length === 0) return html;
+
+  let next = html;
+  for (const attachment of attachments) {
+    const rawCid = attachment.contentId?.trim();
+    if (!rawCid || !attachment.content?.length) continue;
+    if (attachment.content.length > MAX_INLINE_CID_BYTES) continue;
+
+    const cid = rawCid.replace(/^<|>$/g, '');
+    if (!cid) continue;
+
+    const mime =
+      attachment.contentType?.split(';')[0]?.trim() ||
+      'application/octet-stream';
+    if (!mime.startsWith('image/')) continue;
+
+    const dataUri = `data:${mime};base64,${attachment.content.toString('base64')}`;
+    next = next.replace(
+      new RegExp(`(?:cid:)${escapeRegExp(cid)}`, 'gi'),
+      dataUri
+    );
+  }
+
+  return next;
+}
+
+function normalizeMailImageSrc(src: string): string {
+  const trimmed = src.trim();
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  return trimmed;
+}
+
+function sanitizedMailHtml(
+  value: string | false | undefined,
+  mail?: ParsedMail
+): string | null {
   if (!value) return null;
 
-  return sanitizeHtml(value, {
+  const withInlineImages = mail ? inlineCidImages(value, mail) : value;
+
+  const sanitized = sanitizeHtml(withInlineImages, {
     allowedTags: MAIL_HTML_TAGS,
     allowedAttributes: MAIL_HTML_ATTRS,
     allowedSchemes: ['http', 'https', 'mailto'],
     allowedSchemesByTag: {
-      // Remote + data-URI images (tracking pixels / small embeds). cid: needs
-      // a separate attachment rewrite pipeline and is intentionally omitted.
+      // Remote + data-URI images (including CID rewritten above).
       img: ['http', 'https', 'data']
     },
     // Keep marketing-email inline CSS; scripts/handlers are still stripped.
@@ -208,9 +267,28 @@ function sanitizedMailHtml(value: string | false | undefined): string | null {
       a: sanitizeHtml.simpleTransform('a', {
         rel: 'noopener noreferrer',
         target: '_blank'
-      })
+      }),
+      img: (tagName, attribs) => {
+        const src = attribs.src
+          ? normalizeMailImageSrc(attribs.src)
+          : undefined;
+        return {
+          tagName,
+          attribs: src ? { ...attribs, src } : attribs
+        };
+      }
     }
-  }).slice(0, MAX_BODY_CHARS);
+  });
+
+  const origin =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://app.humaner.io';
+
+  return rewriteMailAssetUrls(stripMailPreviewBlocks(sanitized), origin).slice(
+    0,
+    MAX_BODY_CHARS
+  );
 }
 
 function threadIdForMail(mail: ParsedMail, fallback: string): string {
@@ -263,7 +341,7 @@ function parseForSync(
     toAddresses,
     ccAddresses,
     bodyText: mail.text?.slice(0, MAX_BODY_CHARS) || null,
-    bodyHtml: sanitizedMailHtml(mail.html),
+    bodyHtml: sanitizedMailHtml(mail.html, mail),
     sentAt: mail.date ?? new Date()
   };
 }

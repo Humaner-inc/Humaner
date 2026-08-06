@@ -7,6 +7,7 @@ import {
   acceptInvitationForExistingUser,
   createOrganizationAndConnectUser
 } from '@/lib/auth/organization';
+import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { verifyEmail } from '@/lib/auth/verification';
 import { prisma } from '@/lib/db/prisma';
 import { fetchAndResizeRemoteImage } from '@/lib/imaging/fetch-and-resize-remote-image';
@@ -14,6 +15,11 @@ import { sendConnectedAccountSecurityAlertEmail } from '@/lib/smtp/send-connecte
 import { sendWelcomeEmail } from '@/lib/smtp/send-welcome-email';
 import { getUserImageUrl } from '@/lib/urls/get-user-image-url';
 import { OAuthIdentityProvider } from '@/types/identity-provider';
+
+/** Local avatar path served by /api/user-images — not a raw Google/GitHub URL. */
+function hasLocalUserImage(image: string | null | undefined): boolean {
+  return Boolean(image?.startsWith('/api/user-images/'));
+}
 
 function getOAuthProfileImageUrl(
   provider: string,
@@ -30,7 +36,8 @@ function getOAuthProfileImageUrl(
       typeof picture === 'string' &&
       picture.includes('googleusercontent.com')
     ) {
-      return picture.replace(/=s\d+-c$/, '=s256-c');
+      // Normalize size tokens: =s96-c, =s96, =s256-c, etc.
+      return picture.replace(/=s\d+(-c)?$/, '=s256-c');
     }
 
     return picture;
@@ -55,6 +62,32 @@ function getOAuthProfileImageUrl(
   }
 
   return user.image;
+}
+
+async function ensureOAuthProfileImage(
+  user: User,
+  provider: string,
+  profile: Record<string, unknown> | undefined
+): Promise<void> {
+  if (!user.id) {
+    return;
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { image: true }
+  });
+
+  // Auth.js often stores the remote Google/GitHub URL on create — still copy
+  // into /api/user-images so avatars keep working without hotlinking.
+  if (hasLocalUserImage(existingUser?.image)) {
+    return;
+  }
+
+  await tryCopyProfileImage(
+    user,
+    getOAuthProfileImageUrl(provider, profile, user)
+  );
 }
 
 export const events = {
@@ -92,21 +125,11 @@ export const events = {
         account?.provider === OAuthIdentityProvider.Google ||
         account?.provider === OAuthIdentityProvider.GitHub
       ) {
-        const existingUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { image: true }
-        });
-
-        if (!existingUser?.image) {
-          await tryCopyProfileImage(
-            user,
-            getOAuthProfileImageUrl(
-              account.provider,
-              profile as unknown as Record<string, unknown> | undefined,
-              user
-            )
-          );
-        }
+        await ensureOAuthProfileImage(
+          user,
+          account.provider,
+          profile as unknown as Record<string, unknown> | undefined
+        );
       }
 
       if (isNewUser && user.email) {
@@ -140,6 +163,10 @@ export const events = {
                 userId: user.id,
                 organizationId: invitation.organizationId,
                 allowedPages: invitation.allowedPages
+              });
+              revalidateWorkspaceMembership({
+                organizationId: invitation.organizationId,
+                userId: user.id
               });
             }
           }
@@ -185,21 +212,11 @@ export const events = {
       (account.provider === OAuthIdentityProvider.Google ||
         account.provider === OAuthIdentityProvider.GitHub)
     ) {
-      const existingUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { image: true }
-      });
-
-      if (!existingUser?.image) {
-        await tryCopyProfileImage(
-          user,
-          getOAuthProfileImageUrl(
-            account.provider,
-            profile as unknown as Record<string, unknown> | undefined,
-            user
-          )
-        );
-      }
+      await ensureOAuthProfileImage(
+        user,
+        account.provider,
+        profile as unknown as Record<string, unknown> | undefined
+      );
     }
 
     if (user && user.name && user.email && account && account.provider) {

@@ -1,0 +1,158 @@
+/**
+ * Display helpers for collaborative inbox message bodies.
+ */
+
+/** Tags that indicate a designed / marketing HTML email (keep white iframe). */
+const RICH_MAIL_TAG_RE =
+  /<\s*(table|thead|tbody|tfoot|tr|td|th|img|picture|svg|video|source|style|font|center)\b/i;
+
+/** Background styling — only these force the white HTML shell. */
+const RICH_MAIL_BG_ATTR_RE = /\s(?:bgcolor|background)\s*=/i;
+const RICH_MAIL_BG_STYLE_RE =
+  /style\s*=\s*["'][^"']*\bbackground(?:-color)?\s*:/i;
+
+/**
+ * React-email / ESP preview text blocks that should stay invisible.
+ * When sanitize or client transforms strip `display:none`, the preview
+ * leaks as a stray first line (e.g. "Glad you're here.").
+ */
+const PREVIEW_BLOCK_RE =
+  /<div\b[^>]*(?:display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|overflow\s*:\s*hidden)[^>]*>[\s\S]*?<\/div>/gi;
+
+/** Localhost / relative app asset URLs that break when the mail is viewed later. */
+const BROKEN_APP_ASSET_SRC_RE =
+  /(?:https?:)?\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/(?:humaner-email|x-email)\.png)/gi;
+
+const RELATIVE_APP_ASSET_SRC_RE =
+  /(?:src|href)=(["'])(\/(?:humaner-email|x-email)\.png)\1/gi;
+
+function normalizeComparable(value: string): string {
+  return value.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/**
+ * True when HTML should render in the isolated white iframe.
+ * Plain-text messages (and simple Gmail `text/html` wrappers) return false
+ * so they inherit the app theme instead of a white card.
+ */
+export function isRichMailHtml(bodyHtml: string | null | undefined): boolean {
+  if (!bodyHtml?.trim()) return false;
+  if (RICH_MAIL_TAG_RE.test(bodyHtml)) return true;
+  if (RICH_MAIL_BG_ATTR_RE.test(bodyHtml)) return true;
+  if (RICH_MAIL_BG_STYLE_RE.test(bodyHtml)) return true;
+  return false;
+}
+
+/** Best-effort plain text from simple HTML when `bodyText` is missing. */
+export function htmlToPlainText(bodyHtml: string): string {
+  return bodyHtml
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Drop a leading subject line that duplicates the thread header. */
+export function stripLeadingSubjectFromText(
+  bodyText: string | null | undefined,
+  subject: string | null | undefined
+): string | null {
+  if (!bodyText?.trim()) return bodyText ?? null;
+  if (!subject?.trim()) return bodyText;
+
+  const needle = normalizeComparable(subject);
+  const lines = bodyText.replace(/^\uFEFF/, '').split(/\r?\n/);
+  let index = 0;
+  while (index < lines.length && !lines[index].trim()) index += 1;
+  if (index >= lines.length) return bodyText;
+
+  if (normalizeComparable(lines[index]) === needle) {
+    lines.splice(index, 1);
+    while (index < lines.length && !lines[index].trim()) lines.splice(index, 1);
+    return lines.join('\n');
+  }
+
+  return bodyText;
+}
+
+/**
+ * Remove a leading heading/paragraph that only repeats the thread subject
+ * (common in marketing templates that restate the object in the body).
+ */
+export function stripLeadingSubjectFromHtml(
+  bodyHtml: string | null | undefined,
+  subject: string | null | undefined
+): string | null {
+  if (!bodyHtml?.trim()) return bodyHtml ?? null;
+  if (!subject?.trim()) return bodyHtml;
+
+  const needle = normalizeComparable(subject);
+  const pattern = new RegExp(
+    `^\\s*(?:<!--[\\s\\S]*?-->\\s*)*(?:<(?:div|p|h1|h2|h3|span|center|td|th)(?:\\s[^>]*)?>\\s*)*(?:<strong(?:\\s[^>]*)?>\\s*)?(?:${escapeRegExp(
+      subject.trim()
+    )})(?:\\s*</strong>)?(?:\\s*</(?:div|p|h1|h2|h3|span|center|td|th)>)?`,
+    'i'
+  );
+
+  const stripped = bodyHtml.replace(pattern, (match) => {
+    const text = match
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return normalizeComparable(text) === needle ? '' : match;
+  });
+
+  return stripped;
+}
+
+/**
+ * Rewrite broken localhost / relative app asset URLs to the current origin
+ * so transactional logos and social icons still load in the reading pane.
+ */
+export function rewriteMailAssetUrls(html: string, origin: string): string {
+  const base = origin.replace(/\/$/, '');
+  return html
+    .replace(BROKEN_APP_ASSET_SRC_RE, `${base}$1`)
+    .replace(
+      RELATIVE_APP_ASSET_SRC_RE,
+      (_match, quote: string, path: string) => {
+        return `src=${quote}${base}${path}${quote}`;
+      }
+    );
+}
+
+/**
+ * Strip ESP / react-email preview dumps that often become visible after
+ * sanitize or client transforms remove their hiding styles.
+ */
+export function stripMailPreviewBlocks(html: string): string {
+  return html.replace(PREVIEW_BLOCK_RE, '');
+}
+
+/**
+ * Prepare stored HTML for iframe display — strip previews, fix asset URLs,
+ * drop duplicated subject lines.
+ */
+export function prepareMailHtmlForDisplay(
+  bodyHtml: string,
+  subject: string | null | undefined,
+  origin?: string
+): string {
+  let html = stripMailPreviewBlocks(bodyHtml);
+  if (origin) {
+    html = rewriteMailAssetUrls(html, origin);
+  }
+  return stripLeadingSubjectFromHtml(html, subject) ?? html;
+}

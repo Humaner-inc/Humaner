@@ -1,7 +1,8 @@
 import 'server-only';
 
-import { unstable_cache as cache } from 'next/cache';
+import { unstable_cache as cache, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { WorkspaceRole } from '@prisma/client';
 
 import {
   Caching,
@@ -11,9 +12,89 @@ import {
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { createOrganizationMembership } from '@/lib/auth/workspace-membership';
 import { prisma } from '@/lib/db/prisma';
 import type { MemberDto } from '@/types/dtos/member-dto';
 import { SortDirection } from '@/types/sorty-direction';
+
+/**
+ * Heal missing membership for users whose `organizationId` points here without
+ * a membership row. The /team list is membership-scoped — without this,
+ * invitees can reach the dashboard but never appear (including themselves).
+ */
+async function ensureMembershipRows(organizationId: string): Promise<boolean> {
+  const orphans = await prisma.user.findMany({
+    where: {
+      organizationId,
+      organizationMemberships: {
+        none: { organizationId }
+      }
+    },
+    select: {
+      id: true,
+      workspaceRole: true,
+      allowedPages: true
+    }
+  });
+
+  if (orphans.length === 0) {
+    return false;
+  }
+
+  await Promise.all(
+    orphans.map((user) =>
+      createOrganizationMembership({
+        userId: user.id,
+        organizationId,
+        workspaceRole: user.workspaceRole ?? WorkspaceRole.TEAMMATE,
+        allowedPages: user.allowedPages
+      })
+    )
+  );
+
+  revalidateTag(
+    Caching.createOrganizationTag(OrganizationCacheKey.Members, organizationId)
+  );
+  return true;
+}
+
+async function loadOrganizationMembers(
+  organizationId: string
+): Promise<MemberDto[]> {
+  const members = await prisma.organizationMembership.findMany({
+    where: { organizationId },
+    select: {
+      workspaceRole: true,
+      allowedPages: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          image: true,
+          name: true,
+          email: true,
+          role: true,
+          lastLogin: true
+        }
+      }
+    },
+    orderBy: {
+      createdAt: SortDirection.Asc
+    }
+  });
+
+  return members.map((membership) => ({
+    id: membership.user.id,
+    image: membership.user.image ?? undefined,
+    name: membership.user.name,
+    email: membership.user.email!,
+    role: membership.user.role,
+    workspaceRole: membership.workspaceRole,
+    allowedPages: membership.allowedPages,
+    dateAdded: membership.createdAt,
+    lastLogin: membership.user.lastLogin ?? undefined
+  }));
+}
 
 /** Org members visible to any workspace member (no owner gate). */
 export async function getOrganizationMembers(): Promise<MemberDto[]> {
@@ -22,45 +103,20 @@ export async function getOrganizationMembers(): Promise<MemberDto[]> {
     return redirect(getLoginRedirect());
   }
 
-  return cache(
-    async () => {
-      const members = await prisma.organizationMembership.findMany({
-        where: { organizationId: session.user.organizationId },
-        select: {
-          workspaceRole: true,
-          allowedPages: true,
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              image: true,
-              name: true,
-              email: true,
-              role: true,
-              lastLogin: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: SortDirection.Asc
-        }
-      });
+  const organizationId = session.user.organizationId;
+  const healed = await ensureMembershipRows(organizationId);
 
-      return members.map((membership) => ({
-        id: membership.user.id,
-        image: membership.user.image ?? undefined,
-        name: membership.user.name,
-        email: membership.user.email!,
-        role: membership.user.role,
-        workspaceRole: membership.workspaceRole,
-        allowedPages: membership.allowedPages,
-        dateAdded: membership.createdAt,
-        lastLogin: membership.user.lastLogin ?? undefined
-      }));
-    },
+  // Fresh read after healing — unstable_cache may still serve the stale list
+  // in the same request even after revalidateTag.
+  if (healed) {
+    return loadOrganizationMembers(organizationId);
+  }
+
+  return cache(
+    () => loadOrganizationMembers(organizationId),
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Members,
-      session.user.organizationId,
+      organizationId,
       'directory'
     ),
     {
@@ -68,7 +124,7 @@ export async function getOrganizationMembers(): Promise<MemberDto[]> {
       tags: [
         Caching.createOrganizationTag(
           OrganizationCacheKey.Members,
-          session.user.organizationId
+          organizationId
         )
       ]
     }

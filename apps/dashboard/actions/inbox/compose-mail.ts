@@ -7,12 +7,14 @@ import { pageActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { resolveMailAliasScope } from '@/lib/inbox/mail-alias-scope';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 import {
+  NotFoundError,
   PreConditionError,
   RateLimitExceededError,
   ValidationError
@@ -54,12 +56,23 @@ export const composeMail = pageActionClient('inbox')
       throw new RateLimitExceededError();
     }
 
+    const scope = await resolveMailAliasScope({
+      userId: session.user.id,
+      organizationId
+    });
+    if (
+      scope.type === 'ids' &&
+      (scope.aliasIds.length === 0 ||
+        !scope.aliasIds.includes(parsedInput.aliasId))
+    ) {
+      throw new NotFoundError('Alias not found');
+    }
+
     const alias = await prisma.mailAlias.findFirst({
       where: {
         id: parsedInput.aliasId,
         organizationId,
-        enabled: true,
-        members: { some: { userId: session.user.id } }
+        enabled: true
       },
       select: {
         id: true,

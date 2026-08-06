@@ -21,13 +21,13 @@ const AUTH_CALLBACK_BLOCKLIST = new Set<string>([
   Routes.ChangeEmailExpired
 ]);
 
+const MFA_CHALLENGE_PATHS = new Set<string>([Routes.Totp, Routes.RecoveryCode]);
+
 /**
- * Normalize any callback to same-origin relative path, or null.
- * Rejects protocol-relative (`//evil.com`), auth routes, and `/api/auth/*`
+ * Normalize to a same-origin relative path, or null.
+ * Does not apply the auth callback blocklist.
  */
-export function toSafeRelativeCallbackPath(
-  callbackUrl: string | undefined | null
-): string | null {
+function toRelativePath(callbackUrl: string | undefined | null): string | null {
   if (!callbackUrl?.trim()) {
     return null;
   }
@@ -64,6 +64,52 @@ export function toSafeRelativeCallbackPath(
   if (!pathname) {
     return null;
   }
+
+  return relative;
+}
+
+/**
+ * Auth.js signIn callbacks intentionally return MFA challenge URLs
+ * (`/auth/totp` / `/auth/recovery-code` with token + expiry). Those must be
+ * honored by the client even though they are blocked as post-login callbacks.
+ */
+export function toMfaChallengeRedirect(
+  callbackUrl: string | undefined | null
+): string | null {
+  const relative = toRelativePath(callbackUrl);
+  if (!relative) {
+    return null;
+  }
+
+  const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
+  if (!MFA_CHALLENGE_PATHS.has(pathname)) {
+    return null;
+  }
+
+  const search = relative.includes('?')
+    ? relative.slice(relative.indexOf('?') + 1).split('#')[0]
+    : '';
+  const params = new URLSearchParams(search);
+  if (!params.get('token')?.trim() || !params.get('expiry')?.trim()) {
+    return null;
+  }
+
+  return relative;
+}
+
+/**
+ * Normalize any callback to same-origin relative path, or null.
+ * Rejects protocol-relative (`//evil.com`), auth routes, and `/api/auth/*`
+ */
+export function toSafeRelativeCallbackPath(
+  callbackUrl: string | undefined | null
+): string | null {
+  const relative = toRelativePath(callbackUrl);
+  if (!relative) {
+    return null;
+  }
+
+  const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
 
   if (AUTH_CALLBACK_BLOCKLIST.has(pathname)) {
     return null;
@@ -117,5 +163,5 @@ export function toClientAuthRedirect(
     raw = (result as { url: string }).url.trim();
   }
 
-  return getSafeAuthCallbackUrl(raw, fallback);
+  return toMfaChallengeRedirect(raw) ?? getSafeAuthCallbackUrl(raw, fallback);
 }

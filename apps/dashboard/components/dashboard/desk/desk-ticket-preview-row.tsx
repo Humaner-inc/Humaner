@@ -136,7 +136,7 @@ export function DeskTicketPreviewRow({
         </p>
         {actions ? null : statusBadge}
       </div>
-      <p className="mt-0.5 line-clamp-1 text-[11px] text-foreground/90">
+      <p className="mt-0.5 line-clamp-1 font-fellix text-[11px] text-foreground/90">
         <span className="mr-1 font-mono text-[10px] text-muted-foreground">
           {formatTicketRef(ticket.ticketNumber)}
         </span>

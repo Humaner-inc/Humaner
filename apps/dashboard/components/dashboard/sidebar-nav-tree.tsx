@@ -48,6 +48,7 @@ export type SidebarNavParentProps = {
   href?: string;
   tooltip?: string;
   mainNavHighlight?: boolean;
+  badge?: React.ReactNode;
 };
 
 export function SidebarNavParent({
@@ -59,7 +60,8 @@ export function SidebarNavParent({
   onToggle,
   href,
   tooltip,
-  mainNavHighlight = false
+  mainNavHighlight = false,
+  badge
 }: SidebarNavParentProps): React.JSX.Element {
   const isIconRail = useSidebarIconRail();
   const mainNavProps = mainNavHighlight
@@ -103,7 +105,10 @@ export function SidebarNavParent({
         className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
       >
         {leadingNode}
-        <span className="flex-1 truncate">{label}</span>
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {badge && !expanded ? (
+          <span className="mr-1 shrink-0">{badge}</span>
+        ) : null}
       </button>
       <button
         type="button"
@@ -262,6 +267,7 @@ export type SidebarNavTreeProps = {
   parentHref?: string;
   children: React.ReactNode;
   mainNavHighlight?: boolean;
+  badge?: React.ReactNode;
 };
 
 export function SidebarNavTree({
@@ -272,7 +278,8 @@ export function SidebarNavTree({
   active = false,
   parentHref,
   children,
-  mainNavHighlight = false
+  mainNavHighlight = false,
+  badge
 }: SidebarNavTreeProps): React.JSX.Element {
   const { open, onOpenChange } = useSidebarNavDrawer(drawerId);
 
@@ -287,6 +294,7 @@ export function SidebarNavTree({
         onToggle={() => onOpenChange(!open)}
         href={parentHref}
         mainNavHighlight={mainNavHighlight}
+        badge={badge}
       />
       <SidebarNavChildren expanded={open}>{children}</SidebarNavChildren>
     </div>

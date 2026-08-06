@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Suspense } from 'react';
 
 import { InboxAllMailList } from '@/components/dashboard/inbox/inbox-all-mail-list';
 import {
@@ -97,6 +96,7 @@ export default async function InboxAllPage({
           <InboxListHeader
             activeFilter={activeFilter}
             activeTagId={activeTagId}
+            activeAliasId={activeAliasId}
             tags={tags}
           />
         </div>
@@ -112,20 +112,18 @@ export default async function InboxAllPage({
   }
 
   return (
-    <Suspense fallback={null}>
-      <InboxAllMailList
-        threads={threads}
-        tags={tags}
-        members={members.map((member) => ({
-          id: member.id,
-          name: member.name
-        }))}
-        inboxes={inboxes}
-        activeAliasId={activeAliasId}
-        activeFilter={activeFilter}
-        activeTagId={activeTagId}
-        autoCompose={autoCompose}
-      />
-    </Suspense>
+    <InboxAllMailList
+      threads={threads}
+      tags={tags}
+      members={members.map((member) => ({
+        id: member.id,
+        name: member.name
+      }))}
+      inboxes={inboxes}
+      activeAliasId={activeAliasId}
+      activeFilter={activeFilter}
+      activeTagId={activeTagId}
+      autoCompose={autoCompose}
+    />
   );
 }

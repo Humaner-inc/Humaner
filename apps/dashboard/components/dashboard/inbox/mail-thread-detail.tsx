@@ -30,6 +30,7 @@ import {
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -47,8 +48,10 @@ import type {
   MailThreadDetail as MailThreadDetailDto
 } from '@/data/inbox/get-mail-threads';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import { isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import { tagsForAlias } from '@/lib/inbox/mail-tag-scope';
-import { cn } from '@/lib/utils';
+import { getLogoUrl } from '@/lib/logo';
+import { cn, getInitials } from '@/lib/utils';
 
 type Suggestion = { label: string; draft: string };
 type SendPhase = 'idle' | 'sending' | 'success';
@@ -65,11 +68,13 @@ function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
 }
 
 export function MailThreadDetail({
-  thread,
+  thread: threadProp,
   tags = [],
   members = [],
   embedded = false,
-  onClosed
+  onClosed,
+  onRemoved,
+  onPatched
 }: {
   thread: MailThreadDetailDto;
   tags?: MailTagItem[];
@@ -77,16 +82,28 @@ export function MailThreadDetail({
   /** When true, fills a reading pane and skips leave-list navigation. */
   embedded?: boolean;
   onClosed?: () => void;
+  /** Instantly remove from the list (delete / archive out of view). */
+  onRemoved?: () => void;
+  onPatched?: (patch: {
+    tag?: MailTagItem | null;
+    isUnread?: boolean;
+    assigneeId?: string | null;
+  }) => void;
 }): React.JSX.Element {
   const router = useRouter();
   const { play } = useOnboardingSound();
+  const [thread, setThread] = React.useState(threadProp);
+  React.useEffect(() => {
+    setThread(threadProp);
+  }, [threadProp]);
+
   const applicableTags = tagsForAlias(tags, thread.aliasId);
   const sendIconRef = React.useRef<SendIconHandle>(null);
   const successTimerRef = React.useRef<number | null>(null);
   const [body, setBody] = React.useState('');
   const [composerOpen, setComposerOpen] = React.useState(false);
   const [suggesting, setSuggesting] = React.useState(() =>
-    shouldAutoSuggest(thread)
+    shouldAutoSuggest(threadProp)
   );
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
@@ -109,6 +126,11 @@ export function MailThreadDetail({
     router.push(Routes.InboxAll);
     router.refresh();
   }, [embedded, onClosed, router]);
+
+  const removeAndClose = React.useCallback(() => {
+    onRemoved?.();
+    leaveOrClose();
+  }, [leaveOrClose, onRemoved]);
 
   const { execute: sendReply, isExecuting } = useAction(replyMailThread, {
     onSuccess: () => {
@@ -141,41 +163,56 @@ export function MailThreadDetail({
   });
 
   const { execute: runArchive } = useAction(archiveMailThread, {
-    onSuccess: () => {
-      toast.success(isArchived ? 'Moved to inbox' : 'Archived');
-      if (!isArchived) {
-        leaveOrClose();
-        return;
-      }
-      router.refresh();
-    },
+    onSuccess: () => router.refresh(),
     onError: ({ error }) =>
       toast.error(error.serverError || 'Could not archive')
   });
 
   const { execute: runDelete } = useAction(deleteMailThread, {
-    onSuccess: () => {
-      toast.success('Deleted');
-      leaveOrClose();
-    },
+    onSuccess: () => router.refresh(),
     onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
   });
 
   const { execute: runAssign } = useAction(assignMailThread, {
-    onSuccess: () => {
-      toast.success('Assigned');
-      router.refresh();
-    },
+    onSuccess: () => router.refresh(),
     onError: ({ error }) => toast.error(error.serverError || 'Could not assign')
   });
 
   const { execute: runTag } = useAction(applyMailThreadTag, {
-    onSuccess: () => {
-      toast.success('Tag updated');
-      router.refresh();
-    },
+    onSuccess: () => router.refresh(),
     onError: ({ error }) => toast.error(error.serverError || 'Could not tag')
   });
+
+  const handleArchive = (archive: boolean): void => {
+    // Archive / move-to-inbox always leave the current list view immediately.
+    removeAndClose();
+    toast.success(archive ? 'Archived' : 'Moved to inbox');
+    runArchive({ threadId: thread.id, archive });
+  };
+
+  const handleDelete = (): void => {
+    removeAndClose();
+    toast.success('Deleted 1');
+    runDelete({ threadId: thread.id });
+  };
+
+  const handleAssign = (assigneeId: string | null): void => {
+    setThread((current) => ({ ...current, assigneeId }));
+    onPatched?.({ assigneeId });
+    toast.success('Assigned');
+    runAssign({ threadId: thread.id, assigneeId });
+  };
+
+  const handleTag = (tagId: string | null): void => {
+    const tag =
+      tagId == null
+        ? null
+        : (applicableTags.find((item) => item.id === tagId) ?? null);
+    setThread((current) => ({ ...current, tag }));
+    onPatched?.({ tag });
+    toast.success('Tag updated');
+    runTag({ threadId: thread.id, tagId });
+  };
 
   const { execute: loadSuggestions, isExecuting: loadingSuggestions } =
     useAction(suggestMailThreadReplies, {
@@ -209,6 +246,7 @@ export function MailThreadDetail({
   React.useEffect(() => {
     if (!thread.isUnread || markedReadRef.current) return;
     markedReadRef.current = true;
+    onPatched?.({ isUnread: false });
     markRead({ threadId: thread.id, isUnread: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread.id]);
@@ -305,7 +343,7 @@ export function MailThreadDetail({
             <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
             <h1
               className={cn(
-                'min-w-0 truncate font-display font-semibold tracking-tight',
+                'min-w-0 truncate font-fellix font-semibold tracking-tight',
                 embedded ? 'text-base leading-5' : 'text-2xl'
               )}
             >
@@ -381,36 +419,21 @@ export function MailThreadDetail({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isArchived ? (
-                <DropdownMenuItem
-                  onSelect={() =>
-                    runArchive({
-                      threadId: thread.id,
-                      archive: false
-                    })
-                  }
-                >
+                <DropdownMenuItem onSelect={() => handleArchive(false)}>
                   Move to inbox
                 </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem
-                onSelect={() =>
-                  runAssign({
-                    threadId: thread.id,
-                    assigneeId: null
-                  })
-                }
-              >
+              ) : (
+                <DropdownMenuItem onSelect={() => handleArchive(true)}>
+                  Archive
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={() => handleAssign(null)}>
                 Unassigned
               </DropdownMenuItem>
               {members.map((member) => (
                 <DropdownMenuItem
                   key={member.id}
-                  onSelect={() =>
-                    runAssign({
-                      threadId: thread.id,
-                      assigneeId: member.id
-                    })
-                  }
+                  onSelect={() => handleAssign(member.id)}
                 >
                   {member.name}
                   {thread.assigneeId === member.id ? ' ✓' : ''}
@@ -441,20 +464,13 @@ export function MailThreadDetail({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onSelect={() => runTag({ threadId: thread.id, tagId: null })}
-                >
+                <DropdownMenuItem onSelect={() => handleTag(null)}>
                   No tag
                 </DropdownMenuItem>
                 {applicableTags.map((tag) => (
                   <DropdownMenuItem
                     key={tag.id}
-                    onSelect={() =>
-                      runTag({
-                        threadId: thread.id,
-                        tagId: tag.id
-                      })
-                    }
+                    onSelect={() => handleTag(tag.id)}
                   >
                     <span
                       className="mr-2 size-2.5 rounded-full"
@@ -476,7 +492,7 @@ export function MailThreadDetail({
               requestMailDelete(
                 skipDeleteWarning,
                 () => setDeleteOpen(true),
-                () => runDelete({ threadId: thread.id })
+                handleDelete
               );
             }}
           >
@@ -496,6 +512,12 @@ export function MailThreadDetail({
         <ol className="space-y-3">
           {thread.messages.map((message) => {
             const outbound = message.direction === 'OUTBOUND';
+            const rich = isRichMailHtml(message.bodyHtml);
+            const fromDomain = (() => {
+              const at = message.fromAddress.lastIndexOf('@');
+              if (at < 0) return null;
+              return message.fromAddress.slice(at + 1).toLowerCase() || null;
+            })();
 
             return (
               <li
@@ -507,20 +529,38 @@ export function MailThreadDetail({
               >
                 <article
                   className={cn(
-                    'w-full max-w-[88%] rounded-none border px-4 py-3.5 sm:max-w-[82%]',
-                    outbound
-                      ? cn(accentBorder, accentSoftBg)
-                      : 'border-border bg-background'
+                    'rounded-none border',
+                    rich
+                      ? 'w-full max-w-none border-border/40 bg-background px-3 py-3 sm:px-4'
+                      : cn(
+                          'w-full max-w-[min(100%,42rem)] px-4 py-3.5',
+                          outbound
+                            ? cn(accentBorder, accentSoftBg)
+                            : 'border-border bg-background'
+                        )
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                    <div className="min-w-0 text-xs">
-                      <p className="truncate font-medium">
-                        {message.fromAddress}
-                      </p>
-                      <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
-                        to {message.toAddresses.join(', ')}
-                      </p>
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <Avatar className="size-7 shrink-0">
+                        {fromDomain ? (
+                          <AvatarImage
+                            src={getLogoUrl(fromDomain, 64, true)}
+                            alt=""
+                          />
+                        ) : null}
+                        <AvatarFallback className="text-[9px] font-medium">
+                          {getInitials(message.fromAddress)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 text-xs">
+                        <p className="truncate font-medium">
+                          {message.fromAddress}
+                        </p>
+                        <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                          to {message.toAddresses.join(', ')}
+                        </p>
+                      </div>
                     </div>
                     <time
                       dateTime={message.sentAt}
@@ -533,6 +573,7 @@ export function MailThreadDetail({
                   <MailMessageBody
                     bodyHtml={message.bodyHtml}
                     bodyText={message.bodyText}
+                    subject={thread.subject}
                   />
                 </article>
               </li>
@@ -540,7 +581,7 @@ export function MailThreadDetail({
           })}
         </ol>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
             variant="outline"
@@ -595,8 +636,8 @@ export function MailThreadDetail({
                         size={28}
                         filled
                       />
-                      <p className="truncate text-sm font-medium">
-                        {thread.subject}
+                      <p className="truncate font-fellix text-sm font-medium">
+                        Suggested reply
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -761,7 +802,7 @@ export function MailThreadDetail({
         onOpenChange={setDeleteOpen}
         onConfirm={() => {
           setSkipDeleteWarning(readSkipDeleteWarning());
-          runDelete({ threadId: thread.id });
+          handleDelete();
         }}
       />
     </div>

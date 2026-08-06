@@ -8,6 +8,10 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
+  aliasIdFilter,
+  resolveMailAliasScope
+} from '@/lib/inbox/mail-alias-scope';
+import {
   NotFoundError,
   PreConditionError,
   ValidationError
@@ -18,11 +22,17 @@ async function assertThreadAccess(
   userId: string,
   organizationId: string
 ) {
+  const scope = await resolveMailAliasScope({ userId, organizationId });
+  const scopedAliasIds = aliasIdFilter(scope);
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) {
+    throw new NotFoundError('Thread not found');
+  }
+
   const thread = await prisma.mailThread.findFirst({
     where: {
       id: threadId,
       organizationId,
-      alias: { members: { some: { userId } } }
+      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
     },
     select: { id: true, aliasId: true }
   });
@@ -217,11 +227,17 @@ async function assertThreadsAccess(
     throw new PreConditionError('No threads selected');
   }
 
+  const scope = await resolveMailAliasScope({ userId, organizationId });
+  const scopedAliasIds = aliasIdFilter(scope);
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) {
+    throw new NotFoundError('One or more threads were not found');
+  }
+
   const threads = await prisma.mailThread.findMany({
     where: {
       id: { in: uniqueIds },
       organizationId,
-      alias: { members: { some: { userId } } }
+      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
     },
     select: { id: true, aliasId: true }
   });

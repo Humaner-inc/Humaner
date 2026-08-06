@@ -63,7 +63,7 @@ export function TeamMembersOverviewCard({
               }))}
               max={6}
               size="sm"
-              spacing="tight"
+              spacing="normal"
             />
           </div>
 

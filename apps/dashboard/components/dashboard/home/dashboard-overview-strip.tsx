@@ -19,6 +19,8 @@ export type DashboardOverviewStripProps = {
   targetAudience: TargetAudience | null;
   tier: string;
   includedMessages?: number;
+  /** Owners / platform admins only — teammates must not see Billing CTAs. */
+  canAccessBilling?: boolean;
   className?: string;
 };
 
@@ -30,6 +32,7 @@ export function DashboardOverviewStrip({
   targetAudience,
   tier,
   includedMessages,
+  canAccessBilling = false,
   className
 }: DashboardOverviewStripProps): React.JSX.Element {
   const normalizedTier = normalizePlanTier(tier);
@@ -115,24 +118,26 @@ export function DashboardOverviewStrip({
         </div>
       </div>
 
-      <div className="shrink-0">
-        {isFreePlan ? (
-          <Button
-            asChild
-            size="sm"
-            variant="upgrade"
-          >
-            <Link href={Routes.Billing}>Upgrade plan</Link>
-          </Button>
-        ) : (
-          <Link
-            href={Routes.Billing}
-            className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-          >
-            Billing
-          </Link>
-        )}
-      </div>
+      {canAccessBilling ? (
+        <div className="shrink-0">
+          {isFreePlan ? (
+            <Button
+              asChild
+              size="sm"
+              variant="upgrade"
+            >
+              <Link href={Routes.Billing}>Upgrade plan</Link>
+            </Button>
+          ) : (
+            <Link
+              href={Routes.Billing}
+              className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              Billing
+            </Link>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

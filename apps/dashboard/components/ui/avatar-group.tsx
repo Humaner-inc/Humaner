@@ -10,6 +10,7 @@ const avatarGroupVariants = cva(
     variants: {
       spacing: {
         tight: '-space-x-6',
+        /** Half overlap on sm/md avatars (16px of 32px) */
         normal: '-space-x-4',
         loose: '-space-x-2'
       },

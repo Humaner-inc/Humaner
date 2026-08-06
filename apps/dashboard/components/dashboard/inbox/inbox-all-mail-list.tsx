@@ -57,6 +57,7 @@ export function InboxAllMailList({
         <InboxListHeader
           activeFilter={activeFilter}
           activeTagId={activeTagId}
+          activeAliasId={activeAliasId}
           tags={tags}
           selection={selection}
         />
