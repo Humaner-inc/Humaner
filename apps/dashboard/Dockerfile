@@ -3,7 +3,7 @@
 #   docker build -f apps/dashboard/Dockerfile -t humaner-self-host .
 
 FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 WORKDIR /app
 
 FROM base AS deps
