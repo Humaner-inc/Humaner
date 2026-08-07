@@ -2,10 +2,9 @@ import * as React from 'react';
 import { CheckIcon } from '@humaner/shared/icons';
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
 
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
-const ossRadius = isOssDeployment() ? 'rounded-[0.5rem]' : 'rounded-md';
+const ossRadius = 'rounded-md';
 
 export type RadioCardsElement = React.ElementRef<
   typeof RadioGroupPrimitive.Root

@@ -57,7 +57,7 @@ export function NavMain({
 
   return (
     <SidebarNavAccordionProvider agents={agents}>
-      <SidebarMainNavHighlight className="flex flex-col gap-0 px-1 pt-1">
+      <SidebarMainNavHighlight className="flex flex-col gap-0 px-2 pt-1">
         <NavOrganizationTree />
         {!isOssDeployment() && canAccessPage(profile, 'inbox') ? (
           <NavInboxTree
@@ -78,7 +78,7 @@ export function NavMain({
         {items.length > 0 ? (
           <SidebarGroup
             {...props}
-            className="py-0"
+            className="p-0"
           >
             <div className="space-y-0.5">
               {items.map((item) => (
@@ -101,7 +101,7 @@ export function NavMain({
           </SidebarGroup>
         ) : null}
       </SidebarMainNavHighlight>
-      <div className="px-1">
+      <div className="px-2">
         {agents.length > 0 ? (
           <>
             <SidebarSeparator className="my-1.5 opacity-50" />

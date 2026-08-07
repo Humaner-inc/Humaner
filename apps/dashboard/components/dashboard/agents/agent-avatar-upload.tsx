@@ -176,10 +176,7 @@ export function AgentAvatarUpload({
           'relative size-full overflow-hidden bg-white ring-2 ring-offset-2 transition-[box-shadow,ring-color] duration-300',
           oss ? dashboardRadiusClassName : 'rounded-full',
           'ring-foreground/10 ring-offset-background',
-          !disabled &&
-            (oss
-              ? 'group-hover/avatar:ring-zinc-400'
-              : 'group-hover/avatar:ring-[#e1ccaf]')
+          !disabled && 'group-hover/avatar:ring-[#e1ccaf]'
         )}
       >
         <ImageDropzone
@@ -187,7 +184,7 @@ export function AgentAvatarUpload({
           multiple={false}
           disabled={disabled}
           onDrop={handleDrop}
-          borderRadius={oss ? 'md' : 'full'}
+          borderRadius={oss ? 'none' : 'full'}
           title="Upload image"
           className={cn(
             dropzoneSize,

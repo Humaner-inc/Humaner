@@ -4,7 +4,6 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { TotpCodeCard } from '@/components/auth/totp/totp-code-card';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
 
@@ -21,12 +20,11 @@ export default async function TotpPage({
   searchParams
 }: NextPageProps): Promise<React.JSX.Element> {
   const { token, expiry } = await searchParamsCache.parse(searchParams);
-  const oss = isOssDeployment();
 
   if (!token) {
     return (
       <AuthOnboardingCardShell
-        showLogo={oss}
+        showLogo={false}
         maxWidth="sm"
       >
         Missing token param.
@@ -36,7 +34,7 @@ export default async function TotpPage({
   if (!expiry) {
     return (
       <AuthOnboardingCardShell
-        showLogo={oss}
+        showLogo={false}
         maxWidth="sm"
       >
         Missing expiry param.
@@ -46,7 +44,7 @@ export default async function TotpPage({
 
   return (
     <AuthOnboardingCardShell
-      showLogo={oss}
+      showLogo={false}
       maxWidth="sm"
     >
       <TotpCodeCard

@@ -26,7 +26,7 @@ export function DangerZoneCard({
       <DangerZonePanel
         className={className}
         title="Delete account"
-        description="Organization owners can't delete their account while they still own a workspace. Delete the organization first, then come back here."
+        description="You must delete your organization first before your own account."
         action={
           <Button
             asChild

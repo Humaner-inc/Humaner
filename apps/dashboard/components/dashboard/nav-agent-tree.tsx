@@ -146,7 +146,7 @@ export function NavAgentTree({
   }
 
   return (
-    <SidebarGroup className="py-0">
+    <SidebarGroup className="p-0">
       <div className="space-y-0.5">
         {agents.map((agent) => (
           <AgentTreeNode

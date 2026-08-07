@@ -5,13 +5,11 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useReducedMotion } from 'motion/react';
 
-import { AppInfo } from '@/constants/app-info';
 import {
   HERO_COMPUTER_FRAME_LAYOUT,
   HERO_COMPUTER_SCREEN,
   HERO_COMPUTER_VIEWPORT_ASPECT
 } from '@/lib/auth/hero-computer-screen';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
 const GLITCH_MS = { min: 500, max: 700 } as const;
@@ -23,7 +21,6 @@ function randomBetween(min: number, max: number): number {
 
 function ScreenLogo({ className }: { className?: string }): React.JSX.Element {
   const logoSize = `${HERO_COMPUTER_SCREEN.logoScale * 100}%`;
-  const oss = isOssDeployment();
 
   return (
     <div
@@ -34,34 +31,14 @@ function ScreenLogo({ className }: { className?: string }): React.JSX.Element {
         transform: `translate(${HERO_COMPUTER_SCREEN.logoOffsetX}, ${HERO_COMPUTER_SCREEN.logoOffsetY})`
       }}
     >
-      {oss ? (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-900">
-          <div className="flex size-12 items-center justify-center rounded-md border border-zinc-900/20">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M7.81815 8.36373L12 0L24 24H15.2809L7.81815 8.36373Z" />
-              <path d="M4.32142 15.3572L8.44635 24H0L4.32142 15.3572Z" />
-            </svg>
-          </div>
-          <span className="font-semibold tracking-tight">
-            {AppInfo.APP_NAME}
-          </span>
-        </div>
-      ) : (
-        <Image
-          src="/humaner.svg"
-          alt=""
-          fill
-          unoptimized
-          className="object-contain object-center"
-          sizes="200px"
-        />
-      )}
+      <Image
+        src="/humaner.svg"
+        alt=""
+        fill
+        unoptimized
+        className="object-contain object-center"
+        sizes="200px"
+      />
     </div>
   );
 }
@@ -200,37 +177,6 @@ function AuthComputerFrame({
 
 /** Landing Hero right frame — backdrop + computer — for the auth split panel. */
 export function AuthHeroPanel(): React.JSX.Element {
-  const oss = isOssDeployment();
-
-  if (oss) {
-    return (
-      <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-zinc-50 px-8 py-16">
-        <div className="relative z-10 flex flex-col items-center gap-6 text-zinc-900">
-          <div className="flex size-16 items-center justify-center rounded-md border border-zinc-900/15 bg-white shadow-sm">
-            <svg
-              width="36"
-              height="36"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M7.81815 8.36373L12 0L24 24H15.2809L7.81815 8.36373Z" />
-              <path d="M4.32142 15.3572L8.44635 24H0L4.32142 15.3572Z" />
-            </svg>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-semibold tracking-tight">
-              {AppInfo.APP_NAME}
-            </p>
-            <p className="mt-2 max-w-xs text-sm text-zinc-500">
-              Customer support kit — Helpdesk, BYO agent, team &amp; org.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#fff8f2] px-8 py-16">
       <div

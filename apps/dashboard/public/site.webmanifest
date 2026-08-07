@@ -1,6 +1,6 @@
 {
-  "name": "Acme",
-  "short_name": "Acme",
+  "name": "Humaner",
+  "short_name": "Humaner",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -13,7 +13,7 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "theme_color": "#070607",
+  "background_color": "#070607",
   "display": "standalone"
 }

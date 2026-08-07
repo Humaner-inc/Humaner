@@ -1,13 +1,15 @@
-import { cookies } from 'next/headers';
 import { addMinutes } from 'date-fns';
 import type { NextAuthConfig } from 'next-auth';
 
 import { TOTP_AND_RECOVERY_CODES_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { adapter } from '@/lib/auth/adapter';
-import { AuthCookies } from '@/lib/auth/cookies';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
+import {
+  clearSessionCookies,
+  writeSessionCookie
+} from '@/lib/auth/reassert-session-cookie';
 import {
   generateSessionToken,
   getSessionExpiryFromNow
@@ -25,13 +27,17 @@ async function isAuthenticatorAppEnabled(userId: string): Promise<boolean> {
   return count > 0;
 }
 
-function redirectToTotp(userId: string): string {
+async function redirectToTotp(userId: string): Promise<string> {
   if (!process.env.AUTH_SECRET) {
     console.error(
       'Missing encryption key; cannot proceed with token encryption.'
     );
     return `${Routes.AuthError}?error=${AuthErrorCode.InternalServerError}`;
   }
+
+  // Drop any half-written session cookie so MFA challenge is not "signed in".
+  await clearSessionCookies();
+
   const token = symmetricEncrypt(userId, process.env.AUTH_SECRET);
   const expiry = symmetricEncrypt(
     addMinutes(
@@ -57,7 +63,7 @@ export const callbacks = {
       // Only username/password provider
       if (account.provider === IdentityProvider.Credentials) {
         if (await isAuthenticatorAppEnabled(user.id)) {
-          return redirectToTotp(user.id);
+          return await redirectToTotp(user.id);
         }
       }
 
@@ -74,12 +80,7 @@ export const callbacks = {
         return false;
       }
 
-      const cookieStore = await cookies();
-      cookieStore.set({
-        name: AuthCookies.SessionToken,
-        value: sessionToken,
-        ...AuthCookies.sessionCookieOptions(sessionExpiry)
-      });
+      await writeSessionCookie(sessionToken, sessionExpiry);
 
       // already authorized
       return true;
@@ -115,7 +116,7 @@ export const callbacks = {
     }
 
     if (user?.id && (await isAuthenticatorAppEnabled(user.id))) {
-      return redirectToTotp(user.id);
+      return await redirectToTotp(user.id);
     }
 
     if (user?.name) {

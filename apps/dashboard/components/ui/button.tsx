@@ -7,10 +7,10 @@ import { Loader2Icon } from '@humaner/shared/icons';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
-const oss = isOssDeployment();
+/** Brand chrome is always Humaner (not Self-Host zinc). */
+const oss = false;
 
 const dashboardCtaCaseClassName = 'normal-case';
 
@@ -29,7 +29,7 @@ const cloudOutlineClasses = cn(
   dashboardCtaCaseClassName
 );
 
-/** Self-Host Acme — zinc; explicit rem radii (avoid rounded-md → --radius:0). */
+/** Self-Host — zinc; explicit rem radii (avoid rounded-md → --radius:0). */
 const ossRadius = 'rounded-[0.5rem]';
 const ossNeutralCtaClasses = cn(
   ossRadius,

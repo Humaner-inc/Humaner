@@ -60,9 +60,7 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
         : 'No conversations yet';
 
   if (outcomeCounts.total === 0 && input.totalAssistantMessages === 0) {
-    gaps.push(
-      'No chat history yet. Gaps will appear after first conversations.'
-    );
+    gaps.push('No chat history yet');
   } else if (input.unansweredMessages > 0) {
     gaps.push(
       `${input.unansweredMessages} unanswered question${input.unansweredMessages === 1 ? '' : 's'} — add knowledge to close gaps.`

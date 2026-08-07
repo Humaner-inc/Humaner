@@ -1,21 +1,14 @@
 export const HUMANER_DEFAULT_ACCENT = '#e1ccaf';
 
-/** Self-Host / Acme default widget accent (zinc-950). */
-export const ACME_DEFAULT_ACCENT = '#18181b';
-
-export function getDefaultWidgetAccent(oss: boolean): string {
-  return oss ? ACME_DEFAULT_ACCENT : HUMANER_DEFAULT_ACCENT;
+export function getDefaultWidgetAccent(_oss?: boolean): string {
+  return HUMANER_DEFAULT_ACCENT;
 }
 
-/** Map leftover Cloud cream accents to Acme zinc on Self-Host. */
+/** Product accent is always Humaner cream. */
 export function resolveWidgetAccentForDeployment(
   color: string,
-  oss: boolean
+  _oss?: boolean
 ): string {
-  if (!oss) return color;
-  if (color.trim().toLowerCase() === HUMANER_DEFAULT_ACCENT) {
-    return ACME_DEFAULT_ACCENT;
-  }
   return color;
 }
 

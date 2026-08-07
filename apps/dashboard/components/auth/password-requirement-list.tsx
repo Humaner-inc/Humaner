@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import { MINIMUM_PASSWORD_LENGTH } from '@/constants/limits';
 import { passwordValidator } from '@/lib/auth/password-validator';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { Maybe } from '@/types/maybe';
 
@@ -56,7 +55,7 @@ function formatMissingLabel(missing: string[]): string {
 export function PasswordRequirementList({
   password
 }: PasswordRequirementListProps): React.JSX.Element {
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
   const requirements = getRequirements(password);
   const missing = requirements
     .filter((requirement) => !requirement.met)
@@ -81,7 +80,7 @@ export function PasswordRequirementList({
         initial={false}
       >
         {label ? (
-          <motion.p
+          <motion.div
             key={label}
             initial={{ opacity: 0, x: -14 }}
             animate={{ opacity: 1, x: 0 }}
@@ -105,7 +104,7 @@ export function PasswordRequirementList({
               />
             ) : null}
             <span className="truncate">{label}</span>
-          </motion.p>
+          </motion.div>
         ) : null}
       </AnimatePresence>
     </div>

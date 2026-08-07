@@ -45,7 +45,6 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   passThroughlogInSchema,
@@ -170,7 +169,7 @@ export function LoginCard({
     }
     setIsLoading(false);
   };
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
 
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>

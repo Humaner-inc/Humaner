@@ -13,7 +13,7 @@ import {
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
 import { symmetricDecrypt } from '@/lib/auth/encryption';
-import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
+import { forceSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { submitTotpCodeSchema } from '@/schemas/auth/submit-totp-code-schema';
 import { IdentityProvider } from '@/types/identity-provider';
 
@@ -34,20 +34,18 @@ export const submitTotpCode = actionClient
         redirect: false
       });
 
-      // Auth.js cookie writes from Server Actions are unreliable — reassert
-      // the DB session onto the response the same way password login does.
-      if (process.env.AUTH_SECRET) {
-        try {
-          const userId = symmetricDecrypt(
-            parsedInput.token,
-            process.env.AUTH_SECRET
-          );
-          await reassertSessionCookieForUser(userId);
-        } catch {
-          // Session was still created in the signIn callback; client redirect
-          // may still succeed if Auth.js set the cookie.
-        }
+      // Auth.js credentials + database sessions often leave a JWT / chunked
+      // cookie that auth() cannot resolve — mint a clean DB session cookie.
+      if (!process.env.AUTH_SECRET) {
+        throw new Error(
+          'AUTH_SECRET is required to complete two-factor sign-in.'
+        );
       }
+      const userId = symmetricDecrypt(
+        parsedInput.token,
+        process.env.AUTH_SECRET
+      );
+      await forceSessionCookieForUser(userId);
 
       return {
         redirectTo: toClientAuthRedirect(result, fallbackRedirect)

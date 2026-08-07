@@ -13,7 +13,7 @@ import {
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
 import { symmetricDecrypt } from '@/lib/auth/encryption';
-import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
+import { forceSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { submitRecoveryCodeSchema } from '@/schemas/auth/submit-recovery-code-schema';
 import { IdentityProvider } from '@/types/identity-provider';
 
@@ -34,17 +34,16 @@ export const submitRecoveryCode = actionClient
         redirect: false
       });
 
-      if (process.env.AUTH_SECRET) {
-        try {
-          const userId = symmetricDecrypt(
-            parsedInput.token,
-            process.env.AUTH_SECRET
-          );
-          await reassertSessionCookieForUser(userId);
-        } catch {
-          // Same as TOTP — Auth.js may have already set the cookie.
-        }
+      if (!process.env.AUTH_SECRET) {
+        throw new Error(
+          'AUTH_SECRET is required to complete recovery sign-in.'
+        );
       }
+      const userId = symmetricDecrypt(
+        parsedInput.token,
+        process.env.AUTH_SECRET
+      );
+      await forceSessionCookieForUser(userId);
 
       return { redirectTo: toClientAuthRedirect(result, fallbackRedirect) };
     } catch (e) {

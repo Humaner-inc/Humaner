@@ -1,11 +1,5 @@
-import { isOssDeployment } from '@/lib/deployment-mode';
-
-const oss = isOssDeployment();
-
-/** Corner radius for dashboard chrome — Acme rounded, Cloud sharp. */
-export const dashboardRadiusClassName = oss
-  ? 'rounded-[0.5rem]'
-  : 'rounded-none';
+/** Corner radius for dashboard chrome — Humaner sharp. */
+export const dashboardRadiusClassName = 'rounded-none';
 
 /** Shared bordered panel surfaces across dashboard pages. */
 export const dashboardSurfaceClassName = `${dashboardRadiusClassName} border border-border/70 bg-card/20`;

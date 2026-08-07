@@ -1,9 +1,8 @@
 import * as React from 'react';
 
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
-const cardRadius = isOssDeployment() ? 'rounded-[0.5rem]' : 'rounded-none';
+const cardRadius = 'rounded-none';
 
 export type CardElement = HTMLDivElement;
 export type CardProps = React.HTMLAttributes<HTMLDivElement>;

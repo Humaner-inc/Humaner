@@ -6,7 +6,6 @@ import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-
 import { LoginCard } from '@/components/auth/login/login-card';
 import { PersistAuthCallbackUrl } from '@/components/auth/persist-auth-callback-url';
 import { resolveAuthErrorMessage } from '@/lib/auth/errors';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
 
@@ -27,9 +26,8 @@ export default async function LoginPage({
 
   return (
     <AuthOnboardingCardShell
-      showLogo={isOssDeployment()}
+      showLogo={false}
       maxWidth="sm"
-      className={isOssDeployment() ? 'text-foreground' : undefined}
     >
       {/* Cookie writes must run in a Server Action, not during RSC render. */}
       {callbackUrl ? (

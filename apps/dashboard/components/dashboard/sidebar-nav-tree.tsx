@@ -84,7 +84,7 @@ export function SidebarNavParent({
         className={cn(
           sidebarNavParentClassName(active),
           'justify-center px-2 py-2.5',
-          active && !mainNavHighlight && 'bg-muted/50'
+          active && 'bg-muted/50'
         )}
       >
         {leadingNode}
@@ -99,7 +99,7 @@ export function SidebarNavParent({
       className={cn(
         sidebarNavParentClassName(active),
         'pr-1',
-        active && !mainNavHighlight && 'bg-muted/40'
+        active && 'bg-muted/40'
       )}
     >
       <button
@@ -354,7 +354,7 @@ export function SidebarNavLink({
       className={cn(
         sidebarNavParentClassName(active),
         isIconRail && 'justify-center px-2 py-2.5',
-        active && !mainNavHighlight && 'bg-muted/40',
+        active && 'bg-muted/40',
         disabled && 'pointer-events-none opacity-40'
       )}
     >

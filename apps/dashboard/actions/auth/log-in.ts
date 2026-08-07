@@ -15,7 +15,10 @@ import {
   toMfaChallengeRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
-import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
+import {
+  clearSessionCookies,
+  reassertSessionCookieForUser
+} from '@/lib/auth/reassert-session-cookie';
 import { prisma } from '@/lib/db/prisma';
 import { passThroughlogInSchema } from '@/schemas/auth/log-in-schema';
 import { IdentityProvider } from '@/types/identity-provider';
@@ -47,6 +50,7 @@ export const logIn = actionClient
       // Password was accepted but authenticator is required — do not mint or
       // revive a session cookie before the TOTP / recovery step completes.
       if (toMfaChallengeRedirect(redirectTo)) {
+        await clearSessionCookies();
         return { redirectTo };
       }
 

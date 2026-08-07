@@ -40,7 +40,6 @@ import {
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   submitTotpCodeSchema,
@@ -71,7 +70,7 @@ export function TotpCodeCard({
   });
   const canSubmit =
     !isLoading && !submitSuccess && !methods.formState.isSubmitting;
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
 
   const onSubmit = async (values: SubmitTotpCodeSchema): Promise<void> => {
     if (!canSubmit) {

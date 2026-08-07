@@ -40,7 +40,6 @@ import { Input } from '@/components/ui/input';
 import { InputPassword } from '@/components/ui/input-password';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   signUpSchema,
@@ -129,7 +128,7 @@ export function SignUpCard({
     }
   };
 
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
 
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>

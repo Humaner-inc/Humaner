@@ -1,6 +1,5 @@
 import { cache } from 'react';
 import NextAuth, { type DefaultSession, type NextAuthConfig } from 'next-auth';
-import { encode } from 'next-auth/jwt';
 
 import { Routes } from '@/constants/routes';
 import { adapter } from '@/lib/auth/adapter';
@@ -55,9 +54,15 @@ export const authConfig = {
   events,
   jwt: {
     maxAge: session.maxAge,
-    // Required line to encode credentials sessions
+    // Credentials + database sessions: cookie value must be the DB session
+    // token. Falling back to a signed JWT poisons auth() (and can leave
+    // chunked cookies that break post-2FA redirects back to /auth/login).
     async encode(arg) {
-      return (arg.token?.sessionId as string) ?? encode(arg);
+      const sessionId = arg.token?.sessionId;
+      if (typeof sessionId === 'string' && sessionId.length > 0) {
+        return sessionId;
+      }
+      return '';
     }
   },
   trustHost: true

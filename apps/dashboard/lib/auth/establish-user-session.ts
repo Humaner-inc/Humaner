@@ -1,14 +1,16 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
 import { addMinutes } from 'date-fns';
 
 import { TOTP_AND_RECOVERY_CODES_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { adapter } from '@/lib/auth/adapter';
-import { AuthCookies } from '@/lib/auth/cookies';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
+import {
+  clearSessionCookies,
+  writeSessionCookie
+} from '@/lib/auth/reassert-session-cookie';
 import {
   generateSessionToken,
   getSessionExpiryFromNow
@@ -29,6 +31,8 @@ export async function establishUserSession(
     if (!process.env.AUTH_SECRET) {
       throw new Error(AuthErrorCode.InternalServerError);
     }
+
+    await clearSessionCookies();
 
     const token = symmetricEncrypt(userId, process.env.AUTH_SECRET);
     const expiry = symmetricEncrypt(
@@ -57,12 +61,7 @@ export async function establishUserSession(
     throw new Error(AuthErrorCode.InternalServerError);
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: AuthCookies.SessionToken,
-    value: sessionToken,
-    ...AuthCookies.sessionCookieOptions(sessionExpiry)
-  });
+  await writeSessionCookie(sessionToken, sessionExpiry);
 
   return {};
 }

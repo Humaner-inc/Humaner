@@ -7,6 +7,7 @@ import { Routes } from '@/constants/routes';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
+import { clearSessionCookies } from '@/lib/auth/reassert-session-cookie';
 import { createHash } from '@/lib/auth/utils';
 import { verifyEmail } from '@/lib/auth/verification';
 import { prisma } from '@/lib/db/prisma';
@@ -18,6 +19,7 @@ type CompleteEmailVerificationInput =
   | { type: 'token'; token: string };
 
 export type EmailVerificationSignInHandshake = {
+  userId: string;
   token: string;
   expiry: string;
   redirectTo: string;
@@ -34,10 +36,12 @@ async function isAuthenticatorAppEnabled(userId: string): Promise<boolean> {
   return count > 0;
 }
 
-function buildTotpRedirect(userId: string): string {
+async function buildTotpRedirect(userId: string): Promise<string> {
   if (!process.env.AUTH_SECRET) {
     throw new Error(AuthErrorCode.InternalServerError);
   }
+
+  await clearSessionCookies();
 
   const token = symmetricEncrypt(userId, process.env.AUTH_SECRET);
   const expiry = symmetricEncrypt(
@@ -60,6 +64,7 @@ function buildSignInHandshake(
   }
 
   return {
+    userId,
     token: symmetricEncrypt(userId, process.env.AUTH_SECRET),
     expiry: symmetricEncrypt(
       addMinutes(new Date(), 5).toISOString(),
@@ -137,7 +142,7 @@ export async function completeEmailVerification(
   if (await isAuthenticatorAppEnabled(user.id)) {
     return {
       kind: 'redirect',
-      redirectTo: buildTotpRedirect(user.id)
+      redirectTo: await buildTotpRedirect(user.id)
     };
   }
 

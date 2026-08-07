@@ -26,13 +26,9 @@ import {
 } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
-const oss = isOssDeployment();
-const sidebarNavLabelClassName = oss
-  ? 'font-sans normal-case tracking-normal'
-  : 'font-mono uppercase tracking-wide';
+const sidebarNavLabelClassName = 'font-mono uppercase tracking-wide';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

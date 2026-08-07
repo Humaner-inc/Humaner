@@ -1,10 +1,8 @@
-# Humaner Self-Host — Customer Support Starter Kit
+# Humaner Self-Host | Customer Support Kit
 
-Deploy a white-labelled support kit: **BYO agent** (your prompt + skillz + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
+Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skillz + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
 
-Not included: Humaner Intelligence, Agent Desk, training loops, runbooks, collaborative Inboxes, live chat, Polar billing.
-
----
+## Not included: Humaner Intelligence, Agent Desk, training loops, Inboxes, live chat.
 
 ## A-to-Z: From clone to a workable support workspace
 
@@ -48,7 +46,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3001
 Email is **required** for credentials sign-up — the verification OTP is delivered by mail.
 
 ```bash
-EMAIL_SENDER="Acme <onboarding@yourdomain.com>"
+EMAIL_SENDER="Humaner <onboarding@yourdomain.com>"
 EMAIL_MAILER=NodeMailer   # or Resend
 
 # NodeMailer (e.g. Gmail)
@@ -62,8 +60,6 @@ EMAIL_SERVER_PASS=your-app-specific-password
 # EMAIL_RESEND_API_KEY=re_...
 ```
 
-Gmail: use an [app-specific password](https://support.google.com/accounts/answer/185833), not your normal login.
-
 **No inbox yet?** In `development`, the server prints the OTP to the terminal:
 
 ```text
@@ -72,12 +68,12 @@ Gmail: use an [app-specific password](https://support.google.com/accounts/answer
        Link: http://localhost:3001/auth/verify-email/request/...
 ```
 
-For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users — the server logs plaintext OTPs.
+For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users.
 
 ### 5. LLM key — BYO inference
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...   # or OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-ant-...   # or whatever you prefer
 ```
 
 The starter agent uses whichever key is set for chat inference and handoff summarization.
@@ -91,7 +87,7 @@ mkdir -p data/knowledge
 npx @humaner/into-markdown https://yoursite.com > data/knowledge/site.md
 ```
 
-The agent is grounded on these files — answers only from what it can find, otherwise offers to connect with the team.
+Answers only come from what it can find there, otherwise offers to connect with the team if answers isn't known.
 
 ### 7. Migrate and start
 
@@ -120,27 +116,23 @@ Then sign in at `/auth/login`.
 
 ### 9. Onboarding
 
-The OSS onboarding is a short kit setup (not the Humaner Cloud wizard):
-
 1. **Website** — your company URL
 2. **Business** — name, industry, company size (no docs URL crawl)
 3. **Invite team** — or skip if solo
 4. **Agent prompt** — required Custom-style system prompt (same field as Humaner Cloud Custom). Industry skillz + `data/knowledge/` are appended at reply time; they do not replace your prompt.
-5. **Launch** — accept operator responsibilities; Helpdesk is enabled by default
-
-Skipped on purpose: Polar plans, target audience, paid personas, Cloud tone presets, data-improvement telemetry.
+5. **Launch** — accept operator responsibilities (GDPR compliance and everything data related is on your own)
 
 ### 10. Create agent → copy Agent ID
 
-After onboarding, go to **Dashboard → Agents → your agent → Integrations**. Copy the public **Agent ID** (`YOUR_AGENT_PUBLIC_ID`). This is the only value end-users paste into embeds.
+After onboarding, go to **Dashboard → Agents → your agent → Integrations**. Copy the public **Agent ID** (`YOUR_AGENT_PUBLIC_ID`). This is the only value you've to paste into embeds.
 
 ### 11. Allowlist domains
 
-**Widget settings → Allowed domains.** Add the hostname of the site embedding the widget. Leave empty only for local testing.
+**Widget settings → Allowed domains.** Add the hostname of the site embedding the widget. Leave empty only for allowing all.
 
 ### 12. Embed the widget on your site
 
-The customer site only needs the public Agent ID and your dashboard origin. No secret keys in the browser.
+Only the Agent ID is needed to embed the widget:
 
 **HTML (before `</body>`):**
 
@@ -211,7 +203,7 @@ Chat streams SSE. On the final event, if `escalate: true`, a Helpdesk ticket is 
 
 ```bash
 export AUTH_SECRET="$(openssl rand -base64 32)"
-export ANTHROPIC_API_KEY="sk-ant-..."   # or OPENAI_API_KEY
+export OPENAI_API_KEY="sk-ant-..."
 # Also export EMAIL_* (see step 4) or SELF_HOST_LOG_VERIFICATION=true
 
 # Optional knowledge
@@ -238,7 +230,7 @@ Open http://localhost:3001 → follow steps 8–12.
 
 | Setting             | Where                                                     |
 | ------------------- | --------------------------------------------------------- |
-| Brand / colors      | `apps/dashboard/brand.config.ts` (OSS → Acme)             |
+| Brand / colors      | `apps/dashboard/brand.config.ts` (Humaner)                |
 | LLM API key         | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                   |
 | Email delivery      | `EMAIL_*` in `.env.local`                                 |
 | Agent system prompt | Onboarding → Agent prompt, or Dashboard → Agent → Persona |
@@ -249,7 +241,7 @@ Open http://localhost:3001 → follow steps 8–12.
 
 ## Handoff and Helpdesk
 
-When your agent can't resolve an issue, it emits `##HANDOFF##` on the last line. The dashboard creates a Helpdesk ticket with the full transcript and a summary generated by your BYO LLM.
+When your agent can't resolve an issue, it emits `##HANDOFF##` on the last line. The dashboard creates a Helpdesk ticket with the full transcript and a summary generated by the LLM.
 
 SSE final event when escalating:
 

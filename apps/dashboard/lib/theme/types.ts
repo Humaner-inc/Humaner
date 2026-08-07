@@ -3,6 +3,8 @@
 export type BrandColorTokens = {
   background: string;
   foreground: string;
+  /** Panel / Card surfaces (Policies, settings, GlassPanel). */
+  card: string;
   primary: string;
   primaryForeground: string;
   secondary: string;

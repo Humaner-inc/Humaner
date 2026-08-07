@@ -12,7 +12,6 @@ import {
 } from '@/components/auth/auth-form-styles';
 import { Button } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
 function useCountdownRedirect(
@@ -40,7 +39,7 @@ function useCountdownRedirect(
 
 export function LogoutCard(): React.JSX.Element {
   const countdown = useCountdownRedirect(10, Routes.Login);
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
 
   return (
     <div className="flex flex-col gap-6 text-center">

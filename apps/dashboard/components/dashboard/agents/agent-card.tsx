@@ -114,7 +114,7 @@ function AgentStatusBadge({
       <span
         className={cn(
           'inline-flex size-1.5 shrink-0 bg-emerald-500',
-          oss ? 'rounded-full' : 'rounded-none'
+          'rounded-none'
         )}
       />
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
@@ -353,27 +353,27 @@ export function AgentCard({
         {agent.metrics.gaps.length > 0 ? (
           <div
             className={cn(
-              'mt-3 flex gap-2 border border-amber-500/20 bg-amber-500/5 px-2.5 py-2',
+              'mt-3 flex items-center justify-center gap-2 border border-[#0682de]/30 bg-[#0682de]/10 px-2.5 py-2',
+              dashboardRadiusClassName,
               compact && 'mt-2'
             )}
           >
-            <AlertCircleIcon className="mt-0.5 size-3 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="line-clamp-2 text-left text-[10px] leading-relaxed text-muted-foreground">
+            <AlertCircleIcon className="size-3 shrink-0 text-[#0682de]" />
+            <p className="line-clamp-2 text-center text-[10px] leading-relaxed text-[#0682de]">
               {agent.metrics.gaps[0]}
             </p>
           </div>
         ) : null}
 
-        <IdDotStrip
-          publicId={agent.publicId}
-          copied={copiedId}
-          onCopy={handleCopyId}
-          className="mt-3"
-        />
-
-        <div className="mt-3 flex justify-center gap-1.5">
+        <div className="mt-3 flex items-center justify-center gap-1.5">
           {linkToWorkspace ? (
             <>
+              <IdDotStrip
+                publicId={agent.publicId}
+                copied={copiedId}
+                onCopy={handleCopyId}
+                className="mx-0 max-w-[min(70%,12rem)]"
+              />
               {!oss ? (
                 <Button
                   asChild

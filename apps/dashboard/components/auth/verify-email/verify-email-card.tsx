@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/input-otp';
 import { EMAIL_OTP_LENGTH } from '@/constants/limits';
 import { useZodForm } from '@/hooks/use-zod-form';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   verifyEmailWithOtpSchema,
@@ -48,7 +47,7 @@ export function VerifyEmailCard({
   email,
   className
 }: VerifyEmailCardProps): React.JSX.Element {
-  const oss = isOssDeployment();
+  const oss = false; // Humaner brand chrome
   const [verifySuccess, setVerifySuccess] = React.useState(false);
   const [isResendingEmailVerification, setIsResendingEmailVerification] =
     React.useState<boolean>(false);

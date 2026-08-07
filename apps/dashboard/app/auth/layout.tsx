@@ -97,19 +97,6 @@ export default async function AuthLayout({
   const oss = isOssDeployment();
   const showBackToMarketing = !oss && isLoginOrSignUpRoute();
 
-  // Self-Host: black canvas, white portal only — no hero banner.
-  if (oss) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-8">
-        <main className="relative z-10 w-full max-w-md">
-          <div className="rounded-[0.75rem] border border-zinc-200 bg-white px-5 py-5 text-zinc-950 shadow-sm sm:px-6 sm:py-6">
-            {children}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex min-h-screen bg-[#070607]">
       <GrainAmbient className="fixed inset-0 z-0" />

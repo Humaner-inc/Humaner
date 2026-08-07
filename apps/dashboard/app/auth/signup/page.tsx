@@ -7,7 +7,6 @@ import { validate as uuidValidate } from 'uuid';
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { SignUpCard } from '@/components/auth/sign-up/sign-up-card';
 import { prisma } from '@/lib/db/prisma';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import { createTitle } from '@/lib/utils';
 import type { SignUpIntent } from '@/schemas/auth/sign-up-schema';
 import type { NextPageProps } from '@/types/next-page-props';
@@ -63,7 +62,7 @@ export default async function SignUpPage({
 
   return (
     <AuthOnboardingCardShell
-      showLogo={isOssDeployment()}
+      showLogo={false}
       maxWidth="sm"
     >
       <SignUpCard

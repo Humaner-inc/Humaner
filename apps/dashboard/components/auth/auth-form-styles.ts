@@ -1,7 +1,6 @@
 /**
- * Auth + onboarding design tokens.
- * - Cloud: Humaner dark auth / cream fracture CTAs
- * - Self-Host (OSS): Achromatic-style light surfaces (zinc / neutral)
+ * Auth + onboarding design tokens — Humaner cream / dark fracture.
+ * Self-Host keeps feature/content splits elsewhere; brand chrome is shared.
  */
 
 import {
@@ -17,15 +16,14 @@ import {
   uiOnboardingMutedClassName
 } from '@humaner/shared/typography';
 
-import { isOssDeployment } from '@/lib/deployment-mode';
-
-const oss = isOssDeployment();
+/** Always Humaner visual kit. */
+const oss = false;
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const authSurfaceClassName = oss
   ? 'overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm'
-  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0b0c] text-[#fff8f2]';
+  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-[hsl(300_6%_5.5%)] text-[#fff8f2]';
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-zinc-300 bg-white text-zinc-950 shadow-none placeholder:text-zinc-400 selection:bg-zinc-900/15 selection:text-zinc-950 focus-visible:border-zinc-900 focus-visible:ring-1 focus-visible:ring-zinc-900/20'
@@ -94,7 +92,7 @@ export const authOnboardingCardClassName = oss
 /** Dark glass auth card — Cloud only look; OSS uses a plain card. */
 export const authGlassCardClassName = oss
   ? 'relative overflow-hidden rounded-xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6'
-  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.03] p-5 text-[#fff8f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-3xl backdrop-saturate-150 sm:p-6';
+  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[hsl(300_6%_5.5%)] p-5 text-[#fff8f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] sm:p-6';
 
 export const authGlassCardGlowClassName = oss
   ? 'hidden'

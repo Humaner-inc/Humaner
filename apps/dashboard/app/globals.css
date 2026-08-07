@@ -10,7 +10,8 @@
     --background: 40 20% 97%;
     --foreground: 300 8% 2.5%;
 
-    --card: 0 0% 100%;
+    /* Match sidebar cream (not pure white) */
+    --card: 38 24% 95%;
     --card-foreground: 300 8% 2.5%;
 
     --popover: 0 0% 100%;
