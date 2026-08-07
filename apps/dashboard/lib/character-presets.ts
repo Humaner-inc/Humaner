@@ -110,9 +110,9 @@ export const FORMALITY_OPTIONS: Option<Formality>[] = [
 ];
 
 export const EMOJI_OPTIONS: Option<EmojiMode>[] = [
-  { value: 'NONE', label: 'None', hint: 'No emoji' },
-  { value: 'SUBTLE', label: 'Subtle', hint: '1 max, where it fits' },
-  { value: 'EXPRESSIVE', label: 'Expressive', hint: 'Freely, for energy' }
+  { value: 'NONE', label: 'None', hint: 'No emoticons' },
+  { value: 'SUBTLE', label: 'Subtle', hint: 'At most one — :) or ;)' },
+  { value: 'EXPRESSIVE', label: 'Expressive', hint: 'ASCII only — :) ;) <3' }
 ];
 
 export const OPENER_OPTIONS: Option<OpenerStyle>[] = [
