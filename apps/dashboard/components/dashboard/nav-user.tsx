@@ -183,7 +183,7 @@ export function NavUser({
         align="end"
         forceMount
       >
-        <div className="relative mb-1 overflow-hidden rounded-lg border border-border/50 bg-muted/40 px-3 py-3 pr-16">
+        <div className="relative mb-1 overflow-hidden rounded-lg border border-border/50 bg-muted/40 p-3 pr-16">
           <span
             className="absolute right-2.5 top-2.5 inline-flex rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
             style={{

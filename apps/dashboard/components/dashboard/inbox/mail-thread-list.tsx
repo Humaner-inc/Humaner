@@ -189,7 +189,8 @@ export function MailThreadList({
       const next = { ...current };
       for (const id of ids) {
         if (!next[id]) continue;
-        const { removed: _removed, ...rest } = next[id];
+        const rest = { ...next[id] };
+        delete rest.removed;
         if (Object.keys(rest).length === 0) delete next[id];
         else next[id] = rest;
       }
@@ -695,7 +696,7 @@ export function MailThreadList({
   );
 
   const deskSplitFallback = (
-    <div className="flex h-full min-h-0 w-full">
+    <div className="flex size-full min-h-0">
       <div className="h-full w-[24%] min-w-[18%] max-w-[34%] shrink-0 border-r border-border/50">
         {listPanel}
       </div>
@@ -706,7 +707,7 @@ export function MailThreadList({
   );
 
   const cardSplitFallback = (
-    <div className="flex h-full min-h-0 w-full">
+    <div className="flex size-full min-h-0">
       <div className="h-full w-[38%] min-w-[24%] max-w-[50%] shrink-0">
         {listPanel}
       </div>
