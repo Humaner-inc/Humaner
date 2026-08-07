@@ -4,9 +4,8 @@ import { prisma } from '@/lib/db/prisma';
 
 export async function verifyEmail(email: string): Promise<void> {
   await prisma.$transaction([
-    prisma.verificationToken.updateMany({
-      where: { identifier: email },
-      data: { expires: new Date(+0) }
+    prisma.verificationToken.deleteMany({
+      where: { identifier: email }
     }),
     prisma.changeEmailRequest.deleteMany({
       where: { email }

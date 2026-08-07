@@ -2,6 +2,7 @@ import { createHash } from 'crypto';
 
 import { resizeImage } from '@/lib/imaging/resize-image';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
+import { isPublicHttpUrl } from '@/lib/urls/is-public-http-url';
 
 type ResizedImage = {
   bytes?: Buffer;
@@ -46,27 +47,49 @@ export async function fetchAndResizeRemoteImage(
 
   if (url) {
     try {
-      if (new URL(url).origin !== new URL(getBaseUrl()).origin) {
-        const response = await fetch(url, {
-          headers: {
-            Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-            'User-Agent': 'HumanerAvatarBot/1.0'
-          },
-          redirect: 'follow'
-        });
-        if (response.ok) {
-          const mimeType = guessMimeType(
-            url,
-            response.headers.get('content-type')
-          );
-          if (mimeType) {
-            const jsBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(new Uint8Array(jsBuffer));
-            bytes = await resizeImage(buffer, mimeType);
-            if (bytes) {
-              contentType = mimeType;
-              hash = createHash('sha256').update(bytes).digest('hex');
-            }
+      const remote = new URL(url);
+      const appOrigin = new URL(getBaseUrl()).origin;
+      if (remote.origin === appOrigin) {
+        return { bytes, contentType, hash };
+      }
+      if (!isPublicHttpUrl(remote)) {
+        console.warn(
+          '[fetchAndResizeRemoteImage] blocked non-public avatar URL'
+        );
+        return { bytes, contentType, hash };
+      }
+
+      const response = await fetch(remote.toString(), {
+        headers: {
+          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+          'User-Agent': 'HumanerAvatarBot/1.0'
+        },
+        redirect: 'follow'
+      });
+      if (response.ok) {
+        // Re-check the final URL after redirects (SSRF via redirect target).
+        try {
+          if (!isPublicHttpUrl(new URL(response.url))) {
+            console.warn(
+              '[fetchAndResizeRemoteImage] blocked redirect to non-public URL'
+            );
+            return { bytes, contentType, hash };
+          }
+        } catch {
+          return { bytes, contentType, hash };
+        }
+
+        const mimeType = guessMimeType(
+          response.url || url,
+          response.headers.get('content-type')
+        );
+        if (mimeType) {
+          const jsBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(new Uint8Array(jsBuffer));
+          bytes = await resizeImage(buffer, mimeType);
+          if (bytes) {
+            contentType = mimeType;
+            hash = createHash('sha256').update(bytes).digest('hex');
           }
         }
       }

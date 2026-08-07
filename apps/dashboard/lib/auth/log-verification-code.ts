@@ -10,12 +10,17 @@ export function logVerificationCodeForLocalDev(input: {
   otp: string;
   verificationLink: string;
 }): void {
-  const enabled =
-    process.env.NODE_ENV === 'development' ||
-    process.env.SELF_HOST_LOG_VERIFICATION === 'true';
+  const envEnabled = process.env.SELF_HOST_LOG_VERIFICATION === 'true';
+  const enabled = process.env.NODE_ENV === 'development' || envEnabled;
 
   if (!enabled) {
     return;
+  }
+
+  if (envEnabled && process.env.NODE_ENV === 'production') {
+    console.warn(
+      '[auth] SELF_HOST_LOG_VERIFICATION=true in production — OTPs are logged to stdout. Disable for real-user deploys.'
+    );
   }
 
   console.info(

@@ -14,7 +14,7 @@ import { sendWelcomeEmail } from '@/lib/smtp/send-welcome-email';
 import { NotFoundError } from '@/lib/validation/exceptions';
 
 type CompleteEmailVerificationInput =
-  | { type: 'otp'; otp: string }
+  | { type: 'otp'; otp: string; email: string }
   | { type: 'token'; token: string };
 
 export type EmailVerificationSignInHandshake = {
@@ -76,8 +76,9 @@ export async function completeEmailVerification(
     input.type === 'otp'
       ? await prisma.verificationToken.findFirst({
           where: {
+            identifier: input.email.toLowerCase(),
             token: await createHash(
-              `${input.otp.toUpperCase()}${process.env.AUTH_SECRET}`
+              `${input.otp.trim()}${process.env.AUTH_SECRET}`
             )
           },
           select: { identifier: true, expires: true }

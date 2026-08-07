@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { CheckIcon } from '@humaner/shared/icons';
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp';
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -30,6 +30,7 @@ import {
   InputOTPGroup,
   InputOTPSlot
 } from '@/components/ui/input-otp';
+import { EMAIL_OTP_LENGTH } from '@/constants/limits';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
@@ -67,6 +68,7 @@ export function VerifyEmailCard({
     schema: verifyEmailWithOtpSchema,
     mode: 'onSubmit',
     defaultValues: {
+      email,
       otp: ''
     }
   });
@@ -77,7 +79,10 @@ export function VerifyEmailCard({
     if (!canSubmit) {
       return;
     }
-    const result = await verifyEmailWithOtp(values);
+    const result = await verifyEmailWithOtp({
+      ...values,
+      email: values.email || email
+    });
     if (result?.data?.redirectTo) {
       setVerifySuccess(true);
       await new Promise((resolve) => {
@@ -133,23 +138,26 @@ export function VerifyEmailCard({
                   <FormControl>
                     <InputOTP
                       {...field}
-                      inputMode="text"
-                      maxLength={6}
-                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                      inputMode="numeric"
+                      maxLength={EMAIL_OTP_LENGTH}
+                      pattern={REGEXP_ONLY_DIGITS}
                       disabled={isVerifying || verifySuccess}
                       onComplete={methods.handleSubmit(onSubmit)}
                     >
                       <InputOTPGroup className="justify-center gap-2.5">
-                        {[0, 1, 2, 3, 4, 5].map((index) => (
-                          <InputOTPSlot
-                            key={index}
-                            index={index}
-                            className={cn(
-                              authOtpSlotClassName,
-                              authOtpSlotRingClassName
-                            )}
-                          />
-                        ))}
+                        {Array.from(
+                          { length: EMAIL_OTP_LENGTH },
+                          (_, index) => (
+                            <InputOTPSlot
+                              key={index}
+                              index={index}
+                              className={cn(
+                                authOtpSlotClassName,
+                                authOtpSlotRingClassName
+                              )}
+                            />
+                          )
+                        )}
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>

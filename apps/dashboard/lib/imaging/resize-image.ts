@@ -1,8 +1,14 @@
 import sharp from 'sharp';
 
 const maxSize = 96 * 4;
-const defaultFormat = 'jpeg';
-const supportedFormats = ['jpeg', 'png', 'webp', 'gif', 'avif'];
+const defaultFormat = 'jpeg' as const;
+const supportedFormats = ['jpeg', 'png', 'webp', 'gif', 'avif'] as const;
+
+type SupportedFormat = (typeof supportedFormats)[number];
+
+function isSupportedFormat(format: string): format is SupportedFormat {
+  return (supportedFormats as readonly string[]).includes(format);
+}
 
 export async function resizeImage(
   buffer: Buffer,
@@ -36,8 +42,8 @@ export async function resizeImage(
 
   const format = getFormatFromMimeType(mimeType);
 
-  if (supportedFormats.includes(format)) {
-    return resizedImage.toFormat(format as keyof sharp.FormatEnum).toBuffer();
+  if (isSupportedFormat(format)) {
+    return resizedImage.toFormat(format).toBuffer();
   }
 
   console.warn(

@@ -15,7 +15,8 @@ services:
       NEXT_PUBLIC_DEPLOYMENT_MODE: oss
       DATABASE_URL: postgresql://humaner:humaner@postgres:5432/humaner
       DIRECT_URL: postgresql://humaner:humaner@postgres:5432/humaner
-      AUTH_SECRET: ${AUTH_SECRET:-change-me-to-a-long-random-string}
+      # Required — entrypoint rejects missing/placeholder values
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET with openssl rand -base64 32}
       AUTH_TRUST_HOST: 'true'
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

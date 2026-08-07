@@ -1,12 +1,16 @@
 'use server';
 
-import { addHours } from 'date-fns';
+import { addMinutes } from 'date-fns';
 
 import { actionClient } from '@/actions/safe-action';
-import { EMAIL_VERIFICATION_EXPIRY_HOURS } from '@/constants/limits';
+import { EMAIL_VERIFICATION_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
+import {
+  assertEmailVerificationResendRateLimit,
+  generateEmailVerificationOtp
+} from '@/lib/auth/email-verification-otp';
 import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
-import { createHash, randomString } from '@/lib/auth/utils';
+import { createHash } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
@@ -30,15 +34,21 @@ export const resendEmailConfirmation = actionClient
       return;
     }
 
-    const otp = randomString(3).toUpperCase();
+    assertEmailVerificationResendRateLimit(normalizedEmail);
+
+    const otp = generateEmailVerificationOtp();
     const hashedOtp = await createHash(`${otp}${process.env.AUTH_SECRET}`);
     const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
+
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: normalizedEmail }
+    });
 
     await prisma.verificationToken.create({
       data: {
         identifier: normalizedEmail,
         token: hashedOtp,
-        expires: addHours(new Date(), EMAIL_VERIFICATION_EXPIRY_HOURS)
+        expires: addMinutes(new Date(), EMAIL_VERIFICATION_EXPIRY_MINUTES)
       },
       select: {
         identifier: true // SELECT NONE

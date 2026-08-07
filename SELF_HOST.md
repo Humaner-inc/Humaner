@@ -72,7 +72,7 @@ Gmail: use an [app-specific password](https://support.google.com/accounts/answer
        Link: http://localhost:3001/auth/verify-email/request/...
 ```
 
-For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true`. Never leave it on in production.
+For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users — the server logs plaintext OTPs.
 
 ### 5. LLM key — BYO inference
 
@@ -105,7 +105,7 @@ Open http://localhost:3001.
 ### 8. Sign up and verify
 
 1. Navigate to `/auth/sign-up` → Create your account
-2. Enter the 6-character OTP from email (or terminal — see step 4)
+2. Enter the 6-digit OTP from email (or terminal — see step 4)
 3. You land on onboarding
 
 **Skip the OTP entirely?** Mark verified in the DB:
@@ -281,13 +281,16 @@ Set the corresponding `AUTH_GOOGLE_*` / `AUTH_GITHUB_*` env vars.
 
 ## Security checklist
 
-| Check                               | Why                                                                 |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| Domain allowlist                    | Stops other sites from embedding your Agent ID                      |
-| Public Agent ID only in the browser | API keys stay on the server                                         |
-| Org-scoped keys                     | A key only touches one organization's data                          |
-| Hashed visitor IDs                  | Identify without sending raw PII as the id                          |
-| Own the DB                          | Messages and tickets live in your Postgres; set retention as needed |
+| Check                               | Why                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| Strong `AUTH_SECRET`                | Docker rejects placeholder secrets; generate with `openssl rand -base64 32`                |
+| Domain allowlist                    | Production rejects empty allowlists (unless `ALLOW_OPEN_WIDGET_ORIGINS=true`)              |
+| Public Agent ID only in the browser | API keys stay on the server                                                                |
+| Org-scoped keys                     | A key only touches one organization's data                                                 |
+| Hashed visitor IDs                  | Identify without sending raw PII as the id                                                 |
+| Trusted reverse proxy               | Rate limits use `X-Forwarded-For` / `X-Real-IP` — strip client-spoofed values at the proxy |
+| No OTP console logging in prod      | Disable `SELF_HOST_LOG_VERIFICATION` once email works                                      |
+| Own the DB                          | Messages and tickets live in your Postgres; set retention as needed                        |
 
 Report vulnerabilities to dev@humaner.io. Do not file public issues for exploitable findings.
 
