@@ -13,6 +13,7 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { resolveSelectedVerticalTopics } from '@/lib/organization/vertical-topics';
 
 export default async function OrganizationDetailsPage(): Promise<React.JSX.Element> {
@@ -73,19 +74,25 @@ export default async function OrganizationDetailsPage(): Promise<React.JSX.Eleme
         </>
       ) : null}
 
-      <Separator />
-      <AnnotatedSection
-        title="Data and Privacy"
-        description="Manage your Org data agreement. Humaner only aggregates anonymised patterns for agents improvements. Company's data is never shared."
-      >
-        <DataImprovementConsentCard
-          consent={consentSettings.consent}
-          consentedAt={consentSettings.consentedAt}
-          modelTrainingConsent={consentSettings.modelTrainingConsent}
-          modelTrainingConsentedAt={consentSettings.modelTrainingConsentedAt}
-          isOwner={consentSettings.isOwner}
-        />
-      </AnnotatedSection>
+      {!isOssDeployment() && (
+        <>
+          <Separator />
+          <AnnotatedSection
+            title="Data and Privacy"
+            description="Manage your Org data agreement. Humaner only aggregates anonymised patterns for agents improvements. Company's data is never shared."
+          >
+            <DataImprovementConsentCard
+              consent={consentSettings.consent}
+              consentedAt={consentSettings.consentedAt}
+              modelTrainingConsent={consentSettings.modelTrainingConsent}
+              modelTrainingConsentedAt={
+                consentSettings.modelTrainingConsentedAt
+              }
+              isOwner={consentSettings.isOwner}
+            />
+          </AnnotatedSection>
+        </>
+      )}
     </>
   );
 }

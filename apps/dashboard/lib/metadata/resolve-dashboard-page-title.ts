@@ -1,3 +1,4 @@
+import { AppInfo } from '@/constants/app-info';
 import { agentOverviewRoute, Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
@@ -96,7 +97,7 @@ export function resolveDashboardPageTitle(pathname: string): string {
     return 'Inbox';
   }
 
-  return 'Humaner';
+  return AppInfo.APP_NAME;
 }
 
 export function resolveAgentPageMetadataPath(

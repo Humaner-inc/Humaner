@@ -2,16 +2,27 @@ import * as React from 'react';
 import { ArrowLeftIcon } from '@humaner/shared/icons';
 import { getLandingUrl } from '@humaner/shared/urls';
 
+import { AppInfo } from '@/constants/app-info';
+import { isOssDeployment } from '@/lib/deployment-mode';
+import { cn } from '@/lib/utils';
+
 /**
- * Returns to the marketing site (humaner.io). Shown on login / signup only.
+ * Returns to the marketing site. Cloud: humaner.io. Self-Host: landing URL / home.
  * Positioned on the left edge of the auth panel, vertically centered.
  */
 export function AuthBackToMarketing(): React.JSX.Element {
+  const oss = isOssDeployment();
+
   return (
     <a
       href={getLandingUrl()}
-      aria-label="Back to Humaner"
-      className="absolute left-4 top-1/2 z-20 flex size-10 -translate-y-1/2 items-center justify-center rounded-none text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:left-6"
+      aria-label={`Back to ${AppInfo.APP_NAME}`}
+      className={cn(
+        'absolute left-4 top-1/2 z-20 flex size-10 -translate-y-1/2 items-center justify-center transition-colors sm:left-6',
+        oss
+          ? 'rounded-[0.5rem] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950'
+          : 'rounded-none text-white/70 hover:bg-white/10 hover:text-white'
+      )}
     >
       <ArrowLeftIcon className="size-5 shrink-0" />
     </a>

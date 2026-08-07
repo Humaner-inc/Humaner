@@ -3,6 +3,8 @@ import { BriefcaseBusinessIcon, UsersIcon } from '@humaner/shared/icons';
 import type { TargetAudience } from '@prisma/client';
 
 import { Badge } from '@/components/ui/badge';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { cn } from '@/lib/utils';
 
 export type AudienceTagProps = {
   targetAudience: TargetAudience | null;
@@ -25,7 +27,7 @@ export function AudienceTag({
   return (
     <Badge
       variant="secondary"
-      className="gap-1.5 rounded-none px-2.5 py-1"
+      className={cn('gap-1.5 px-2.5 py-1', dashboardRadiusClassName)}
     >
       {Icon ? <Icon className="size-3.5" /> : null}
       {meta ? (

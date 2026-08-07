@@ -11,6 +11,7 @@ import {
   WORKSPACE_SETTINGS_NAV_TABS
 } from '@/constants/settings-nav-items';
 import { isWorkspaceOwner } from '@/lib/auth/workspace-access';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
@@ -51,7 +52,8 @@ export function SettingsNavTabs({
             key={tab.id}
             href={tab.href}
             className={cn(
-              'inline-flex h-8 items-center gap-1.5 rounded-none px-2.5 text-xs font-medium transition-colors',
+              'inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition-colors',
+              dashboardRadiusClassName,
               active
                 ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'

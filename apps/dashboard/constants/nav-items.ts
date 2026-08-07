@@ -9,6 +9,7 @@ import {
 } from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import type { NavItem } from '@/types/nav-item';
 
 export const mainNavItems: NavItem[] = [];
@@ -48,12 +49,16 @@ export const organizationNavItems: NavItem[] = [
     icon: StoreIcon,
     ownerOnly: true
   },
-  {
-    title: 'Billing',
-    href: Routes.Billing,
-    icon: CreditCardIcon,
-    ownerOnly: true
-  },
+  ...(!isOssDeployment()
+    ? [
+        {
+          title: 'Billing',
+          href: Routes.Billing,
+          icon: CreditCardIcon,
+          ownerOnly: true
+        } satisfies NavItem
+      ]
+    : []),
   {
     title: 'Audit logs',
     href: Routes.Security,

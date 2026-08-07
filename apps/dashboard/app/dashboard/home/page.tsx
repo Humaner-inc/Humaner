@@ -10,6 +10,7 @@ import { DeskIssuesOverviewCard } from '@/components/dashboard/home/desk-issues-
 import { InboxOverviewCard } from '@/components/dashboard/home/inbox-overview-card';
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
 import { SectionPage } from '@/components/ui/section-shell';
+import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
@@ -26,6 +27,7 @@ import {
 } from '@/lib/billing/plan-limits';
 import { dashboardSurfaceDashedClassName } from '@/lib/dashboard/surface-styles';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { cn } from '@/lib/utils';
 
@@ -36,6 +38,7 @@ export const metadata: Metadata = createDashboardPageMetadata(
 
 export default async function HomePage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
+  const oss = isOssDeployment();
 
   const [
     profile,
@@ -71,7 +74,7 @@ export default async function HomePage(): Promise<React.JSX.Element> {
       : Promise.resolve(0),
     getDeskIssuesOverview(),
     getOrganizationMembers(),
-    getInboxHomeOverview()
+    oss ? Promise.resolve(null) : getInboxHomeOverview()
   ]);
 
   const plan = getEffectivePlan(
@@ -95,7 +98,8 @@ export default async function HomePage(): Promise<React.JSX.Element> {
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}
           includedMessages={organization?.includedMessages}
-          canAccessBilling={canAccessPathname(profile, Routes.Billing)}
+          canAccessBilling={!oss && canAccessPathname(profile, Routes.Billing)}
+          selfHostMode={oss}
         />
 
         <section className="space-y-4">
@@ -109,15 +113,15 @@ export default async function HomePage(): Promise<React.JSX.Element> {
             {!atLimit ? (
               <Link
                 href={Routes.AgentNew}
-                className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                className="shrink-0 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
               >
                 New agent
               </Link>
             ) : null}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:items-start">
-            <div className="min-w-0 space-y-4">
+          {oss ? (
+            <>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
                 {agents.map((agent) => (
                   <AgentCard
@@ -129,7 +133,6 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                 ))}
                 {!atLimit ? <CreateAgentCard /> : null}
               </div>
-
               {atLimit ? (
                 <p
                   className={cn(
@@ -137,23 +140,64 @@ export default async function HomePage(): Promise<React.JSX.Element> {
                     'px-4 py-3 text-center text-xs text-muted-foreground'
                   )}
                 >
-                  Live agent limit reached. Pause an agent or upgrade your plan.
+                  Agent limit reached for this workspace.
                 </p>
               ) : null}
+            </>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:items-start">
+              <div className="min-w-0 space-y-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
+                  {agents.map((agent) => (
+                    <AgentCard
+                      key={agent.id}
+                      agent={agent}
+                      linkToWorkspace
+                      compact
+                    />
+                  ))}
+                  {!atLimit ? <CreateAgentCard /> : null}
+                </div>
+                {atLimit ? (
+                  <p
+                    className={cn(
+                      dashboardSurfaceDashedClassName,
+                      'px-4 py-3 text-center text-xs text-muted-foreground'
+                    )}
+                  >
+                    Live agent limit reached. Pause an agent or upgrade your
+                    plan.
+                  </p>
+                ) : null}
+              </div>
+              <aside className="lg:sticky lg:top-4">
+                <TeamMembersOverviewCard members={members} />
+              </aside>
             </div>
+          )}
+        </section>
 
-            <aside className="lg:sticky lg:top-4">
-              <TeamMembersOverviewCard members={members} />
-            </aside>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
+        {oss ? (
+          <section className="grid gap-4 md:grid-cols-2">
+            <DeskIssuesOverviewCard
+              overview={deskOverview}
+              title={AppInfo.HELPDESK_LABEL}
+            />
+            <TeamMembersOverviewCard members={members} />
+          </section>
+        ) : (
+          <section
+            className={cn(
+              'grid gap-4',
+              inboxOverview ? 'md:grid-cols-2' : 'md:grid-cols-1'
+            )}
+          >
             <DeskIssuesOverviewCard overview={deskOverview} />
             {inboxOverview ? (
               <InboxOverviewCard overview={inboxOverview} />
             ) : null}
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </SectionPage>
   );

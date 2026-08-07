@@ -45,9 +45,10 @@ export function resolveAllowedAgentCharacter(
   character: CharacterType,
   capabilities: PlanCapabilities
 ): CharacterType {
-  return capabilities.personalities === 'all' || character === 'CORPORATE'
-    ? character
-    : 'CORPORATE';
+  if (capabilities.personalities === 'all') return character;
+  if (capabilities.personalities === 'custom-only') return 'CUSTOM';
+  if (character === 'CORPORATE' || character === 'CUSTOM') return character;
+  return 'CORPORATE';
 }
 
 /** Human-readable plan name for upgrade prompts. */

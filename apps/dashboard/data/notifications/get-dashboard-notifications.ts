@@ -12,6 +12,7 @@ import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import {
   parseActivityNotificationPreferences,
@@ -66,6 +67,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   const organizationId = session.user.organizationId;
   const userId = session.user.id;
   const items: DashboardNotification[] = [];
+  const oss = isOssDeployment();
   const bypassLimits = await organizationBypassesPlanLimits(organizationId);
 
   const historySince = subDays(new Date(), HISTORY_LOOKBACK_DAYS);
@@ -89,8 +91,10 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         humanDeskEnabled: true
       }
     }),
-    prisma.agent.count({ where: { organizationId } }),
-    prisma.user.count({ where: { organizationId } }),
+    oss
+      ? Promise.resolve(0)
+      : prisma.agent.count({ where: { organizationId } }),
+    oss ? Promise.resolve(0) : prisma.user.count({ where: { organizationId } }),
     prisma.handoffTicket.findMany({
       where: {
         organizationId,
@@ -111,22 +115,25 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       orderBy: { createdAt: 'desc' },
       take: 8
     }),
-    prisma.supportTicket.findMany({
-      where: {
-        userId,
-        status: { in: ['OPEN', 'IN_PROGRESS'] }
-      },
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        contextTab: true,
-        contextFeature: true,
-        updatedAt: true
-      },
-      orderBy: { updatedAt: 'desc' },
-      take: 8
-    }),
+    // Cloud-only: Humaner support / bug tickets (not Self-Host Helpdesk).
+    oss
+      ? Promise.resolve([])
+      : prisma.supportTicket.findMany({
+          where: {
+            userId,
+            status: { in: ['OPEN', 'IN_PROGRESS'] }
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            contextTab: true,
+            contextFeature: true,
+            updatedAt: true
+          },
+          orderBy: { updatedAt: 'desc' },
+          take: 8
+        }),
     prisma.conversation.findMany({
       where: {
         updatedAt: { gte: historySince },
@@ -179,98 +186,102 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const tier = normalizeTier(organization.tier);
   const plan = getEffectivePlan(tier, organization.includedMessages);
-  const messagesUsed = await getMessagesUsedThisMonth(
-    session.user.organizationId,
-    tier
-  );
-  const messageQuotaExhausted =
-    plan.overagePerMessage === null &&
-    plan.includedMessages > 0 &&
-    messagesUsed >= plan.includedMessages;
 
-  if (!bypassLimits) {
-    const usagePercent =
-      plan.includedMessages > 0
-        ? Math.round((messagesUsed / plan.includedMessages) * 100)
-        : 0;
+  // Self-Host: no Polar billing / plan-limit upgrade nudges.
+  if (!oss) {
+    const messagesUsed = await getMessagesUsedThisMonth(
+      session.user.organizationId,
+      tier
+    );
+    const messageQuotaExhausted =
+      plan.overagePerMessage === null &&
+      plan.includedMessages > 0 &&
+      messagesUsed >= plan.includedMessages;
 
-    if (messageQuotaExhausted || usagePercent >= 100) {
-      if (tier === 'free') {
+    if (!bypassLimits) {
+      const usagePercent =
+        plan.includedMessages > 0
+          ? Math.round((messagesUsed / plan.includedMessages) * 100)
+          : 0;
+
+      if (messageQuotaExhausted || usagePercent >= 100) {
+        if (tier === 'free') {
+          items.push({
+            id: 'billing-free-quota',
+            kind: 'billing',
+            title: `${plan.name} message quota exhausted`,
+            description:
+              'Free messages for this period are used up. Upgrade to keep agents responding.',
+            href: Routes.Billing,
+            severity: 'critical',
+            tag: plan.name,
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          items.push({
+            id: 'plan-messages-critical',
+            kind: 'plan_limit',
+            title: 'Message limit reached',
+            description: `${plan.name} includes ${plan.includedMessages.toLocaleString()} messages/mo. Upgrade or wait for the next billing period.`,
+            href: Routes.Billing,
+            severity: 'critical',
+            tag: `${usagePercent}% used`,
+            createdAt: new Date().toISOString()
+          });
+        }
+      } else if (usagePercent >= 80) {
         items.push({
-          id: 'billing-free-quota',
-          kind: 'billing',
-          title: `${plan.name} message quota exhausted`,
-          description:
-            'Free messages for this period are used up. Upgrade to keep agents responding.',
-          href: Routes.Billing,
-          severity: 'critical',
-          tag: plan.name,
-          createdAt: new Date().toISOString()
-        });
-      } else {
-        items.push({
-          id: 'plan-messages-critical',
+          id: 'plan-messages-warning',
           kind: 'plan_limit',
-          title: 'Message limit reached',
-          description: `${plan.name} includes ${plan.includedMessages.toLocaleString()} messages/mo. Upgrade or wait for the next billing period.`,
+          title: 'Approaching message limit',
+          description: `${messagesUsed.toLocaleString()} of ${plan.includedMessages.toLocaleString()} included messages used this period.`,
           href: Routes.Billing,
-          severity: 'critical',
+          severity: 'warning',
           tag: `${usagePercent}% used`,
           createdAt: new Date().toISOString()
         });
       }
-    } else if (usagePercent >= 80) {
+
+      if (agentCount >= plan.agents) {
+        items.push({
+          id: 'plan-agents-limit',
+          kind: 'plan_limit',
+          title: 'Agent limit reached',
+          description: `${plan.name} includes ${plan.agents} ${plan.agents === 1 ? 'agent' : 'agents'}. Upgrade to add more.`,
+          href: Routes.Billing,
+          severity: agentCount > plan.agents ? 'critical' : 'warning',
+          tag: `${agentCount}/${plan.agents} agents`,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      if (memberCount >= plan.members) {
+        items.push({
+          id: 'plan-members-limit',
+          kind: 'plan_limit',
+          title: 'Member limit reached',
+          description: `${plan.name} includes ${plan.members} ${plan.members === 1 ? 'member' : 'members'}. Upgrade to invite more teammates.`,
+          href: Routes.OrganizationTeam,
+          severity: memberCount > plan.members ? 'critical' : 'warning',
+          tag: `${memberCount}/${plan.members} members`,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+
+    if (tier !== 'free' && !organization.polarCustomerId) {
       items.push({
-        id: 'plan-messages-warning',
-        kind: 'plan_limit',
-        title: 'Approaching message limit',
-        description: `${messagesUsed.toLocaleString()} of ${plan.includedMessages.toLocaleString()} included messages used this period.`,
+        id: 'billing-missing-customer',
+        kind: 'billing',
+        title: 'Billing setup incomplete',
+        description:
+          'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
         href: Routes.Billing,
         severity: 'warning',
-        tag: `${usagePercent}% used`,
+        tag: 'Billing',
         createdAt: new Date().toISOString()
       });
     }
-
-    if (agentCount >= plan.agents) {
-      items.push({
-        id: 'plan-agents-limit',
-        kind: 'plan_limit',
-        title: 'Agent limit reached',
-        description: `${plan.name} includes ${plan.agents} ${plan.agents === 1 ? 'agent' : 'agents'}. Upgrade to add more.`,
-        href: Routes.Billing,
-        severity: agentCount > plan.agents ? 'critical' : 'warning',
-        tag: `${agentCount}/${plan.agents} agents`,
-        createdAt: new Date().toISOString()
-      });
-    }
-
-    if (memberCount >= plan.members) {
-      items.push({
-        id: 'plan-members-limit',
-        kind: 'plan_limit',
-        title: 'Member limit reached',
-        description: `${plan.name} includes ${plan.members} ${plan.members === 1 ? 'member' : 'members'}. Upgrade to invite more teammates.`,
-        href: Routes.OrganizationTeam,
-        severity: memberCount > plan.members ? 'critical' : 'warning',
-        tag: `${memberCount}/${plan.members} members`,
-        createdAt: new Date().toISOString()
-      });
-    }
-  }
-
-  if (tier !== 'free' && !organization.polarCustomerId) {
-    items.push({
-      id: 'billing-missing-customer',
-      kind: 'billing',
-      title: 'Billing setup incomplete',
-      description:
-        'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
-      href: Routes.Billing,
-      severity: 'warning',
-      tag: 'Billing',
-      createdAt: new Date().toISOString()
-    });
   }
 
   if (organization.humanDeskEnabled) {

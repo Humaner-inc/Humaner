@@ -16,10 +16,14 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { MAX_IMAGE_SIZE } from '@/constants/limits';
-import { CHARACTER_META } from '@/lib/character-presets';
+import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
 import { FileUploadAction } from '@/types/file-upload-action';
+
+const oss = isOssDeployment();
 
 export type AgentAvatarUploadProps = {
   agentId?: string;
@@ -42,9 +46,12 @@ export function AgentAvatarUpload({
     () => toSameOriginImageUrl(image) ?? null
   );
   const isCustomWithoutImage = character === 'CUSTOM' && !currentImage;
-  const fallbackImage = isCustomWithoutImage
-    ? null
-    : CHARACTER_META[character].image;
+  // Cloud Custom with no upload stays empty ("Upload image"). OSS uses the
+  // onboarding Bot tile so sidebar / Organization never look blank.
+  const fallbackImage =
+    isCustomWithoutImage && !oss
+      ? null
+      : resolveAgentAvatarSrc(currentImage, character);
   const displayImage = currentImage ?? fallbackImage;
 
   React.useEffect(() => {
@@ -148,7 +155,8 @@ export function AgentAvatarUpload({
       {displayImage ? (
         <div
           className={cn(
-            'pointer-events-none absolute inset-0 overflow-hidden rounded-full opacity-25 blur-2xl transition-opacity duration-300',
+            'pointer-events-none absolute inset-0 overflow-hidden opacity-25 blur-2xl transition-opacity duration-300',
+            oss ? dashboardRadiusClassName : 'rounded-full',
             glowScale,
             !disabled && 'group-hover/avatar:opacity-55'
           )}
@@ -165,9 +173,13 @@ export function AgentAvatarUpload({
 
       <div
         className={cn(
-          'relative size-full overflow-hidden rounded-full bg-white ring-2 ring-offset-2 transition-[box-shadow,ring-color] duration-300',
+          'relative size-full overflow-hidden bg-white ring-2 ring-offset-2 transition-[box-shadow,ring-color] duration-300',
+          oss ? dashboardRadiusClassName : 'rounded-full',
           'ring-foreground/10 ring-offset-background',
-          !disabled && 'group-hover/avatar:ring-[#e1ccaf]'
+          !disabled &&
+            (oss
+              ? 'group-hover/avatar:ring-zinc-400'
+              : 'group-hover/avatar:ring-[#e1ccaf]')
         )}
       >
         <ImageDropzone
@@ -175,14 +187,19 @@ export function AgentAvatarUpload({
           multiple={false}
           disabled={disabled}
           onDrop={handleDrop}
-          borderRadius="full"
+          borderRadius={oss ? 'md' : 'full'}
           title="Upload image"
           className={cn(
             dropzoneSize,
             'border-0 bg-transparent shadow-none hover:bg-transparent'
           )}
         >
-          <Avatar className={cn(avatarSize, 'rounded-full')}>
+          <Avatar
+            className={cn(
+              avatarSize,
+              oss ? dashboardRadiusClassName : 'rounded-full'
+            )}
+          >
             {currentImage ? (
               <AvatarImage
                 src={currentImage}
@@ -193,11 +210,12 @@ export function AgentAvatarUpload({
             <AvatarFallback
               className={cn(
                 avatarSize,
-                'overflow-hidden rounded-full p-0',
-                isCustomWithoutImage && 'bg-white'
+                'overflow-hidden p-0',
+                oss ? dashboardRadiusClassName : 'rounded-full',
+                isCustomWithoutImage && !oss && 'bg-white'
               )}
             >
-              {isCustomWithoutImage ? (
+              {isCustomWithoutImage && !oss ? (
                 <span className="px-2 text-center text-[10px] font-medium leading-tight text-muted-foreground">
                   Upload image
                 </span>

@@ -2,8 +2,9 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 
-import { AuthContainer } from '@/components/auth/auth-container';
+import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { RecoveryCodeCard } from '@/components/auth/recovery-code/recovery-code-card';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
 
@@ -20,20 +21,38 @@ export default async function RecoveryCodePage({
   searchParams
 }: NextPageProps): Promise<React.JSX.Element> {
   const { token, expiry } = await searchParamsCache.parse(searchParams);
+  const oss = isOssDeployment();
 
   if (!token) {
-    return <AuthContainer>Missing token param.</AuthContainer>;
+    return (
+      <AuthOnboardingCardShell
+        showLogo={oss}
+        maxWidth="sm"
+      >
+        Missing token param.
+      </AuthOnboardingCardShell>
+    );
   }
   if (!expiry) {
-    return <AuthContainer>Missing expiry param.</AuthContainer>;
+    return (
+      <AuthOnboardingCardShell
+        showLogo={oss}
+        maxWidth="sm"
+      >
+        Missing expiry param.
+      </AuthOnboardingCardShell>
+    );
   }
 
   return (
-    <AuthContainer maxWidth="sm">
+    <AuthOnboardingCardShell
+      showLogo={oss}
+      maxWidth="sm"
+    >
       <RecoveryCodeCard
         token={token}
         expiry={expiry}
       />
-    </AuthContainer>
+    </AuthOnboardingCardShell>
   );
 }

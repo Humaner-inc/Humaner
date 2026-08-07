@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 import type { ApiKeyDto } from '@/types/dtos/api-key-dto';
 
@@ -89,7 +90,10 @@ function ApiKeyStatusMark({
     return (
       <Badge
         variant="outline"
-        className="rounded-none border-destructive/30 px-1.5 py-0 text-[10px] font-medium tracking-wide text-destructive"
+        className={cn(
+          'border-destructive/30 px-1.5 py-0 text-[10px] font-medium tracking-wide text-destructive',
+          dashboardRadiusClassName
+        )}
       >
         Broken
       </Badge>
@@ -99,7 +103,10 @@ function ApiKeyStatusMark({
   return (
     <Badge
       variant="outline"
-      className="rounded-none border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground"
+      className={cn(
+        'border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground',
+        dashboardRadiusClassName
+      )}
     >
       Inactive
     </Badge>

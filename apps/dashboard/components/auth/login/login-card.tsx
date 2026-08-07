@@ -41,9 +41,11 @@ import {
 } from '@/components/ui/form';
 import { InputPassword } from '@/components/ui/input-password';
 import { InputWithAdornments } from '@/components/ui/input-with-adornments';
+import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   passThroughlogInSchema,
@@ -168,10 +170,14 @@ export function LoginCard({
     }
     setIsLoading(false);
   };
+  const oss = isOssDeployment();
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="space-y-2 text-center">
-        <h1 className={authPageTitleClassName}>Humaner</h1>
+    <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
+      <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
+        <h1 className={authPageTitleClassName}>
+          {oss ? 'Log in' : AppInfo.APP_NAME}
+        </h1>
         <p className={authMutedTextClassName}>
           Enter your details below to sign into your account.
         </p>
@@ -271,7 +277,8 @@ export function LoginCard({
                     <Link
                       className={cn(
                         buttonVariants({ variant: 'link' }),
-                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-300 underline'
+                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                        oss ? 'text-foreground' : 'text-red-300'
                       )}
                       href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
                     >

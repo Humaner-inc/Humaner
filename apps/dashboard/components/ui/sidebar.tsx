@@ -25,7 +25,14 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
+
+const oss = isOssDeployment();
+const sidebarNavLabelClassName = oss
+  ? 'font-sans normal-case tracking-normal'
+  : 'font-mono uppercase tracking-wide';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -678,19 +685,23 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = 'SidebarMenuItem';
 
 export const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-none p-2.5 text-left font-mono text-[11px] uppercase tracking-wide outline-none ring-sidebar-ring transition-[width,height,padding,color,background-color] duration-200 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground focus-visible:ring-1 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2.5 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  cn(
+    'peer/menu-button flex w-full items-center gap-2 overflow-hidden p-2.5 text-left text-[11px] outline-none ring-sidebar-ring transition-[width,height,padding,color,background-color] duration-200 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground focus-visible:ring-1 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2.5 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+    dashboardRadiusClassName,
+    sidebarNavLabelClassName
+  ),
   {
     variants: {
       variant: {
         default: [
           'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
-          'data-[active=true]:border-l-2 data-[active=true]:border-[var(--accent-color,#e1ccaf)] data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_8%,transparent)] data-[active=true]:pl-[calc(0.625rem-2px)] data-[active=true]:font-medium data-[active=true]:text-foreground data-[active=true]:[&_svg]:text-foreground'
+          'data-[active=true]:border-l-2 data-[active=true]:border-[var(--accent-color,hsl(var(--brand)))] data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,hsl(var(--brand)))_8%,transparent)] data-[active=true]:pl-[calc(0.625rem-2px)] data-[active=true]:font-medium data-[active=true]:text-foreground data-[active=true]:[&_svg]:text-foreground'
         ],
         section: [
           'text-muted-foreground hover:bg-sidebar-accent/40 hover:text-sidebar-foreground',
           'data-[active=true]:font-medium data-[active=true]:text-foreground',
           'data-[active=true]:[&_svg]:text-foreground',
-          'group-data-[collapsible=icon]:data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_10%,transparent)]'
+          'group-data-[collapsible=icon]:data-[active=true]:bg-[color-mix(in_srgb,var(--accent-color,hsl(var(--brand)))_10%,transparent)]'
         ],
         outline:
           'bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]'
@@ -932,7 +943,7 @@ const SidebarMenuSubButton = React.forwardRef<
           ],
           variant === 'branch' && [
             'hover:bg-sidebar-accent/50 [&>svg]:text-muted-foreground hover:[&>svg]:text-foreground/80',
-            'data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-none data-[active=true]:hover:bg-transparent data-[active=true]:[&_svg]:text-[var(--accent-color,#e1ccaf)]'
+            'data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-none data-[active=true]:hover:bg-transparent data-[active=true]:[&_svg]:text-[var(--accent-color,hsl(var(--brand)))]'
           ],
           size === 'sm' && 'text-xs',
           size === 'md' && 'text-sm',

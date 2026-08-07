@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { AppInfo } from '@/constants/app-info';
 
 export type DataImprovementConsentCardProps = CardProps & {
   consent: boolean | null;
@@ -142,7 +143,7 @@ export function DataImprovementConsentCard({
               className="flex w-full items-center gap-2 rounded-none border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
             >
               <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1">How Humaner uses data</span>
+              <span className="flex-1">How {AppInfo.APP_NAME} uses data</span>
               <ArrowDownIcon
                 className={`size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${tourOpen ? 'rotate-180' : ''}`}
               />
@@ -153,7 +154,7 @@ export function DataImprovementConsentCard({
               <PipelineStep
                 icon={Layers}
                 title="Anonymised patterns"
-                description="Humaner uses industries patterns to improve agents."
+                description={`${AppInfo.APP_NAME} uses industries patterns to improve agents.`}
               />
               {downArrow}
               <PipelineStep
@@ -170,7 +171,7 @@ export function DataImprovementConsentCard({
                   <PipelineStep
                     icon={Brain}
                     title="Model fine-tuning"
-                    description="Improving Humaner model as a whole."
+                    description={`Improving ${AppInfo.APP_NAME} model as a whole.`}
                   />
                 </div>
                 <div className="rounded-none border border-border/60 bg-background/50 p-3">
@@ -218,11 +219,11 @@ export function DataImprovementConsentCard({
               htmlFor="model-training-consent"
               className="text-base"
             >
-              Improve Humaner Model
+              Improve {AppInfo.APP_NAME} Model
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allowing your anonymised patterns to help fine-tune Humaner's
-              model as a whole.
+              Allowing your anonymised patterns to help fine-tune{' '}
+              {AppInfo.APP_NAME}&apos;s model as a whole.
             </p>
             {modelTrainingConsentedAt ? (
               <p className="text-xs text-muted-foreground">

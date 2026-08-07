@@ -9,6 +9,7 @@ import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
 
@@ -47,6 +48,12 @@ function isVerifyEmailRoute(): boolean {
   return !!pathname && pathname.startsWith(Routes.VerifyEmail);
 }
 
+/** MFA challenge pages — client owns the post-success navigation. */
+function isMfaChallengeRoute(): boolean {
+  const pathname = getPathname();
+  return pathname === Routes.Totp || pathname === Routes.RecoveryCode;
+}
+
 function isLoginOrSignUpRoute(): boolean {
   const pathname = getPathname();
   return pathname === Routes.Login || pathname === Routes.SignUp;
@@ -77,27 +84,39 @@ export default async function AuthLayout({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
-  // Let verify-email finish (OTP action + client redirect). Auto-bouncing to a
-  // protected route here races the new session cookie and lands on /auth/login.
   if (
     !isChangeEmailRoute() &&
     !isLogoutRoute() &&
     !isVerifyEmailRoute() &&
+    !isMfaChallengeRoute() &&
     session?.user?.id
   ) {
     return redirect(await getAuthenticatedRedirect(session.user.id));
   }
-  const showBackToMarketing = isLoginOrSignUpRoute();
+
+  const oss = isOssDeployment();
+  const showBackToMarketing = !oss && isLoginOrSignUpRoute();
+
+  // Self-Host: black canvas, white portal only — no hero banner.
+  if (oss) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-8">
+        <main className="relative z-10 w-full max-w-md">
+          <div className="rounded-[0.75rem] border border-zinc-200 bg-white px-5 py-5 text-zinc-950 shadow-sm sm:px-6 sm:py-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen bg-[#070607]">
       <GrainAmbient className="fixed inset-0 z-0" />
-      {/* Left: auth form */}
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
         {showBackToMarketing ? <AuthBackToMarketing /> : null}
         {children}
       </main>
-      {/* Right: landing Hero frame */}
       <div className="relative z-10 hidden lg:block lg:w-1/2">
         <div className="absolute inset-4 overflow-hidden rounded-2xl">
           <AuthHeroPanel />

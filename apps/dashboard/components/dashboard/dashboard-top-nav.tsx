@@ -10,6 +10,7 @@ import { NavUser } from '@/components/dashboard/nav-user';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
@@ -74,7 +75,7 @@ export function DashboardTopNav({
         className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
       />
       <div className="flex h-7 items-center gap-1.5">
-        <AskHumanerTrigger />
+        {!isOssDeployment() ? <AskHumanerTrigger /> : null}
         <NavUser
           profile={profile}
           workspaces={workspaces}

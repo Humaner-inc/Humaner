@@ -5,6 +5,7 @@ import { addHours } from 'date-fns';
 import { actionClient } from '@/actions/safe-action';
 import { EMAIL_VERIFICATION_EXPIRY_HOURS } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
+import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
 import { createHash, randomString } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
@@ -31,6 +32,7 @@ export const resendEmailConfirmation = actionClient
 
     const otp = randomString(3).toUpperCase();
     const hashedOtp = await createHash(`${otp}${process.env.AUTH_SECRET}`);
+    const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
     await prisma.verificationToken.create({
       data: {
@@ -43,10 +45,16 @@ export const resendEmailConfirmation = actionClient
       }
     });
 
+    logVerificationCodeForLocalDev({
+      email: maybeUser.email,
+      otp,
+      verificationLink
+    });
+
     await sendVerifyEmailAddressEmail({
       recipient: maybeUser.email,
       name: maybeUser.name,
       otp,
-      verificationLink: `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`
+      verificationLink
     });
   });

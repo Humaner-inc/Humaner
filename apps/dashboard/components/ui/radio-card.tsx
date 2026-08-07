@@ -2,7 +2,10 @@ import * as React from 'react';
 import { CheckIcon } from '@humaner/shared/icons';
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
 
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
+
+const ossRadius = isOssDeployment() ? 'rounded-[0.5rem]' : 'rounded-md';
 
 export type RadioCardsElement = React.ElementRef<
   typeof RadioGroupPrimitive.Root
@@ -37,7 +40,8 @@ const RadioCardItem = React.forwardRef<
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
-      'group relative overflow-hidden rounded-md border border-input p-4',
+      'group relative overflow-hidden border border-input p-4',
+      ossRadius,
       'hover:border-foreground/25 focus:border-foreground/25 focus:outline-none',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:border-foreground/30 data-[state=checked]:bg-muted',

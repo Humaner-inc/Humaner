@@ -9,10 +9,17 @@ import packageInfo from '../package.json';
  * Product identity. Prefer brand.config.ts for Self-Host white-label;
  * NEXT_PUBLIC_APP_NAME still overrides the display name when set.
  */
+/**
+ * Product identity. Self-Host always uses brand.config (Acme kit) and ignores
+ * Cloud env overrides like NEXT_PUBLIC_APP_NAME=Humaner.
+ */
 export const AppInfo = {
-  APP_NAME: process.env.NEXT_PUBLIC_APP_NAME?.trim() || brand.name,
-  APP_DESCRIPTION:
-    'Personality-driven AI support agents. Accurate as a specialist, human as a person.',
+  APP_NAME: isOssDeployment()
+    ? brand.name
+    : process.env.NEXT_PUBLIC_APP_NAME?.trim() || brand.name,
+  APP_DESCRIPTION: isOssDeployment()
+    ? `${brand.name} customer support kit — Helpdesk, BYO agent, team & org.`
+    : 'Personality-driven AI support agents. Accurate as a specialist, human as a person.',
   PRODUCTION: process.env.NODE_ENV === 'production',
   VERSION: packageInfo.version,
   /** Self-Host: brand.labels.helpdesk. Cloud: Human Desk. */

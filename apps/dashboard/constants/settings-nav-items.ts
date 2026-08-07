@@ -9,6 +9,7 @@ import {
 } from '@humaner/shared/icons';
 
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 
 export type AccountSettingsNavTabId =
   | 'profile'
@@ -49,13 +50,17 @@ export const ACCOUNT_SETTINGS_NAV_TABS: SettingsNavTab[] = [
     icon: BellIcon,
     href: Routes.Notifications
   },
-  {
-    id: 'billing',
-    label: 'Billing',
-    icon: CreditCardIcon,
-    href: Routes.Billing,
-    ownerOnly: true
-  }
+  ...(!isOssDeployment()
+    ? [
+        {
+          id: 'billing' as const,
+          label: 'Billing',
+          icon: CreditCardIcon,
+          href: Routes.Billing,
+          ownerOnly: true
+        } satisfies SettingsNavTab
+      ]
+    : [])
 ];
 
 export const WORKSPACE_SETTINGS_NAV_TABS: SettingsNavTab[] = [

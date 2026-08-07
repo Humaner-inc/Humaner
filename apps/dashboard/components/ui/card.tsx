@@ -1,6 +1,9 @@
 import * as React from 'react';
 
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
+
+const cardRadius = isOssDeployment() ? 'rounded-[0.5rem]' : 'rounded-none';
 
 export type CardElement = HTMLDivElement;
 export type CardProps = React.HTMLAttributes<HTMLDivElement>;
@@ -9,7 +12,8 @@ const Card = React.forwardRef<CardElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        'rounded-none border bg-card text-card-foreground',
+        cardRadius,
+        'border bg-card text-card-foreground',
         className
       )}
       {...props}

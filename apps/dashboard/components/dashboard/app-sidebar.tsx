@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/sidebar';
 import { AppInfo } from '@/constants/app-info';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
+import { isOssDeployment } from '@/lib/deployment-mode';
+import { getBrandFavicon } from '@/lib/theme/brand';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
@@ -45,6 +47,8 @@ export function AppSidebar({
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
   const [brandHovered, setBrandHovered] = React.useState(false);
+  const oss = isOssDeployment();
+  const appName = AppInfo.APP_NAME;
 
   return (
     <Sidebar
@@ -54,22 +58,42 @@ export function AppSidebar({
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
         <div className="flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
-            <Image
-              src="/favicon.svg"
-              alt=""
-              width={32}
-              height={32}
-              unoptimized
-              className="size-8 shrink-0"
-            />
+            oss ? (
+              <div className="flex size-8 items-center justify-center rounded-md border border-sidebar-border text-sidebar-foreground">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M7.81815 8.36373L12 0L24 24H15.2809L7.81815 8.36373Z" />
+                  <path d="M4.32142 15.3572L8.44635 24H0L4.32142 15.3572Z" />
+                </svg>
+              </div>
+            ) : (
+              <Image
+                src={getBrandFavicon()}
+                alt=""
+                width={32}
+                height={32}
+                unoptimized
+                className="size-8 shrink-0"
+              />
+            )
+          ) : oss ? (
+            <span className="truncate text-center font-sans text-lg font-semibold tracking-tight text-sidebar-foreground">
+              {appName}
+            </span>
           ) : (
             <BrandWordmark
               active={brandHovered}
+              hoverText={appName}
               onMouseEnter={() => setBrandHovered(true)}
               onMouseLeave={() => setBrandHovered(false)}
               className="truncate text-center font-display text-lg font-semibold tracking-tight text-sidebar-foreground"
             >
-              {AppInfo.APP_NAME}
+              {appName}
             </BrandWordmark>
           )}
         </div>
@@ -90,10 +114,12 @@ export function AppSidebar({
         </ScrollArea>
       </SidebarContent>
       <div className="mt-auto min-w-0 border-t border-sidebar-border/60">
-        <SidebarMessageUsage
-          usage={messageUsage}
-          className="pt-2"
-        />
+        {!oss ? (
+          <SidebarMessageUsage
+            usage={messageUsage}
+            className="pt-2"
+          />
+        ) : null}
         <SidebarFooter className="min-w-0 p-2">
           <WorkspaceSwitcher
             variant="sidebar"

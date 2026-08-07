@@ -39,6 +39,7 @@ import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
+import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export function generateMetadata(): Metadata {
   const pathname = getPathname() ?? Routes.Home;
@@ -94,6 +95,13 @@ export default async function DashboardLayout({
     return redirect(Routes.Onboarding);
   }
 
+  const oss = isOssDeployment();
+  const emptyMessageUsage: SidebarMessageUsageDto = {
+    messagesUsed: 0,
+    includedMessages: 0,
+    tier: userFromDb!.organization!.tier ?? 'free'
+  };
+
   const [
     profile,
     agents,
@@ -107,11 +115,11 @@ export default async function DashboardLayout({
     getProfile(),
     getAgents(),
     getWorkspaceSwitcherData(),
-    getSidebarMessageUsage(),
+    oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
     getDashboardNotifications(),
-    getMailUnreadCount(),
+    oss ? Promise.resolve(0) : getMailUnreadCount(),
     getHandoffOpenCounts(),
-    isOssDeployment() ? Promise.resolve([]) : getMailInboxes()
+    oss ? Promise.resolve([]) : getMailInboxes()
   ]);
   const {
     items: notifications,
@@ -209,11 +217,15 @@ export default async function DashboardLayout({
             : undefined
         }
       >
-        <DataImprovementConsentGate
-          privacyPolicyUrl={getPrivacyUrl()}
-          showPrompt={showDataImprovementPrompt}
-        />
-        <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
+        {!isOssDeployment() ? (
+          <DataImprovementConsentGate
+            privacyPolicyUrl={getPrivacyUrl()}
+            showPrompt={showDataImprovementPrompt}
+          />
+        ) : null}
+        {!isOssDeployment() ? (
+          <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
+        ) : null}
         <SidebarProvider>
           <ComposeMailProvider inboxes={mailInboxes}>
             <DashboardDockProvider>
@@ -222,7 +234,7 @@ export default async function DashboardLayout({
                 teamMembers={notificationTeamMembers}
                 currentUserId={notificationCurrentUserId}
               >
-                {humanerAgentPublicId ? (
+                {!isOssDeployment() && humanerAgentPublicId ? (
                   <HumanerChatProvider
                     agentPublicId={humanerAgentPublicId}
                     agentAvatarUrl={humanerAgentAvatarUrl}

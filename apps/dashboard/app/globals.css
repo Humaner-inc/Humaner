@@ -427,6 +427,40 @@ input[type='number'] {
   caret-color: #fff8f2;
 }
 
+/* Self-Host Acme — zinc autofill (no cream fracture fill) */
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #09090b !important;
+  caret-color: #09090b;
+}
+
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field
+  .onboarding-highlighted-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field
+  .onboarding-highlighted-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field
+  .onboarding-highlighted-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field
+  .onboarding-highlighted-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  caret-color: #09090b;
+}
+
 @keyframes onboarding-input-highlight {
   0%,
   100% {
@@ -444,6 +478,11 @@ input[type='number'] {
   animation: onboarding-input-highlight-inverted 0.55s ease-out;
 }
 
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-input--highlight {
+  animation: onboarding-input-highlight-acme 0.55s ease-out;
+}
+
 @keyframes onboarding-input-highlight-inverted {
   0%,
   100% {
@@ -456,8 +495,64 @@ input[type='number'] {
   }
 }
 
+@keyframes onboarding-input-highlight-acme {
+  0%,
+  100% {
+    border-color: rgb(212 212 216);
+    box-shadow: none;
+  }
+  45% {
+    border-color: rgb(24 24 27);
+    box-shadow: 0 0 0 3px rgb(24 24 27 / 0.08);
+  }
+}
+
 .onboarding-input--highlight {
   animation: onboarding-input-highlight 0.55s ease-out;
+}
+
+/* Self-Host Acme — zinc paste/char highlight (not Humaner cream #e1ccaf) */
+.onboarding-root[data-onboarding-appearance='acme'] .highlighted-text-field {
+  --highlighted-field-accent: #18181b;
+  --highlighted-field-accent-strong: rgb(24 24 27 / 0.18);
+  --highlighted-field-accent-soft: rgb(24 24 27 / 0.08);
+  --highlighted-field-accent-selection: rgb(24 24 27 / 0.18);
+}
+
+.onboarding-root[data-onboarding-appearance='acme'] ::selection,
+.onboarding-root[data-onboarding-appearance='acme'] *::selection {
+  background-color: rgb(24 24 27 / 0.18);
+  color: #09090b;
+}
+
+.onboarding-root[data-onboarding-appearance='acme'] ::-moz-selection,
+.onboarding-root[data-onboarding-appearance='acme'] *::-moz-selection {
+  background-color: rgb(24 24 27 / 0.18);
+  color: #09090b;
+}
+
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field__char--highlight {
+  border-radius: 0.25rem;
+}
+
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field[data-tone='light']
+  .highlighted-text-field__overlay {
+  color: #09090b;
+}
+
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field[data-tone='light']
+  .highlighted-text-field__placeholder {
+  color: rgb(113 113 122);
+}
+
+.onboarding-root[data-onboarding-appearance='acme']
+  .highlighted-text-field[data-tone='light']
+  .highlighted-text-field__input {
+  caret-color: #09090b;
+  --highlighted-field-text: #09090b;
 }
 
 /* ─── Onboarding scrollbar — thin, hugs card edge ─────────────────────────────── */
@@ -483,9 +578,20 @@ input[type='number'] {
   .onboarding-scroll::-webkit-scrollbar-thumb:hover {
   background: rgb(255 255 255 / 0.2);
 }
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-scroll::-webkit-scrollbar-thumb {
+  background: rgb(161 161 170 / 0.45);
+}
+.onboarding-root[data-onboarding-appearance='acme']
+  .onboarding-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(113 113 122 / 0.55);
+}
 .onboarding-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgb(7 6 7 / 0.12) transparent;
+}
+.onboarding-root[data-onboarding-appearance='acme'] .onboarding-scroll {
+  scrollbar-color: rgb(161 161 170 / 0.45) transparent;
 }
 
 /* Onboarding glow animation (kept for backward compat) */

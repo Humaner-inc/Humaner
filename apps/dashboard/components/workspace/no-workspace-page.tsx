@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/form';
 import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { Input } from '@/components/ui/input';
+import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { cn } from '@/lib/utils';
@@ -246,7 +247,7 @@ export function NoWorkspacePage({
 
       <header className="absolute inset-x-0 top-0 z-20 flex justify-center px-6 pt-6 sm:pt-8">
         <h1 className={cn(authPageTitleClassName, 'text-4xl sm:text-5xl')}>
-          Humaner
+          {AppInfo.APP_NAME}
         </h1>
       </header>
 

@@ -13,6 +13,7 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { parseActivityNotificationPreferences } from '@/lib/notifications/activity-notification-preferences';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import type {
@@ -31,6 +32,7 @@ export async function getActivityNotifications(): Promise<ActivityNotificationsS
     return redirect(getLoginRedirect());
   }
 
+  const oss = isOssDeployment();
   const [settings, mailTags] = await Promise.all([
     cache(
       async () => {
@@ -62,7 +64,7 @@ export async function getActivityNotifications(): Promise<ActivityNotificationsS
         ]
       }
     )(),
-    getMailTags()
+    oss ? Promise.resolve([]) : getMailTags()
   ]);
 
   return {

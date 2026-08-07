@@ -84,6 +84,10 @@ export function getSelectableCharacters(
     return DASHBOARD_CHARACTER_LIST;
   }
 
+  if (access === 'custom-only') {
+    return [CHARACTER_META.CUSTOM];
+  }
+
   return [CHARACTER_META.CORPORATE];
 }
 

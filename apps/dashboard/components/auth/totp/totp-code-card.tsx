@@ -15,10 +15,12 @@ import { submitTotpCode } from '@/actions/auth/submit-totp-code';
 import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authHeadingClassName,
+  authEyebrowClassName,
   authLinkClassName,
   authMutedTextClassName,
   authOtpSlotClassName,
+  authOtpSlotRingClassName,
+  authPageTitleClassName,
   authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -38,6 +40,7 @@ import {
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   submitTotpCodeSchema,
@@ -68,6 +71,7 @@ export function TotpCodeCard({
   });
   const canSubmit =
     !isLoading && !submitSuccess && !methods.formState.isSubmitting;
+  const oss = isOssDeployment();
 
   const onSubmit = async (values: SubmitTotpCodeSchema): Promise<void> => {
     if (!canSubmit) {
@@ -111,14 +115,10 @@ export function TotpCodeCard({
   };
 
   return (
-    <div className="flex w-full flex-col gap-8">
-      <div className="space-y-2 text-center">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#e1ccaf]/80">
-          Two-factor
-        </p>
-        <h1 className={cn(authHeadingClassName, 'text-3xl sm:text-4xl')}>
-          Authenticator code
-        </h1>
+    <div className={cn('flex w-full flex-col', oss ? 'gap-4' : 'gap-8')}>
+      <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
+        <p className={authEyebrowClassName}>Two-factor</p>
+        <h1 className={authPageTitleClassName}>Authenticator code</h1>
         <p className={cn(authMutedTextClassName, 'text-center')}>
           Enter the 6-digit code from your authenticator app.
         </p>
@@ -164,7 +164,8 @@ export function TotpCodeCard({
                             index={i}
                             className={cn(
                               authOtpSlotClassName,
-                              'font-mono tracking-wide ring-[#e1ccaf]/40'
+                              authOtpSlotRingClassName,
+                              'font-mono tracking-wide'
                             )}
                           />
                         ))}
@@ -189,7 +190,8 @@ export function TotpCodeCard({
                       <Link
                         className={cn(
                           buttonVariants({ variant: 'link' }),
-                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 text-red-300 underline'
+                          'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                          oss ? 'text-destructive' : 'text-red-300'
                         )}
                         href={Routes.Login}
                       >

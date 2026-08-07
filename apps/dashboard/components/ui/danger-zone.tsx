@@ -1,12 +1,15 @@
 import * as React from 'react';
 
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export const dangerZoneTitleClassName =
   'font-mono text-xs font-medium uppercase tracking-[0.08em] text-destructive dark:text-red-400';
 
-export const dangerZonePanelClassName =
-  'border border-destructive/35 bg-destructive/5 dark:border-red-500/40 dark:bg-red-500/10';
+export const dangerZonePanelClassName = cn(
+  'border border-destructive/35 bg-destructive/5 dark:border-red-500/40 dark:bg-red-500/10',
+  dashboardRadiusClassName
+);
 
 export type DangerZoneProps = React.HTMLAttributes<HTMLElement> & {
   title?: string;

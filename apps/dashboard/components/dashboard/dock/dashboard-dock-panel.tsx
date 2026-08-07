@@ -19,8 +19,11 @@ import { DockFeedbackForm } from '@/components/dashboard/dock/dock-feedback-form
 import { DockNotificationsView } from '@/components/dashboard/dock/dock-notifications-view';
 import { DockReportBugForm } from '@/components/dashboard/dock/dock-report-bug-form';
 import { Button } from '@/components/ui/button';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { getSupportMailtoUrl } from '@/lib/urls/get-support-email';
 import { cn } from '@/lib/utils';
+
+const oss = isOssDeployment();
 
 const DOCK_TITLES: Record<NonNullable<DockMode>, string> = {
   ask: '/ask humaner',
@@ -123,24 +126,34 @@ function DockHelpView(): React.JSX.Element {
   return (
     <div className="p-4 space-y-2">
       <p className="mb-4 text-xs text-muted-foreground">
-        Reach the team, report a bug or give feedback.
-        <br />
-        Human team only behind the scenes.
+        {oss ? (
+          <>Contact your operator or share feedback about this workspace.</>
+        ) : (
+          <>
+            Reach the team, report a bug or give feedback.
+            <br />
+            Human team only behind the scenes.
+          </>
+        )}
       </p>
       <HelpItem
         icon={MailIcon}
         label="Send an email"
         description="Open your mail client"
         onClick={() => {
-          window.location.href = getSupportMailtoUrl('Humaner support');
+          window.location.href = getSupportMailtoUrl(
+            oss ? 'Support' : 'Humaner support'
+          );
         }}
       />
-      <HelpItem
-        icon={TriangleAlertIcon}
-        label="Report a bug"
-        description="Open a support ticket"
-        onClick={() => openDock('report-bug')}
-      />
+      {!oss ? (
+        <HelpItem
+          icon={TriangleAlertIcon}
+          label="Report a bug"
+          description="Open a support ticket"
+          onClick={() => openDock('report-bug')}
+        />
+      ) : null}
       <HelpItem
         icon={MessageCircleIcon}
         label="Give feedback"

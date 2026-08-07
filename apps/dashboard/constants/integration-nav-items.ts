@@ -2,6 +2,7 @@ import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import { integrationChannelRoute, Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   INTEGRATION_CHANNELS,
   INTEGRATION_DOCK_ORDER,
@@ -25,6 +26,9 @@ export function isIntegrationLocked(
   channelId: string,
   orgTier: string
 ): boolean {
+  if (isOssDeployment()) {
+    return false;
+  }
   const cap = CHANNEL_CAPABILITY_GATE[channelId];
   if (!cap) return false;
   const capabilities = getPlanCapabilities(orgTier);

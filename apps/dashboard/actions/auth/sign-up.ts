@@ -8,6 +8,7 @@ import { actionClient } from '@/actions/safe-action';
 import { EMAIL_VERIFICATION_EXPIRY_HOURS } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
+import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
 import {
   createUserWithOrganization,
   createUserWithoutOrganization,
@@ -136,6 +137,7 @@ export const signUp = actionClient
     try {
       const otp = randomString(3).toUpperCase();
       const hashedOtp = await createHash(`${otp}${process.env.AUTH_SECRET}`);
+      const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
       await prisma.verificationToken.create({
         data: {
@@ -148,11 +150,17 @@ export const signUp = actionClient
         }
       });
 
+      logVerificationCodeForLocalDev({
+        email: normalizedEmail,
+        otp,
+        verificationLink
+      });
+
       await sendVerifyEmailAddressEmail({
         recipient: normalizedEmail,
         name: parsedInput.name,
         otp,
-        verificationLink: `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`
+        verificationLink
       });
     } catch (e) {
       console.error('[sign-up] verification email error:', e);

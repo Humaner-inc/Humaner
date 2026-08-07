@@ -9,14 +9,16 @@ import { SIDEBAR_MAIN_NAV_ATTR } from '@/components/dashboard/sidebar-main-nav-h
 import { useSidebarNavDrawer } from '@/components/dashboard/sidebar-nav-accordion';
 import { sidebarNavIconClassName } from '@/components/dashboard/sidebar-nav-icon';
 import { useSidebar } from '@/components/ui/sidebar';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export function sidebarNavParentClassName(active: boolean): string {
   return cn(
     'group/nav flex w-full items-center gap-2.5 px-3 py-2 font-fellix text-sm transition-colors',
+    dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'
-      : 'text-sidebar-foreground/50 hover:text-sidebar-foreground'
+      : 'text-sidebar-foreground/50 hover:bg-muted/30 hover:text-sidebar-foreground'
   );
 }
 
@@ -26,9 +28,10 @@ export function sidebarNavChildClassName(
 ): string {
   return cn(
     'flex w-full items-center gap-2 py-1.5 pl-4 pr-2 text-left font-fellix text-sm transition-colors',
+    dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'
-      : 'text-sidebar-foreground/50 hover:text-sidebar-foreground',
+      : 'text-sidebar-foreground/50 hover:bg-muted/20 hover:text-sidebar-foreground',
     disabled && 'pointer-events-none opacity-40'
   );
 }
@@ -114,7 +117,10 @@ export function SidebarNavParent({
         type="button"
         aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
         onClick={onToggle}
-        className="mr-1 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:text-foreground"
+        className={cn(
+          'mr-1 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground',
+          dashboardRadiusClassName
+        )}
       >
         <ChevronRightIcon
           className={cn(
@@ -163,6 +169,10 @@ export function SidebarNavChildren({
 export const SIDEBAR_UPGRADE_BANNER_MIN_LOCKED = 2;
 
 export function shouldShowSidebarUpgradeBanner(lockedCount: number): boolean {
+  // Self-Host has no Polar upgrades.
+  if (process.env.NEXT_PUBLIC_DEPLOYMENT_MODE?.trim().toLowerCase() === 'oss') {
+    return false;
+  }
   return lockedCount > SIDEBAR_UPGRADE_BANNER_MIN_LOCKED;
 }
 
@@ -232,7 +242,10 @@ export function SidebarNavChild({
             aria-label={quickAction.label}
             title={quickAction.label}
             tabIndex={tabIndex}
-            className="absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-none text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100"
+            className={cn(
+              'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
+              dashboardRadiusClassName
+            )}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -247,7 +260,10 @@ export function SidebarNavChild({
             aria-label={quickAction.label}
             title={quickAction.label}
             tabIndex={tabIndex}
-            className="absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-none text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100"
+            className={cn(
+              'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
+              dashboardRadiusClassName
+            )}
             onClick={(event) => event.stopPropagation()}
           >
             {quickAction.icon}

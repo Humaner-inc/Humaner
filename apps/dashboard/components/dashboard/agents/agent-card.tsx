@@ -35,8 +35,12 @@ import {
 } from '@/constants/routes';
 import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
+
+const oss = isOssDeployment();
 
 export type AgentCardProps = {
   agent: AgentOverviewItem;
@@ -91,6 +95,7 @@ function AgentStatusBadge({
       <span
         className={cn(
           'inline-flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300',
+          dashboardRadiusClassName,
           compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-[11px]'
         )}
       >
@@ -106,7 +111,12 @@ function AgentStatusBadge({
       title="Live"
       aria-label="Live"
     >
-      <span className="inline-flex size-1.5 shrink-0 bg-emerald-500" />
+      <span
+        className={cn(
+          'inline-flex size-1.5 shrink-0 bg-emerald-500',
+          oss ? 'rounded-full' : 'rounded-none'
+        )}
+      />
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
         [live]
       </span>
@@ -236,7 +246,8 @@ export function AgentCard({
     <>
       <article
         className={cn(
-          'group relative flex flex-col overflow-hidden rounded-none border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
+          'group relative flex flex-col overflow-hidden border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
+          dashboardRadiusClassName,
           compact
             ? 'min-h-[16.5rem] px-4 pb-3.5 pt-4'
             : 'min-h-80 px-6 pb-5 pt-6',
@@ -262,7 +273,8 @@ export function AgentCard({
               variant="ghost"
               size="icon"
               className={cn(
-                'absolute right-2.5 top-2.5 size-8 rounded-none text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100',
+                'absolute right-2.5 top-2.5 size-8 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100',
+                dashboardRadiusClassName,
                 !compact && 'right-3.5 top-3.5 size-8'
               )}
             >
@@ -362,26 +374,28 @@ export function AgentCard({
         <div className="mt-3 flex justify-center gap-1.5">
           {linkToWorkspace ? (
             <>
+              {!oss ? (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="icon"
+                  className={cn('size-8', dashboardRadiusClassName)}
+                  title="Knowledge"
+                >
+                  <Link href={agentKnowledgeRoute(agent.id)}>
+                    <BookOpenIcon
+                      className="size-3.5"
+                      aria-hidden
+                    />
+                    <span className="sr-only">Knowledge</span>
+                  </Link>
+                </Button>
+              ) : null}
               <Button
                 asChild
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-none"
-                title="Knowledge"
-              >
-                <Link href={agentKnowledgeRoute(agent.id)}>
-                  <BookOpenIcon
-                    className="size-3.5"
-                    aria-hidden
-                  />
-                  <span className="sr-only">Knowledge</span>
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="icon"
-                className="size-8 rounded-none"
+                className={cn('size-8', dashboardRadiusClassName)}
                 title="Analytics"
               >
                 <Link href={agentAnalyticsRoute(agent.id)}>
@@ -397,7 +411,7 @@ export function AgentCard({
             <Button
               type="button"
               variant="outline"
-              className="w-full rounded-none"
+              className={cn('w-full', dashboardRadiusClassName)}
               onClick={handleTogglePause}
               loading={isTogglingPause}
             >

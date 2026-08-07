@@ -19,11 +19,13 @@ import type { DeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
 export type DeskIssuesOverviewCardProps = {
   overview: DeskIssuesOverview;
   className?: string;
+  title?: string;
 };
 
 export function DeskIssuesOverviewCard({
   overview,
-  className
+  className,
+  title = 'Desk'
 }: DeskIssuesOverviewCardProps): React.JSX.Element {
   const { counts, activeTickets, teamMembers, currentUserId } = overview;
   const needsAttention = counts.open + counts.inProgress;
@@ -31,7 +33,7 @@ export function DeskIssuesOverviewCard({
   return (
     <DashboardCard className={className}>
       <DashboardCardHeader
-        title="Desk"
+        title={title}
         count={needsAttention > 0 ? `${needsAttention} active` : undefined}
         action={
           <Link

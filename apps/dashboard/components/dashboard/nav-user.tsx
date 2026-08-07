@@ -28,6 +28,8 @@ import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isDialogOpen } from '@/lib/browser/is-dialog-open';
 import { isInputFocused } from '@/lib/browser/is-input-focused';
 import { isMac } from '@/lib/browser/is-mac';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn, getInitials } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
@@ -84,6 +86,11 @@ export function NavUser({
     router.push(Routes.Profile);
   };
   const handleNavigateToBillingPage = (): void => {
+    if (
+      process.env.NEXT_PUBLIC_DEPLOYMENT_MODE?.trim().toLowerCase() === 'oss'
+    ) {
+      return;
+    }
     router.push(Routes.Billing);
   };
   const handleShowCommandMenu = (): void => {
@@ -161,18 +168,26 @@ export function NavUser({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-7 shrink-0 rounded-none p-0 hover:bg-accent/60',
+            'size-7 shrink-0 p-0 hover:bg-accent/60',
+            dashboardRadiusClassName,
             className
           )}
           aria-label="Open profile menu"
         >
-          <Avatar className="size-7 rounded-none ring-1 ring-border/60">
+          <Avatar
+            className={cn(
+              'size-7 ring-1 ring-border/60',
+              dashboardRadiusClassName
+            )}
+          >
             <AvatarImage
               src={profile.image}
               alt={profile.name}
-              className="rounded-none"
+              className={dashboardRadiusClassName}
             />
-            <AvatarFallback className="rounded-none text-[10px]">
+            <AvatarFallback
+              className={cn(dashboardRadiusClassName, 'text-[10px]')}
+            >
               {getInitials(profile.name)}
             </AvatarFallback>
           </Avatar>
@@ -184,16 +199,18 @@ export function NavUser({
         forceMount
       >
         <div className="relative mb-1 overflow-hidden rounded-lg border border-border/50 bg-muted/40 p-3 pr-16">
-          <span
-            className="absolute right-2.5 top-2.5 inline-flex rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
-            style={{
-              backgroundColor:
-                'color-mix(in srgb, var(--accent-color, #e1ccaf) 20%, transparent)',
-              color: 'var(--accent-color, #e1ccaf)'
-            }}
-          >
-            {planName}
-          </span>
+          {!isOssDeployment() ? (
+            <span
+              className="absolute right-2.5 top-2.5 inline-flex rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
+              style={{
+                backgroundColor:
+                  'color-mix(in srgb, var(--accent-color, hsl(var(--brand))) 20%, transparent)',
+                color: 'var(--accent-color, hsl(var(--brand)))'
+              }}
+            >
+              {planName}
+            </span>
+          ) : null}
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight">
               {profile.name}
@@ -238,7 +255,9 @@ export function NavUser({
                   {workspace.isActive ? (
                     <CheckIcon
                       className="size-4 shrink-0"
-                      style={{ color: 'var(--accent-color, #e1ccaf)' }}
+                      style={{
+                        color: 'var(--accent-color, hsl(var(--brand)))'
+                      }}
                     />
                   ) : null}
                 </DropdownMenuItem>
@@ -250,7 +269,9 @@ export function NavUser({
                 <span>New Workspace</span>
                 <PlusIcon
                   className="size-4 shrink-0"
-                  style={{ color: 'var(--accent-color, #e1ccaf)' }}
+                  style={{
+                    color: 'var(--accent-color, hsl(var(--brand)))'
+                  }}
                 />
               </DropdownMenuItem>
             </div>

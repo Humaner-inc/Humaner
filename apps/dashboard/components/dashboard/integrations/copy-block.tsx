@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type CopyBlockProps = {
@@ -35,6 +36,7 @@ export function CopyBlock({
     <div
       className={cn(
         'overflow-hidden border border-border/60 bg-muted/20',
+        dashboardRadiusClassName,
         className
       )}
     >

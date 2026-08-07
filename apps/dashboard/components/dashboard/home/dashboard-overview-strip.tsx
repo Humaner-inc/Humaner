@@ -5,8 +5,10 @@ import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
 import { HintLabel } from '@/components/ui/hint-label';
+import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { getIndustry } from '@/lib/industries';
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
@@ -21,6 +23,8 @@ export type DashboardOverviewStripProps = {
   includedMessages?: number;
   /** Owners / platform admins only — teammates must not see Billing CTAs. */
   canAccessBilling?: boolean;
+  /** Self-Host kit — no Polar plan / Upgrade CTA. */
+  selfHostMode?: boolean;
   className?: string;
 };
 
@@ -33,6 +37,7 @@ export function DashboardOverviewStrip({
   tier,
   includedMessages,
   canAccessBilling = false,
+  selfHostMode = false,
   className
 }: DashboardOverviewStripProps): React.JSX.Element {
   const normalizedTier = normalizePlanTier(tier);
@@ -64,27 +69,38 @@ export function DashboardOverviewStrip({
           <img
             src={logoSrc}
             alt=""
-            className="mt-0.5 size-8 shrink-0 border border-border/60 object-cover"
+            className={cn(
+              'mt-0.5 size-8 shrink-0 border border-border/60 object-cover',
+              dashboardRadiusClassName
+            )}
           />
         ) : null}
         <div className="min-w-0 space-y-1.5">
           <h1 className="page-title truncate">{organizationName}</h1>
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-            <HintLabel
-              hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}
-              className="font-medium"
-            >
-              <span style={{ color: tierAccent }}>{plan.name}</span>
-            </HintLabel>
-            <span
-              aria-hidden
-              className="text-border"
-            >
-              ·
-            </span>
-            <span className="font-mono text-xs tabular-nums">
-              {plan.includedMessages.toLocaleString()} msg/mo
-            </span>
+            {selfHostMode ? (
+              <span className="font-medium text-foreground">
+                {AppInfo.APP_NAME} · self-hosted
+              </span>
+            ) : (
+              <>
+                <HintLabel
+                  hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}
+                  className="font-medium"
+                >
+                  <span style={{ color: tierAccent }}>{plan.name}</span>
+                </HintLabel>
+                <span
+                  aria-hidden
+                  className="text-border"
+                >
+                  ·
+                </span>
+                <span className="font-mono text-xs tabular-nums">
+                  {plan.includedMessages.toLocaleString()} msg/mo
+                </span>
+              </>
+            )}
             {industryLabel ? (
               <>
                 <span
@@ -93,10 +109,10 @@ export function DashboardOverviewStrip({
                 >
                   ·
                 </span>
-                <span className="font-mono text-xs">{industryLabel}</span>
+                <span className="text-xs">{industryLabel}</span>
               </>
             ) : null}
-            {audienceLabel && audienceFontClass ? (
+            {!selfHostMode && audienceLabel && audienceFontClass ? (
               <>
                 <span
                   aria-hidden
@@ -118,7 +134,7 @@ export function DashboardOverviewStrip({
         </div>
       </div>
 
-      {canAccessBilling ? (
+      {canAccessBilling && !selfHostMode ? (
         <div className="shrink-0">
           {isFreePlan ? (
             <Button

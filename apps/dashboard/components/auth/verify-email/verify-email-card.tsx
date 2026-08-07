@@ -14,6 +14,7 @@ import {
   authLinkClassName,
   authMutedTextClassName,
   authOtpSlotClassName,
+  authOtpSlotRingClassName,
   authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ import {
   InputOTPSlot
 } from '@/components/ui/input-otp';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   verifyEmailWithOtpSchema,
@@ -45,6 +47,7 @@ export function VerifyEmailCard({
   email,
   className
 }: VerifyEmailCardProps): React.JSX.Element {
+  const oss = isOssDeployment();
   const [verifySuccess, setVerifySuccess] = React.useState(false);
   const [isResendingEmailVerification, setIsResendingEmailVerification] =
     React.useState<boolean>(false);
@@ -101,7 +104,15 @@ export function VerifyEmailCard({
             {email ? (
               <>
                 Enter the code we sent to{' '}
-                <span className="font-medium text-[#fff8f2]">{email}</span>.
+                <span
+                  className={cn(
+                    'font-medium',
+                    oss ? 'text-zinc-950' : 'text-[#fff8f2]'
+                  )}
+                >
+                  {email}
+                </span>
+                .
               </>
             ) : (
               'Enter the code we sent to your inbox.'
@@ -129,48 +140,16 @@ export function VerifyEmailCard({
                       onComplete={methods.handleSubmit(onSubmit)}
                     >
                       <InputOTPGroup className="justify-center gap-2.5">
-                        <InputOTPSlot
-                          index={0}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
-                        <InputOTPSlot
-                          index={1}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
-                        <InputOTPSlot
-                          index={2}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
-                        <InputOTPSlot
-                          index={3}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
-                        <InputOTPSlot
-                          index={4}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
-                        <InputOTPSlot
-                          index={5}
-                          className={cn(
-                            authOtpSlotClassName,
-                            'ring-[#e1ccaf]/40'
-                          )}
-                        />
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
+                          <InputOTPSlot
+                            key={index}
+                            index={index}
+                            className={cn(
+                              authOtpSlotClassName,
+                              authOtpSlotRingClassName
+                            )}
+                          />
+                        ))}
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>

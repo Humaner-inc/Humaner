@@ -4,6 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
 import { useSidebar } from '@/components/ui/sidebar';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export const SIDEBAR_MAIN_NAV_ATTR = 'data-sidebar-main-nav';
@@ -130,7 +131,8 @@ export function SidebarMainNavHighlight({
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-x-0 rounded-md bg-muted/40 sidebar-nav-highlight-pill',
+          'pointer-events-none absolute inset-x-0 bg-muted/40 sidebar-nav-highlight-pill',
+          dashboardRadiusClassName,
           isIconRail && 'bg-muted/50'
         )}
         style={{

@@ -12,6 +12,8 @@ import {
   toClientAuthRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
+import { symmetricDecrypt } from '@/lib/auth/encryption';
+import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { submitRecoveryCodeSchema } from '@/schemas/auth/submit-recovery-code-schema';
 import { IdentityProvider } from '@/types/identity-provider';
 
@@ -31,6 +33,18 @@ export const submitRecoveryCode = actionClient
         redirectTo: fallbackRedirect,
         redirect: false
       });
+
+      if (process.env.AUTH_SECRET) {
+        try {
+          const userId = symmetricDecrypt(
+            parsedInput.token,
+            process.env.AUTH_SECRET
+          );
+          await reassertSessionCookieForUser(userId);
+        } catch {
+          // Same as TOTP — Auth.js may have already set the cookie.
+        }
+      }
 
       return { redirectTo: toClientAuthRedirect(result, fallbackRedirect) };
     } catch (e) {

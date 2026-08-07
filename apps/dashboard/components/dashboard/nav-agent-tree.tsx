@@ -23,6 +23,7 @@ import {
 } from '@/constants/agent-nav-items';
 import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type SidebarAgent = {
@@ -55,6 +56,7 @@ function AgentAvatarIcon({
     <span
       className={cn(
         'relative flex size-4 shrink-0 items-center justify-center overflow-hidden border border-border/60 bg-muted',
+        dashboardRadiusClassName,
         isPaused && 'opacity-60 grayscale'
       )}
     >

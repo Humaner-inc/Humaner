@@ -22,22 +22,32 @@ import { HumanDeskNotificationItem } from '@/components/dashboard/notifications/
 import { UserTicketsSheet } from '@/components/support/user-tickets-sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AppInfo } from '@/constants/app-info';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type {
   DashboardNotification,
   DashboardNotificationKind
 } from '@/types/dashboard-notification';
 
+const oss = isOssDeployment();
+
 const KIND_SECTIONS: {
   kind: DashboardNotificationKind;
   label: string;
-}[] = [
-  { kind: 'billing', label: 'Billing' },
-  { kind: 'plan_limit', label: 'Plan limits' },
-  { kind: 'human_desk', label: 'Human Desk' },
-  { kind: 'workspace_ticket', label: 'Your tickets' },
-  { kind: 'history_highlight', label: 'Conversation highlights' }
-];
+}[] = oss
+  ? [
+      { kind: 'human_desk', label: AppInfo.HELPDESK_LABEL },
+      { kind: 'history_highlight', label: 'Conversation highlights' }
+    ]
+  : [
+      { kind: 'billing', label: 'Billing' },
+      { kind: 'plan_limit', label: 'Plan limits' },
+      { kind: 'human_desk', label: 'Human Desk' },
+      { kind: 'workspace_ticket', label: 'Your tickets' },
+      { kind: 'history_highlight', label: 'Conversation highlights' }
+    ];
 
 const KIND_ORDER = Object.fromEntries(
   KIND_SECTIONS.map((section, index) => [section.kind, index])
@@ -201,7 +211,8 @@ function NotificationItem({
   );
 
   const className = cn(
-    'flex w-full items-start gap-3 rounded-none border border-border/60 px-4 py-3 text-left transition-colors',
+    'flex w-full items-start gap-3 border border-border/60 px-4 py-3 text-left transition-colors',
+    dashboardRadiusClassName,
     'hover:bg-muted/50'
   );
 

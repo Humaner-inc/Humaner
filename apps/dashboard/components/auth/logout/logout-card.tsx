@@ -12,6 +12,7 @@ import {
 } from '@/components/auth/auth-form-styles';
 import { Button } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
 function useCountdownRedirect(
@@ -39,6 +40,7 @@ function useCountdownRedirect(
 
 export function LogoutCard(): React.JSX.Element {
   const countdown = useCountdownRedirect(10, Routes.Login);
+  const oss = isOssDeployment();
 
   return (
     <div className="flex flex-col gap-6 text-center">
@@ -49,14 +51,31 @@ export function LogoutCard(): React.JSX.Element {
       </div>
 
       <div className="flex flex-col items-center gap-2">
-        <div className="flex size-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04]">
-          <ShieldCheck className="size-5 text-[#e1ccaf]" />
+        <div
+          className={cn(
+            'flex size-10 items-center justify-center rounded-full border',
+            oss
+              ? 'border-zinc-200 bg-zinc-50'
+              : 'border-white/[0.08] bg-white/[0.04]'
+          )}
+        >
+          <ShieldCheck
+            className={cn('size-5', oss ? 'text-zinc-700' : 'text-[#e1ccaf]')}
+          />
         </div>
       </div>
 
       <p className={cn('text-sm', authMutedTextClassName)}>
         You will be redirected in{' '}
-        <span className="font-medium text-[#fff8f2]">{countdown}</span> seconds.
+        <span
+          className={cn(
+            'font-medium',
+            oss ? 'text-zinc-950' : 'text-[#fff8f2]'
+          )}
+        >
+          {countdown}
+        </span>{' '}
+        seconds.
       </p>
 
       <Button

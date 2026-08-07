@@ -1,9 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { CheckIcon } from '@humaner/shared/icons';
+import { AnimatePresence, motion } from 'motion/react';
 
 import { MINIMUM_PASSWORD_LENGTH } from '@/constants/limits';
 import { passwordValidator } from '@/lib/auth/password-validator';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { Maybe } from '@/types/maybe';
 
@@ -11,165 +14,100 @@ export type PasswordRequirementListProps = {
   password: Maybe<string>;
 };
 
-type RequirementId = 'case' | 'length' | 'number';
-
 type Requirement = {
-  id: RequirementId;
   met: boolean;
-  label: string;
+  missingLabel: string;
 };
-
-type DismissPhase = 'green' | 'fading' | 'gone';
-
-/** Time to show green before opacity starts falling. */
-const GREEN_HOLD_MS = 420;
-/** Fade duration after the green hold. */
-const FADE_OUT_MS = 480;
 
 function getRequirements(password: Maybe<string>): Requirement[] {
   return [
     {
-      id: 'case',
       met: passwordValidator.containsLowerAndUpperCase(password),
-      label: 'Mix of uppercase & lowercase letters'
+      missingLabel: 'uppercase & lowercase'
     },
     {
-      id: 'length',
       met: passwordValidator.hasMinimumLength(password),
-      label: `Minimum ${MINIMUM_PASSWORD_LENGTH} characters long`
+      missingLabel: `${MINIMUM_PASSWORD_LENGTH} characters`
     },
     {
-      id: 'number',
       met: passwordValidator.containsNumber(password),
-      label: 'Contain at least 1 number'
+      missingLabel: 'a number'
     }
   ];
 }
 
-export function PasswordRequirementList({
-  password
-}: PasswordRequirementListProps): React.JSX.Element | null {
-  const requirements = getRequirements(password);
-  const [phases, setPhases] = React.useState<
-    Partial<Record<RequirementId, DismissPhase>>
-  >({});
-  const timersRef = React.useRef<
-    Partial<Record<RequirementId, ReturnType<typeof setTimeout>[]>>
-  >({});
-  const startedRef = React.useRef<Partial<Record<RequirementId, boolean>>>({});
-
-  React.useEffect(() => {
-    const clearTimers = (id: RequirementId): void => {
-      const timers = timersRef.current[id];
-      if (timers) {
-        for (const timer of timers) {
-          clearTimeout(timer);
-        }
-        delete timersRef.current[id];
-      }
-      delete startedRef.current[id];
-    };
-
-    const startDismiss = (id: RequirementId): void => {
-      if (startedRef.current[id]) return;
-      startedRef.current[id] = true;
-
-      setPhases((prev) => ({ ...prev, [id]: 'green' }));
-
-      const fadeTimer = setTimeout(() => {
-        setPhases((prev) => ({ ...prev, [id]: 'fading' }));
-      }, GREEN_HOLD_MS);
-
-      const goneTimer = setTimeout(() => {
-        setPhases((prev) => ({ ...prev, [id]: 'gone' }));
-        delete timersRef.current[id];
-      }, GREEN_HOLD_MS + FADE_OUT_MS);
-
-      timersRef.current[id] = [fadeTimer, goneTimer];
-    };
-
-    for (const requirement of getRequirements(password)) {
-      if (!requirement.met) {
-        clearTimers(requirement.id);
-        setPhases((prev) => {
-          if (!prev[requirement.id]) return prev;
-          const next = { ...prev };
-          delete next[requirement.id];
-          return next;
-        });
-        continue;
-      }
-
-      startDismiss(requirement.id);
-    }
-
-    return () => {
-      for (const id of Object.keys(timersRef.current) as RequirementId[]) {
-        clearTimers(id);
-      }
-    };
-  }, [password]);
-
-  const visible = requirements.filter(
-    (requirement) => phases[requirement.id] !== 'gone'
-  );
-
-  if (visible.length === 0) {
-    return null;
+function formatMissingLabel(missing: string[]): string {
+  if (missing.length === 1) {
+    return `Missing ${missing[0]}`;
   }
-
-  return (
-    <ul className="list-none space-y-1 pb-2">
-      {visible.map((requirement) => {
-        const phase = phases[requirement.id];
-        const isMet = requirement.met || Boolean(phase);
-        const isFading = phase === 'fading';
-
-        return (
-          <li
-            key={requirement.id}
-            className={cn(
-              'flex flex-row items-center px-4 transition-[opacity,color,transform] ease-out',
-              isMet
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-muted-foreground',
-              isFading && 'translate-y-0.5 opacity-0'
-            )}
-            style={{
-              transitionDuration: isFading ? `${FADE_OUT_MS}ms` : '300ms'
-            }}
-          >
-            <BulletPointIcon met={isMet} />
-            <p className="text-sm">{requirement.label}</p>
-          </li>
-        );
-      })}
-    </ul>
-  );
+  if (missing.length === 2) {
+    return `Missing ${missing[0]} or ${missing[1]}`;
+  }
+  return `Missing ${missing.slice(0, -1).join(', ')}, or ${missing[missing.length - 1]}`;
 }
 
-function BulletPointIcon({ met }: { met: boolean }): React.JSX.Element {
+/**
+ * Compact password hints (Cloud + Self-Host):
+ * - Empty → nothing
+ * - Incomplete → "Missing x" / "Missing x or y"
+ * - Complete → check + "All requirements met"
+ * Text shifts left → right when the hint changes.
+ */
+export function PasswordRequirementList({
+  password
+}: PasswordRequirementListProps): React.JSX.Element {
+  const oss = isOssDeployment();
+  const requirements = getRequirements(password);
+  const missing = requirements
+    .filter((requirement) => !requirement.met)
+    .map((requirement) => requirement.missingLabel);
+
+  const complete = Boolean(password) && missing.length === 0;
+  const label = !password
+    ? null
+    : complete
+      ? 'All requirements met'
+      : formatMissingLabel(missing);
+
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="5"
-      height="5"
-      fill="currentColor"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
+    <div
       className={cn(
-        'mr-2 inline-block transition-colors duration-300',
-        met ? 'text-emerald-600 dark:text-emerald-400' : undefined
+        'relative overflow-hidden px-0.5 transition-[height] duration-200',
+        label ? 'h-5' : 'h-0'
       )}
     >
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-      />
-    </svg>
+      <AnimatePresence
+        mode="wait"
+        initial={false}
+      >
+        {label ? (
+          <motion.p
+            key={label}
+            initial={{ opacity: 0, x: -14 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 14 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className={cn(
+              'absolute inset-x-0 top-0 flex items-center gap-1.5 text-sm',
+              complete
+                ? oss
+                  ? 'text-emerald-600'
+                  : 'text-emerald-400'
+                : oss
+                  ? 'text-zinc-500'
+                  : 'text-white/40'
+            )}
+          >
+            {complete ? (
+              <CheckIcon
+                className="size-3.5 shrink-0"
+                strokeWidth={2.5}
+              />
+            ) : null}
+            <span className="truncate">{label}</span>
+          </motion.p>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }

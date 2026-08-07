@@ -19,8 +19,10 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { RadioCardItem, RadioCards } from '@/components/ui/radio-card';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { getIndustry, INDUSTRY_LIST } from '@/lib/industries';
 import { getIndustryIcon } from '@/lib/industry-icons';
+import { cn } from '@/lib/utils';
 
 export type IndustryTagProps = {
   industry: IndustryType | null;
@@ -62,7 +64,7 @@ export function IndustryTag({
   const badge = (
     <Badge
       variant="secondary"
-      className="gap-1.5 rounded-none px-2.5 py-1"
+      className={cn('gap-1.5 px-2.5 py-1', dashboardRadiusClassName)}
     >
       {CurrentIcon ? <CurrentIcon className="size-3.5" /> : null}
       {current ? current.label : 'No industry set'}

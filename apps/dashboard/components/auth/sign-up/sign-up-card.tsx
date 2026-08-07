@@ -40,6 +40,7 @@ import { Input } from '@/components/ui/input';
 import { InputPassword } from '@/components/ui/input-password';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   signUpSchema,
@@ -47,8 +48,11 @@ import {
   type SignUpSchema
 } from '@/schemas/auth/sign-up-schema';
 
-const pillButtonClassName =
+const pillButtonClassNameCloud =
   'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e1ccaf]/40 sm:min-h-10 sm:text-xs';
+
+const pillButtonClassNameOss =
+  'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-zinc-900/20 sm:min-h-10';
 
 export type SignUpCardProps = {
   initialIntent?: SignUpIntent;
@@ -125,10 +129,14 @@ export function SignUpCard({
     }
   };
 
+  const oss = isOssDeployment();
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="space-y-2 text-center">
-        <h1 className={authPageTitleClassName}>Humaner</h1>
+    <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
+      <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
+        <h1 className={authPageTitleClassName}>
+          {oss ? 'Create an account' : 'Humaner'}
+        </h1>
         <p className={authMutedTextClassName}>
           {organizationName
             ? `Join ${organizationName}`
@@ -145,7 +153,11 @@ export function SignUpCard({
       </div>
 
       <div
-        className="flex rounded-none border border-white/[0.08] bg-white/[0.04]"
+        className={
+          oss
+            ? 'flex gap-1 rounded-[0.5rem] border border-zinc-200 bg-zinc-100 p-1'
+            : 'flex rounded-none border border-white/[0.08] bg-white/[0.04]'
+        }
         role="group"
         aria-label="Account type"
       >
@@ -161,7 +173,7 @@ export function SignUpCard({
             (Boolean(invitationId) && option.value === 'business_owner');
           return (
             <React.Fragment key={option.value}>
-              {index > 0 ? (
+              {index > 0 && !oss ? (
                 <div
                   className="w-px shrink-0 bg-white/[0.08]"
                   aria-hidden
@@ -178,10 +190,14 @@ export function SignUpCard({
                   });
                 }}
                 className={cn(
-                  pillButtonClassName,
-                  selected
-                    ? 'bg-[#fff8f2] text-[#070607] hover:bg-white hover:text-[#070607]'
-                    : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
+                  oss ? pillButtonClassNameOss : pillButtonClassNameCloud,
+                  oss
+                    ? selected
+                      ? 'bg-zinc-950 text-white shadow-sm'
+                      : 'bg-transparent text-zinc-500 hover:text-zinc-900'
+                    : selected
+                      ? 'bg-[#fff8f2] text-[#070607] hover:bg-white hover:text-[#070607]'
+                      : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
                   disabled && !selected && 'cursor-not-allowed opacity-40'
                 )}
               >
@@ -192,7 +208,13 @@ export function SignUpCard({
         })}
       </div>
 
-      <p className={cn(authMutedTextClassName, 'text-center text-xs')}>
+      <p
+        className={cn(
+          authMutedTextClassName,
+          'text-center text-xs',
+          oss && 'text-zinc-500'
+        )}
+      >
         {intent === 'team_member'
           ? invitationId
             ? 'Create your account to accept the invitation.'
@@ -277,9 +299,7 @@ export function SignUpCard({
                 </FormItem>
               )}
             />
-            <div className="[&_.text-green-500]:text-emerald-400 [&_.text-muted-foreground]:text-white/40">
-              <PasswordRequirementList password={password} />
-            </div>
+            <PasswordRequirementList password={password} />
           </div>
           {errorMessage && (
             <Alert
@@ -309,7 +329,7 @@ export function SignUpCard({
       <div className="flex flex-row gap-3">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGoogle()}
@@ -322,7 +342,7 @@ export function SignUpCard({
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGitHub()}

@@ -143,6 +143,23 @@ export const callbacks = {
           return token;
         }
 
+        // Prefer the session the signIn callback just created + cookied.
+        // Creating a second session here left the response cookie pointing at
+        // a different token than jwt.encode, which broke post-2FA redirects.
+        const existing = await prisma.session.findFirst({
+          where: {
+            userId: user.id,
+            expires: { gt: new Date() }
+          },
+          orderBy: { expires: 'desc' },
+          select: { sessionToken: true }
+        });
+
+        if (existing) {
+          token.sessionId = existing.sessionToken;
+          return token;
+        }
+
         const expires = getSessionExpiryFromNow();
         const sessionToken = generateSessionToken();
 

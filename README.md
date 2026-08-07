@@ -28,9 +28,9 @@ Humaner is your support layer to manage agents, helpdesk and inboxes all-in one 
 
 ### Self-Host vs Humaner Cloud
 
-**Self-Host** ships the dashboard, org management, async **Helpdesk**, and a **starter agent** (open Industry Skillz + markdown knowledge + your LLM key). White-label via `brand.config.ts`. See [`SELF_HOST.md`](./SELF_HOST.md).
+**Self-Host** is a free **customer-support starter kit**: white-labelled dashboard (default **Acme**), org/team, async **Helpdesk**, and a **starter agent** you configure with your own **Custom system prompt** (same idea as Humaner Cloud Custom) plus open Industry Skillz, markdown knowledge, and your LLM key. No Polar billing, no Cloud Intelligence IP.
 
-**Humaner Cloud** fills the agent slot with Agent Intelligence (Core Skillz, RAG, memory) and Desk Intelligence (Agent Desk, runbooks, clusters, live chat, Inbox).
+**Humaner Cloud** (`app.humaner.io`) adds managed Agent Intelligence (Core Skillz, RAG, memory) and Desk Intelligence (Agent Desk, runbooks, clusters, live chat, Inbox).
 
 ```mermaid
 flowchart TB
@@ -39,7 +39,7 @@ flowchart TB
   subgraph SH["Self-Host — this repo"]
     INT["Integration layer<br/>Widget · React SDK · REST API"]
     ORG["Organization<br/>multi-workspace · members · RBAC"]
-    SA["Starter agent<br/>Industry Skillz · markdown KB · BYO LLM"]
+    SA["Starter agent<br/>Your Custom prompt · Industry Skillz · markdown KB · BYO LLM"]
     HD["Helpdesk<br/>async tickets · urgency · assignees"]
   end
 
@@ -57,7 +57,11 @@ flowchart TB
   ORG --- HD
 ```
 
-[Self-Host setup →](./SELF_HOST.md) · [Full docs →](https://docs.humaner.io) · [Strategy →](./Docs/SELF_HOST_PLAN.md)
+**Go from clone → workable support workspace:** follow the A→Z guide in [`SELF_HOST.md`](./SELF_HOST.md) (DB, SMTP, LLM key, sign-up, Custom agent prompt, Agent ID, widget embed, Helpdesk handoff).
+
+For AI coding agents: paste [Self-hosting — Agent Brief](https://docs.humaner.io/oss/agent-brief).
+
+[Self-Host setup →](./SELF_HOST.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [Full docs →](https://docs.humaner.io) · [Strategy →](./Docs/SELF_HOST_PLAN.md)
 
 ### Built for developer integrations
 
@@ -145,15 +149,16 @@ packages/
 
 ## Open-source strategy
 
-Humaner follows a **partial open-source** model: ship what operators need to embed and run desk workflows; keep managed intelligence on Cloud:
+Humaner follows a **partial open-source** model: ship a workable support kit operators can run; keep managed intelligence on Cloud:
 
-| Self-host (this repo)                                         | Humaner Cloud                                      |
-| ------------------------------------------------------------- | -------------------------------------------------- |
-| Widget, React SDK, API, auth, rate limits                     | Everything in OSS, plus managed agent inference    |
-| Workspaces, members, RBAC                                     | Grounded retrieval, memory, and live data          |
-| Desk handoff UI and Human Desk tickets (bring your own agent) | Agent Desk, runbooks, clusters, and training gates |
+| Self-Host (this repo)                                                | Humaner Cloud                                     |
+| -------------------------------------------------------------------- | ------------------------------------------------- |
+| White-label dashboard (`NEXT_PUBLIC_DEPLOYMENT_MODE=oss`)            | Hosted `app.humaner.io` product                   |
+| Custom system prompt + Industry Skillz + `data/knowledge/` + BYO LLM | Core Skillz, managed RAG, memory, personalization |
+| Helpdesk (async handoff), org/team, Widget / React / API             | Agent Desk, runbooks, clusters, live chat, Inbox  |
+| No Polar / plan gates                                                | Polar billing, message quotas, paid personas      |
 
-Details: [Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)
+Set `NEXT_PUBLIC_DEPLOYMENT_MODE=oss` so Cloud-only UI and Polar checkout stay off. Details: [Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md) · [SELF_HOST.md](./SELF_HOST.md).
 
 ## Built with
 

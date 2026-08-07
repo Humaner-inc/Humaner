@@ -21,7 +21,10 @@ import {
 } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { AppInfo } from '@/constants/app-info';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import {
   updateActivityNotificationsSchema,
@@ -32,6 +35,8 @@ import type {
   ActivityNotificationsDto,
   DeskNotificationUrgency
 } from '@/types/dtos/activity-notifications-dto';
+
+const oss = isOssDeployment();
 
 const DESK_URGENCY_OPTIONS: {
   value: DeskNotificationUrgency;
@@ -67,7 +72,8 @@ function FilterChip({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors',
+        'inline-flex h-8 items-center gap-1.5 border px-2.5 text-xs font-medium transition-colors',
+        dashboardRadiusClassName,
         selected
           ? 'border-foreground bg-foreground text-background'
           : 'border-border bg-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
@@ -135,7 +141,9 @@ export function ActivityNotificationsCard({
           >
             <div className="space-y-4">
               <div className="space-y-0.5">
-                <p className="text-sm font-medium">Human Desk</p>
+                <p className="text-sm font-medium">
+                  {oss ? AppInfo.HELPDESK_LABEL : 'Human Desk'}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   Tickets assigned or needing attention, filtered by urgency.
                 </p>
@@ -219,102 +227,107 @@ export function ActivityNotificationsCard({
               ) : null}
             </div>
 
-            <Separator />
+            {!oss ? (
+              <>
+                <Separator />
 
-            <div className="space-y-4">
-              <div className="space-y-0.5">
-                <p className="text-sm font-medium">Mail</p>
-                <p className="text-sm text-muted-foreground">
-                  Inbox activity, optionally limited to specific tags.
-                </p>
-              </div>
+                <div className="space-y-4">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-medium">Mail</p>
+                    <p className="text-sm text-muted-foreground">
+                      Inbox activity, optionally limited to specific tags.
+                    </p>
+                  </div>
 
-              <FormField
-                control={methods.control}
-                name="mail.inApp"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>In the app</FormLabel>
-                      <FormDescription>
-                        Show matching mail activity in your notification drawer.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={methods.formState.isSubmitting}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={methods.control}
+                    name="mail.inApp"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between">
+                        <div className="space-y-0.5">
+                          <FormLabel>In the app</FormLabel>
+                          <FormDescription>
+                            Show matching mail activity in your notification
+                            drawer.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={methods.formState.isSubmitting}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={methods.control}
-                name="mail.email"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel>Email</FormLabel>
-                      <FormDescription>
-                        Receive email for matching inbox activity.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={methods.formState.isSubmitting}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={methods.control}
+                    name="mail.email"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between">
+                        <div className="space-y-0.5">
+                          <FormLabel>Email</FormLabel>
+                          <FormDescription>
+                            Receive email for matching inbox activity.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={methods.formState.isSubmitting}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              {showMailFilters ? (
-                <FormField
-                  control={methods.control}
-                  name="mail.tagIds"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Tags</FormLabel>
-                      <FormDescription>
-                        Leave none selected to notify for all tags. Select tags
-                        to narrow what you hear about.
-                      </FormDescription>
-                      <FormControl>
-                        {mailTags.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {mailTags.map((tag) => (
-                              <FilterChip
-                                key={tag.id}
-                                selected={field.value.includes(tag.id)}
-                                disabled={methods.formState.isSubmitting}
-                                swatch={tag.color}
-                                onClick={() =>
-                                  field.onChange(
-                                    toggleInList(field.value, tag.id)
-                                  )
-                                }
-                              >
-                                {tag.name}
-                              </FilterChip>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No mail tags yet. Create tags in Inbox to filter
-                            here.
-                          </p>
-                        )}
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              ) : null}
-            </div>
+                  {showMailFilters ? (
+                    <FormField
+                      control={methods.control}
+                      name="mail.tagIds"
+                      render={({ field }) => (
+                        <FormItem className="space-y-2">
+                          <FormLabel>Tags</FormLabel>
+                          <FormDescription>
+                            Leave none selected to notify for all tags. Select
+                            tags to narrow what you hear about.
+                          </FormDescription>
+                          <FormControl>
+                            {mailTags.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {mailTags.map((tag) => (
+                                  <FilterChip
+                                    key={tag.id}
+                                    selected={field.value.includes(tag.id)}
+                                    disabled={methods.formState.isSubmitting}
+                                    swatch={tag.color}
+                                    onClick={() =>
+                                      field.onChange(
+                                        toggleInList(field.value, tag.id)
+                                      )
+                                    }
+                                  >
+                                    {tag.name}
+                                  </FilterChip>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                No mail tags yet. Create tags in Inbox to filter
+                                here.
+                              </p>
+                            )}
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  ) : null}
+                </div>
+              </>
+            ) : null}
           </form>
         </CardContent>
         <Separator />
