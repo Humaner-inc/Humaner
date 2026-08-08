@@ -14,7 +14,7 @@
   </p>
 </p>
 
-## About Humaner Self-Host
+## About
 
 Humaner Self-Host is a free **customer-support kit**: Humaner infra with BYO agent to run support, escalation, ticketing and manage team members.  
 Your agent is onboarded like a real employee through [Industry Skillz](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt and knowledge.
