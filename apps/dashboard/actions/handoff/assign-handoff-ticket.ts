@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
-import { NotFoundError } from '@/lib/validation/exceptions';
+import { publishOrgEvent } from '@/lib/realtime/org-events';
+import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 import { assignHandoffTicketSchema } from '@/schemas/handoff/human-desk-schema';
 
 export const assignHandoffTicket = pageActionClient('desk')
@@ -47,8 +48,14 @@ export const assignHandoffTicket = pageActionClient('desk')
       isAssigning &&
       (ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS');
 
-    await prisma.handoffTicket.update({
-      where: { id: ticket.id },
+    // Compare-and-swap on assigneeId so two agents cannot silently overwrite
+    // each other's claim.
+    const updated = await prisma.handoffTicket.updateMany({
+      where: {
+        id: ticket.id,
+        organizationId: session.user.organizationId,
+        assigneeId: ticket.assigneeId
+      },
       data: {
         assigneeId: parsedInput.assigneeId,
         assignedAt: isAssigning ? new Date() : null,
@@ -56,6 +63,19 @@ export const assignHandoffTicket = pageActionClient('desk')
           ? { status: 'IN_PROGRESS' }
           : {})
       }
+    });
+
+    if (updated.count === 0) {
+      throw new PreConditionError(
+        'This ticket was updated by someone else. Refresh and try again.'
+      );
+    }
+
+    void publishOrgEvent(session.user.organizationId, {
+      type: 'ticket.updated',
+      resourceId: ticket.id,
+      actorId: session.user.id,
+      actorName: session.user.name
     });
 
     revalidatePath(Routes.Desk);

@@ -13,6 +13,7 @@ import { DashboardDockPanel } from '@/components/dashboard/dock/dashboard-dock-p
 import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-notifications-context';
 import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
+import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
@@ -227,6 +228,7 @@ export default async function DashboardLayout({
           <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
         ) : null}
         <SidebarProvider>
+          <OrgRealtimeBridge enabled={!isOssDeployment()} />
           <ComposeMailProvider inboxes={mailInboxes}>
             <DashboardDockProvider>
               <DockNotificationsProvider

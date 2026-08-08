@@ -12,6 +12,7 @@ import {
 } from '@/lib/auth/require-workspace-access';
 import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
+import { runWithTenantScope } from '@/lib/db/tenant-context';
 import {
   ForbiddenError,
   GatewayError,
@@ -21,8 +22,23 @@ import {
   ValidationError
 } from '@/lib/validation/exceptions';
 
+function isNextRedirectError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    typeof (error as { digest: unknown }).digest === 'string' &&
+    (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+  );
+}
+
 export const actionClient = createSafeActionClient({
   handleServerError(e) {
+    // Auth.js / next/navigation redirect() must propagate out of Safe Actions.
+    if (isNextRedirectError(e)) {
+      throw e;
+    }
+
     if (
       e instanceof ValidationError ||
       e instanceof ForbiddenError ||
@@ -79,7 +95,10 @@ export const authActionClient = authenticatedActionClient.use(
       throw new ForbiddenError('Select or create a workspace to continue');
     }
 
-    return next({ ctx: { session: ctx.session } });
+    // Prisma tenant middleware auto-injects organizationId while this runs.
+    return runWithTenantScope(ctx.session.user.organizationId, () =>
+      next({ ctx: { session: ctx.session } })
+    );
   }
 );
 

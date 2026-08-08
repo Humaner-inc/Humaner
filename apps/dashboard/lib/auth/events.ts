@@ -134,14 +134,12 @@ export const events = {
 
       if (isNewUser && user.email) {
         const cookieStore = await cookies();
-        const signupIntent =
-          cookieStore.get(AuthCookies.SignUpIntent)?.value ?? 'business_owner';
+        // Explicit only — missing cookie means show Business Owner / Team
+        // Member choice on onboarding before creating a workspace.
+        const signupIntent = cookieStore.get(AuthCookies.SignUpIntent)?.value;
         const invitationId = cookieStore.get(
           AuthCookies.SignUpInvitationId
         )?.value;
-
-        cookieStore.delete(AuthCookies.SignUpIntent);
-        cookieStore.delete(AuthCookies.SignUpInvitationId);
 
         if (signupIntent === 'team_member') {
           if (invitationId) {
@@ -168,14 +166,21 @@ export const events = {
                 organizationId: invitation.organizationId,
                 userId: user.id
               });
+              cookieStore.delete(AuthCookies.SignUpIntent);
             }
+            // Keep team_member intent when there is no invite yet so
+            // onboarding can skip the account-type chooser.
           }
-          // No workspace yet — member onboarding handles join requests.
-        } else if (!user.organizationId) {
+          cookieStore.delete(AuthCookies.SignUpInvitationId);
+        } else if (signupIntent === 'business_owner' && !user.organizationId) {
           await createOrganizationAndConnectUser({
             userId: user.id,
             normalizedEmail: user.email.toLowerCase()
           });
+          cookieStore.delete(AuthCookies.SignUpIntent);
+          cookieStore.delete(AuthCookies.SignUpInvitationId);
+        } else {
+          cookieStore.delete(AuthCookies.SignUpInvitationId);
         }
         if (account?.provider === OAuthIdentityProvider.Google) {
           await verifyEmail(user.email);

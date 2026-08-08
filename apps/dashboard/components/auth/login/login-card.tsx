@@ -153,6 +153,10 @@ export function LoginCard({
     }
     setIsLoading(true);
     const result = await continueWithGoogle();
+    if (result?.data?.redirectTo) {
+      window.location.assign(result.data.redirectTo);
+      return;
+    }
     if (result?.serverError || result?.validationErrors) {
       toast.error("Couldn't continue with Google");
     }
@@ -164,6 +168,10 @@ export function LoginCard({
     }
     setIsLoading(true);
     const result = await continueWithGitHub();
+    if (result?.data?.redirectTo) {
+      window.location.assign(result.data.redirectTo);
+      return;
+    }
     if (result?.serverError || result?.validationErrors) {
       toast.error("Couldn't continue with GitHub");
     }

@@ -15,7 +15,23 @@ import {
   stripMailPreviewBlocks
 } from '@/lib/inbox/mail-body-display';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
+import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
+
+/**
+ * IMAP sync (poll) + shared helpers for the IMAP IDLE worker.
+ *
+ * Near-realtime path: `pnpm imap:idle` → `services/inbox/imap-idle-worker.ts`
+ * (requires `IMAP_IDLE_ENABLED=true` on a long-lived host — not Vercel).
+ *
+ * Fallback: `/api/cron/sync-imap-mailboxes` + manual Sync remain catch-up.
+ *
+ * Env for IDLE worker:
+ * - `IMAP_IDLE_ENABLED=true`
+ * - `IMAP_IDLE_MAX_CONNECTIONS` (default 50)
+ * - `IMAP_IDLE_RECONNECT_MS` (default 5000)
+ * - `IMAP_IDLE_ROSTER_REFRESH_MS` (default 60000)
+ */
 
 const CONNECTIONS_PER_RUN = 10;
 const MESSAGES_PER_CONNECTION = 100;
@@ -62,6 +78,36 @@ export type ImapSyncResult = {
   messages: number;
   errors: number;
 };
+
+export function isImapAuthError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : String(error).toLowerCase();
+  return (
+    message.includes('authentication') ||
+    message.includes('auth failed') ||
+    message.includes('authenticationfailed') ||
+    message.includes('invalid credentials') ||
+    message.includes('invalid login') ||
+    message.includes('login failed') ||
+    message.includes('too many login') ||
+    message.includes('application-specific password')
+  );
+}
+
+export async function markMailboxNeedsReauth(
+  connectionId: string,
+  lastError: string
+): Promise<void> {
+  await prisma.mailboxConnection.update({
+    where: { id: connectionId },
+    data: {
+      status: MailConnectionStatus.NEEDS_REAUTH,
+      lastError: lastError.slice(0, 2000)
+    }
+  });
+}
 
 function normalizeAddress(value: string): string {
   return value.trim().toLowerCase();
@@ -550,10 +596,14 @@ export async function syncImapConnection(
 
     const message =
       error instanceof Error ? error.message : 'Mailbox synchronization failed';
-    await prisma.mailboxConnection.update({
-      where: { id: connection.id },
-      data: { lastError: message.slice(0, 2000) }
-    });
+    if (isImapAuthError(error)) {
+      await markMailboxNeedsReauth(connection.id, message);
+    } else {
+      await prisma.mailboxConnection.update({
+        where: { id: connection.id },
+        data: { lastError: message.slice(0, 2000) }
+      });
+    }
     throw error;
   }
 }
@@ -561,6 +611,8 @@ export async function syncImapConnection(
 export async function syncImapMailboxes(options?: {
   organizationId?: string;
   connectionId?: string;
+  actorId?: string;
+  actorName?: string;
 }): Promise<ImapSyncResult> {
   const connections = await prisma.mailboxConnection.findMany({
     where: {
@@ -573,7 +625,7 @@ export async function syncImapMailboxes(options?: {
     },
     orderBy: [{ lastSyncedAt: { sort: 'asc', nulls: 'first' } }],
     take: options?.connectionId ? 1 : CONNECTIONS_PER_RUN,
-    select: { id: true }
+    select: { id: true, organizationId: true }
   });
 
   const result: ImapSyncResult = {
@@ -581,13 +633,26 @@ export async function syncImapMailboxes(options?: {
     messages: 0,
     errors: 0
   };
+  const orgsWithMail = new Set<string>();
 
   for (const connection of connections) {
     try {
-      result.messages += await syncImapConnection(connection.id);
+      const imported = await syncImapConnection(connection.id);
+      result.messages += imported;
+      if (imported > 0) {
+        orgsWithMail.add(connection.organizationId);
+      }
     } catch {
       result.errors += 1;
     }
+  }
+
+  for (const organizationId of orgsWithMail) {
+    void publishOrgEvent(organizationId, {
+      type: 'inbox.synced',
+      actorId: options?.actorId,
+      actorName: options?.actorName
+    });
   }
 
   return result;

@@ -11,6 +11,7 @@ import {
   aliasIdFilter,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
+import { publishOrgEvent } from '@/lib/realtime/org-events';
 import {
   NotFoundError,
   PreConditionError,
@@ -161,9 +162,35 @@ export const assignMailThread = authActionClient
       }
     }
 
-    await prisma.mailThread.update({
-      where: { id: parsedInput.threadId },
+    const current = await prisma.mailThread.findFirst({
+      where: { id: parsedInput.threadId, organizationId },
+      select: { assigneeId: true }
+    });
+    if (!current) {
+      throw new NotFoundError('Thread not found');
+    }
+
+    // Compare-and-swap so concurrent assign/unassign cannot silently clobber.
+    const updated = await prisma.mailThread.updateMany({
+      where: {
+        id: parsedInput.threadId,
+        organizationId,
+        assigneeId: current.assigneeId
+      },
       data: { assigneeId: parsedInput.assigneeId }
+    });
+
+    if (updated.count === 0) {
+      throw new PreConditionError(
+        'This thread was updated by someone else. Refresh and try again.'
+      );
+    }
+
+    void publishOrgEvent(organizationId, {
+      type: 'thread.updated',
+      resourceId: parsedInput.threadId,
+      actorId: session.user.id,
+      actorName: session.user.name
     });
 
     revalidateMailPaths(parsedInput.threadId);

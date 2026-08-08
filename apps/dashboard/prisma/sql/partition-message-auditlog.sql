@@ -1,0 +1,48 @@
+-- Phase 4 scale patch: optional monthly RANGE partitions for hot append tables.
+-- Run manually against DIRECT_URL after reviewing Neon/Postgres version support.
+-- Prisma schema stays on the parent tables; partitions are transparent to the ORM.
+--
+-- Prerequisites:
+--   1. Maintenance window or low-traffic window
+--   2. Backup / point-in-time restore available
+--   3. Enough disk for a brief double-write during cutover
+--
+-- This script is DOCUMENTATION + operator checklist. Prefer a staged migration:
+-- create partitioned clones → backfill → swap names → drop old.
+
+-- ---------------------------------------------------------------------------
+-- Message (conversation transcripts) — partition by createdAt month
+-- ---------------------------------------------------------------------------
+-- Example skeleton (adapt dates to your data range):
+--
+-- CREATE TABLE "Message_partitioned" (
+--   LIKE "Message" INCLUDING ALL
+-- ) PARTITION BY RANGE ("createdAt");
+--
+-- CREATE TABLE "Message_2026_07" PARTITION OF "Message_partitioned"
+--   FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
+-- CREATE TABLE "Message_2026_08" PARTITION OF "Message_partitioned"
+--   FOR VALUES FROM ('2026-08-01') TO ('2026-09-01');
+-- CREATE TABLE "Message_default" PARTITION OF "Message_partitioned" DEFAULT;
+--
+-- INSERT INTO "Message_partitioned" SELECT * FROM "Message";
+-- -- swap: rename Message → Message_legacy; Message_partitioned → Message;
+--
+-- Retention: DROP PARTITION for months older than product retention policy
+-- instead of DELETE (much cheaper than row-by-row purge).
+
+-- ---------------------------------------------------------------------------
+-- AuditLog (append-only security trail) — partition by createdAt month
+-- ---------------------------------------------------------------------------
+-- CREATE TABLE "AuditLog_partitioned" (
+--   LIKE "AuditLog" INCLUDING ALL
+-- ) PARTITION BY RANGE ("createdAt");
+--
+-- CREATE TABLE "AuditLog_2026_07" PARTITION OF "AuditLog_partitioned"
+--   FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
+-- ...
+--
+-- Keep DB triggers that forbid UPDATE/DELETE on each partition.
+-- Retention purge should DROP old partitions (still gated by app.allow_audit_purge).
+
+SELECT 1 AS partition_plan_placeholder;

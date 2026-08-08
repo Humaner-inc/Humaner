@@ -116,6 +116,10 @@ export function SignUpCard({
   const handleSignInWithGoogle = async (): Promise<void> => {
     await persistIntent(intent);
     const result = await continueWithGoogle();
+    if (result?.data?.redirectTo) {
+      window.location.assign(result.data.redirectTo);
+      return;
+    }
     if (result?.serverError || result?.validationErrors) {
       setErrorMessage('An error occured during Google sign in.');
     }
@@ -123,6 +127,10 @@ export function SignUpCard({
   const handleSignInWithGitHub = async (): Promise<void> => {
     await persistIntent(intent);
     const result = await continueWithGitHub();
+    if (result?.data?.redirectTo) {
+      window.location.assign(result.data.redirectTo);
+      return;
+    }
     if (result?.serverError || result?.validationErrors) {
       setErrorMessage('An error occured during GitHub sign in.');
     }

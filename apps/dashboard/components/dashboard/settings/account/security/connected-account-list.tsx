@@ -55,6 +55,10 @@ function ConnectedAccountListItem({
     const result = await connectAccount({
       provider: connectedAccount.id as OAuthIdentityProvider
     });
+    if (result?.data?.redirectTo) {
+      window.location.assign(result.data.redirectTo);
+      return;
+    }
     if (result?.serverError || result?.validationErrors) {
       toast.error("Couldn't connect account");
     }

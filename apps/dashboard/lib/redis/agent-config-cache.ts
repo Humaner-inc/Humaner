@@ -5,11 +5,14 @@ import { getPlanCapabilities } from '@humaner/shared/plans';
 import type { IndustryType } from '@prisma/client';
 
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
+import { TtlMap } from '@/lib/cache/ttl-map';
 import { prisma } from '@/lib/db/prisma';
 import { cacheDelete, cacheGet, cacheSet } from '@/lib/redis/upstash';
 
 const CACHE_PREFIX = 'agent:chat:';
 const CACHE_TTL_SECONDS = 3_600;
+/** Hot-path process cache in front of Redis (Fluid Compute / long-lived workers). */
+const LOCAL_TTL_MS = 60_000;
 
 export type CachedChatAgent = SystemPromptAgent & {
   id: string;
@@ -24,6 +27,10 @@ export type CachedChatAgent = SystemPromptAgent & {
     humanDeskEnabled: boolean;
   } | null;
 };
+
+const localAgentCache = new TtlMap<CachedChatAgent>(LOCAL_TTL_MS, {
+  maxSize: 500
+});
 
 type AgentChatRow = {
   id: string;
@@ -130,9 +137,17 @@ export async function getAgentForChat(
   publicId: string
 ): Promise<CachedChatAgent | null> {
   const key = cacheKey(publicId);
+
+  const local = localAgentCache.get(key);
+  if (local) {
+    return backfillCachedAgent(local);
+  }
+
   const cached = await cacheGet<CachedChatAgent>(key);
   if (cached) {
-    return backfillCachedAgent(cached);
+    const hydrated = backfillCachedAgent(cached);
+    localAgentCache.set(key, hydrated);
+    return hydrated;
   }
 
   const agent = await prisma.agent.findUnique({
@@ -145,6 +160,7 @@ export async function getAgentForChat(
   }
 
   const hydrated = toCachedChatAgent(agent);
+  localAgentCache.set(key, hydrated);
   void cacheSet(key, hydrated, CACHE_TTL_SECONDS);
   return hydrated;
 }
@@ -152,5 +168,7 @@ export async function getAgentForChat(
 export async function invalidateAgentConfigCache(
   publicId: string
 ): Promise<void> {
-  await cacheDelete(cacheKey(publicId));
+  const key = cacheKey(publicId);
+  localAgentCache.delete(key);
+  await cacheDelete(key);
 }

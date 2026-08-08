@@ -41,7 +41,12 @@ export const syncInboxNow = pageActionClient('inbox')
       throw new RateLimitExceededError();
     }
 
-    const result = await syncImapMailboxes({ organizationId });
+    const result = await syncImapMailboxes({
+      organizationId,
+      actorId: session.user.id,
+      actorName: session.user.name
+    });
+
     revalidatePath(Routes.InboxAll);
     revalidatePath(Routes.InboxAssigned);
 

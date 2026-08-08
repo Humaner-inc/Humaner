@@ -141,6 +141,22 @@ export function getSafeAuthCallbackUrl(
   return toSafeRelativeCallbackPath(callbackUrl) ?? fallback;
 }
 
+function extractSignInResultUrl(result: unknown): string | undefined {
+  if (typeof result === 'string' && result.trim()) {
+    return result.trim();
+  }
+  if (
+    result &&
+    typeof result === 'object' &&
+    'url' in result &&
+    typeof (result as { url: unknown }).url === 'string'
+  ) {
+    const url = (result as { url: string }).url.trim();
+    return url || undefined;
+  }
+  return undefined;
+}
+
 /**
  * Auth.js v5 `signIn(..., { redirect: false })` returns a string URL
  * (absolute or relative). Older shapes used `{ url, error }`.
@@ -150,17 +166,56 @@ export function toClientAuthRedirect(
   result: unknown,
   fallback: string
 ): string {
-  let raw: string | undefined;
+  const raw = extractSignInResultUrl(result);
+  return toMfaChallengeRedirect(raw) ?? getSafeAuthCallbackUrl(raw, fallback);
+}
 
-  if (typeof result === 'string' && result.trim()) {
-    raw = result.trim();
-  } else if (
-    result &&
-    typeof result === 'object' &&
-    'url' in result &&
-    typeof (result as { url: unknown }).url === 'string'
-  ) {
-    raw = (result as { url: string }).url.trim();
+function isTrustedOAuthAuthorizationHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  return (
+    host === 'accounts.google.com' ||
+    host.endsWith('.google.com') ||
+    host === 'github.com' ||
+    host === 'www.github.com'
+  );
+}
+
+/**
+ * OAuth `signIn(..., { redirect: false })` returns the provider authorize URL
+ * (or a same-origin `/api/auth/*` hop). Unlike post-login redirects, these must
+ * stay absolute when they point at Google/GitHub.
+ */
+export function toOAuthSignInRedirect(
+  result: unknown,
+  fallback: string
+): string {
+  const raw = extractSignInResultUrl(result);
+  if (!raw) {
+    return fallback;
+  }
+
+  if (raw.startsWith('/api/auth')) {
+    return raw;
+  }
+
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    try {
+      const url = new URL(raw);
+      if (isTrustedOAuthAuthorizationHost(url.hostname)) {
+        return url.toString();
+      }
+      // Same-app absolute URL (e.g. https://app.humaner.io/api/auth/signin/…)
+      const pathname = `${url.pathname}${url.search}${url.hash}`;
+      if (pathname.startsWith('/api/auth')) {
+        return pathname;
+      }
+      return (
+        toMfaChallengeRedirect(pathname) ??
+        getSafeAuthCallbackUrl(pathname, fallback)
+      );
+    } catch {
+      return fallback;
+    }
   }
 
   return toMfaChallengeRedirect(raw) ?? getSafeAuthCallbackUrl(raw, fallback);

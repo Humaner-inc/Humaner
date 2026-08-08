@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db/prisma';
 import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
 import { notifyTicketResolved } from '@/lib/desk/notify-ticket-resolved';
 import { extractResolutionPattern } from '@/lib/platform-intelligence/extract-resolution-pattern';
+import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
@@ -96,6 +97,13 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
         sendEmail: parsedInput.sendSolutionEmail !== false
       });
     }
+
+    void publishOrgEvent(session.user.organizationId, {
+      type: 'ticket.updated',
+      resourceId: ticket.id,
+      actorId: session.user.id,
+      actorName: session.user.name
+    });
 
     revalidatePath(Routes.Desk);
     revalidatePath(Routes.DeskHuman);
