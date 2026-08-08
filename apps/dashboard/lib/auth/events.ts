@@ -7,6 +7,7 @@ import {
   acceptInvitationForExistingUser,
   createOrganizationAndConnectUser
 } from '@/lib/auth/organization';
+import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { verifyEmail } from '@/lib/auth/verification';
 import { prisma } from '@/lib/db/prisma';
@@ -125,6 +126,9 @@ export const events = {
         account?.provider === OAuthIdentityProvider.Google ||
         account?.provider === OAuthIdentityProvider.GitHub
       ) {
+        // Normalize cookie after OAuth — custom jwt.encode used to return ''
+        // and wipe the DB session cookie Auth.js just minted.
+        await reassertSessionCookieForUser(user.id);
         await ensureOAuthProfileImage(
           user,
           account.provider,

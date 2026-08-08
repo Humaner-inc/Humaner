@@ -117,7 +117,14 @@ export function TotpCodeCard({
     <div className={cn('flex w-full flex-col', oss ? 'gap-4' : 'gap-8')}>
       <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
         <p className={authEyebrowClassName}>Two-factor</p>
-        <h1 className={authPageTitleClassName}>Authenticator code</h1>
+        <h1
+          className={cn(
+            authPageTitleClassName,
+            'whitespace-nowrap text-[2rem] leading-none sm:text-5xl'
+          )}
+        >
+          Authenticator code
+        </h1>
         <p className={cn(authMutedTextClassName, 'text-center')}>
           Enter the 6-digit code from your authenticator app.
         </p>

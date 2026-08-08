@@ -132,7 +132,7 @@ export const callbacks = {
     if ((trigger === 'signIn' || trigger === 'signUp') && account) {
       token.accessToken = account.access_token;
 
-      if (account.type === 'credentials' && user.id) {
+      if (user?.id) {
         // Password login with MFA must not mint a session here — signIn
         // redirects to /auth/totp (or recovery) first. Session is created
         // only after TotpCode / RecoveryCode succeeds (and for password
@@ -144,9 +144,8 @@ export const callbacks = {
           return token;
         }
 
-        // Prefer the session the signIn callback just created + cookied.
-        // Creating a second session here left the response cookie pointing at
-        // a different token than jwt.encode, which broke post-2FA redirects.
+        // Prefer the session Auth.js / signIn just created. Attach it so
+        // jwt.encode writes the opaque DB token (never a JWT, never '').
         const existing = await prisma.session.findFirst({
           where: {
             userId: user.id,
@@ -161,16 +160,19 @@ export const callbacks = {
           return token;
         }
 
-        const expires = getSessionExpiryFromNow();
-        const sessionToken = generateSessionToken();
+        // Credentials without MFA: mint if signIn somehow skipped cookie write.
+        if (account.type === 'credentials') {
+          const expires = getSessionExpiryFromNow();
+          const sessionToken = generateSessionToken();
 
-        const session = await adapter.createSession!({
-          userId: user.id,
-          sessionToken,
-          expires
-        });
+          const session = await adapter.createSession!({
+            userId: user.id,
+            sessionToken,
+            expires
+          });
 
-        token.sessionId = session.sessionToken;
+          token.sessionId = session.sessionToken;
+        }
       }
     }
 

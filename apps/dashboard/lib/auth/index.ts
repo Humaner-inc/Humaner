@@ -6,6 +6,7 @@ import { adapter } from '@/lib/auth/adapter';
 import { callbacks } from '@/lib/auth/callbacks';
 import { AuthCookies } from '@/lib/auth/cookies';
 import { events } from '@/lib/auth/events';
+import { encodeDatabaseSessionToken } from '@/lib/auth/jwt-session';
 import { providers } from '@/lib/auth/providers';
 import { session } from '@/lib/auth/session';
 
@@ -54,16 +55,8 @@ export const authConfig = {
   events,
   jwt: {
     maxAge: session.maxAge,
-    // Credentials + database sessions: cookie value must be the DB session
-    // token. Falling back to a signed JWT poisons auth() (and can leave
-    // chunked cookies that break post-2FA redirects back to /auth/login).
-    async encode(arg) {
-      const sessionId = arg.token?.sessionId;
-      if (typeof sessionId === 'string' && sessionId.length > 0) {
-        return sessionId;
-      }
-      return '';
-    }
+    // Opaque DB session token only — see encodeDatabaseSessionToken.
+    encode: encodeDatabaseSessionToken
   },
   trustHost: true
 } satisfies NextAuthConfig;
