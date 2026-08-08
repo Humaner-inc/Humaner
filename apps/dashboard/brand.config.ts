@@ -18,7 +18,7 @@ const humanerBrand: BrandConfig = {
   light: {
     background: '40 20% 97%',
     foreground: '300 8% 2.5%',
-    card: '38 24% 95%',
+    card: '40 16% 96.3%',
     primary: '35 45% 78%',
     primaryForeground: '300 8% 2.5%',
     secondary: '36 22% 93%',
@@ -49,7 +49,7 @@ const humanerBrand: BrandConfig = {
   dark: {
     background: '300 8% 2.55%',
     foreground: '0 0% 96%',
-    card: '300 6% 5.5%',
+    card: '300 5% 4.1%',
     primary: '35 45% 82%',
     primaryForeground: '300 8% 2.5%',
     secondary: '300 5% 11%',

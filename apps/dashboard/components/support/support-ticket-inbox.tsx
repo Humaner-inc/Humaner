@@ -399,7 +399,7 @@ export function SupportTicketInbox({
   return (
     <div
       className={cn(
-        'flex h-[min(720px,calc(100vh-8rem))] flex-col rounded-xl border border-border/60 bg-card/30 md:rounded-lg',
+        'flex h-[min(720px,calc(100vh-8rem))] flex-col rounded-xl border border-border/60 bg-muted/20 md:rounded-lg',
         className
       )}
     >

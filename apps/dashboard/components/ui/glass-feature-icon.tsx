@@ -22,9 +22,9 @@ export function GlassFeatureIcon({
         'relative isolate flex items-center justify-center overflow-hidden border',
         size === 'lg' ? 'size-16 sm:size-[4.5rem]' : 'size-12 sm:size-14',
         dashboardRadiusClassName,
-        'border-foreground/15 bg-card',
+        'border-foreground/15 bg-muted/20',
         'shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_22px_50px_-26px_rgb(0_0_0_/_0.14)]',
-        'dark:border-white/18 dark:bg-card',
+        'dark:border-white/18 dark:bg-muted/20',
         'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]',
         className
       )}

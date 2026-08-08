@@ -3,7 +3,10 @@ import * as React from 'react';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
-export type GlassPanelProps = React.HTMLAttributes<HTMLDivElement>;
+export type GlassPanelProps = React.HTMLAttributes<HTMLDivElement> & {
+  /** Soft top radial wash. Default true; set false for flat panels (e.g. Customize). */
+  glow?: boolean;
+};
 
 /**
  * Landing-style bordered card shell. Light theme matches Integrations dock
@@ -12,13 +15,14 @@ export type GlassPanelProps = React.HTMLAttributes<HTMLDivElement>;
 export function GlassPanel({
   className,
   children,
+  glow = true,
   ...props
 }: GlassPanelProps): React.JSX.Element {
   return (
     <div
       className={cn(
         'relative isolate overflow-hidden border backdrop-blur-xl',
-        'border-foreground/15 bg-card',
+        'border-foreground/15 bg-muted/20',
         'dark:border-white/[0.08]',
         dashboardRadiusClassName,
         className
@@ -29,23 +33,31 @@ export function GlassPanel({
         aria-hidden
         className="h-px w-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent dark:via-accent/35"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.08),transparent_65%)]"
-      />
+      {glow ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.08),transparent_65%)]"
+        />
+      ) : null}
       <div className="relative">{children}</div>
     </div>
   );
 }
 
-export type GlassPanelSectionProps = React.HTMLAttributes<HTMLElement> & {
-  title?: string;
+export type GlassPanelSectionProps = Omit<
+  React.HTMLAttributes<HTMLElement>,
+  'title'
+> & {
+  title?: React.ReactNode;
   description?: string;
+  /** Defaults to The Seasons (`subsection-title`). Pass Fellix for in-card titles. */
+  titleClassName?: string;
 };
 
 export function GlassPanelSection({
   title,
   description,
+  titleClassName,
   className,
   children,
   ...props
@@ -57,7 +69,11 @@ export function GlassPanelSection({
     >
       {title ? (
         <div className="mb-4">
-          <h3 className="subsection-title font-semibold">{title}</h3>
+          <h3
+            className={cn(titleClassName ?? 'subsection-title font-semibold')}
+          >
+            {title}
+          </h3>
           {description ? (
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           ) : null}

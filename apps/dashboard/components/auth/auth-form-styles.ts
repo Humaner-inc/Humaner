@@ -22,8 +22,8 @@ const oss = false;
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const authSurfaceClassName = oss
-  ? 'overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm'
-  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-[hsl(300_6%_5.5%)] text-[#fff8f2]';
+  ? 'overflow-hidden rounded-xl border border-border bg-muted/20 text-card-foreground shadow-sm'
+  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-muted/20 text-[#fff8f2]';
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-zinc-300 bg-white text-zinc-950 shadow-none placeholder:text-zinc-400 selection:bg-zinc-900/15 selection:text-zinc-950 focus-visible:border-zinc-900 focus-visible:ring-1 focus-visible:ring-zinc-900/20'
@@ -86,13 +86,13 @@ export const authLogoClassName = oss
   : 'gap-3 [&_img]:h-12 [&_span]:text-2xl [&_span]:text-white sm:[&_img]:h-14 sm:[&_span]:text-3xl';
 
 export const authOnboardingCardClassName = oss
-  ? 'overflow-hidden rounded-xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6'
+  ? 'overflow-hidden rounded-xl border border-border bg-muted/20 p-5 text-card-foreground shadow-sm sm:p-6'
   : 'overflow-hidden rounded-2xl border border-[#070607]/[0.06] bg-[#fff8f2] p-5 text-[#070607] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.25)] sm:p-6';
 
 /** Dark glass auth card — Cloud only look; OSS uses a plain card. */
 export const authGlassCardClassName = oss
-  ? 'relative overflow-hidden rounded-xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6'
-  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[hsl(300_6%_5.5%)] p-5 text-[#fff8f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] sm:p-6';
+  ? 'relative overflow-hidden rounded-xl border border-border bg-muted/20 p-5 text-card-foreground shadow-sm sm:p-6'
+  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-muted/20 p-5 text-[#fff8f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] sm:p-6';
 
 export const authGlassCardGlowClassName = oss
   ? 'hidden'
@@ -134,7 +134,7 @@ export const authOnboardingDestructiveClassName = oss
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 
 export const onboardingSurfaceClassName = oss
-  ? 'overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm'
+  ? 'overflow-hidden rounded-xl border border-border bg-muted/20 text-card-foreground shadow-sm'
   : 'overflow-hidden rounded-2xl border border-[#070607]/[0.06] bg-[#fff8f2] text-[#070607] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.2)]';
 
 export const onboardingInputClassName = oss

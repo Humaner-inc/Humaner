@@ -60,7 +60,7 @@ export function OrganizationVerticalTopics({
   };
 
   return (
-    <section className="space-y-4 border border-border/60 bg-card/40 p-5 sm:p-6">
+    <section className="space-y-4 border border-border/60 bg-muted/20 p-5 sm:p-6">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <Icon className="size-4 shrink-0 text-foreground" />
         <h2 className="font-display text-lg font-semibold tracking-tight">

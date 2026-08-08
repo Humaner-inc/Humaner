@@ -224,7 +224,7 @@ export function WorkspaceSwitcher({
           type="button"
           variant="ghost"
           className={cn(
-            'h-auto gap-2 border border-border/60 bg-card/40 px-2.5 py-1.5 hover:bg-accent/50',
+            'h-auto gap-2 border border-border/60 bg-muted/20 px-2.5 py-1.5 hover:bg-accent/50',
             'w-auto max-w-[min(100vw-12rem,16rem)] justify-center',
             dashboardRadiusClassName,
             className

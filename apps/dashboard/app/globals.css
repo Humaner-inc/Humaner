@@ -10,8 +10,8 @@
     --background: 40 20% 97%;
     --foreground: 300 8% 2.5%;
 
-    /* Match sidebar cream (not pure white) */
-    --card: 38 24% 95%;
+    /* Solid equivalent of bg-muted/20 on --background (embed terminal) */
+    --card: 40 16% 96.3%;
     --card-foreground: 300 8% 2.5%;
 
     --popover: 0 0% 100%;
@@ -71,7 +71,8 @@
     --background: 300 8% 2.55%;
     --foreground: 0 0% 96%;
 
-    --card: 300 6% 5.5%;
+    /* Solid equivalent of bg-muted/20 on --background (embed terminal) */
+    --card: 300 5% 4.1%;
     --card-foreground: 0 0% 96%;
 
     --popover: 300 6% 6.5%;

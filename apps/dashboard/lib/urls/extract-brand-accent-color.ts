@@ -227,15 +227,18 @@ function readCssVariableCandidates(html: string): string[] {
   return candidates;
 }
 
-export function extractBrandAccentColor(html: string): string | null {
-  const candidates = [
+function collectBrandColorCandidates(html: string): string[] {
+  return [
     readMetaContent(html, 'theme-color'),
     readMetaContent(html, 'msapplication-TileColor'),
     readMaskIconColor(html),
     ...readCssVariableCandidates(html)
   ].filter(Boolean) as string[];
+}
 
-  for (const raw of candidates) {
+/** Best single accent for launcher / CTA (white label text). */
+export function extractBrandAccentColor(html: string): string | null {
+  for (const raw of collectBrandColorCandidates(html)) {
     const hex = normalizeColorToHex(raw);
     if (hex && isUsableBrandAccent(hex)) {
       return hex;
@@ -243,4 +246,27 @@ export function extractBrandAccentColor(html: string): string | null {
   }
 
   return null;
+}
+
+/**
+ * Aggregate usable brand colors from theme-color, tile color, mask-icon,
+ * and common CSS brand/primary variables — same scrape pass as the logo.
+ */
+export function extractBrandColorPalette(html: string, limit = 5): string[] {
+  const seen = new Set<string>();
+  const palette: string[] = [];
+
+  for (const raw of collectBrandColorCandidates(html)) {
+    const hex = normalizeColorToHex(raw);
+    if (!hex || !isUsableBrandAccent(hex) || seen.has(hex)) {
+      continue;
+    }
+    seen.add(hex);
+    palette.push(hex);
+    if (palette.length >= limit) {
+      break;
+    }
+  }
+
+  return palette;
 }

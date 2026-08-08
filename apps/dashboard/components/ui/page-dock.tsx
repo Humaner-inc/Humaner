@@ -80,7 +80,7 @@ export function PageDockItem({
                       ? 'dark:border-white/12 border-border bg-secondary dark:bg-black/30'
                       : 'dark:border-white/8 dark:group-hover:border-white/12 border-border/70 bg-muted group-hover:border-border group-hover:bg-secondary dark:bg-black/25 dark:group-hover:bg-black/30'
                     : isActive
-                      ? 'dark:border-white/24 border-foreground/15 bg-card shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(225_204_175_/_0.1)] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                      ? 'dark:border-white/24 border-foreground/15 bg-muted/20 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(225_204_175_/_0.1)] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
                       : 'group-hover:border-foreground/12 dark:border-white/16 dark:group-hover:border-white/22 border-border/80 bg-muted group-hover:bg-secondary dark:bg-black/40 dark:group-hover:bg-black/50'
                 )
               : cn(

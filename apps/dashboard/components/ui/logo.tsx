@@ -37,7 +37,7 @@ export function Logo({
           width={600}
           height={600}
           unoptimized
-          className="h-8 w-auto shrink-0"
+          className="h-8 w-auto shrink-0 dark:brightness-0 dark:invert"
         />
       )}
       {!hideWordmark && (

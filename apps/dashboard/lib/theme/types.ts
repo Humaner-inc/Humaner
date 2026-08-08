@@ -3,7 +3,7 @@
 export type BrandColorTokens = {
   background: string;
   foreground: string;
-  /** Panel / Card surfaces (Policies, settings, GlassPanel). */
+  /** Panel / Card surfaces — solid match for bg-muted/20 (embed terminal). */
   card: string;
   primary: string;
   primaryForeground: string;

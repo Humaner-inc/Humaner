@@ -64,7 +64,7 @@ export function AppSidebar({
               width={32}
               height={32}
               unoptimized
-              className="size-7 shrink-0"
+              className="size-7 shrink-0 dark:brightness-0 dark:invert"
             />
           ) : (
             <BrandWordmark

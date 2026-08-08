@@ -1,23 +1,18 @@
 import * as React from "react";
 import { BsChatDotsFill } from "react-icons/bs";
-import { FaArrowUp, FaChevronRight, FaLocationArrow } from "react-icons/fa";
+import { FaArrowUp, FaLocationArrow } from "react-icons/fa";
 import { MdChatBubble } from "react-icons/md";
 import { RiChatAi4Fill, RiSendInsFill } from "react-icons/ri";
-import { SiLivechat } from "react-icons/si";
 
-export const WIDGET_BUBBLE_ICONS = [
-  "CHAT",
-  "CHAT_DOTS",
-  "CHAT_AI",
-  "LIVECHAT",
-] as const;
+/** Selectable launcher icons (LIVECHAT kept in DB enum for legacy rows). */
+export const WIDGET_BUBBLE_ICONS = ["CHAT", "CHAT_DOTS", "CHAT_AI"] as const;
 export type WidgetBubbleIconId = (typeof WIDGET_BUBBLE_ICONS)[number];
 
+/** Selectable send icons (ARROW_SQUARE kept in DB enum for legacy rows). */
 export const WIDGET_SEND_ICONS = [
   "LOCATION_ARROW",
   "ARROW_CIRCLE",
   "CHEVRON_RIGHT",
-  "ARROW_SQUARE",
 ] as const;
 export type WidgetSendIconId = (typeof WIDGET_SEND_ICONS)[number];
 
@@ -28,7 +23,6 @@ export const WIDGET_BUBBLE_ICON_META: Record<
   CHAT: { label: "Chat", description: "Classic speech bubble" },
   CHAT_DOTS: { label: "Dots", description: "Bubble with typing dots" },
   CHAT_AI: { label: "AI chat", description: "AI-assisted conversation" },
-  LIVECHAT: { label: "Live chat", description: "Live support bubble" },
 };
 
 export const WIDGET_SEND_ICON_META: Record<
@@ -38,7 +32,6 @@ export const WIDGET_SEND_ICON_META: Record<
   LOCATION_ARROW: { label: "Arrow", description: "Location arrow send" },
   ARROW_CIRCLE: { label: "Arrow up", description: "Upward arrow send" },
   CHEVRON_RIGHT: { label: "Send", description: "Filled send icon" },
-  ARROW_SQUARE: { label: "Chevron", description: "Forward chevron" },
 };
 
 const BUBBLE_ICON_ALIASES: Record<string, WidgetBubbleIconId> = {
@@ -49,7 +42,8 @@ const BUBBLE_ICON_ALIASES: Record<string, WidgetBubbleIconId> = {
   chatai: "CHAT_AI",
   chat_ai: "CHAT_AI",
   sparkle: "CHAT_AI",
-  livechat: "LIVECHAT",
+  livechat: "CHAT",
+  LIVECHAT: "CHAT",
 };
 
 const SEND_ICON_ALIASES: Record<string, WidgetSendIconId> = {
@@ -63,8 +57,9 @@ const SEND_ICON_ALIASES: Record<string, WidgetSendIconId> = {
   chevronright: "CHEVRON_RIGHT",
   chevron_right: "CHEVRON_RIGHT",
   chevron: "CHEVRON_RIGHT",
-  arrowsquare: "ARROW_SQUARE",
-  arrow_square: "ARROW_SQUARE",
+  arrowsquare: "LOCATION_ARROW",
+  arrow_square: "LOCATION_ARROW",
+  ARROW_SQUARE: "LOCATION_ARROW",
 };
 
 export function parseWidgetBubbleIcon(
@@ -73,6 +68,7 @@ export function parseWidgetBubbleIcon(
 ): WidgetBubbleIconId {
   if (!value) return fallback;
   const key = value.trim().toUpperCase().replace(/-/g, "_");
+  if (key === "LIVECHAT") return "CHAT";
   if ((WIDGET_BUBBLE_ICONS as readonly string[]).includes(key)) {
     return key as WidgetBubbleIconId;
   }
@@ -86,11 +82,31 @@ export function parseWidgetSendIcon(
 ): WidgetSendIconId {
   if (!value) return fallback;
   const key = value.trim().toUpperCase().replace(/-/g, "_");
+  if (key === "ARROW_SQUARE") return "LOCATION_ARROW";
   if ((WIDGET_SEND_ICONS as readonly string[]).includes(key)) {
     return key as WidgetSendIconId;
   }
   const alias = SEND_ICON_ALIASES[value.trim().toLowerCase()];
   return alias ?? fallback;
+}
+
+/** Whole-widget light/dark surface (icons + chat body). */
+export const WIDGET_ICON_THEMES = ["DARK", "LIGHT"] as const;
+export type WidgetIconThemeId = (typeof WIDGET_ICON_THEMES)[number];
+
+export function parseWidgetIconTheme(
+  value: string | null | undefined,
+  fallback: WidgetIconThemeId = "DARK",
+): WidgetIconThemeId {
+  if (!value) return fallback;
+  const key = value.trim().toUpperCase();
+  if ((WIDGET_ICON_THEMES as readonly string[]).includes(key)) {
+    return key as WidgetIconThemeId;
+  }
+  const lower = value.trim().toLowerCase();
+  if (lower === "light") return "LIGHT";
+  if (lower === "dark") return "DARK";
+  return fallback;
 }
 
 export type WidgetLauncherMode = "bubble" | "dock";
@@ -130,8 +146,6 @@ export function WidgetBubbleIconSvg({
       return <BsChatDotsFill {...props} />;
     case "CHAT_AI":
       return <RiChatAi4Fill {...props} />;
-    case "LIVECHAT":
-      return <SiLivechat {...props} />;
     case "CHAT":
     default:
       return <MdChatBubble {...props} />;
@@ -150,8 +164,6 @@ export function WidgetSendIconSvg({
       return <FaArrowUp {...props} />;
     case "CHEVRON_RIGHT":
       return <RiSendInsFill {...props} />;
-    case "ARROW_SQUARE":
-      return <FaChevronRight {...props} />;
     case "LOCATION_ARROW":
     default:
       return <FaLocationArrow {...props} />;

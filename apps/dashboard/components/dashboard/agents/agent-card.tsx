@@ -246,7 +246,7 @@ export function AgentCard({
     <>
       <article
         className={cn(
-          'group relative flex flex-col overflow-hidden border border-border/80 bg-[color-mix(in_srgb,var(--card)_92%,white)] shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-card dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
+          'group relative flex flex-col overflow-hidden border border-border/80 bg-muted/20 shadow-[0_2px_0_0_rgb(0_0_0_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.28)] transition-[border-color,box-shadow,background-color] card-interactive dark:bg-muted/20 dark:shadow-[0_2px_0_0_rgb(255_255_255_/_0.04),0_22px_48px_-24px_rgb(0_0_0_/_0.55)]',
           dashboardRadiusClassName,
           compact
             ? 'min-h-[16.5rem] px-4 pb-3.5 pt-4'

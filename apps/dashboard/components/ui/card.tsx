@@ -12,7 +12,7 @@ const Card = React.forwardRef<CardElement, CardProps>(
       ref={ref}
       className={cn(
         cardRadius,
-        'border bg-card text-card-foreground',
+        'border bg-muted/20 text-card-foreground',
         className
       )}
       {...props}

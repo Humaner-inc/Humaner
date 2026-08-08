@@ -103,6 +103,16 @@ export function middleware(request: NextRequest): NextResponse {
     !isServerAction &&
     !hasSessionCookie(request)
   ) {
+    // Dashboard API polls (e.g. /api/dashboard/desk/open-count) must not
+    // redirect to login or poison the Auth.js callback cookie — that sent
+    // users to raw JSON after sign-in.
+    if (
+      pathname === '/api/dashboard' ||
+      pathname.startsWith('/api/dashboard/')
+    ) {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    }
+
     const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('callbackUrl', callbackPath);

@@ -99,7 +99,8 @@ export function toMfaChallengeRedirect(
 
 /**
  * Normalize any callback to same-origin relative path, or null.
- * Rejects protocol-relative (`//evil.com`), auth routes, and `/api/auth/*`
+ * Rejects protocol-relative (`//evil.com`), auth routes, and any `/api/*`
+ * path (API polls must never become post-login destinations).
  */
 export function toSafeRelativeCallbackPath(
   callbackUrl: string | undefined | null
@@ -118,7 +119,7 @@ export function toSafeRelativeCallbackPath(
   if (
     pathname === Routes.Auth ||
     pathname.startsWith(`${Routes.Auth}/`) ||
-    pathname.startsWith('/api/auth')
+    pathname.startsWith('/api/')
   ) {
     return null;
   }

@@ -5,7 +5,10 @@ export type WidgetRadiusSettings = {
   popup: number;
   /** Message input container. */
   input: number;
-  /** Assistant / user answer bubbles. */
+  /**
+   * Chat message bubble radius. Not a separate Customize slider —
+   * kept in sync with `popup` (brand angle) when pop-up radius changes.
+   */
   messages: number;
 };
 
@@ -19,15 +22,15 @@ export const DEFAULT_WIDGET_RADIUS: WidgetRadiusSettings = {
   messages: 16,
 };
 
+/** Sliders shown in Customize. */
 export const WIDGET_RADIUS_KEYS = [
   "widget",
   "popup",
   "input",
-  "messages",
 ] as const satisfies readonly (keyof WidgetRadiusSettings)[];
 
 export const WIDGET_RADIUS_META: Record<
-  keyof WidgetRadiusSettings,
+  (typeof WIDGET_RADIUS_KEYS)[number],
   { label: string; hint: string; previewSize: number }
 > = {
   widget: {
@@ -43,11 +46,6 @@ export const WIDGET_RADIUS_META: Record<
   input: {
     label: "Text container",
     hint: "Message input field wrapper.",
-    previewSize: 24,
-  },
-  messages: {
-    label: "Answers",
-    hint: "Assistant and visitor message bubbles.",
     previewSize: 24,
   },
 };

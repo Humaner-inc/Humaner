@@ -1,13 +1,18 @@
 import 'server-only';
 
 import { toHostname } from '@/lib/logo';
-import { extractBrandAccentColor } from '@/lib/urls/extract-brand-accent-color';
+import {
+  extractBrandAccentColor,
+  extractBrandColorPalette
+} from '@/lib/urls/extract-brand-accent-color';
 import { parsePublicHttpUrl } from '@/lib/urls/is-public-http-url';
 
 export type WebsiteMetadata = {
   businessName: string;
   faviconUrl: string | null;
   accentColor: string | null;
+  /** Usable brand swatches scraped with the logo (theme-color, CSS vars, …). */
+  brandColors: string[];
 };
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -144,7 +149,8 @@ export async function extractWebsiteMetadata(
       return {
         businessName: businessNameFromHostname(hostname),
         faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
-        accentColor: null
+        accentColor: null,
+        brandColors: []
       };
     }
 
@@ -158,16 +164,21 @@ export async function extractWebsiteMetadata(
           businessNameFromHostname(hostname)
       ) || businessNameFromHostname(hostname);
 
+    const brandColors = extractBrandColorPalette(html);
+    const accentColor = extractBrandAccentColor(html) ?? brandColors[0] ?? null;
+
     return {
       businessName,
       faviconUrl: readFaviconUrl(html, pageUrl),
-      accentColor: extractBrandAccentColor(html)
+      accentColor,
+      brandColors
     };
   } catch {
     return {
       businessName: businessNameFromHostname(hostname),
       faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
-      accentColor: null
+      accentColor: null,
+      brandColors: []
     };
   }
 }
