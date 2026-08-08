@@ -322,6 +322,7 @@ export function LoginCard({
         <Button
           type="button"
           variant="ghost"
+          aria-label="Continue with Google"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={!canSubmit}
           onClick={handleSignInWithGoogle}
@@ -330,11 +331,11 @@ export function LoginCard({
             width="20"
             height="20"
           />
-          Google
         </Button>
         <Button
           type="button"
           variant="ghost"
+          aria-label="Continue with GitHub"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={!canSubmit}
           onClick={handleSignInWithGitHub}
@@ -343,7 +344,6 @@ export function LoginCard({
             width="20"
             height="20"
           />
-          GitHub
         </Button>
       </div>
 

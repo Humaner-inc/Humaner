@@ -337,6 +337,7 @@ export function SignUpCard({
         <Button
           type="button"
           variant="ghost"
+          aria-label="Continue with Google"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGoogle()}
@@ -345,11 +346,11 @@ export function SignUpCard({
             width="20"
             height="20"
           />
-          Google
         </Button>
         <Button
           type="button"
           variant="ghost"
+          aria-label="Continue with GitHub"
           className={cn(authOutlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGitHub()}
@@ -358,7 +359,6 @@ export function SignUpCard({
             width="20"
             height="20"
           />
-          GitHub
         </Button>
       </div>
 
