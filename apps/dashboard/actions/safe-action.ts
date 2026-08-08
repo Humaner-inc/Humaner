@@ -1,3 +1,4 @@
+import type { Session } from 'next-auth';
 import {
   createSafeActionClient,
   DEFAULT_SERVER_ERROR_MESSAGE
@@ -21,6 +22,19 @@ import {
   RateLimitExceededError,
   ValidationError
 } from '@/lib/validation/exceptions';
+
+/**
+ * Session with a guaranteed non-null organizationId.
+ * checkSession() validates this at runtime; the type narrows it for Prisma.
+ */
+export type WorkspaceSession = Omit<Session, 'user'> & {
+  user: Omit<Session['user'], 'organizationId'> & {
+    id: string;
+    email: string;
+    name: string;
+    organizationId: string;
+  };
+};
 
 function isNextRedirectError(error: unknown): boolean {
   return (
@@ -86,18 +100,17 @@ export const authenticatedActionClient = actionClient.use(async ({ next }) => {
   return next({ ctx: { session } });
 });
 
-/** Signed in with an active workspace. */
+/** Signed in with an active workspace. organizationId is guaranteed non-null. */
 export const authActionClient = authenticatedActionClient.use(
   async ({ next, ctx }) => {
     if (!checkSession(ctx.session)) {
-      // Do not redirect() from a Safe Action — it returns a non-RSC response and
-      // the client throws "An unexpected response was received from the server."
       throw new ForbiddenError('Select or create a workspace to continue');
     }
 
-    // Prisma tenant middleware auto-injects organizationId while this runs.
-    return runWithTenantScope(ctx.session.user.organizationId, () =>
-      next({ ctx: { session: ctx.session } })
+    const session = ctx.session as WorkspaceSession;
+
+    return runWithTenantScope(session.user.organizationId, () =>
+      next({ ctx: { session } })
     );
   }
 );
