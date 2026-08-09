@@ -28,7 +28,7 @@ export function GlassDockTile({
       <span
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-0 bg-[#060707]',
+          'pointer-events-none absolute inset-0 bg-[#0A0D0D]',
           SIZE_CLASS[size]
         )}
       />
@@ -37,8 +37,8 @@ export function GlassDockTile({
           'absolute inset-0 flex items-center justify-center overflow-hidden border p-0 transition-[border-color,background-color,box-shadow] duration-300',
           SIZE_CLASS[size],
           active
-            ? 'border-white/24 bg-black/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
-            : 'border-white/16 bg-black/40'
+            ? 'border-white/24 bg-[#0A0D0D]/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+            : 'border-white/16 bg-[#0A0D0D]/40'
         )}
       >
         {active ? (

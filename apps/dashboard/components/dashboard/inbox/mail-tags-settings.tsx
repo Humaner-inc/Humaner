@@ -37,7 +37,7 @@ const PRESET_COLORS = [
   '#8B5CF6',
   '#EC4899',
   '#06B6D4',
-  '#64748B'
+  '#18181b'
 ];
 
 export type MailTagAliasOption = {

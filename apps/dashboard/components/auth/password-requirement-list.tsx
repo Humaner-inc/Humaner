@@ -93,7 +93,7 @@ export function PasswordRequirementList({
                   ? 'text-emerald-600'
                   : 'text-emerald-400'
                 : oss
-                  ? 'text-zinc-500'
+                  ? 'text-[#18181b]/70'
                   : 'text-white/40'
             )}
           >

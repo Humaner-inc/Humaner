@@ -2,7 +2,7 @@ import type { PlanTier } from '@humaner/shared/plans';
 
 /** Accent colors used for plan badges and selection states across the dashboard. */
 export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
-  free: '#7b7b73',
+  free: '#18181b',
   /** Cobalt — matches Humaner v1.0 */
   classic: '#0682de',
   /** Accent — matches Humaner v2.0 */

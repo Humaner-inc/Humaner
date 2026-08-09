@@ -83,6 +83,7 @@ export function DeskIssuesOverviewCard({
               <li key={ticket.id}>
                 <DeskTicketPreviewRow
                   ticket={ticket}
+                  chrome="flat"
                   href={Routes.DeskHuman}
                   metaSuffix={` · ${ticket.agentName}`}
                   actions={

@@ -20,8 +20,8 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.DeskEscalation]: 'Escalation',
   [Routes.DeskTeam]: 'Desk team',
   [Routes.HumanDesk]: 'Human Desk',
-  [Routes.Inbox]: 'Inbox',
-  [Routes.InboxAll]: 'All mail',
+  [Routes.Inbox]: 'Mails',
+  [Routes.InboxAll]: 'Inbox',
   [Routes.InboxAssigned]: 'Assigned to me',
   [Routes.InboxArchive]: 'Archive',
   [Routes.InboxAliases]: 'Aliases',
@@ -94,7 +94,7 @@ export function resolveDashboardPageTitle(pathname: string): string {
   }
 
   if (publicPath.startsWith('/inbox/threads/')) {
-    return 'Inbox';
+    return 'Mails';
   }
 
   return AppInfo.APP_NAME;

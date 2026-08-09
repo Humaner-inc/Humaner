@@ -21,7 +21,7 @@ export type InboxNavTab = {
 export const INBOX_NAV_TABS: InboxNavTab[] = [
   {
     id: 'all',
-    label: 'All mail',
+    label: 'Inbox',
     href: Routes.InboxAll
   },
   {

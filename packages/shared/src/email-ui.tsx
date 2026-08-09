@@ -54,6 +54,11 @@ export type EmailLayoutProps = {
   logoSrc?: string;
   /** Optional note shown in the footer zone above the unsubscribe line. */
   footerNote?: React.ReactNode;
+  /**
+   * Opt-in for marketing mail only. Transactional process mail
+   * (verify, invite, password, security, tickets) defaults to off.
+   */
+  showUnsubscribe?: boolean;
   children: React.ReactNode;
 };
 
@@ -61,6 +66,7 @@ export function EmailLayout({
   preview,
   logoSrc = getEmailLogoUrl(),
   footerNote,
+  showUnsubscribe = false,
   children,
 }: EmailLayoutProps): React.JSX.Element {
   return (
@@ -82,7 +88,7 @@ export function EmailLayout({
             {children}
             <EmailDivider />
             {footerNote ? <EmailMuted>{footerNote}</EmailMuted> : null}
-            <EmailFooter />
+            <EmailFooter showUnsubscribe={showUnsubscribe} />
           </Container>
         </Body>
       </Tailwind>
@@ -90,16 +96,28 @@ export function EmailLayout({
   );
 }
 
-function EmailFooter(): React.JSX.Element {
+function EmailFooter({
+  showUnsubscribe,
+}: {
+  showUnsubscribe: boolean;
+}): React.JSX.Element {
   return (
     <>
-      <Text className={EMAIL_MUTED_CLASS}>
-        If you no longer want to receive mails from us simply{" "}
-        <Link href={getUnsubscribeUrl()} className={EMAIL_FOOTER_LINK_CLASS}>
-          Unsubscribe
-        </Link>
-      </Text>
-      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`}>
+      {showUnsubscribe ? (
+        <Text className={EMAIL_MUTED_CLASS}>
+          If you no longer want to receive mails from us simply{" "}
+          <Link href={getUnsubscribeUrl()} className={EMAIL_FOOTER_LINK_CLASS}>
+            Unsubscribe
+          </Link>
+        </Text>
+      ) : null}
+      <Text
+        className={
+          showUnsubscribe
+            ? `${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`
+            : EMAIL_FOOTER_TEXT_CLASS
+        }
+      >
         {EMAIL_FOOTER_LINKS.map((link, index) => (
           <React.Fragment key={link.label}>
             {index > 0 ? " | " : null}

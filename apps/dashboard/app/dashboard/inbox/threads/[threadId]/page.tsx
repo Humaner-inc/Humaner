@@ -31,7 +31,7 @@ export default async function InboxThreadPage({
         className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeftIcon className="size-3.5" />
-        All mail
+        Inbox
       </Link>
       <MailThreadDetail
         thread={thread}

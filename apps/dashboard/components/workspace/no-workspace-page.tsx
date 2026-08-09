@@ -242,7 +242,7 @@ export function NoWorkspacePage({
   };
 
   return (
-    <div className="relative flex min-h-screen bg-[#070607] text-[#fff8f2]">
+    <div className="relative flex min-h-screen bg-[#0A0D0D] text-[#fff8f2]">
       <GrainAmbient className="fixed inset-0 z-0" />
 
       <header className="absolute inset-x-0 top-0 z-20 flex justify-center px-6 pt-6 sm:pt-8">
@@ -310,7 +310,7 @@ export function NoWorkspacePage({
                       className={cn(
                         pillButtonClassName,
                         selected
-                          ? 'bg-[#fff8f2] text-[#070607] hover:bg-white hover:text-[#070607]'
+                          ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
                           : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70'
                       )}
                     >

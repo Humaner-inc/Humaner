@@ -28,7 +28,7 @@ const SIZE_CLASS = {
 const PLATE_CLASS = {
   dark: "border-white/[0.12] bg-[#101010] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]",
   muted:
-    "border-[#070607]/[0.1] bg-[#7b7b73] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_18px_40px_-24px_rgb(0_0_0_/_0.35)]",
+    "border-[#0A0D0D]/[0.1] bg-[#18181b] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_18px_40px_-24px_rgb(0_0_0_/_0.35)]",
 } as const;
 
 /** Framework / pillar icon — gradient stroke, glow, inset depth; sharp brand radius. */

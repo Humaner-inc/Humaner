@@ -48,9 +48,9 @@ export const uiAuthLinkClassName = `${UI_SANS} text-xs text-white/50 underline u
 
 export const uiAuthMutedClassName = `${UI_SANS} text-xs text-white/50`;
 
-export const uiOnboardingLabelClassName = `${UI_MONO} text-[10px] font-medium uppercase tracking-[0.14em] text-[#070607]/65`;
+export const uiOnboardingLabelClassName = `${UI_MONO} text-[10px] font-medium uppercase tracking-[0.14em] text-[#0A0D0D]/65`;
 
-export const uiOnboardingMutedClassName = `${uiBodyClassName} text-[#070607]/50`;
+export const uiOnboardingMutedClassName = `${uiBodyClassName} text-[#0A0D0D]/50`;
 
 /** Pricing / stats row values (messages, agents, members, counts). */
 export const uiStatValueClassName = `${UI_MONO} tabular-nums`;

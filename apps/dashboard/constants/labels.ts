@@ -7,7 +7,7 @@ import {
 } from '@prisma/client';
 
 export const contactStageColor: Record<ContactStage, string> = {
-  [ContactStage.LEAD]: 'bg-gray-600 ring-1 ring-gray-100 dark:ring-gray-900',
+  [ContactStage.LEAD]: 'bg-[#18181b] ring-1 ring-[#f2f2f2] dark:ring-[#0A0D0D]',
   [ContactStage.QUALIFIED]:
     'bg-yellow-600 ring-1 ring-yellow-100 dark:ring-yellow-900',
   [ContactStage.OPPORTUNITY]:

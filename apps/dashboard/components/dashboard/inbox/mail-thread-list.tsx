@@ -611,7 +611,7 @@ export function MailThreadList({
       ) : null}
       <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {!selectionHeader ? (
-          <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
+          <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
             <Checkbox
               checked={
                 allSelected ? true : someSelected ? 'indeterminate' : false
@@ -631,7 +631,7 @@ export function MailThreadList({
   ) : (
     <ul className="flex h-full min-h-0 flex-col overflow-y-auto border border-border bg-background md:border-0">
       {!selectionHeader ? (
-        <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-2 sm:px-5">
+        <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
           <Checkbox
             checked={
               allSelected ? true : someSelected ? 'indeterminate' : false
@@ -990,18 +990,18 @@ function MailThreadRow({
         MAIL_SPLIT_ROW_HEIGHT_CLASS,
         localUnread
           ? 'bg-sky-50/80 dark:bg-sky-950/25'
-          : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_16%,transparent)]',
+          : 'bg-[color-mix(in_srgb,var(--frame,#18181b)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#18181b)_16%,transparent)]',
         previewActive &&
           (localUnread
             ? 'bg-sky-100/90 dark:bg-sky-950/40'
-            : 'bg-[color-mix(in_srgb,var(--frame,#7b7b73)_18%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#7b7b73)_24%,transparent)]'),
-        selected && 'bg-muted/50'
+            : 'bg-[color-mix(in_srgb,var(--frame,#18181b)_18%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#18181b)_24%,transparent)]'),
+        selected && 'bg-foreground/[0.04]'
       )}
     >
       <div
         role="button"
         tabIndex={0}
-        className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-muted/30 sm:px-5 sm:pr-28"
+        className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-5 sm:pr-28"
         onClick={openThread}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -1057,7 +1057,7 @@ function MailThreadRow({
             </span>
             {thread.messageCount > 1 ? (
               <span
-                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-none bg-[#070607] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#070607]"
+                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-none bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
                 title={`${thread.messageCount} emails`}
               >
                 {thread.messageCount > 99 ? '99+' : thread.messageCount}

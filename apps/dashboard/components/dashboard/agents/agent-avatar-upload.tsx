@@ -52,7 +52,6 @@ export function AgentAvatarUpload({
     isCustomWithoutImage && !oss
       ? null
       : resolveAgentAvatarSrc(currentImage, character);
-  const displayImage = currentImage ?? fallbackImage;
 
   React.useEffect(() => {
     setCurrentImage(toSameOriginImageUrl(image) ?? null);
@@ -142,7 +141,6 @@ export function AgentAvatarUpload({
       : size === 'card'
         ? 'size-20 p-0'
         : 'size-24 min-h-24 max-h-24 w-24 p-0';
-  const glowScale = size === 'compact' ? 'scale-[1.35]' : 'scale-[1.65]';
 
   return (
     <div
@@ -152,31 +150,14 @@ export function AgentAvatarUpload({
         !disabled && 'cursor-pointer'
       )}
     >
-      {displayImage ? (
-        <div
-          className={cn(
-            'pointer-events-none absolute inset-0 overflow-hidden opacity-25 blur-2xl transition-opacity duration-300',
-            oss ? dashboardRadiusClassName : 'rounded-full',
-            glowScale,
-            !disabled && 'group-hover/avatar:opacity-55'
-          )}
-          aria-hidden
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={displayImage}
-            alt=""
-            className="size-full object-cover"
-          />
-        </div>
-      ) : null}
-
       <div
         className={cn(
-          'relative size-full overflow-hidden bg-white ring-2 ring-offset-2 transition-[box-shadow,ring-color] duration-300',
+          'relative size-full overflow-hidden bg-white',
           oss ? dashboardRadiusClassName : 'rounded-full',
-          'ring-foreground/10 ring-offset-background',
-          !disabled && 'group-hover/avatar:ring-[#e1ccaf]'
+          'ring-1 ring-foreground/12 ring-offset-2 ring-offset-background',
+          'transition-[box-shadow,ring-color,transform] duration-300 ease-out',
+          !disabled &&
+            'group-hover/avatar:scale-[1.03] group-hover/avatar:ring-2 group-hover/avatar:ring-[#e1ccaf] group-hover/avatar:shadow-[0_0_0_4px_rgba(225,204,175,0.28)]'
         )}
       >
         <ImageDropzone
@@ -194,7 +175,9 @@ export function AgentAvatarUpload({
           <Avatar
             className={cn(
               avatarSize,
-              oss ? dashboardRadiusClassName : 'rounded-full'
+              oss ? dashboardRadiusClassName : 'rounded-full',
+              !disabled &&
+                'transition-[filter] duration-300 ease-out group-hover/avatar:brightness-[1.04]'
             )}
           >
             {currentImage ? (

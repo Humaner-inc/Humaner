@@ -185,7 +185,7 @@ export function SidebarNavUpgradeHeader({
   return (
     <Link
       href={href}
-      className="mb-1 mx-3 flex items-center justify-center bg-[#e1ccaf] px-2 py-1 font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-[#070607] transition-colors hover:bg-[#ebe0cd]"
+      className="mb-1 mx-3 flex items-center justify-center bg-[#e1ccaf] px-2 py-1 font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-[#0A0D0D] transition-colors hover:bg-[#ebe0cd]"
     >
       Upgrade
     </Link>

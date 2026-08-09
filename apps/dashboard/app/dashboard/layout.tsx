@@ -1,8 +1,10 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getVerticalConfig } from '@/services/training/verticals';
 import { getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
+import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
@@ -71,6 +73,7 @@ export default async function DashboardLayout({
           tier: true,
           accentColor: true,
           name: true,
+          verticalTopics: true,
           _count: {
             select: { mailboxConnections: true }
           }
@@ -165,6 +168,16 @@ export default async function DashboardLayout({
     humanerAgentRecord?.character ?? 'CORPORATE'
   );
 
+  const organization = userFromDb!.organization!;
+  const industryVertical = organization.industry
+    ? getVerticalConfig(organization.industry)
+    : null;
+  const askHumanerSuggestedTopics = pickSuggestedTopics(
+    organization.verticalTopics.length > 0
+      ? organization.verticalTopics
+      : (industryVertical?.commonTopics ?? [])
+  );
+
   const dashboardShell = (
     <>
       <SidebarRenderer
@@ -243,6 +256,7 @@ export default async function DashboardLayout({
                     widgetColor={accentColor}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
+                    suggestedTopics={askHumanerSuggestedTopics}
                   >
                     {dashboardShell}
                   </HumanerChatProvider>

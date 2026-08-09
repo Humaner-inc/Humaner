@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 // Colors
 
-export const DEFAULT_COLOR = '#7b7b73';
+export const DEFAULT_COLOR = '#18181b';
 export const RGB_MAX = 255;
 export const SV_MAX = 100;
 
@@ -266,7 +266,7 @@ const Pointer = ({
       {...other}
     >
       <div
-        className="size-4 -translate-y-px translate-x-[-8px] rounded-full bg-gray-200 shadow-[0px_1px_4px_0px_rgba(0,0,0,0.37)]"
+        className="size-4 -translate-y-px translate-x-[-8px] rounded-full bg-[#eaeaea] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.37)]"
         {...omit(fillProps, ['className'])}
       />
     </div>

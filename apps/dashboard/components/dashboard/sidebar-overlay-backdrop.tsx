@@ -16,7 +16,7 @@ export function SidebarOverlayBackdrop(): React.JSX.Element | null {
     <button
       type="button"
       aria-label="Close sidebar"
-      className="fixed inset-0 z-30 bg-black/45"
+      className="fixed inset-0 z-30 bg-[#0A0D0D]/45"
       onClick={() => setOpen(false)}
     />
   );

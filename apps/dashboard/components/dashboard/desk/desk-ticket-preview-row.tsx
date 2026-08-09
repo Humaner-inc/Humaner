@@ -103,6 +103,8 @@ export type DeskTicketPreviewRowProps = {
   metaSuffix?: string;
   /** Optional actions rendered next to the status badge (e.g. assignee). */
   actions?: React.ReactNode;
+  /** `card` = bordered surface for list panels; `flat` for nested divide lists. */
+  chrome?: 'card' | 'flat';
   className?: string;
   href?: string;
   onSelect?: () => void;
@@ -113,11 +115,11 @@ export function DeskTicketPreviewRow({
   selected = false,
   metaSuffix,
   actions,
+  chrome = 'card',
   className,
   href,
   onSelect
 }: DeskTicketPreviewRowProps): React.JSX.Element {
-  const preview = ticket.note?.trim() || ticket.summary || 'No preview';
   const statusBadge = (
     <span className={DESK_TICKET_ACTION_CHIP_CLASSNAME}>
       <StatusGlyph
@@ -131,20 +133,23 @@ export function DeskTicketPreviewRow({
   const body = (
     <div className="min-w-0 flex-1">
       <div className="flex items-center justify-between gap-2">
-        <p className={cn('truncate text-xs font-medium', actions && 'pr-36')}>
+        <p
+          className={cn(
+            'truncate text-xs font-medium text-[#0A0D0D] dark:text-foreground',
+            actions && 'pr-36'
+          )}
+        >
           {visitorDisplayName(ticket)}
         </p>
         {actions ? null : statusBadge}
       </div>
-      <p className="mt-0.5 line-clamp-1 font-fellix text-[11px] text-foreground/90">
-        <span className="mr-1 font-mono text-[10px] text-muted-foreground">
+      <p className="mt-0.5 line-clamp-1 font-fellix text-[11px] text-[#0A0D0D]/90 dark:text-foreground/90">
+        <span className="mr-1 font-mono text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
           {formatTicketRef(ticket.ticketNumber)}
         </span>
         {ticket.subject}
       </p>
-      <p className="mt-0.5 line-clamp-1 text-[10px] text-muted-foreground">
-        {preview}
-        {' · '}
+      <p className="mt-0.5 line-clamp-1 text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
         {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
         {metaSuffix}
       </p>
@@ -153,8 +158,13 @@ export function DeskTicketPreviewRow({
 
   const sharedClassName = cn(
     'relative flex w-full overflow-hidden px-3 py-2.5 text-left transition-colors',
-    'hover:bg-muted/40',
-    selected && 'bg-muted/50',
+    chrome === 'card' &&
+      'border border-border/70 bg-card shadow-sm hover:bg-muted/50',
+    chrome === 'flat' && 'hover:bg-muted/40',
+    selected &&
+      (chrome === 'card'
+        ? 'border-border bg-muted/60 ring-1 ring-border/80'
+        : 'bg-muted/50'),
     className
   );
 

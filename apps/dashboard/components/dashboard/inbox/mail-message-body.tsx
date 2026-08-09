@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTheme } from 'next-themes';
 
 import {
   htmlToPlainText,
@@ -10,30 +11,47 @@ import {
 } from '@/lib/inbox/mail-body-display';
 import { cn } from '@/lib/utils';
 
+/** Same as page background — one surface behind the email card. */
+const MAIL_CANVAS_LIGHT = '#fff8f2';
+const MAIL_CANVAS_DARK = '#0A0D0D';
+
 /**
- * Client CSS for the sandboxed iframe. Tuned to match Gmail / Front / Superhuman:
- * clean canvas, intact table layouts, readable type, broken images hidden,
- * react-email preview dumps suppressed even if styles were stripped.
+ * Minimal iframe CSS — do NOT restyle sender HTML (borders, margins, type).
+ * Canvas color adapts so white bordered cards stay visible in both themes.
  */
-const MAIL_IFRAME_CSS = `
-html, body {
+function mailIframeCss(canvas: string): string {
+  return `
+html {
   margin: 0;
   padding: 0;
-  width: 100%;
-  background: #fff;
-  color: #111;
+  background: ${canvas};
   color-scheme: light;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
 }
 body {
+  margin: 0;
+  /* Room so card borders / outer margins aren't clipped at the iframe edge */
+  padding: 20px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  background: ${canvas};
+  color: #0A0D0D;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   font-size: 14px;
   line-height: 1.55;
   word-wrap: break-word;
   overflow-wrap: anywhere;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+/*
+ * sanitize-html drops the author <body>, which often carried bg-white.
+ * React-email Containers are tables — restore their card fill so borders read.
+ */
+body > table,
+body > div > table {
+  background-color: #ffffff;
 }
 body > div:first-child[style*="display:none"],
 body > div:first-child[style*="display: none"],
@@ -56,87 +74,28 @@ body > div:first-child[style*="opacity: 0"],
 img, video, svg {
   max-width: 100%;
   height: auto;
-  border: 0;
-  outline: none;
-  text-decoration: none;
-  vertical-align: middle;
 }
 img.mail-broken {
   display: none !important;
 }
-a {
-  color: #2563eb;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-p {
-  margin: 0 0 1em;
-}
-p:last-child {
-  margin-bottom: 0;
-}
-h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 0.6em;
-  line-height: 1.25;
-  font-weight: 600;
-  color: #111;
-}
-ul, ol {
-  margin: 0 0 1em;
-  padding-left: 1.4em;
-}
-blockquote {
-  margin: 0 0 1em;
-  padding-left: 12px;
-  border-left: 3px solid #e5e5e5;
-  color: #555;
-}
-hr {
-  border: 0;
-  border-top: 1px solid #eaeaea;
-  margin: 20px 0;
-}
+/* Soften huge fixed-width tables without killing card borders/margins */
 table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-table[width],
-table[style*="width"] {
-  max-width: 100% !important;
+  max-width: 100%;
 }
 td, th {
   word-break: break-word;
 }
-a[style*="background"],
-a[style*="background-color"],
-a[bgcolor] {
-  display: inline-block;
-  box-sizing: border-box;
-  text-decoration: none !important;
-}
-pre, code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
-}
-pre {
-  white-space: pre-wrap;
-  overflow-x: auto;
-  background: #f6f6f6;
-  padding: 10px 12px;
-  border-radius: 4px;
-}
 .gmail_quote,
 .gmail_attr,
 blockquote[type="cite"] {
-  color: #666;
+  color: #18181b;
 }
 `.trim();
+}
 
-function buildMailSrcDoc(bodyHtml: string): string {
+function buildMailSrcDoc(bodyHtml: string, canvas: string): string {
   // Script marks broken images so alt text ("X" / "XX") never paints.
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><base target="_blank" rel="noopener noreferrer"><style>${MAIL_IFRAME_CSS}</style></head><body>${bodyHtml}<script>(function(){function m(i){i.classList.add('mail-broken');i.removeAttribute('alt');i.style.display='none'}document.querySelectorAll('img').forEach(function(i){if(!i.getAttribute('referrerpolicy'))i.referrerPolicy='no-referrer-when-downgrade';if(i.complete&&i.naturalWidth===0&&i.src){m(i);return}i.addEventListener('error',function(){m(i)},{once:true})})})();</script></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><base target="_blank" rel="noopener noreferrer"><style>${mailIframeCss(canvas)}</style></head><body>${bodyHtml}<script>(function(){function m(i){i.classList.add('mail-broken');i.removeAttribute('alt');i.style.display='none'}document.querySelectorAll('img').forEach(function(i){if(!i.getAttribute('referrerpolicy'))i.referrerPolicy='no-referrer-when-downgrade';if(i.complete&&i.naturalWidth===0&&i.src){m(i);return}i.addEventListener('error',function(){m(i)},{once:true})})})();</script></body></html>`;
 }
 
 export function MailMessageBody({
@@ -153,6 +112,15 @@ export function MailMessageBody({
 }): React.JSX.Element {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = React.useState(120);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const canvas =
+    mounted && resolvedTheme === 'dark' ? MAIL_CANVAS_DARK : MAIL_CANVAS_LIGHT;
 
   const origin =
     typeof window !== 'undefined' ? window.location.origin : undefined;
@@ -175,7 +143,7 @@ export function MailMessageBody({
     return fromText;
   }, [bodyHtml, bodyText, subject]);
 
-  const srcDoc = html ? buildMailSrcDoc(html) : null;
+  const srcDoc = html ? buildMailSrcDoc(html, canvas) : null;
 
   React.useEffect(() => {
     if (!srcDoc) return;
@@ -273,18 +241,15 @@ export function MailMessageBody({
 
   return (
     <div
-      className={cn(
-        // No nested border — the email template brings its own chrome.
-        'mt-3 overflow-x-auto overflow-y-hidden bg-white',
-        className
-      )}
+      className={cn('overflow-x-auto', className)}
+      style={{ backgroundColor: canvas }}
     >
       <iframe
         ref={iframeRef}
         title="Email message"
         sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads allow-scripts"
-        className="block w-full border-0 bg-white"
-        style={{ height, minHeight: 64 }}
+        className="block w-full border-0"
+        style={{ height, minHeight: 64, backgroundColor: canvas }}
         scrolling="no"
       />
     </div>

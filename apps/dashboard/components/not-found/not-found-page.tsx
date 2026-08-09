@@ -28,7 +28,7 @@ export function NotFoundPage({
   return (
     <div
       className={cn(
-        'relative flex min-h-screen flex-col bg-[#070607] text-[#fff8f2] lg:flex-row',
+        'relative flex min-h-screen flex-col bg-[#0A0D0D] text-[#fff8f2] lg:flex-row',
         className
       )}
     >
@@ -66,7 +66,7 @@ export function NotFoundPage({
       </main>
 
       <aside className="relative order-first h-[min(42vh,22rem)] w-full shrink-0 lg:order-last lg:h-auto lg:w-1/2">
-        <div className="absolute inset-4 overflow-hidden rounded-2xl bg-[#070607] lg:inset-4">
+        <div className="absolute inset-4 overflow-hidden rounded-2xl bg-[#0A0D0D] lg:inset-4">
           <Image
             src="/404.png"
             alt=""
@@ -75,7 +75,7 @@ export function NotFoundPage({
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="rounded-2xl object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070607] via-[#070607]/15 to-transparent lg:bg-gradient-to-l lg:from-[#070607] lg:via-[#070607]/25 lg:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D0D] via-[#0A0D0D]/15 to-transparent lg:bg-gradient-to-l lg:from-[#0A0D0D] lg:via-[#0A0D0D]/25 lg:to-transparent" />
         </div>
       </aside>
     </div>

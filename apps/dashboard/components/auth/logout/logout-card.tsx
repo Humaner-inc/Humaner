@@ -54,12 +54,12 @@ export function LogoutCard(): React.JSX.Element {
           className={cn(
             'flex size-10 items-center justify-center rounded-full border',
             oss
-              ? 'border-zinc-200 bg-zinc-50'
+              ? 'border-[#eaeaea] bg-[#f2f2f2]'
               : 'border-white/[0.08] bg-white/[0.04]'
           )}
         >
           <ShieldCheck
-            className={cn('size-5', oss ? 'text-zinc-700' : 'text-[#e1ccaf]')}
+            className={cn('size-5', oss ? 'text-[#18181b]' : 'text-[#e1ccaf]')}
           />
         </div>
       </div>
@@ -69,7 +69,7 @@ export function LogoutCard(): React.JSX.Element {
         <span
           className={cn(
             'font-medium',
-            oss ? 'text-zinc-950' : 'text-[#fff8f2]'
+            oss ? 'text-[#0A0D0D]' : 'text-[#fff8f2]'
           )}
         >
           {countdown}

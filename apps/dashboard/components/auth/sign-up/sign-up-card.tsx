@@ -51,7 +51,7 @@ const pillButtonClassNameCloud =
   'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e1ccaf]/40 sm:min-h-10 sm:text-xs';
 
 const pillButtonClassNameOss =
-  'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-zinc-900/20 sm:min-h-10';
+  'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 sm:min-h-10';
 
 export type SignUpCardProps = {
   initialIntent?: SignUpIntent;
@@ -162,7 +162,7 @@ export function SignUpCard({
       <div
         className={
           oss
-            ? 'flex gap-1 rounded-[0.5rem] border border-zinc-200 bg-zinc-100 p-1'
+            ? 'flex gap-1 rounded-[0.5rem] border border-[#eaeaea] bg-[#f2f2f2] p-1'
             : 'flex rounded-none border border-white/[0.08] bg-white/[0.04]'
         }
         role="group"
@@ -200,10 +200,10 @@ export function SignUpCard({
                   oss ? pillButtonClassNameOss : pillButtonClassNameCloud,
                   oss
                     ? selected
-                      ? 'bg-zinc-950 text-white shadow-sm'
-                      : 'bg-transparent text-zinc-500 hover:text-zinc-900'
+                      ? 'bg-[#0A0D0D] text-white shadow-sm'
+                      : 'bg-transparent text-[#18181b]/70 hover:text-[#0A0D0D]'
                     : selected
-                      ? 'bg-[#fff8f2] text-[#070607] hover:bg-white hover:text-[#070607]'
+                      ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
                       : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
                   disabled && !selected && 'cursor-not-allowed opacity-40'
                 )}
@@ -219,7 +219,7 @@ export function SignUpCard({
         className={cn(
           authMutedTextClassName,
           'text-center text-xs',
-          oss && 'text-zinc-500'
+          oss && 'text-[#18181b]/70'
         )}
       >
         {intent === 'team_member'

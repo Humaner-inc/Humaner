@@ -177,7 +177,10 @@ const MAIL_HTML_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   's',
   'strike',
   'small',
-  'big'
+  'big',
+  // Keep author <style> blocks — many templates (incl. react-email) rely on them
+  // for borders/margins that are not fully inlined.
+  'style'
 ]);
 
 const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
@@ -307,6 +310,8 @@ function sanitizedMailHtml(
       // Remote + data-URI images (including CID rewritten above).
       img: ['http', 'https', 'data']
     },
+    // Required for <style> (we allow the tag; scripts stay disallowed).
+    allowVulnerableTags: true,
     // Keep marketing-email inline CSS; scripts/handlers are still stripped.
     parseStyleAttributes: false,
     transformTags: {

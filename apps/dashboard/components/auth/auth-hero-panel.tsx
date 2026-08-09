@@ -168,7 +168,7 @@ function AuthComputerFrame({
         </div>
       </div>
       <div
-        className="pointer-events-none absolute -bottom-1 left-1/2 z-0 h-6 w-[68%] -translate-x-1/2 rounded-[50%] bg-black/10 blur-xl"
+        className="pointer-events-none absolute -bottom-1 left-1/2 z-0 h-6 w-[68%] -translate-x-1/2 rounded-[50%] bg-[#0A0D0D]/10 blur-xl"
         aria-hidden
       />
     </div>

@@ -8,7 +8,7 @@ import { isOssDeployment } from '@/lib/deployment-mode';
 const INBOX_ACCENT = '#0682de';
 
 /**
- * Shell only — triage routes (All mail / Assigned / Providers) are full-bleed;
+ * Shell only — triage routes (Inbox / Assigned / Providers) are full-bleed;
  * settings-style routes (Aliases / Tags / Archive) opt into Escalation `xl`.
  * Self-Host: collaborative Inbox is Cloud-only — leave before Polar/mail compiles.
  */

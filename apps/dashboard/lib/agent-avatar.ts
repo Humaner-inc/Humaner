@@ -26,3 +26,18 @@ export function resolveAgentAvatarSrc(
 
   return CHARACTER_META[character].image;
 }
+
+/** Avatar URL safe to load from marketing site or widget embeds. */
+export function resolvePublicAgentAvatarUrl(
+  image: string | null | undefined,
+  character: CharacterType,
+  appBaseUrl: string
+): string {
+  const src = resolveAgentAvatarSrc(image, character);
+  // Absolute app-origin URLs so cross-origin surfaces (landing Ask Humaner)
+  // can load custom uploads and persona assets from the dashboard host.
+  if (src.startsWith('/') && !src.startsWith('//')) {
+    return `${appBaseUrl.replace(/\/$/, '')}${src}`;
+  }
+  return src;
+}

@@ -84,7 +84,7 @@ export function WorkspaceAvatar({
       className={cn(
         'flex size-8 items-center justify-center text-xs font-semibold text-white ring-1 ring-border/40',
         oss
-          ? 'bg-zinc-800 dark:bg-zinc-200 dark:text-zinc-900'
+          ? 'bg-[#1c1c1e] dark:bg-[#eaeaea] dark:text-[#0A0D0D]'
           : 'bg-gradient-to-br from-violet-500 to-rose-500',
         radius,
         className

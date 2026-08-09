@@ -111,7 +111,7 @@ export function VerifyEmailCard({
                 <span
                   className={cn(
                     'font-medium',
-                    oss ? 'text-zinc-950' : 'text-[#fff8f2]'
+                    oss ? 'text-[#0A0D0D]' : 'text-[#fff8f2]'
                   )}
                 >
                   {email}

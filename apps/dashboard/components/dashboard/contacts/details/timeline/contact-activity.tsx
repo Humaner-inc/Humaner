@@ -114,7 +114,7 @@ function Line({ position }: LineProps): React.JSX.Element {
   if (position === 'start') {
     return (
       <div className="absolute -bottom-6 left-0 top-3 flex w-6 justify-center">
-        <div className="w-px bg-gray-200 dark:bg-gray-800" />
+        <div className="w-px bg-[#eaeaea] dark:bg-[#1c1c1e]" />
       </div>
     );
   }
@@ -122,14 +122,14 @@ function Line({ position }: LineProps): React.JSX.Element {
   if (position === 'middle') {
     return (
       <div className="absolute -bottom-6 left-0 top-0 flex w-6 justify-center">
-        <div className="w-px bg-gray-200 dark:bg-gray-800" />
+        <div className="w-px bg-[#eaeaea] dark:bg-[#1c1c1e]" />
       </div>
     );
   }
 
   return (
     <div className="absolute left-0 top-0 flex size-6 justify-center">
-      <div className="w-px bg-gray-200 dark:bg-gray-800" />
+      <div className="w-px bg-[#eaeaea] dark:bg-[#1c1c1e]" />
     </div>
   );
 }

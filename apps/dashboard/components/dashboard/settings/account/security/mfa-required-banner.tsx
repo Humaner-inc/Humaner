@@ -22,7 +22,7 @@ export function MfaRecommendedBanner(): React.JSX.Element {
       <ShieldCheck
         className={cn(
           'mt-0.5 size-4 shrink-0',
-          oss ? 'text-orange-600 dark:text-orange-300' : 'text-[#070607]'
+          oss ? 'text-orange-600 dark:text-orange-300' : 'text-[#0A0D0D]'
         )}
       />
       <div>

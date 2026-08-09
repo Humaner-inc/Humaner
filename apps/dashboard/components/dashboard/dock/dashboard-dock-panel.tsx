@@ -19,6 +19,8 @@ import { DockFeedbackForm } from '@/components/dashboard/dock/dock-feedback-form
 import { DockNotificationsView } from '@/components/dashboard/dock/dock-notifications-view';
 import { DockReportBugForm } from '@/components/dashboard/dock/dock-report-bug-form';
 import { Button } from '@/components/ui/button';
+import { GlassFeatureIcon } from '@/components/ui/glass-feature-icon';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getSupportMailtoUrl } from '@/lib/urls/get-support-email';
 import { cn } from '@/lib/utils';
@@ -180,13 +182,17 @@ function HelpItem({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-start gap-3 rounded-xl border border-border/60 px-4 py-3 text-left transition-colors',
+        'flex w-full items-start gap-3 border border-border/60 px-4 py-3 text-left transition-colors',
+        dashboardRadiusClassName,
         'hover:bg-muted/50'
       )}
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-        <Icon className="size-4 text-foreground/80" />
-      </span>
+      <GlassFeatureIcon
+        size="sm"
+        className="shrink-0"
+      >
+        <Icon strokeWidth={1.25} />
+      </GlassFeatureIcon>
       <span>
         <span className="block text-sm font-medium">{label}</span>
         <span className="mt-0.5 block text-xs text-muted-foreground">

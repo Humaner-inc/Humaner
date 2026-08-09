@@ -290,8 +290,13 @@ export function useSpeechDictation({
       return;
     }
 
-    void start();
-  }, [isListening, start, stop]);
+    void start().catch(() => {
+      clearSilenceTimeout();
+      setError('Could not start voice input.');
+      listeningIntentRef.current = false;
+      setIsListening(false);
+    });
+  }, [clearSilenceTimeout, isListening, start, stop]);
 
   React.useEffect(() => {
     return () => {

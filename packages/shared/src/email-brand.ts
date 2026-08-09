@@ -1,29 +1,31 @@
 /** Humaner raw email template — original waitlist / transactional design. */
 
+/** Neutrals aligned with dashboard palette (widget surfaces stay separate). */
 export const EMAIL_COLORS = {
-  foreground: "#000000",
+  foreground: "#0A0D0D",
   background: "#ffffff",
   border: "#eaeaea",
-  muted: "#666666",
+  muted: "#18181b",
+  canvas: "#f2f2f2",
   link: "#2563eb",
 } as const;
 
 export const EMAIL_BODY_CLASS = "m-auto bg-white px-2 font-sans";
 
 export const EMAIL_CONTAINER_CLASS =
-  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]";
+  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] bg-white p-[20px]";
 
 export const EMAIL_LOGO_SECTION_CLASS = "my-[24px] text-center";
 
 export const EMAIL_TITLE_CLASS =
-  "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-black";
+  "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#0A0D0D]";
 
-export const EMAIL_TEXT_CLASS = "text-[14px] leading-[24px] text-black";
+export const EMAIL_TEXT_CLASS = "text-[14px] leading-[24px] text-[#0A0D0D]";
 
-export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#666666]";
+export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#18181b]";
 
 export const EMAIL_MUTED_CENTER_CLASS =
-  "text-center text-[14px] leading-[24px] text-[#666666]";
+  "text-center text-[14px] leading-[24px] text-[#18181b]";
 
 export const EMAIL_LINK_CLASS = "text-blue-600 no-underline";
 
@@ -31,12 +33,12 @@ export const EMAIL_HR_CLASS =
   "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";
 
 export const EMAIL_BUTTON_PRIMARY_CLASS =
-  "rounded-none bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
+  "rounded-none bg-[#0A0D0D] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
 
 export const EMAIL_BUTTON_SECTION_CLASS = "my-[32px] text-center";
 
 export const EMAIL_OTP_CLASS =
-  "m-0 text-[36px] font-bold tracking-[10px] text-black";
+  "m-0 text-[36px] font-bold tracking-[10px] text-[#0A0D0D]";
 
 export const EMAIL_OTP_SECTION_CLASS = "my-[32px] text-center";
 
@@ -44,6 +46,6 @@ export const EMAIL_FOOTER_CONTAINER_CLASS =
   "mx-auto mb-[40px] max-w-[465px] px-[20px]";
 
 export const EMAIL_FOOTER_TEXT_CLASS =
-  "m-0 text-[12px] leading-[20px] text-[#666666]";
+  "m-0 text-[12px] leading-[20px] text-[#18181b]";
 
-export const EMAIL_FOOTER_LINK_CLASS = "text-[#666666] underline";
+export const EMAIL_FOOTER_LINK_CLASS = "text-[#18181b] underline";

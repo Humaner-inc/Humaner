@@ -67,6 +67,43 @@ function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
   return last?.direction === 'INBOUND';
 }
 
+function parseMailAddress(raw: string): { name: string | null; email: string } {
+  const match = raw.match(/^(.*?)\s*<([^>]+)>$/);
+  if (match?.[2]) {
+    const name = match[1]?.trim() || null;
+    return { name: name || null, email: match[2].trim() };
+  }
+  return { name: null, email: raw.trim() };
+}
+
+function formatMailTimestamp(value: string): string {
+  const date = new Date(value);
+  const now = new Date();
+  if (date.getFullYear() === now.getFullYear()) {
+    return format(date, 'MMM d, h:mm a');
+  }
+  return format(date, 'MMM d, yyyy, h:mm a');
+}
+
+function ForwardGlyph({
+  className
+}: {
+  className?: string;
+}): React.JSX.Element {
+  return (
+    <span
+      className={cn(
+        'relative flex size-4 items-center justify-center',
+        className
+      )}
+      aria-hidden
+    >
+      <ChevronRightIcon className="absolute size-3.5 -translate-x-1" />
+      <ChevronRightIcon className="absolute size-3.5 translate-x-0.5" />
+    </span>
+  );
+}
+
 export function MailThreadDetail({
   thread: threadProp,
   tags = [],
@@ -324,18 +361,24 @@ export function MailThreadDetail({
   const suggestionsLoading =
     suggesting && (loadingSuggestions || suggestions.length === 0);
 
+  const openReply = (): void => {
+    setComposerOpen(true);
+    setSuggesting(false);
+  };
+
   return (
     <div
       className={cn(
-        embedded ? 'flex h-full min-h-0 flex-col bg-background' : 'space-y-3'
+        'flex min-h-0 flex-col bg-background',
+        embedded ? 'h-full' : 'min-h-[32rem]'
       )}
     >
       <header
         className={cn(
-          'flex shrink-0 items-center gap-3 border-b border-border',
+          'flex shrink-0 items-center gap-3 border-b border-border bg-background',
           embedded
             ? cn(MAIL_SPLIT_ROW_HEIGHT_CLASS, 'px-4 sm:px-5')
-            : 'pb-4 pt-1'
+            : 'px-4 py-3 sm:px-5'
         )}
       >
         <div className="min-w-0 flex-1">
@@ -344,10 +387,10 @@ export function MailThreadDetail({
             <h1
               className={cn(
                 'min-w-0 truncate font-fellix font-semibold tracking-tight',
-                embedded ? 'text-base leading-5' : 'text-2xl'
+                embedded ? 'text-base leading-5' : 'text-xl sm:text-2xl'
               )}
             >
-              {thread.subject}
+              {thread.subject || '(no subject)'}
             </h1>
             {thread.tag ? (
               <span
@@ -358,16 +401,11 @@ export function MailThreadDetail({
               />
             ) : null}
           </div>
-          <p
-            className={cn(
-              'truncate font-mono uppercase tracking-wider text-muted-foreground/70',
-              embedded
-                ? 'mt-0.5 pl-[1.375rem] text-[9px] leading-3'
-                : 'mt-1 text-[10px] leading-4'
-            )}
-          >
-            {senderLabel}
-          </p>
+          {!embedded ? (
+            <p className="mt-1 truncate pl-[1.375rem] text-xs text-muted-foreground">
+              {senderLabel}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
@@ -377,12 +415,9 @@ export function MailThreadDetail({
             size="icon"
             className="size-8 rounded-none"
             title="Reply"
-            onClick={() => {
-              setComposerOpen(true);
-              setSuggesting(false);
-            }}
+            onClick={openReply}
           >
-            <ArrowRightIcon className="size-4" />
+            <ArrowRightIcon className="size-4 rotate-180" />
             <span className="sr-only">Reply</span>
           </Button>
           <Button
@@ -395,13 +430,7 @@ export function MailThreadDetail({
               toast.message('Forward is coming soon');
             }}
           >
-            <span
-              className="relative flex size-4 items-center justify-center"
-              aria-hidden
-            >
-              <ChevronRightIcon className="absolute size-3.5 -translate-x-1" />
-              <ChevronRightIcon className="absolute size-3.5 translate-x-0.5" />
-            </span>
+            <ForwardGlyph />
             <span className="sr-only">Forward</span>
           </Button>
           <DropdownMenu>
@@ -502,298 +531,320 @@ export function MailThreadDetail({
         </div>
       </header>
 
-      <div
-        className={cn(
-          embedded
-            ? 'min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 sm:px-5'
-            : 'contents'
-        )}
-      >
-        <ol className="space-y-3">
-          {thread.messages.map((message) => {
-            const outbound = message.direction === 'OUTBOUND';
-            const rich = isRichMailHtml(message.bodyHtml);
-            const fromDomain = (() => {
-              const at = message.fromAddress.lastIndexOf('@');
-              if (at < 0) return null;
-              return message.fromAddress.slice(at + 1).toLowerCase() || null;
-            })();
+      <div className="min-h-0 flex-1 overflow-y-auto bg-background">
+        <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6">
+          <ol className="space-y-4">
+            {thread.messages.map((message) => {
+              const outbound = message.direction === 'OUTBOUND';
+              const rich = isRichMailHtml(message.bodyHtml);
+              const { name: fromName, email: fromEmail } = parseMailAddress(
+                message.fromAddress
+              );
+              const displayName = fromName || fromEmail;
+              const fromDomain = (() => {
+                const at = fromEmail.lastIndexOf('@');
+                if (at < 0) return null;
+                return fromEmail.slice(at + 1).toLowerCase() || null;
+              })();
 
-            return (
-              <li
-                key={message.id}
-                className={cn(
-                  'flex w-full',
-                  outbound ? 'justify-end' : 'justify-start'
-                )}
-              >
-                <article
-                  className={cn(
-                    'rounded-none border',
-                    rich
-                      ? 'w-full max-w-none border-border/40 bg-background px-3 py-3 sm:px-4'
-                      : cn(
-                          'w-full max-w-[min(100%,42rem)] px-4 py-3.5',
-                          outbound
-                            ? cn(accentBorder, accentSoftBg)
-                            : 'border-border bg-background'
-                        )
-                  )}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                    <div className="flex min-w-0 items-start gap-2.5">
-                      <Avatar className="size-7 shrink-0">
+              return (
+                <li key={message.id}>
+                  <article className="space-y-3">
+                    {/* Gmail-style: sender chrome on the reading canvas, not inside the email card */}
+                    <div className="flex items-start gap-3 px-0.5">
+                      <Avatar className="size-10 shrink-0">
                         {fromDomain ? (
                           <AvatarImage
                             src={getLogoUrl(fromDomain, 64, true)}
                             alt=""
                           />
                         ) : null}
-                        <AvatarFallback className="text-[9px] font-medium">
-                          {getInitials(message.fromAddress)}
+                        <AvatarFallback className="text-[11px] font-medium">
+                          {getInitials(displayName)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0 text-xs">
-                        <p className="truncate font-medium">
-                          {message.fromAddress}
-                        </p>
-                        <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
-                          to {message.toAddresses.join(', ')}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold leading-5">
+                              {displayName}
+                              {fromName ? (
+                                <span className="ml-1.5 font-normal text-muted-foreground">
+                                  &lt;{fromEmail}&gt;
+                                </span>
+                              ) : null}
+                            </p>
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                              To {message.toAddresses.join(', ')}
+                            </p>
+                          </div>
+                          <time
+                            dateTime={message.sentAt}
+                            className="shrink-0 pt-0.5 text-xs text-muted-foreground"
+                          >
+                            {formatMailTimestamp(message.sentAt)}
+                          </time>
+                        </div>
                       </div>
                     </div>
-                    <time
-                      dateTime={message.sentAt}
-                      className="shrink-0 font-mono text-[10px] text-muted-foreground"
-                    >
-                      {format(new Date(message.sentAt), 'PPp')}
-                    </time>
-                  </div>
 
-                  <MailMessageBody
-                    bodyHtml={message.bodyHtml}
-                    bodyText={message.bodyText}
-                    subject={thread.subject}
-                  />
-                </article>
-              </li>
-            );
-          })}
-        </ol>
+                    {rich ? (
+                      <MailMessageBody
+                        bodyHtml={message.bodyHtml}
+                        bodyText={message.bodyText}
+                        subject={thread.subject}
+                        className="mt-0"
+                      />
+                    ) : (
+                      <div
+                        className={cn(
+                          'bg-background px-5 py-4',
+                          outbound && accentSoftBg
+                        )}
+                      >
+                        <MailMessageBody
+                          bodyHtml={message.bodyHtml}
+                          bodyText={message.bodyText}
+                          subject={thread.subject}
+                          className="mt-0 px-0.5"
+                        />
+                      </div>
+                    )}
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
 
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="rounded-none px-4"
-            onClick={() => {
-              setComposerOpen(true);
-              setSuggesting(false);
-            }}
-          >
-            Reply
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="rounded-none px-4"
-            onClick={() => {
-              toast.message('Forward is coming soon');
-            }}
-          >
-            Forward
-          </Button>
-        </div>
-
-        {suggesting ? (
-          <article className="w-full rounded-none border border-border bg-background px-4 py-3.5">
-            {suggestionsLoading ? (
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <SkillzCubeLoader size={32} />
-                  <p className="text-sm text-muted-foreground">
-                    Suggesting reply
-                  </p>
-                </div>
+          {!composerOpen ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-none px-4 font-mono"
-                  onClick={discardSuggestions}
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={openReply}
                 >
-                  Cancel
+                  <ArrowRightIcon className="size-3.5 rotate-180" />
+                  Reply
                 </Button>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <SkillzCubeLoader
-                        size={28}
-                        filled
-                      />
-                      <p className="truncate font-fellix text-sm font-medium">
-                        Suggested reply
-                      </p>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      To:{' '}
-                      <span style={{ color: 'var(--accent-color, #0682de)' }}>
-                        {toName}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-none px-4 font-mono"
-                      disabled={loadingSuggestions}
-                      onClick={suggestAgain}
-                    >
-                      Suggest again
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-none px-4 font-mono"
-                      onClick={discardSuggestions}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-
-                {suggestionsReady ? (
-                  <ul className="mt-3 space-y-1">
-                    {suggestions.map((suggestion, index) => {
-                      const active = selectedIndex === index;
-                      return (
-                        <li key={`${suggestion.label}-${index}`}>
-                          <button
-                            type="button"
-                            onClick={() => pickSuggestion(index)}
-                            className={cn(
-                              'flex w-full items-center gap-3 rounded-none px-1 py-2.5 text-left text-sm transition-colors',
-                              active ? accentSoftBg : 'hover:bg-muted/60'
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'flex size-6 shrink-0 items-center justify-center rounded-none font-mono text-[11px]',
-                                active
-                                  ? 'text-foreground'
-                                  : 'bg-muted text-muted-foreground'
-                              )}
-                              style={
-                                active
-                                  ? {
-                                      backgroundColor:
-                                        'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {index + 1}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate">
-                              {suggestion.label}
-                            </span>
-                            {active ? (
-                              <CheckIcon
-                                className="size-3.5 shrink-0"
-                                style={{
-                                  color: 'var(--accent-color, #0682de)'
-                                }}
-                              />
-                            ) : null}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : null}
-              </>
-            )}
-          </article>
-        ) : null}
-
-        {composerOpen ? (
-          <section
-            className={cn(
-              'ml-auto w-full max-w-[88%] rounded-none border bg-background px-4 py-3.5 sm:max-w-[82%]',
-              accentBorder,
-              accentSoftBg
-            )}
-          >
-            <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-              <div>
-                <p className="text-sm font-medium">Reply</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Sends from {thread.aliasAddress}
-                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={() => {
+                    toast.message('Forward is coming soon');
+                  }}
+                >
+                  <ForwardGlyph className="size-3.5" />
+                  Forward
+                </Button>
               </div>
               {!suggesting ? (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-none px-4 font-mono"
+                  className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
                   onClick={suggestAgain}
                 >
-                  Suggest again
+                  <SkillzCubeLoader size={18} />
+                  Suggest
                 </Button>
               ) : null}
             </div>
-            <Textarea
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
-              placeholder="Write your reply…"
-              rows={6}
-              className="min-h-32 resize-y rounded-none bg-background"
-            />
-            <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-none px-4 font-mono"
-                disabled={sendPhase !== 'idle'}
-                onClick={() => setComposerOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
-                disabled={
-                  sendPhase === 'sending' ||
-                  (sendPhase === 'idle' && body.trim().length === 0)
-                }
-                onClick={handleSend}
-              >
-                {sendPhase === 'success' ? (
-                  <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
-                ) : (
-                  <span className="inline-flex items-center gap-2">
-                    <SendIcon
-                      ref={sendIconRef}
-                      size={16}
-                    />
-                    {sendPhase === 'idle' ? 'Send' : null}
-                  </span>
-                )}
-              </Button>
-            </div>
-          </section>
-        ) : null}
+          ) : null}
+
+          {suggesting ? (
+            <article className="w-full border border-border/50 bg-background px-4 py-3.5 shadow-sm">
+              {suggestionsLoading ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <SkillzCubeLoader size={32} />
+                    <p className="text-sm text-muted-foreground">
+                      Suggesting reply
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-none px-4 font-mono"
+                    onClick={discardSuggestions}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <SkillzCubeLoader
+                          size={28}
+                          filled
+                        />
+                        <p className="truncate font-fellix text-sm font-medium">
+                          Suggested reply
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        To:{' '}
+                        <span style={{ color: 'var(--accent-color, #0682de)' }}>
+                          {toName}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-none px-4 font-mono"
+                        disabled={loadingSuggestions}
+                        onClick={suggestAgain}
+                      >
+                        Suggest again
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-none px-4 font-mono"
+                        onClick={discardSuggestions}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+
+                  {suggestionsReady ? (
+                    <ul className="mt-3 space-y-1">
+                      {suggestions.map((suggestion, index) => {
+                        const active = selectedIndex === index;
+                        return (
+                          <li key={`${suggestion.label}-${index}`}>
+                            <button
+                              type="button"
+                              onClick={() => pickSuggestion(index)}
+                              className={cn(
+                                'flex w-full items-center gap-3 rounded-none px-1 py-2.5 text-left text-sm transition-colors',
+                                active ? accentSoftBg : 'hover:bg-muted/60'
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  'flex size-6 shrink-0 items-center justify-center rounded-none font-mono text-[11px]',
+                                  active
+                                    ? 'text-foreground'
+                                    : 'bg-muted text-muted-foreground'
+                                )}
+                                style={
+                                  active
+                                    ? {
+                                        backgroundColor:
+                                          'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
+                                      }
+                                    : undefined
+                                }
+                              >
+                                {index + 1}
+                              </span>
+                              <span className="min-w-0 flex-1 truncate">
+                                {suggestion.label}
+                              </span>
+                              {active ? (
+                                <CheckIcon
+                                  className="size-3.5 shrink-0"
+                                  style={{
+                                    color: 'var(--accent-color, #0682de)'
+                                  }}
+                                />
+                              ) : null}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </>
+              )}
+            </article>
+          ) : null}
+
+          {composerOpen ? (
+            <section
+              className={cn(
+                'w-full border bg-background px-4 py-3.5 shadow-sm',
+                accentBorder,
+                accentSoftBg
+              )}
+            >
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                <div>
+                  <p className="text-sm font-medium">Reply</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Sends from {thread.aliasAddress}
+                  </p>
+                </div>
+                {!suggesting ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-none px-4 font-mono"
+                    onClick={suggestAgain}
+                  >
+                    Suggest again
+                  </Button>
+                ) : null}
+              </div>
+              <Textarea
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                placeholder="Write your reply…"
+                rows={6}
+                className="min-h-32 resize-y rounded-none bg-background"
+              />
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 rounded-none px-4 font-mono"
+                  disabled={sendPhase !== 'idle'}
+                  onClick={() => setComposerOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
+                  disabled={
+                    sendPhase === 'sending' ||
+                    (sendPhase === 'idle' && body.trim().length === 0)
+                  }
+                  onClick={handleSend}
+                >
+                  {sendPhase === 'success' ? (
+                    <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
+                  ) : (
+                    <span className="inline-flex items-center gap-2">
+                      <SendIcon
+                        ref={sendIconRef}
+                        size={16}
+                      />
+                      {sendPhase === 'idle' ? 'Send' : null}
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </section>
+          ) : null}
+        </div>
       </div>
 
       <DeleteMailThreadsDialog

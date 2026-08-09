@@ -98,7 +98,7 @@ export default async function AuthLayout({
   const showBackToMarketing = !oss && isLoginOrSignUpRoute();
 
   return (
-    <div className="relative flex min-h-screen bg-[#070607]">
+    <div className="relative flex min-h-screen bg-[#0A0D0D]">
       <GrainAmbient className="fixed inset-0 z-0" />
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
         {showBackToMarketing ? <AuthBackToMarketing /> : null}

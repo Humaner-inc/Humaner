@@ -10,7 +10,10 @@ export type WelcomeEmailData = {
 };
 
 export const WelcomeEmail = (_data: WelcomeEmailData) => (
-  <EmailLayout preview="Glad you're here.">
+  <EmailLayout
+    preview="Glad you're here."
+    showUnsubscribe
+  >
     <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
     <EmailText>Glad you&apos;re here.</EmailText>
     <EmailText>
@@ -26,7 +29,7 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
       Stay tuned, we will thank you with more than words for being here first.
     </EmailText>
     <Section className="my-[24px]">
-      <Text className="m-0 text-[14px] leading-[24px] text-black">
+      <Text className="m-0 text-[14px] leading-[24px] text-[#0A0D0D]">
         Follow us on:{' '}
         <Link
           href={getXUrl()}

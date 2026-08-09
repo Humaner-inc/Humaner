@@ -33,7 +33,7 @@ export const TicketResolvedEmail = (data: TicketResolvedEmailData) => (
 
     {data.resolutionSolution ? (
       <Section className="my-[16px] rounded-[8px] bg-[#f5f5f5] px-[20px] py-[16px]">
-        <Text className="m-0 text-[13px] font-semibold uppercase tracking-[0.05em] text-[#666]">
+        <Text className="m-0 text-[13px] font-semibold uppercase tracking-[0.05em] text-[#18181b]">
           Resolution
         </Text>
         <Text className="mt-[8px] text-[14px] leading-[22px] text-[#333]">

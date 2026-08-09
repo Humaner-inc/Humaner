@@ -244,8 +244,8 @@ export function InboxListHeader({
                 className={cn(
                   'rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
                   active
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                    ? 'bg-foreground/[0.06] text-foreground'
+                    : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
                 )}
               >
                 {filter.label}
@@ -268,8 +268,8 @@ export function InboxListHeader({
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
                       active
-                        ? 'bg-muted text-foreground'
-                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                        ? 'bg-foreground/[0.06] text-foreground'
+                        : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
                     )}
                   >
                     <span
