@@ -1,7 +1,7 @@
-export const HUMANER_TAGLINE = "Customer support for the AI era";
+export const HUMANER_TAGLINE = "Customer care compounds. Indifference doesn't.";
 
 export const HUMANER_META_DESCRIPTION =
-  "/humaner/: customer support that scales care, not indifference. Self-improving agents, helpdesk and inboxes all-in one tool.";
+  "/humaner/: customer support that humanly cares. Self-improving agents, helpdesk and inboxes, for those who treat support as number one priority.";
 
 export const HUMANER_ELEVATOR_PITCH = HUMANER_META_DESCRIPTION;
 
