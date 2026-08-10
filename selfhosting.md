@@ -4,8 +4,6 @@ Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skillz + 
 
 ## Not included: Humaner Intelligence, Agent Desk, training loops, Inboxes, live chat.
 
-## A-to-Z: From clone to a workable support workspace
-
 ### 1. Clone and install
 
 ```bash
@@ -60,7 +58,7 @@ EMAIL_SERVER_PASS=your-app-specific-password
 # EMAIL_RESEND_API_KEY=re_...
 ```
 
-**No inbox yet?** In `development`, the server prints the OTP to the terminal:
+**No inbox yet?** In `development`, the server can deliver the OTP to the terminal:
 
 ```text
 [auth] Email verification for you@example.com
@@ -303,9 +301,11 @@ Report vulnerabilities to dev@humaner.io. Do not file public issues for exploita
 
 ## Deep links
 
-- [Self-hosting quickstart](https://docs.humaner.io/oss)
+- [Quickstart](https://docs.humaner.io/oss/quickstart)
 - [Agent brief (Markdown)](https://docs.humaner.io/oss/agent-brief) — copy-paste instructions for an AI coding agent
 - [Self-hosting vs Cloud](https://docs.humaner.io/contributing/open-source-vs-cloud)
-- [Widget integration](https://docs.humaner.io/oss/integrations/widget)
-- [React SDK](https://docs.humaner.io/oss/integrations/react)
-- [API reference](https://docs.humaner.io/api-reference)
+- [Widget](https://docs.humaner.io/oss/widget)
+- [React SDK](https://docs.humaner.io/oss/react)
+- [API (Self-hosting)](https://docs.humaner.io/oss/api)
+- [Helpdesk](https://docs.humaner.io/oss/desk)
+- [API reference](https://docs.humaner.io/reference)

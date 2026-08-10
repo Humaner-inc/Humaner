@@ -34,8 +34,6 @@ Docs/scripts/load-chat.config.json
 Docs/scripts/load-chat-results.json
 
 # local widget test pages (see test/README.md)
-test/widget-config.local.js
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts

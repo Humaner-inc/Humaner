@@ -41,7 +41,7 @@ This repository do not include Humaner Intelligence, Agent Desk, clusters, live 
 
 ## Get started
 
-Clone → workable support workspace in minutes: follow the A→Z guide in `[SELF_HOST.md](./SELF_HOST.md)`
+Clone → workable support workspace in minutes: follow the A→Z guide in `[selfhosting.md](./selfhosting.md)`
 
 Paste the [Self-hosting — Agent Brief](https://docs.humaner.io/oss/agent-brief) to your IDE Agent.
 
@@ -57,7 +57,7 @@ pnpm --filter @humaner/dashboard dev
 
 Open [http://localhost:3001](http://localhost:3001) · set `NEXT_PUBLIC_DEPLOYMENT_MODE=oss`.
 
-[Self-Host setup →](./SELF_HOST.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [OSS docs →](https://docs.humaner.io/oss)
+[Self-Host setup →](./selfhosting.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [OSS docs →](https://docs.humaner.io/oss)
 
 ## Architecture
 
@@ -100,7 +100,7 @@ packages/
 | Helpdesk, org/team, Widget / React / API                | Agent Desk · Runbooks · Live Chat handle            |
 | No Polar / plan gates                                   | Polar billing · quotas · paid personas              |
 
-Details: `[Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)` · `[SELF_HOST.md](./SELF_HOST.md)`
+Details: `[Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)` · `[selfhosting.md](./selfhosting.md)`
 
 ## Brand tokens
 
