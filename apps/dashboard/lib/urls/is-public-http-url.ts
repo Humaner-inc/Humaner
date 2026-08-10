@@ -1,4 +1,4 @@
-import 'server-only';
+/** Pure hostname checks — safe for client Zod schemas. DNS SSRF checks stay server-side. */
 
 function isPrivateOrLocalIpv4(host: string): boolean {
   const parts = host.split('.').map((part) => Number(part));
