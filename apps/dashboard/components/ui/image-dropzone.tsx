@@ -91,11 +91,13 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
       return (
         children || (
           <>
-            <div className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <div className="flex size-8 items-center justify-center rounded-full border border-border/70 bg-background text-foreground shadow-sm dark:border-border/50 dark:bg-muted/60 dark:text-foreground">
               <UploadIcon className="size-5 shrink-0" />
             </div>
-            <p className="mt-2 text-sm font-medium">{title}</p>
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
+            <p className="mt-2 text-sm font-medium text-foreground">{title}</p>
+            {subtitle ? (
+              <p className="text-xs text-muted-foreground">{subtitle}</p>
+            ) : null}
           </>
         )
       );
@@ -119,7 +121,9 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
       disabled={disabled}
       variant="outline"
       className={cn(
-        'flex h-fit w-full flex-col items-center justify-center border-dashed hover:border-foreground/25 hover:bg-accent',
+        // Keep label readable: outline CTA hover inverts to cream text, which
+        // disappears on the light accent fill used for dropzones.
+        'flex h-fit w-full flex-col items-center justify-center border-dashed text-foreground hover:border-foreground/25 hover:bg-muted/45 hover:text-foreground dark:hover:bg-muted/45 dark:hover:text-foreground',
         borderRadiusClass,
         src ? 'p-0.5' : 'px-0 py-3',
         isDragActive && 'border-foreground/30',

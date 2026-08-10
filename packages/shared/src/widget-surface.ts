@@ -4,6 +4,10 @@ const HEADER = "#0A0D0D";
 const CHROME = "#1c1c1e";
 const INPUT_ELEVATED = "#2c2c2e";
 
+/** Brand-agnostic light neutrals — same family as dashboard (#f2f2f2 / #eaeaea). */
+export const WIDGET_LIGHT_SOFT = "#f2f2f2";
+export const WIDGET_LIGHT_SOFT_DEEP = "#eaeaea";
+
 export type WidgetSurfaceTokens = {
   body: string;
   header: string;
@@ -31,11 +35,12 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
   if (theme === "LIGHT") {
     return {
       body: "#ffffff",
-      header: HEADER,
-      headerBorder: "rgba(255,255,255,0.06)",
-      headerText: "#ffffff",
-      headerMuted: "rgba(255,255,255,0.55)",
-      navBorder: "rgba(10,13,13,0.08)",
+      // One neutral grey ladder: white → soft → soft-deep (no blue/lavender cast).
+      header: WIDGET_LIGHT_SOFT,
+      headerBorder: "rgba(10,13,13,0.08)",
+      headerText: "#0A0D0D",
+      headerMuted: "rgba(10,13,13,0.55)",
+      navBorder: "rgba(10,13,13,0.1)",
       navText: "rgba(10,13,13,0.55)",
       inputShell: "#ffffff",
       inputRing: "rgba(10,13,13,0.1)",
@@ -43,10 +48,10 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
       formBg: "#ffffff",
       watermarkBg: "#ffffff",
       listCardBg: "#ffffff",
-      listHover: "#f3f6f9",
+      listHover: WIDGET_LIGHT_SOFT,
       userBubble: "#0A0D0D",
       userText: "#ffffff",
-      supportBubble: "#e8e8ec",
+      supportBubble: WIDGET_LIGHT_SOFT_DEEP,
       supportText: "#0A0D0D",
       metaText: "rgba(10,13,13,0.5)",
       userMetaText: "rgba(255,255,255,0.55)",
