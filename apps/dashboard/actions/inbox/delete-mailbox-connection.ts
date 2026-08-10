@@ -26,6 +26,7 @@ export const deleteMailboxConnection = ownerActionClient
       select: {
         id: true,
         email: true,
+        aliases: { select: { id: true, address: true } },
         _count: { select: { aliases: true } }
       }
     });
@@ -38,6 +39,18 @@ export const deleteMailboxConnection = ownerActionClient
     await prisma.mailboxConnection.delete({
       where: { id: connection.id }
     });
+
+    for (const alias of connection.aliases) {
+      await recordAuditEvent({
+        organizationId,
+        eventType: 'mailbox.alias_removed',
+        actorId: session.user.id,
+        actorEmail: session.user.email,
+        resourceType: 'mail_alias',
+        resourceId: alias.id,
+        before: { address: alias.address, connectionId: connection.id }
+      });
+    }
 
     await recordAuditEvent({
       organizationId,

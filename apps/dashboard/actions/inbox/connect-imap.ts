@@ -263,6 +263,18 @@ export const connectImap = ownerActionClient
       }
     });
 
+    for (const address of uniqueAliases) {
+      await recordAuditEvent({
+        organizationId,
+        eventType: 'mailbox.alias_added',
+        actorId: session.user.id,
+        actorEmail: session.user.email,
+        resourceType: 'mail_alias',
+        resourceId: connection.id,
+        after: { address }
+      });
+    }
+
     after(async () => {
       await syncImapMailboxes({ connectionId: connection.id });
       revalidatePath(Routes.InboxAll);

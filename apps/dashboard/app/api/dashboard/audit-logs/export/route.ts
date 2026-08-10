@@ -5,6 +5,7 @@ import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
+import { runWithTenantScope } from '@/lib/db/tenant-context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,39 +27,41 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const format = await resolveFormat(request);
-  const logs = await getAuditLogsForExport(session.user.organizationId);
+  return runWithTenantScope(session.user.organizationId, async () => {
+    const format = await resolveFormat(request);
+    const logs = await getAuditLogsForExport(session.user.organizationId);
 
-  await recordAuditEvent({
-    organizationId: session.user.organizationId,
-    eventType: 'audit.exported',
-    actorId: session.user.id,
-    actorEmail: session.user.email,
-    resourceType: 'audit_log',
-    resourceId: session.user.organizationId,
-    metadata: { format, count: logs.length },
-    captureIp: true
-  });
+    await recordAuditEvent({
+      organizationId: session.user.organizationId,
+      eventType: 'audit.exported',
+      actorId: session.user.id,
+      actorEmail: session.user.email,
+      resourceType: 'audit_log',
+      resourceId: session.user.organizationId,
+      metadata: { format, count: logs.length },
+      captureIp: true
+    });
 
-  const stamp = new Date().toISOString().slice(0, 10);
-  const filename = `humaner-audit-logs-${stamp}.${format}`;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `humaner-audit-logs-${stamp}.${format}`;
 
-  if (format === 'csv') {
-    return new NextResponse(toCsv(logs), {
+    if (format === 'csv') {
+      return new NextResponse(toCsv(logs), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${filename}"`
+        }
+      });
+    }
+
+    return new NextResponse(JSON.stringify(logs, null, 2), {
       status: 200,
       headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Type': 'application/json; charset=utf-8',
         'Content-Disposition': `attachment; filename="${filename}"`
       }
     });
-  }
-
-  return new NextResponse(JSON.stringify(logs, null, 2), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${filename}"`
-    }
   });
 }
 

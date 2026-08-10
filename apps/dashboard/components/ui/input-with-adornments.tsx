@@ -34,6 +34,7 @@ const InputWithAdornments = React.forwardRef<
               : endAdornment
                 ? 'pl-4 pr-10'
                 : '',
+          other.type === 'password' && 'input-sensitive-mask',
           className
         )}
         {...other}

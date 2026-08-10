@@ -46,19 +46,21 @@ export function getBusinessLogoUrl(
   const size = options?.size ?? 128;
   const stored = options?.logoUrl?.trim();
 
-  if (stored && isReliableLogoUrl(stored)) {
+  if (stored) {
+    const sameOrigin = toSameOriginImageUrl(stored) ?? stored;
+    if (isReliableLogoUrl(sameOrigin)) {
+      return sameOrigin;
+    }
+  }
+
+  const domain = website ? toHostname(website) : null;
+  if (domain) {
+    return getLogoUrl(domain, size, true);
+  }
+
+  if (stored) {
     return toSameOriginImageUrl(stored) ?? stored;
   }
 
-  const token = process.env.LOGO_DEV_API_KEY ?? process.env.NEXT_LOGO_API_KEY;
-  if (!website || !token) {
-    return null;
-  }
-
-  const domain = toHostname(website);
-  if (!domain) {
-    return null;
-  }
-
-  return getLogoUrl(domain, size, true);
+  return null;
 }

@@ -4,6 +4,19 @@ import {
   KNOWLEDGE_FILE_CONTENT_MAX_LENGTH,
   KNOWLEDGE_PASTED_TEXT_MAX_LENGTH
 } from '@/lib/knowledge/content-limits';
+import { isPublicHttpUrl } from '@/lib/urls/is-public-http-url';
+
+function isPublicUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+      return false;
+    }
+    return isPublicHttpUrl(url);
+  } catch {
+    return false;
+  }
+}
 
 export const addKnowledgeSourceSchema = z
   .object({
@@ -29,6 +42,13 @@ export const addKnowledgeSourceSchema = z
       path: ['urls']
     }
   )
+  .refine(
+    (data) => data.type !== 'URL' || !data.urls || data.urls.every(isPublicUrl),
+    {
+      message: 'All URLs must be public HTTPS endpoints.',
+      path: ['urls']
+    }
+  )
   .refine((data) => data.type !== 'SITEMAP' || !!data.url, {
     message: 'A root URL is required to crawl a site.',
     path: ['url']
@@ -37,6 +57,17 @@ export const addKnowledgeSourceSchema = z
     message: 'An endpoint URL is required for API sources.',
     path: ['url']
   })
+  .refine(
+    (data) => {
+      if (data.type !== 'SITEMAP' && data.type !== 'API') return true;
+      if (!data.url) return true;
+      return isPublicUrl(data.url);
+    },
+    {
+      message: 'URL must be a public HTTPS endpoint.',
+      path: ['url']
+    }
+  )
   .refine((data) => data.type !== 'TEXT' || (!!data.title && !!data.content), {
     message: 'A title and content are required for text sources.',
     path: ['content']

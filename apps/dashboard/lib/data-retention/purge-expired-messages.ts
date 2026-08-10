@@ -6,6 +6,7 @@ import { getMessageRetentionDays } from '@/lib/data-retention/constants';
 import { prisma } from '@/lib/db/prisma';
 
 const BATCH_SIZE = 200;
+const MAX_BATCHES_PER_RUN = 500;
 
 export type PurgeExpiredMessagesResult = {
   conversationsDeleted: number;
@@ -18,7 +19,7 @@ export async function purgeExpiredMessages(): Promise<PurgeExpiredMessagesResult
   const cutoff = subDays(new Date(), retentionDays);
   let conversationsDeleted = 0;
 
-  while (true) {
+  for (let batch = 0; batch < MAX_BATCHES_PER_RUN; batch += 1) {
     const stale = await prisma.$queryRaw<Array<{ id: string }>>`
       SELECT c.id
       FROM "Conversation" c

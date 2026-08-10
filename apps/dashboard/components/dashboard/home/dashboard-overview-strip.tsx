@@ -5,7 +5,6 @@ import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
 import { HintLabel } from '@/components/ui/hint-label';
-import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';

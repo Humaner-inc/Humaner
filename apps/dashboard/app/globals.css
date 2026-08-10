@@ -334,6 +334,11 @@ input[type='number'] {
   appearance: textfield;
 }
 
+input[type='password'],
+.input-sensitive-mask {
+  -webkit-text-security: square;
+}
+
 /* OTP paste highlight */
 .paste-char-highlight {
   border-radius: 0.1rem;

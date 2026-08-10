@@ -145,7 +145,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         agent: { select: { name: true } },
         messages: {
           select: { role: true, unanswered: true, content: true },
-          orderBy: { createdAt: 'asc' }
+          orderBy: { createdAt: 'asc' },
+          take: 50
         }
       },
       orderBy: { updatedAt: 'desc' },

@@ -52,7 +52,7 @@ const GAP_CONVERSATION_LIMIT = 200;
 const OUTCOME_CONVERSATION_LIMIT = 5000;
 
 function buildVolumeByDay(
-  messages: { createdAt: Date }[],
+  messageCounts: Map<string, number>,
   conversations: Array<{
     createdAt: Date;
     messages: Array<{
@@ -63,7 +63,6 @@ function buildVolumeByDay(
     handoffTickets: Array<{ status: string }>;
   }>
 ): AnalyticsVolumePoint[] {
-  const messageCounts = new Map<string, number>();
   const conversationCounts = new Map<string, number>();
   const satisfiedCounts = new Map<string, number>();
 
@@ -72,16 +71,11 @@ function buildVolumeByDay(
       subDays(startOfDay(new Date()), VOLUME_DAYS - 1 - index),
       'yyyy-MM-dd'
     );
-    messageCounts.set(date, 0);
+    if (!messageCounts.has(date)) {
+      messageCounts.set(date, 0);
+    }
     conversationCounts.set(date, 0);
     satisfiedCounts.set(date, 0);
-  }
-
-  for (const message of messages) {
-    const date = format(message.createdAt, 'yyyy-MM-dd');
-    if (messageCounts.has(date)) {
-      messageCounts.set(date, (messageCounts.get(date) ?? 0) + 1);
-    }
   }
 
   for (const conversation of conversations) {
@@ -136,7 +130,7 @@ export async function getAnalyticsOverview(options?: {
 
   const [
     conversations,
-    volumeMessages,
+    volumeMessageCounts,
     volumeConversations,
     gapConversations,
     messagesUsed,
@@ -146,6 +140,7 @@ export async function getAnalyticsOverview(options?: {
       where: { agent: { organizationId, ...agentFilter } },
       select: {
         messages: {
+          where: { role: 'ASSISTANT' },
           select: { role: true, unanswered: true, failureReason: true }
         },
         handoffTickets: {
@@ -155,13 +150,33 @@ export async function getAnalyticsOverview(options?: {
       orderBy: { updatedAt: 'desc' },
       take: OUTCOME_CONVERSATION_LIMIT
     }),
-    prisma.message.findMany({
-      where: {
-        createdAt: { gte: volumeStart },
-        conversation: { agent: { organizationId, ...agentFilter } }
-      },
-      select: { createdAt: true }
-    }),
+    (async () => {
+      type VolumeRow = { day: Date; count: bigint };
+      const agentId = options?.agentId;
+      const rows = agentId
+        ? await prisma.$queryRaw<VolumeRow[]>`
+            SELECT date_trunc('day', m."createdAt") AS day, COUNT(*)::bigint AS count
+            FROM "Message" m
+            JOIN "Conversation" c ON c.id = m."conversationId"
+            WHERE c."agentId" = ${agentId}
+              AND m."createdAt" >= ${volumeStart}
+            GROUP BY 1 ORDER BY 1
+          `
+        : await prisma.$queryRaw<VolumeRow[]>`
+            SELECT date_trunc('day', m."createdAt") AS day, COUNT(*)::bigint AS count
+            FROM "Message" m
+            JOIN "Conversation" c ON c.id = m."conversationId"
+            JOIN "Agent" a ON a.id = c."agentId"
+            WHERE a."organizationId" = ${organizationId}
+              AND m."createdAt" >= ${volumeStart}
+            GROUP BY 1 ORDER BY 1
+          `;
+      const map = new Map<string, number>();
+      for (const row of rows) {
+        map.set(format(row.day, 'yyyy-MM-dd'), Number(row.count));
+      }
+      return map;
+    })(),
     prisma.conversation.findMany({
       where: {
         createdAt: { gte: volumeStart },
@@ -170,6 +185,7 @@ export async function getAnalyticsOverview(options?: {
       select: {
         createdAt: true,
         messages: {
+          where: { role: 'ASSISTANT' },
           select: { role: true, unanswered: true, failureReason: true }
         },
         handoffTickets: {
@@ -230,7 +246,7 @@ export async function getAnalyticsOverview(options?: {
       messagesUsed,
       includedMessages: plan.includedMessages
     },
-    volumeByDay: buildVolumeByDay(volumeMessages, volumeConversations),
+    volumeByDay: buildVolumeByDay(volumeMessageCounts, volumeConversations),
     knowledgeGaps
   };
 }

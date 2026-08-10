@@ -84,6 +84,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
             orderBy: { updatedAt: 'desc' },
             select: {
               messages: {
+                where: { role: 'ASSISTANT' },
                 select: { role: true, unanswered: true, failureReason: true }
               },
               handoffTickets: {
@@ -98,10 +99,8 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
       return agents.map((agent) => {
         const outcomeCounts = countConversationOutcomes(agent.conversations);
 
-        const assistantMessages = agent.conversations.flatMap((conversation) =>
-          conversation.messages.filter(
-            (message) => message.role === 'ASSISTANT'
-          )
+        const assistantMessages = agent.conversations.flatMap(
+          (conversation) => conversation.messages
         );
         const totalAssistantMessages = assistantMessages.length;
         const unansweredMessages = assistantMessages.filter(

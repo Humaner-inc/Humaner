@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS "KnowledgeGapCluster" (
 
 CREATE INDEX IF NOT EXISTS "IX_KnowledgeGapCluster_agentId" ON "KnowledgeGapCluster"("agentId");
 
+-- Uses cosine distance (vector_cosine_ops) to match OpenAI embeddings.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS "IX_Message_embedding_hnsw"
+  ON "Message" USING hnsw ("embedding" vector_cosine_ops)
+  WITH (m = 16, ef_construction = 64)
+  WHERE "embedding" IS NOT NULL;
+
 DO $$
 BEGIN
   IF NOT EXISTS (

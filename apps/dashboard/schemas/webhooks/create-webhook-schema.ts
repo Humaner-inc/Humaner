@@ -1,6 +1,8 @@
 import { WebhookTrigger } from '@prisma/client';
 import { literal, z } from 'zod';
 
+import { isPublicHttpUrl } from '@/lib/urls/is-public-http-url';
+
 export const createWebhookSchema = z.object({
   url: z
     .string({
@@ -10,7 +12,21 @@ export const createWebhookSchema = z.object({
     .trim()
     .url('Enter a valid URL with schema.')
     .min(1, 'Webhook URL is required.')
-    .max(2000, 'Maximum 2000 characters allowed.'),
+    .max(2000, 'Maximum 2000 characters allowed.')
+    .refine((value) => {
+      try {
+        const url = new URL(value);
+        if (
+          process.env.NODE_ENV === 'production' &&
+          url.protocol !== 'https:'
+        ) {
+          return false;
+        }
+        return isPublicHttpUrl(url);
+      } catch {
+        return false;
+      }
+    }, 'Webhook URL must be a public HTTPS endpoint.'),
   triggers: z.array(
     z.nativeEnum(WebhookTrigger, {
       required_error: 'Trigger is required',
