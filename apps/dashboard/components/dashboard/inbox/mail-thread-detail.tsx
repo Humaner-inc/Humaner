@@ -617,43 +617,45 @@ export function MailThreadDetail({
           </ol>
 
           {!composerOpen ? (
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={openReply}
-                >
-                  <ArrowRightIcon className="size-3.5 rotate-180" />
-                  Reply
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={() => {
-                    toast.message('Forward is coming soon');
-                  }}
-                >
-                  <ForwardGlyph className="size-3.5" />
-                  Forward
-                </Button>
+            <div className="sticky bottom-0 z-20 -mx-4 mt-1 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-2 rounded-none bg-background px-4"
+                    onClick={openReply}
+                  >
+                    <ArrowRightIcon className="size-3.5 rotate-180" />
+                    Reply
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 gap-2 rounded-none bg-background px-4"
+                    onClick={() => {
+                      toast.message('Forward is coming soon');
+                    }}
+                  >
+                    <ForwardGlyph className="size-3.5" />
+                    Forward
+                  </Button>
+                </div>
+                {!suggesting ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
+                    onClick={suggestAgain}
+                  >
+                    <SkillzCubeLoader size={18} />
+                    Suggest
+                  </Button>
+                ) : null}
               </div>
-              {!suggesting ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={suggestAgain}
-                >
-                  <SkillzCubeLoader size={18} />
-                  Suggest
-                </Button>
-              ) : null}
             </div>
           ) : null}
 

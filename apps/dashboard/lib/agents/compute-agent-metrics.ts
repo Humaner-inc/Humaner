@@ -63,7 +63,7 @@ export function computeAgentMetrics(input: AgentMetricsInput): AgentMetrics {
     gaps.push('No chat history yet');
   } else if (input.unansweredMessages > 0) {
     gaps.push(
-      `${input.unansweredMessages} unanswered question${input.unansweredMessages === 1 ? '' : 's'} — add knowledge to close gaps.`
+      `${input.unansweredMessages} unanswered question${input.unansweredMessages === 1 ? '' : 's'}, add some knowledge.`
     );
   } else if (outcomeCounts.unsolved > 0) {
     gaps.push(

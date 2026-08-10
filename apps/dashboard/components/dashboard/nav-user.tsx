@@ -194,7 +194,7 @@ export function NavUser({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-72 rounded-xl p-2"
+        className="w-72 rounded-none p-2"
         align="end"
         forceMount
       >

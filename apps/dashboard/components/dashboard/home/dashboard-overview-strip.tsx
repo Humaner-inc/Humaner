@@ -77,26 +77,24 @@ export function DashboardOverviewStrip({
         ) : null}
         <div className="min-w-0 space-y-1.5">
           <h1 className="page-title truncate">{organizationName}</h1>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs leading-none text-muted-foreground">
             {selfHostMode ? (
-              <span className="font-medium text-foreground">
-                {AppInfo.APP_NAME} · self-hosted
-              </span>
+              <span className="leading-none text-foreground">Self-hosted</span>
             ) : (
               <>
                 <HintLabel
                   hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}
-                  className="font-medium"
+                  className="leading-none font-medium"
                 >
                   <span style={{ color: tierAccent }}>{plan.name}</span>
                 </HintLabel>
                 <span
                   aria-hidden
-                  className="text-border"
+                  className="inline-flex size-[1em] items-center justify-center leading-none text-border"
                 >
                   ·
                 </span>
-                <span className="font-mono text-xs tabular-nums">
+                <span className="tabular-nums leading-none">
                   {plan.includedMessages.toLocaleString()} msg/mo
                 </span>
               </>
@@ -105,24 +103,24 @@ export function DashboardOverviewStrip({
               <>
                 <span
                   aria-hidden
-                  className="text-border"
+                  className="inline-flex size-[1em] items-center justify-center leading-none text-border"
                 >
                   ·
                 </span>
-                <span className="text-xs">{industryLabel}</span>
+                <span className="leading-none">{industryLabel}</span>
               </>
             ) : null}
             {!selfHostMode && audienceLabel && audienceFontClass ? (
               <>
                 <span
                   aria-hidden
-                  className="text-border"
+                  className="inline-flex size-[1em] items-center justify-center leading-none text-border"
                 >
                   ·
                 </span>
                 <span
                   className={cn(
-                    'text-xs font-semibold tracking-tight',
+                    'leading-none font-semibold tracking-tight',
                     audienceFontClass
                   )}
                 >
