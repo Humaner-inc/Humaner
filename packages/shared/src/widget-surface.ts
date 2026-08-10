@@ -34,9 +34,9 @@ export type WidgetSurfaceTokens = {
 export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
   if (theme === "LIGHT") {
     return {
-      body: "#ffffff",
-      // One neutral grey ladder: white → soft → soft-deep (no blue/lavender cast).
-      header: WIDGET_LIGHT_SOFT,
+      body: WIDGET_LIGHT_SOFT,
+      // One neutral grey ladder: soft → soft-deep → white cards.
+      header: WIDGET_LIGHT_SOFT_DEEP,
       headerBorder: "rgba(10,13,13,0.08)",
       headerText: "#0A0D0D",
       headerMuted: "rgba(10,13,13,0.55)",
@@ -45,10 +45,10 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
       inputShell: "#ffffff",
       inputRing: "rgba(10,13,13,0.1)",
       inputText: "#0A0D0D",
-      formBg: "#ffffff",
-      watermarkBg: "#ffffff",
+      formBg: WIDGET_LIGHT_SOFT,
+      watermarkBg: WIDGET_LIGHT_SOFT,
       listCardBg: "#ffffff",
-      listHover: WIDGET_LIGHT_SOFT,
+      listHover: WIDGET_LIGHT_SOFT_DEEP,
       userBubble: "#0A0D0D",
       userText: "#ffffff",
       supportBubble: WIDGET_LIGHT_SOFT_DEEP,

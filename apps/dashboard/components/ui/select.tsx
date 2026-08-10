@@ -4,12 +4,24 @@ import * as React from 'react';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
+import { useHydrated } from '@/hooks/use-hydrated';
 import { cn } from '@/lib/utils';
 
 export type SelectProps = React.ComponentPropsWithoutRef<
   typeof SelectPrimitive.Root
 >;
-const Select = SelectPrimitive.Root;
+const Select = ({
+  children,
+  ...props
+}: SelectProps): React.JSX.Element | null => {
+  const hydrated = useHydrated();
+
+  if (!hydrated) {
+    return null;
+  }
+
+  return <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>;
+};
 
 export type SelectGroupElement = React.ElementRef<typeof SelectPrimitive.Group>;
 export type SelectGroupProps = React.ComponentPropsWithoutRef<
