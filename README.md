@@ -116,4 +116,4 @@ Details: `[Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)` · `[selfhosting.md]
 
 This project is licensed under the **[GNU Affero General Public License v3.0](./LICENSE)** (AGPL-3.0).
 
-**Security:** responsible disclosure via [`SECURITY.md`](./SECURITY.md) · [Security framework](./Docs/SECURITY_FRAMEWORK.md).
+**Security:** responsible disclosure via [`SECURITY.md`](./SECURITY.md) · [humaner.io/security](https://humaner.io/security).

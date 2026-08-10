@@ -42,6 +42,7 @@ import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
+import { getBusinessLogoUrl } from '@/lib/urls/get-business-logo-url';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export function generateMetadata(): Metadata {
@@ -156,17 +157,30 @@ export default async function DashboardLayout({
   };
 
   // Platform Ask Humaner agent may live outside the current org — look up by
-  // publicId so the header/message avatars use its real profile image.
+  // publicId so chat uses the agent face and Home uses the company mark.
   const humanerAgentRecord = humanerAgentPublicId
     ? await prisma.agent.findUnique({
         where: { publicId: humanerAgentPublicId },
-        select: { image: true, character: true }
+        select: {
+          image: true,
+          character: true,
+          organization: {
+            select: { name: true, logoUrl: true, website: true }
+          }
+        }
       })
     : null;
   const humanerAgentAvatarUrl = resolveAgentAvatarSrc(
     humanerAgentRecord?.image,
     humanerAgentRecord?.character ?? 'CORPORATE'
   );
+  const humanerOrganizationName =
+    humanerAgentRecord?.organization?.name?.trim() || 'Humaner';
+  const humanerOrganizationLogoUrl =
+    getBusinessLogoUrl(humanerAgentRecord?.organization?.website, {
+      logoUrl: humanerAgentRecord?.organization?.logoUrl,
+      size: 128
+    }) ?? undefined;
 
   const organization = userFromDb!.organization!;
   const industryVertical = organization.industry
@@ -253,6 +267,8 @@ export default async function DashboardLayout({
                   <HumanerChatProvider
                     agentPublicId={humanerAgentPublicId}
                     agentAvatarUrl={humanerAgentAvatarUrl}
+                    organizationName={humanerOrganizationName}
+                    organizationLogoUrl={humanerOrganizationLogoUrl}
                     widgetColor={accentColor}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
