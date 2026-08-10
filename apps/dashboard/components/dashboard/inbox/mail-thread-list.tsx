@@ -925,10 +925,10 @@ function MailBulkActionBar({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-8 rounded-none font-mono text-[10px]"
+        className="h-8 rounded-none font-mono text-[10px] hover:bg-destructive/10 hover:text-destructive"
         onClick={selection.clearSelection}
       >
-        Clear
+        Delete
       </Button>
     </div>
   );

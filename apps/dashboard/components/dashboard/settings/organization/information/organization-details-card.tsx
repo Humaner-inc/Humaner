@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { CheckIcon, CopyIcon } from '@humaner/shared/icons';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 import { type SubmitHandler } from 'react-hook-form';
@@ -51,6 +52,7 @@ export function OrganizationDetailsCard({
   brandHeader = 'logo',
   ...props
 }: OrganizationDetailsCardProps): React.JSX.Element {
+  const router = useRouter();
   const methods = useZodForm({
     schema: updateOrganizationDetailsSchema,
     mode: 'onSubmit',
@@ -75,7 +77,19 @@ export function OrganizationDetailsCard({
     }
     const result = await updateOrganizationDetails(values);
     if (!result?.serverError && !result?.validationErrors) {
-      toast.success('Organization details updated');
+      const websiteRescanned = Boolean(result?.data?.websiteRescanned);
+      const nextName = result?.data?.name;
+      if (typeof nextName === 'string' && nextName !== values.name) {
+        methods.setValue('name', nextName, { shouldDirty: false });
+      }
+      toast.success(
+        websiteRescanned
+          ? 'Website updated — brand logo and colors rescanned'
+          : 'Organization details updated'
+      );
+      if (websiteRescanned) {
+        router.refresh();
+      }
     } else {
       toast.error("Couldn't update organization details");
     }
