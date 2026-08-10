@@ -84,7 +84,7 @@ export function OrganizationDetailsCard({
       }
       toast.success(
         websiteRescanned
-          ? 'Website updated — brand logo and colors rescanned'
+          ? 'Website and brand assets updated'
           : 'Organization details updated'
       );
       if (websiteRescanned) {
