@@ -114,7 +114,10 @@ export function isFullyRounded(radius: number, size: number): boolean {
   return radius >= size / 2;
 }
 
-/** CSS border-radius for the compact launcher (52px). */
+/** CSS border-radius for the compact launcher (56px). */
 export function launcherBorderRadius(radius: number): string {
-  return isFullyRounded(radius, 52) ? "9999px" : `${radius}px`;
+  // Default widget radius (26) means “full pill” in Customize — keep that at 56px.
+  return radius >= DEFAULT_WIDGET_RADIUS.widget || isFullyRounded(radius, 56)
+    ? "9999px"
+    : `${radius}px`;
 }
