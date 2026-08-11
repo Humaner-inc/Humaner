@@ -104,7 +104,11 @@ import {
 } from "./icon-utils";
 
 export type { AnimatedIconHandle, LucideIcon };
-export { createAnimatedIcon } from "./icon-utils";
+export {
+  bindIconHoverToParent,
+  createAnimatedIcon,
+  ICON_HOVER_PARENT_SELECTOR,
+} from "./icon-utils";
 
 export const ActivityIcon = createAnimatedIcon(ActivityIconSource);
 export const AlertCircleIcon = createAnimatedIcon(BadgeAlertIcon);

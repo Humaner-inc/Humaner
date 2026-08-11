@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { useBranchIconAnimationContext } from '@/components/dashboard/sidebar-branch-icon';
 import { cn } from '@/lib/utils';
 
 export function sidebarNavIconClassName(): string {
@@ -17,6 +18,9 @@ export function SidebarNavIcon({
   children,
   className
 }: SidebarNavIconProps): React.JSX.Element {
+  const context = useBranchIconAnimationContext();
+  const child = React.Children.only(children);
+
   return (
     <span
       className={cn(
@@ -25,7 +29,12 @@ export function SidebarNavIcon({
         className
       )}
     >
-      {children}
+      {context && React.isValidElement(child)
+        ? React.cloneElement(
+            child as React.ReactElement<{ ref?: React.Ref<unknown> }>,
+            { ref: context.iconRef }
+          )
+        : children}
     </span>
   );
 }

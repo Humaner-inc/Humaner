@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { RefreshCwIcon } from '@humaner/shared/icons';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -29,6 +30,14 @@ const FILTERS: Array<{ id: InboxListFilter; label: string }> = [
   { id: 'pending', label: 'Pending' }
 ];
 
+const INBOX_BULK_DELETE_BUTTON_CLASS =
+  'h-8 rounded-none font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
+
+const PANEL_TRANSITION = {
+  duration: 0.28,
+  ease: [0.22, 1, 0.36, 1] as const
+};
+
 export function InboxListHeader({
   activeFilter = 'all',
   activeTagId = null,
@@ -39,7 +48,6 @@ export function InboxListHeader({
 }: {
   activeFilter?: InboxListFilter;
   activeTagId?: string | null;
-  /** Preserve the current inbox alias when changing filters/tags. */
   activeAliasId?: string | null;
   tags?: MailTagItem[];
   selection?: MailListSelectionApi;
@@ -67,14 +75,12 @@ export function InboxListHeader({
     filter?: InboxListFilter | null;
     tagId?: string | null;
   }): string => {
-    // Build from known props — avoids useSearchParams (Suspense / CSR bailout).
     const params = new URLSearchParams();
     if (activeAliasId) {
       params.set('alias', activeAliasId);
     }
 
     if (next.filter !== undefined) {
-      // Filter changes clear the tag (same as previous searchParams behavior).
       if (next.filter && next.filter !== 'all') {
         params.set('filter', next.filter);
       }
@@ -92,7 +98,7 @@ export function InboxListHeader({
     return query ? `${pathname}?${query}` : pathname;
   };
 
-  const hasSelection = Boolean(selection && selection.selectedCount > 0);
+  const hasSelection = Boolean(selection?.selectMode);
 
   return (
     <div
@@ -101,27 +107,6 @@ export function InboxListHeader({
         className
       )}
     >
-      {selection ? (
-        <>
-          <Checkbox
-            checked={
-              selection.allSelected
-                ? true
-                : selection.someSelected
-                  ? 'indeterminate'
-                  : false
-            }
-            onCheckedChange={() => selection.toggleAll()}
-            aria-label="Select all conversations"
-            data-no-pull
-          />
-          <div
-            className="hidden h-4 w-px bg-border sm:block"
-            aria-hidden
-          />
-        </>
-      ) : null}
-
       <Button
         type="button"
         variant="ghost"
@@ -144,146 +129,207 @@ export function InboxListHeader({
         aria-hidden
       />
 
-      {hasSelection && selection ? (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-          <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {selection.selectedCount} selected
-          </span>
-          {selection.tags.length > 0 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-none font-mono text-[10px]"
-                >
-                  Label
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onSelect={() => selection.tagSelected(null)}>
-                  No tag
-                </DropdownMenuItem>
-                {selection.tags.map((tag) => (
-                  <DropdownMenuItem
-                    key={tag.id}
-                    onSelect={() => selection.tagSelected(tag.id)}
+      <div className="relative flex min-h-8 min-w-0 flex-1 items-center overflow-hidden">
+        <AnimatePresence
+          mode="popLayout"
+          initial={false}
+        >
+          {hasSelection && selection ? (
+            <motion.div
+              key="selection-actions"
+              initial={{ opacity: 0, x: -28 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 28 }}
+              transition={PANEL_TRANSITION}
+              className="flex min-w-0 flex-wrap items-center gap-1.5"
+            >
+              <Checkbox
+                checked={
+                  selection.allSelected
+                    ? true
+                    : selection.someSelected
+                      ? 'indeterminate'
+                      : false
+                }
+                onCheckedChange={() => selection.toggleAll()}
+                aria-label="Select all conversations"
+                data-no-pull
+              />
+              <div
+                className="hidden h-4 w-px bg-border sm:block"
+                aria-hidden
+              />
+              <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {selection.selectedCount} selected
+              </span>
+              {selection.tags.length > 0 ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-none font-mono text-[10px]"
+                      disabled={selection.selectedCount === 0}
+                    >
+                      Label
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      onSelect={() => selection.tagSelected(null)}
+                    >
+                      No tag
+                    </DropdownMenuItem>
+                    {selection.tags.map((tag) => (
+                      <DropdownMenuItem
+                        key={tag.id}
+                        onSelect={() => selection.tagSelected(tag.id)}
+                      >
+                        <span
+                          className="mr-2 size-2.5 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-none font-mono text-[10px]"
+                    disabled={selection.selectedCount === 0}
                   >
-                    <span
-                      className="mr-2 size-2.5 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                    {tag.name}
+                    Assign
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem
+                    onSelect={() => selection.assignSelected(null)}
+                  >
+                    Unassigned
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+                  {selection.members.map((member) => (
+                    <DropdownMenuItem
+                      key={member.id}
+                      onSelect={() => selection.assignSelected(member.id)}
+                    >
+                      {member.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="h-8 rounded-none font-mono text-[10px]"
+                disabled={selection.selectedCount === 0}
+                onClick={selection.archiveSelected}
               >
-                Assign
+                {selection.archivedView ? 'Move to inbox' : 'Archive'}
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onSelect={() => selection.assignSelected(null)}>
-                Unassigned
-              </DropdownMenuItem>
-              {selection.members.map((member) => (
-                <DropdownMenuItem
-                  key={member.id}
-                  onSelect={() => selection.assignSelected(member.id)}
-                >
-                  {member.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-none font-mono text-[10px]"
-            onClick={selection.archiveSelected}
-          >
-            {selection.archivedView ? 'Move to inbox' : 'Archive'}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-none font-mono text-[10px]"
-            onClick={selection.askDeleteSelected}
-          >
-            Delete
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 rounded-none font-mono text-[10px] hover:bg-destructive/10 hover:text-destructive"
-            onClick={selection.clearSelection}
-          >
-            Delete
-          </Button>
-        </div>
-      ) : (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-          {FILTERS.map((filter) => {
-            const active = !activeTagId && activeFilter === filter.id;
-            return (
-              <Link
-                key={filter.id}
-                href={hrefFor({ filter: filter.id })}
-                className={cn(
-                  'rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
-                  active
-                    ? 'bg-foreground/[0.06] text-foreground'
-                    : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
-                )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={INBOX_BULK_DELETE_BUTTON_CLASS}
+                disabled={selection.selectedCount === 0}
+                onClick={selection.askDeleteSelected}
               >
-                {filter.label}
-              </Link>
-            );
-          })}
-
-          {tags.length > 0 ? (
-            <>
-              <div
-                className="mx-1 hidden h-4 w-px bg-border sm:block"
-                aria-hidden
-              />
-              {tags.map((tag) => {
-                const active = activeTagId === tag.id;
+                Delete
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-none font-mono text-[10px]"
+                onClick={selection.clearSelection}
+              >
+                Cancel
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="filters"
+              initial={{ opacity: 0, x: -28 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 28 }}
+              transition={PANEL_TRANSITION}
+              className="flex min-w-0 flex-wrap items-center gap-1"
+            >
+              {FILTERS.map((filter) => {
+                const active = !activeTagId && activeFilter === filter.id;
                 return (
                   <Link
-                    key={tag.id}
-                    href={hrefFor({ tagId: active ? null : tag.id })}
+                    key={filter.id}
+                    href={hrefFor({ filter: filter.id })}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                      'rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
                       active
                         ? 'bg-foreground/[0.06] text-foreground'
                         : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
                     )}
                   >
-                    <span
-                      className="size-1.5 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                    {tag.name}
+                    {filter.label}
                   </Link>
                 );
               })}
-            </>
-          ) : null}
-        </div>
-      )}
+
+              {tags.length > 0 ? (
+                <>
+                  <div
+                    className="mx-1 hidden h-4 w-px bg-border sm:block"
+                    aria-hidden
+                  />
+                  {tags.map((tag) => {
+                    const active = activeTagId === tag.id;
+                    return (
+                      <Link
+                        key={tag.id}
+                        href={hrefFor({ tagId: active ? null : tag.id })}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                          active
+                            ? 'bg-foreground/[0.06] text-foreground'
+                            : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
+                        )}
+                      >
+                        <span
+                          className="size-1.5 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </Link>
+                    );
+                  })}
+                </>
+              ) : null}
+
+              {selection ? (
+                <>
+                  <div
+                    className="mx-1 hidden h-4 w-px bg-border sm:block"
+                    aria-hidden
+                  />
+                  <button
+                    type="button"
+                    className="rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
+                    onClick={selection.enterSelectMode}
+                  >
+                    Select
+                  </button>
+                </>
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

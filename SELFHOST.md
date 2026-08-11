@@ -2,8 +2,6 @@
 
 Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skillz + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
 
-## Not included: Humaner Intelligence, Agent Desk, training loops, Inboxes, live chat.
-
 ### 1. Clone and install
 
 ```bash
@@ -14,16 +12,18 @@ pnpm install
 
 ### 2. Database — PostgreSQL 16+ with pgvector
 
+User and database names are yours (e.g. `acme`).
+
 ```bash
 sudo -u postgres psql
-CREATE USER humaner WITH PASSWORD 'password' SUPERUSER;
-CREATE DATABASE humaner OWNER humaner;
-\c humaner
+CREATE USER johndoe WITH PASSWORD 'password' SUPERUSER;
+CREATE DATABASE acme OWNER johndoe;
+\c acme
 CREATE EXTENSION IF NOT EXISTS vector;
 \q
 ```
 
-### 3. Environment — copy and fill
+### 3. Environment | copy and fill your own
 
 ```bash
 cp apps/dashboard/.env.example apps/dashboard/.env.local
@@ -32,9 +32,9 @@ cp apps/dashboard/.env.example apps/dashboard/.env.local
 Required variables:
 
 ```bash
-NEXT_PUBLIC_DEPLOYMENT_MODE=oss
-DATABASE_URL=postgresql://humaner:password@localhost:5432/humaner
-DIRECT_URL=postgresql://humaner:password@localhost:5432/humaner
+NEXT_PUBLIC_DEPLOYMENT_MODE=oss #mandatory to deploy self-hosting framework
+DATABASE_URL=postgresql://acme:password@localhost:5432/acme
+DIRECT_URL=postgresql://acme:password@localhost:5432/acme
 AUTH_SECRET="$(openssl rand -base64 32)"
 NEXT_PUBLIC_APP_URL=http://localhost:3001
 ```
@@ -71,7 +71,7 @@ For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only wh
 ### 5. LLM key — BYO inference
 
 ```bash
-OPENAI_API_KEY=sk-ant-...   # or whatever you prefer
+OPENAI_API_KEY=sk-ant-...   # or whatever you want
 ```
 
 The starter agent uses whichever key is set for chat inference and handoff summarization.
@@ -85,7 +85,7 @@ mkdir -p data/knowledge
 npx @humaner/into-markdown https://yoursite.com > data/knowledge/site.md
 ```
 
-Answers only come from what it can find there, otherwise offers to connect with the team if answers isn't known.
+Answers only come from what it can find there, otherwise agent offers to connect with the team if answers isn't known.
 
 ### 7. Migrate and start
 
@@ -203,7 +203,7 @@ Chat streams SSE. On the final event, if `escalate: true`, a Helpdesk ticket is 
 ```bash
 export AUTH_SECRET="$(openssl rand -base64 32)"
 export OPENAI_API_KEY="sk-ant-..."
-# Also export EMAIL_* (see step 4) or SELF_HOST_LOG_VERIFICATION=true
+# Also export EMAIL_* or SELF_HOST_LOG_VERIFICATION=true
 
 docker compose up --build
 ```
@@ -237,7 +237,7 @@ Open http://localhost:3001 → follow steps 8–12.
 
 ## Handoff and Helpdesk
 
-When your agent can't resolve an issue, it emits a `##HANDOFF##` on the last line. The dashboard creates ticket with the full summary for your team.
+When your agent can't resolve an issue, it emits a `HANDOFF` to your helpdesk. Creating a ticket with the full summary for your team.
 
 SSE final event when escalating:
 

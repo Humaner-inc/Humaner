@@ -1,7 +1,6 @@
 ![hero](github.png)
 
 <p align="center">
-  <h1 align="center"><b>Humaner</b></h1>
   <p align="center">
     Self-host customer support | Agents, Helpdesk, and Team management.
     <br />
@@ -16,8 +15,9 @@
 
 ## About
 
-Humaner Self-Host is a free **customer-support kit**: Humaner infra with BYO agent to run support, escalation, ticketing and manage team members.  
-Your agent is onboarded like a real employee through [Industry Skillz](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt and knowledge.
+Humaner is the customer support layer made for customers care and built for developers.
+Host your own support using Humaner infra to run agents, escalation, ticketing and manage team members.  
+Your agent is onboarded like a real employee through [Industry Skillz](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt, knowledge and API.
 
 This repository do not include Humaner Intelligence, Agent Desk, clusters, live chat or Inboxes from [Humaner Cloud](https://app.humaner.io).
 
@@ -41,7 +41,7 @@ This repository do not include Humaner Intelligence, Agent Desk, clusters, live 
 
 ## Get started
 
-Clone → workable support workspace in minutes: follow the A→Z guide in `[selfhosting.md](./selfhosting.md)`
+Clone → workable support workspace in minutes: follow the A→Z guide in [`SELFHOST.md`](./SELFHOST.md)
 
 Paste the [Self-hosting — Agent Brief](https://docs.humaner.io/oss/agent-brief) to your IDE Agent.
 
@@ -57,7 +57,7 @@ pnpm --filter @humaner/dashboard dev
 
 Open [http://localhost:3001](http://localhost:3001) · set `NEXT_PUBLIC_DEPLOYMENT_MODE=oss`.
 
-[Self-Host setup →](./selfhosting.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [OSS docs →](https://docs.humaner.io/oss)
+[Self-Host setup →](./SELFHOST.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [OSS docs →](https://docs.humaner.io/oss)
 
 ## Architecture
 
@@ -100,7 +100,7 @@ packages/
 | Helpdesk, org/team, Widget / React / API                | Agent Desk · Runbooks · Live Chat handle            |
 | No Polar / plan gates                                   | Polar billing · quotas · paid personas              |
 
-Details: `[Docs/OPEN_SOURCING.md](./Docs/OPEN_SOURCING.md)` · `[selfhosting.md](./selfhosting.md)`
+Details: [`Docs/OPEN_SOURCING.md`](./Docs/OPEN_SOURCING.md) · [`SELFHOST.md`](./SELFHOST.md)
 
 ## Brand tokens
 

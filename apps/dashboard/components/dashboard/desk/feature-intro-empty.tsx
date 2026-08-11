@@ -34,6 +34,7 @@ export function FeatureIntroEmpty({
     <div
       role="region"
       aria-label={title}
+      data-icon-hover=""
       className={cn(
         'flex flex-col items-center justify-center text-center',
         compact

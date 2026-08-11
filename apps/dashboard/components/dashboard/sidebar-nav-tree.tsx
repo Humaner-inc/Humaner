@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { ChevronRightIcon } from '@humaner/shared/icons';
 import type { LucideIcon } from '@humaner/shared/icons';
 
+import {
+  BranchIconAnimationProvider,
+  useBranchIconAnimation
+} from '@/components/dashboard/sidebar-branch-icon';
 import { SIDEBAR_MAIN_NAV_ATTR } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { useSidebarNavDrawer } from '@/components/dashboard/sidebar-nav-accordion';
 import { sidebarNavIconClassName } from '@/components/dashboard/sidebar-nav-icon';
@@ -67,70 +71,86 @@ export function SidebarNavParent({
   badge
 }: SidebarNavParentProps): React.JSX.Element {
   const isIconRail = useSidebarIconRail();
+  const { iconRef, rowHandlers } = useBranchIconAnimation();
   const mainNavProps = mainNavHighlight
     ? ({ [SIDEBAR_MAIN_NAV_ATTR]: '' } as const)
     : {};
 
   const leadingNode =
-    leading ?? (Icon ? <Icon className={sidebarNavIconClassName()} /> : null);
+    leading ??
+    (Icon ? (
+      <Icon
+        ref={iconRef}
+        animateOnHover={false}
+        className={sidebarNavIconClassName()}
+      />
+    ) : null);
 
   if (isIconRail) {
     return (
-      <Link
-        href={href ?? '#'}
-        title={tooltip ?? label}
-        data-active={active ? true : undefined}
-        {...mainNavProps}
-        className={cn(
-          sidebarNavParentClassName(active),
-          'justify-center px-2 py-2.5',
-          active && 'bg-muted/50'
-        )}
-      >
-        {leadingNode}
-      </Link>
+      <BranchIconAnimationProvider value={{ iconRef }}>
+        <Link
+          href={href ?? '#'}
+          title={tooltip ?? label}
+          data-active={active ? true : undefined}
+          data-icon-hover=""
+          {...mainNavProps}
+          {...rowHandlers}
+          className={cn(
+            sidebarNavParentClassName(active),
+            'justify-center px-2 py-2.5',
+            active && 'bg-muted/50'
+          )}
+        >
+          {leadingNode}
+        </Link>
+      </BranchIconAnimationProvider>
     );
   }
 
   return (
-    <div
-      data-active={active ? true : undefined}
-      {...mainNavProps}
-      className={cn(
-        sidebarNavParentClassName(active),
-        'pr-1',
-        active && 'bg-muted/40'
-      )}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
-      >
-        {leadingNode}
-        <span className="min-w-0 flex-1 truncate">{label}</span>
-        {badge && !expanded ? (
-          <span className="mr-1 shrink-0">{badge}</span>
-        ) : null}
-      </button>
-      <button
-        type="button"
-        aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
-        onClick={onToggle}
+    <BranchIconAnimationProvider value={{ iconRef }}>
+      <div
+        data-active={active ? true : undefined}
+        data-icon-hover=""
+        {...mainNavProps}
+        {...rowHandlers}
         className={cn(
-          'mr-1 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground',
-          dashboardRadiusClassName
+          sidebarNavParentClassName(active),
+          'pr-1',
+          active && 'bg-muted/40'
         )}
       >
-        <ChevronRightIcon
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
+        >
+          {leadingNode}
+          <span className="min-w-0 flex-1 truncate">{label}</span>
+          {badge && !expanded ? (
+            <span className="mr-1 shrink-0">{badge}</span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+          onClick={onToggle}
           className={cn(
-            'size-3.5 transition-transform duration-300 ease-out',
-            expanded && 'rotate-90'
+            'mr-1 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground',
+            dashboardRadiusClassName
           )}
-          strokeWidth={1.75}
-        />
-      </button>
-    </div>
+        >
+          <ChevronRightIcon
+            className={cn(
+              'size-3.5 transition-transform duration-300 ease-out',
+              expanded && 'rotate-90'
+            )}
+            strokeWidth={1.75}
+          />
+        </button>
+      </div>
+    </BranchIconAnimationProvider>
   );
 }
 

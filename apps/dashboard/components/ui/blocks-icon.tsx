@@ -1,7 +1,14 @@
 'use client';
 
 import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef
+} from 'react';
+import { bindIconHoverToParent } from '@humaner/shared/icons';
 import type { Variants } from 'motion/react';
 import { motion, useAnimation } from 'motion/react';
 
@@ -25,43 +32,36 @@ const BlocksIcon = forwardRef<BlocksIconHandle, BlocksIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    const start = useCallback(() => {
+      void controls.start('animate');
+    }, [controls]);
+
+    const stop = useCallback(() => {
+      void controls.start('normal');
+    }, [controls]);
 
     useImperativeHandle(ref, () => {
       isControlledRef.current = true;
 
       return {
-        startAnimation: () => controls.start('animate'),
-        stopAnimation: () => controls.start('normal')
+        startAnimation: start,
+        stopAnimation: stop
       };
     });
 
-    const handleMouseEnter = useCallback(
-      (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isControlledRef.current) {
-          onMouseEnter?.(e);
-        } else {
-          controls.start('animate');
-        }
-      },
-      [controls, onMouseEnter]
-    );
-
-    const handleMouseLeave = useCallback(
-      (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isControlledRef.current) {
-          onMouseLeave?.(e);
-        } else {
-          controls.start('normal');
-        }
-      },
-      [controls, onMouseLeave]
-    );
+    useEffect(() => {
+      if (isControlledRef.current) return;
+      return bindIconHoverToParent(rootRef.current, true, start, stop);
+    }, [start, stop]);
 
     return (
       <div
+        ref={rootRef}
         className={cn(className)}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         {...props}
       >
         <svg

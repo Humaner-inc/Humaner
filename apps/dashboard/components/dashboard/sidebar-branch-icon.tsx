@@ -12,6 +12,10 @@ type BranchIconAnimationContextValue = {
 const BranchIconAnimationContext =
   React.createContext<BranchIconAnimationContextValue | null>(null);
 
+export function useBranchIconAnimationContext(): BranchIconAnimationContextValue | null {
+  return React.useContext(BranchIconAnimationContext);
+}
+
 export function useBranchIconAnimation(): {
   iconRef: React.RefObject<AnimatedIconHandle | null>;
   triggerAnimation: () => void;

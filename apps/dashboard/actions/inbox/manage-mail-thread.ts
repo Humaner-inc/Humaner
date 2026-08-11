@@ -7,6 +7,7 @@ import { authActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { deleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
 import {
   aliasIdFilter,
   resolveMailAliasScope
@@ -120,6 +121,19 @@ export const deleteMailThread = authActionClient
       session.user.id,
       organizationId
     );
+
+    try {
+      await deleteImapMessagesForThreads(
+        [parsedInput.threadId],
+        organizationId
+      );
+    } catch (error) {
+      throw new PreConditionError(
+        error instanceof Error
+          ? error.message
+          : 'Could not delete messages from the mailbox'
+      );
+    }
 
     await prisma.mailThread.delete({
       where: { id: parsedInput.threadId }
@@ -329,6 +343,16 @@ export const bulkDeleteMailThreads = authActionClient
       organizationId
     );
     const threadIds = threads.map((thread) => thread.id);
+
+    try {
+      await deleteImapMessagesForThreads(threadIds, organizationId);
+    } catch (error) {
+      throw new PreConditionError(
+        error instanceof Error
+          ? error.message
+          : 'Could not delete messages from the mailbox'
+      );
+    }
 
     await prisma.mailThread.deleteMany({
       where: { id: { in: threadIds }, organizationId }

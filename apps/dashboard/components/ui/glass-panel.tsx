@@ -4,7 +4,11 @@ import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type GlassPanelProps = React.HTMLAttributes<HTMLDivElement> & {
-  /** Soft top radial wash. Default true; set false for flat panels (e.g. Customize). */
+  /**
+   * Soft top radial wash + backdrop blur.
+   * Set false for tall scroll panels (e.g. Customize) — blur + sticky siblings
+   * glitch empty space while scrolling.
+   */
   glow?: boolean;
 };
 
@@ -21,9 +25,10 @@ export function GlassPanel({
   return (
     <div
       className={cn(
-        'relative isolate overflow-hidden border backdrop-blur-xl',
-        'border-foreground/15 bg-muted/20',
-        'dark:border-white/[0.08]',
+        'relative overflow-hidden border',
+        glow
+          ? 'isolate border-foreground/15 bg-muted/20 backdrop-blur-xl dark:border-white/[0.08]'
+          : 'border-foreground/15 bg-muted/45 dark:border-white/[0.08] dark:bg-[#121212]',
         dashboardRadiusClassName,
         className
       )}

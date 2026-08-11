@@ -66,9 +66,9 @@ export function DeleteMailThreadsDialog({
             {count === 1 ? 'this conversation' : `${count} conversations`}?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes {count === 1 ? 'it' : 'them'} from Humaner.
-            You won&apos;t be able to restore {count === 1 ? 'it' : 'them'} here
-            afterwards.
+            This removes {count === 1 ? 'it' : 'them'} from Humaner and deletes{' '}
+            {count === 1 ? 'the messages' : 'their messages'} from your mailbox
+            (Trash when available).
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex items-center gap-2 py-1">

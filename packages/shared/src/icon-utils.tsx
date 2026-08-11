@@ -3,6 +3,8 @@
 import {
   forwardRef,
   memo,
+  useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
   type ComponentType,
@@ -28,6 +30,28 @@ export type LucideIconProps = HTMLAttributes<HTMLDivElement> & {
 export type LucideIcon = ForwardRefExoticComponent<
   LucideIconProps & RefAttributes<AnimatedIconHandle>
 >;
+
+export const ICON_HOVER_PARENT_SELECTOR =
+  'a, button, [role="button"], [data-sidebar="menu-button"], [data-icon-hover]';
+
+export function bindIconHoverToParent(
+  node: HTMLElement | null,
+  enabled: boolean,
+  start: () => void,
+  stop: () => void,
+): (() => void) | undefined {
+  if (!enabled || !node || typeof node.closest !== "function") {
+    return undefined;
+  }
+  const target =
+    (node.closest(ICON_HOVER_PARENT_SELECTOR) as HTMLElement | null) ?? node;
+  target.addEventListener("mouseenter", start);
+  target.addEventListener("mouseleave", stop);
+  return () => {
+    target.removeEventListener("mouseenter", start);
+    target.removeEventListener("mouseleave", stop);
+  };
+}
 
 const SIZE_CLASS_MAP: Record<string, number> = {
   "size-3": 12,
@@ -106,12 +130,21 @@ export function createAnimatedIcon(
       ref,
     ) {
       const innerRef = useRef<AnimatedIconHandle>(null);
+      const wrapperRef = useRef<HTMLSpanElement>(null);
       const resolvedSize =
         size ??
         width ??
         height ??
         parseSizeFromClassName(className) ??
         defaultSize;
+
+      const start = useCallback(() => {
+        innerRef.current?.startAnimation();
+      }, []);
+
+      const stop = useCallback(() => {
+        innerRef.current?.stopAnimation();
+      }, []);
 
       useImperativeHandle(
         ref,
@@ -121,6 +154,40 @@ export function createAnimatedIcon(
         }),
         [],
       );
+
+      useEffect(() => {
+        return bindIconHoverToParent(
+          wrapperRef.current,
+          animateOnHover,
+          start,
+          stop,
+        );
+      }, [animateOnHover, start, stop]);
+
+      if (animateOnHover) {
+        return (
+          <span
+            ref={wrapperRef}
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center",
+              className,
+            )}
+          >
+            <Icon
+              {...props}
+              ref={innerRef}
+              size={resolvedSize}
+              animateOnHover={false}
+              onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
+                onMouseEnter?.(event);
+              }}
+              onMouseLeave={(event: MouseEvent<HTMLDivElement>) => {
+                onMouseLeave?.(event);
+              }}
+            />
+          </span>
+        );
+      }
 
       return (
         <Icon
@@ -133,15 +200,9 @@ export function createAnimatedIcon(
           size={resolvedSize}
           animateOnHover={false}
           onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
-            if (animateOnHover) {
-              innerRef.current?.startAnimation();
-            }
             onMouseEnter?.(event);
           }}
           onMouseLeave={(event: MouseEvent<HTMLDivElement>) => {
-            if (animateOnHover) {
-              innerRef.current?.stopAnimation();
-            }
             onMouseLeave?.(event);
           }}
         />

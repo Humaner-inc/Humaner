@@ -32,6 +32,7 @@ const EmptyState = React.forwardRef<EmptyStateElement, EmptyStateProps>(
         ref={ref}
         role="region"
         aria-label={title}
+        data-icon-hover=""
         className={cn(
           'flex h-full flex-col items-center justify-center gap-7 px-8 py-12 sm:px-10 md:px-12',
           dashboardSurfaceClassName,

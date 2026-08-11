@@ -60,6 +60,9 @@ import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
 const DEFAULT_UNREAD = '#0682de';
+const INBOX_BULK_DELETE_BUTTON_CLASS =
+  'h-8 rounded-none font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
+const ROW_SELECT_LONG_PRESS_MS = 450;
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
@@ -100,9 +103,11 @@ function ReadCircle({
 }
 
 export type MailListSelectionApi = {
+  selectMode: boolean;
   selectedCount: number;
   allSelected: boolean;
   someSelected: boolean;
+  enterSelectMode: () => void;
   toggleAll: () => void;
   clearSelection: () => void;
   askDeleteSelected: () => void;
@@ -149,6 +154,7 @@ export function MailThreadList({
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
     () => new Set()
   );
+  const [selectMode, setSelectMode] = React.useState(false);
   const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
@@ -385,6 +391,7 @@ export function MailThreadList({
   const selectedList = React.useMemo(() => [...selectedIds], [selectedIds]);
 
   const toggleOne = React.useCallback((threadId: string, checked: boolean) => {
+    setSelectMode(true);
     setSelectedIds((current) => {
       const next = new Set(current);
       if (checked) next.add(threadId);
@@ -393,7 +400,12 @@ export function MailThreadList({
     });
   }, []);
 
+  const enterSelectMode = React.useCallback(() => {
+    setSelectMode(true);
+  }, []);
+
   const toggleAll = React.useCallback(() => {
+    setSelectMode(true);
     setSelectedIds((current) => {
       if (displayThreads.length > 0 && current.size === displayThreads.length) {
         return new Set();
@@ -404,6 +416,7 @@ export function MailThreadList({
 
   const clearSelection = React.useCallback(() => {
     setSelectedIds(new Set());
+    setSelectMode(false);
   }, []);
 
   const refreshInBackground = React.useCallback(() => {
@@ -422,10 +435,11 @@ export function MailThreadList({
   });
 
   const { execute: runBulkDelete } = useAction(bulkDeleteMailThreads, {
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       clearSelection();
       setDeleteOpen(false);
       setDeleteIds([]);
+      toast.success(`Deleted ${data?.count ?? 0}`);
       refreshInBackground();
     },
     onError: ({ error, input }) => {
@@ -483,7 +497,6 @@ export function MailThreadList({
       if (ids.length === 0) return;
       const commit = (): void => {
         removeThreads(ids);
-        toast.success(`Deleted ${ids.length}`);
         runBulkDelete({ threadIds: ids });
       };
       requestMailDelete(
@@ -506,9 +519,11 @@ export function MailThreadList({
   }, [displayThreads, selectedIds, tags]);
 
   const selectionApi: MailListSelectionApi = {
+    selectMode,
     selectedCount: selectedIds.size,
     allSelected,
     someSelected,
+    enterSelectMode,
     toggleAll,
     clearSelection,
     askDeleteSelected: () => askDelete(selectedList),
@@ -545,6 +560,7 @@ export function MailThreadList({
   };
 
   const isDesk = variant === 'desk';
+  const selectionActive = selectMode || selectedIds.size > 0;
 
   const threadRows = displayThreads.map((thread) => {
     return (
@@ -555,6 +571,7 @@ export function MailThreadList({
         members={members}
         archivedView={archivedView}
         previewActive={activeThreadId === thread.id}
+        showCheckboxes={selectionActive}
         selected={selectedIds.has(thread.id)}
         onToggleSelected={(checked) => toggleOne(thread.id, checked)}
         onSelect={() => selectThread(thread.id)}
@@ -604,13 +621,13 @@ export function MailThreadList({
           {selectionHeader(selectionApi)}
         </div>
       ) : null}
-      {selectedIds.size > 0 && !selectionHeader ? (
+      {selectionActive && !selectionHeader ? (
         <div className="shrink-0 border-b border-border/50 px-3 py-2">
           <MailBulkActionBar selection={selectionApi} />
         </div>
       ) : null}
       <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {!selectionHeader ? (
+        {!selectionHeader && selectionActive ? (
           <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
             <Checkbox
               checked={
@@ -621,7 +638,7 @@ export function MailThreadList({
               data-no-pull
             />
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
+              {selectedIds.size} selected
             </span>
           </li>
         ) : null}
@@ -630,7 +647,7 @@ export function MailThreadList({
     </div>
   ) : (
     <ul className="flex h-full min-h-0 flex-col overflow-y-auto border border-border bg-background md:border-0">
-      {!selectionHeader ? (
+      {!selectionHeader && selectionActive ? (
         <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
           <Checkbox
             checked={
@@ -641,7 +658,7 @@ export function MailThreadList({
             data-no-pull
           />
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Select'}
+            {selectedIds.size} selected
           </span>
         </li>
       ) : null}
@@ -802,7 +819,6 @@ export function MailThreadList({
         setDeleteOpen(false);
         setDeleteIds([]);
         removeThreads(ids);
-        toast.success(`Deleted ${ids.length}`);
         runBulkDelete({ threadIds: ids });
       }}
     />
@@ -823,7 +839,7 @@ export function MailThreadList({
     <div className="space-y-3">
       {selectionHeader ? selectionHeader(selectionApi) : null}
 
-      {selectedIds.size > 0 && !selectionHeader ? (
+      {selectionActive && !selectionHeader ? (
         <MailBulkActionBar selection={selectionApi} />
       ) : null}
 
@@ -916,17 +932,8 @@ function MailBulkActionBar({
         type="button"
         variant="outline"
         size="sm"
-        className="h-8 rounded-none font-mono text-[10px]"
+        className={INBOX_BULK_DELETE_BUTTON_CLASS}
         onClick={selection.askDeleteSelected}
-      >
-        Delete
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-8 rounded-none font-mono text-[10px] hover:bg-destructive/10 hover:text-destructive"
-        onClick={selection.clearSelection}
       >
         Delete
       </Button>
@@ -940,6 +947,7 @@ function MailThreadRow({
   members,
   archivedView,
   previewActive,
+  showCheckboxes,
   selected,
   onToggleSelected,
   onSelect,
@@ -954,6 +962,7 @@ function MailThreadRow({
   members: Array<{ id: string; name: string }>;
   archivedView: boolean;
   previewActive: boolean;
+  showCheckboxes: boolean;
   selected: boolean;
   onToggleSelected: (checked: boolean) => void;
   onSelect: () => void;
@@ -964,6 +973,8 @@ function MailThreadRow({
   onMarkRead: () => void;
 }): React.JSX.Element {
   const router = useRouter();
+  const longPressTimerRef = React.useRef<number | null>(null);
+  const longPressTriggeredRef = React.useRef(false);
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
@@ -971,7 +982,21 @@ function MailThreadRow({
   // Replied threads are opened even if isUnread was left stale in the DB.
   const localUnread = thread.isUnread && thread.awaitingReply;
 
+  const cancelLongPress = React.useCallback((): void => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  React.useEffect(() => () => cancelLongPress(), [cancelLongPress]);
+
   const openThread = (): void => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+      return;
+    }
+
     // Desktop: keep selection in the reading pane. Mobile: full thread page.
     if (
       typeof window !== 'undefined' &&
@@ -981,6 +1006,16 @@ function MailThreadRow({
       return;
     }
     router.push(inboxThreadRoute(thread.id));
+  };
+
+  const handleRowClick = (event: React.MouseEvent<HTMLDivElement>): void => {
+    if (!showCheckboxes && (event.metaKey || event.ctrlKey || event.shiftKey)) {
+      event.preventDefault();
+      onToggleSelected(!selected);
+      return;
+    }
+
+    openThread();
   };
 
   return (
@@ -1002,7 +1037,19 @@ function MailThreadRow({
         role="button"
         tabIndex={0}
         className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-5 sm:pr-28"
-        onClick={openThread}
+        onClick={handleRowClick}
+        onPointerDown={(event) => {
+          if (showCheckboxes || event.button !== 0) return;
+          cancelLongPress();
+          longPressTimerRef.current = window.setTimeout(() => {
+            longPressTimerRef.current = null;
+            longPressTriggeredRef.current = true;
+            onToggleSelected(true);
+          }, ROW_SELECT_LONG_PRESS_MS);
+        }}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -1010,19 +1057,21 @@ function MailThreadRow({
           }
         }}
       >
-        <div
-          className="shrink-0"
-          data-no-pull
-          onClick={stopRowEvent}
-          onPointerDown={stopRowEvent}
-          onKeyDown={stopRowEvent}
-        >
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(value) => onToggleSelected(value === true)}
-            aria-label={`Select ${thread.subject}`}
-          />
-        </div>
+        {showCheckboxes ? (
+          <div
+            className="shrink-0"
+            data-no-pull
+            onClick={stopRowEvent}
+            onPointerDown={stopRowEvent}
+            onKeyDown={stopRowEvent}
+          >
+            <Checkbox
+              checked={selected}
+              onCheckedChange={(value) => onToggleSelected(value === true)}
+              aria-label={`Select ${thread.subject}`}
+            />
+          </div>
+        ) : null}
 
         <Avatar className="size-9 shrink-0">
           {domain ? (

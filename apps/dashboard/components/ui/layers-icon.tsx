@@ -1,7 +1,14 @@
 'use client';
 
 import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef
+} from 'react';
+import { bindIconHoverToParent } from '@humaner/shared/icons';
 import type { Transition } from 'motion/react';
 import { motion, useAnimation } from 'motion/react';
 
@@ -27,47 +34,37 @@ const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    const start = useCallback(async () => {
+      await controls.start('firstState');
+      await controls.start('secondState');
+    }, [controls]);
+
+    const stop = useCallback(() => {
+      void controls.start('normal');
+    }, [controls]);
 
     useImperativeHandle(ref, () => {
       isControlledRef.current = true;
 
       return {
-        startAnimation: async () => {
-          await controls.start('firstState');
-          await controls.start('secondState');
-        },
-        stopAnimation: () => controls.start('normal')
+        startAnimation: start,
+        stopAnimation: stop
       };
     });
 
-    const handleMouseEnter = useCallback(
-      async (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isControlledRef.current) {
-          onMouseEnter?.(e);
-        } else {
-          await controls.start('firstState');
-          await controls.start('secondState');
-        }
-      },
-      [controls, onMouseEnter]
-    );
-
-    const handleMouseLeave = useCallback(
-      (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isControlledRef.current) {
-          onMouseLeave?.(e);
-        } else {
-          controls.start('normal');
-        }
-      },
-      [controls, onMouseLeave]
-    );
+    useEffect(() => {
+      if (isControlledRef.current) return;
+      return bindIconHoverToParent(rootRef.current, true, start, stop);
+    }, [start, stop]);
 
     return (
       <div
+        ref={rootRef}
         className={cn(className)}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         {...props}
       >
         <svg

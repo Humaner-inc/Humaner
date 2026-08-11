@@ -10,7 +10,7 @@ if [ -z "${AUTH_SECRET:-}" ] || \
    [ "$AUTH_SECRET" = "generate-a-long-random-string" ]; then
   echo "ERROR: AUTH_SECRET is missing or still set to a placeholder." >&2
   echo "Generate one with: openssl rand -base64 32" >&2
-  echo "Then export AUTH_SECRET before starting (see selfhosting.md)." >&2
+  echo "Then export AUTH_SECRET before starting (see SELFHOST.md)." >&2
   exit 1
 fi
 

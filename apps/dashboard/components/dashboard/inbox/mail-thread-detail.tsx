@@ -206,7 +206,10 @@ export function MailThreadDetail({
   });
 
   const { execute: runDelete } = useAction(deleteMailThread, {
-    onSuccess: () => router.refresh(),
+    onSuccess: () => {
+      toast.success('Deleted 1');
+      router.refresh();
+    },
     onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
   });
 
@@ -229,7 +232,6 @@ export function MailThreadDetail({
 
   const handleDelete = (): void => {
     removeAndClose();
-    toast.success('Deleted 1');
     runDelete({ threadId: thread.id });
   };
 
