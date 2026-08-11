@@ -71,7 +71,7 @@ For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only wh
 ### 5. LLM key — BYO inference
 
 ```bash
-OPENAI_API_KEY=sk-ant-...   # or whatever you want
+OPENAI_API_KEY=sk-ant-...   # or whichever you prefer.
 ```
 
 The starter agent uses whichever key is set for chat inference and handoff summarization.

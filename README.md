@@ -23,7 +23,7 @@ This repository do not include Humaner Intelligence, Agent Desk, clusters, live 
 
 ## Features
 
-**Starter agent**: Your Custom system prompt, Industry Skillz, markdown knowledge (`data/knowledge/`), and BYO LLM (whatever you want).
+**Starter agent**: Your Custom system prompt, Industry Skillz, markdown knowledge (`data/knowledge/`) and your LLM API.
 
 **Helpdesk**: Async tickets, urgency, assignees | Handoffs from agents land in a ticket dashboard for your team.
 
