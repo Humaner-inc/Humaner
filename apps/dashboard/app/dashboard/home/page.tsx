@@ -29,6 +29,7 @@ import { dashboardSurfaceDashedClassName } from '@/lib/dashboard/surface-styles'
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+import { getBusinessLogoUrl } from '@/lib/urls/get-business-logo-url';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = createDashboardPageMetadata(
@@ -93,7 +94,14 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         <DashboardOverviewStrip
           organizationName={organization?.name ?? 'Your organization'}
           website={organization?.website ?? null}
-          logoUrl={organization?.logoUrl ?? null}
+          logoUrl={
+            getBusinessLogoUrl(organization?.website, {
+              logoUrl: organization?.logoUrl,
+              size: 128
+            }) ??
+            organization?.logoUrl ??
+            null
+          }
           industry={organization?.industry ?? null}
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
 import { getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
@@ -42,7 +43,6 @@ import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
-import { getBusinessLogoUrl } from '@/lib/urls/get-business-logo-url';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export function generateMetadata(): Metadata {
@@ -176,11 +176,8 @@ export default async function DashboardLayout({
   );
   const humanerOrganizationName =
     humanerAgentRecord?.organization?.name?.trim() || 'Humaner';
-  const humanerOrganizationLogoUrl =
-    getBusinessLogoUrl(humanerAgentRecord?.organization?.website, {
-      logoUrl: humanerAgentRecord?.organization?.logoUrl,
-      size: 128
-    }) ?? undefined;
+  // Ask Humaner home mark is always the Humaner brand — never logo.dev monogram.
+  const humanerOrganizationLogoUrl = brand.favicon;
 
   const organization = userFromDb!.organization!;
   const industryVertical = organization.industry
