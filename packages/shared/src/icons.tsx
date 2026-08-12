@@ -97,6 +97,7 @@ import {
   ArrowUpRightIcon as ArrowUpRightIconSource,
 } from "lucide-animated";
 
+import { GitCompareIconSource } from "./git-compare-icon";
 import {
   createAnimatedIcon,
   type AnimatedIconHandle,
@@ -169,6 +170,7 @@ export const EyeOffIcon = createAnimatedIcon(EyeOffIconSource);
 export const FileIcon = createAnimatedIcon(FileTextIconSource);
 export const FilePlus2Icon = createAnimatedIcon(FileCheck2Icon);
 export const FileTextIcon = createAnimatedIcon(FileTextIconSource);
+export const GitCompareIcon = createAnimatedIcon(GitCompareIconSource);
 export const Globe = createAnimatedIcon(EarthIcon);
 export const GlobeIcon = createAnimatedIcon(EarthIcon);
 export const GlobeLockIcon = createAnimatedIcon(LockKeyholeIconSource);

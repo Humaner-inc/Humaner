@@ -1,5 +1,5 @@
 import type { LucideIcon } from '@humaner/shared/icons';
-import { BotIcon, Layers, SettingsIcon } from '@humaner/shared/icons';
+import { BotIcon, GitCompareIcon, SettingsIcon } from '@humaner/shared/icons';
 import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
@@ -36,7 +36,7 @@ const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
   {
     id: 'clusters',
     label: 'Loops',
-    icon: Layers,
+    icon: GitCompareIcon,
     href: Routes.DeskClusters,
     requiredCapability: 'autoTraining'
   },

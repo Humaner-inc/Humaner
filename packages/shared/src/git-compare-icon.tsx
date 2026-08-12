@@ -1,10 +1,8 @@
-'use client';
+"use client";
 
-import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { motion, useAnimation } from 'motion/react';
-
-import { cn } from '@/lib/utils';
+import type { HTMLAttributes, MouseEvent } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import { motion, useAnimation } from "motion/react";
 
 export interface GitCompareIconHandle {
   startAnimation: () => void;
@@ -13,6 +11,10 @@ export interface GitCompareIconHandle {
 
 interface GitCompareIconProps extends HTMLAttributes<HTMLDivElement> {
   size?: number;
+  animateOnHover?: boolean;
+  strokeWidth?: number;
+  width?: number;
+  height?: number;
 }
 
 const DURATION = 0.3;
@@ -22,44 +24,60 @@ const CALCULATE_DELAY = (i: number): number => {
   return i * DURATION + 0.1;
 };
 
-const GitCompareIcon = forwardRef<GitCompareIconHandle, GitCompareIconProps>(
-  ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
+const GitCompareIconSource = forwardRef<
+  GitCompareIconHandle,
+  GitCompareIconProps
+>(
+  (
+    {
+      onMouseEnter,
+      onMouseLeave,
+      className,
+      size = 28,
+      animateOnHover: _animateOnHover,
+      strokeWidth: _strokeWidth,
+      width: _width,
+      height: _height,
+      ...props
+    },
+    ref,
+  ) => {
     const controls = useAnimation();
     const isControlledRef = useRef(false);
 
     useImperativeHandle(ref, () => {
       isControlledRef.current = true;
       return {
-        startAnimation: () => controls.start('animate'),
-        stopAnimation: () => controls.start('normal')
+        startAnimation: () => controls.start("animate"),
+        stopAnimation: () => controls.start("normal"),
       };
     });
 
     const handleMouseEnter = useCallback(
-      (e: React.MouseEvent<HTMLDivElement>) => {
+      (e: MouseEvent<HTMLDivElement>) => {
         if (isControlledRef.current) {
           onMouseEnter?.(e);
         } else {
-          controls.start('animate');
+          void controls.start("animate");
         }
       },
-      [controls, onMouseEnter]
+      [controls, onMouseEnter],
     );
 
     const handleMouseLeave = useCallback(
-      (e: React.MouseEvent<HTMLDivElement>) => {
+      (e: MouseEvent<HTMLDivElement>) => {
         if (isControlledRef.current) {
           onMouseLeave?.(e);
         } else {
-          controls.start('normal');
+          void controls.start("normal");
         }
       },
-      [controls, onMouseLeave]
+      [controls, onMouseLeave],
     );
 
     return (
       <div
-        className={cn(className)}
+        className={className}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}
@@ -83,14 +101,14 @@ const GitCompareIcon = forwardRef<GitCompareIconHandle, GitCompareIconProps>(
             transition={{
               duration: DURATION,
               delay: CALCULATE_DELAY(0),
-              opacity: { delay: CALCULATE_DELAY(0) }
+              opacity: { delay: CALCULATE_DELAY(0) },
             }}
             variants={{
               normal: { pathLength: 1, opacity: 1, transition: { delay: 0 } },
               animate: {
                 pathLength: [0, 1],
-                opacity: [0, 1]
-              }
+                opacity: [0, 1],
+              },
             }}
           />
 
@@ -100,20 +118,20 @@ const GitCompareIcon = forwardRef<GitCompareIconHandle, GitCompareIconProps>(
             transition={{
               duration: DURATION,
               delay: CALCULATE_DELAY(1),
-              opacity: { delay: CALCULATE_DELAY(1) }
+              opacity: { delay: CALCULATE_DELAY(1) },
             }}
             variants={{
               normal: {
                 pathLength: 1,
                 pathOffset: 0,
                 opacity: 1,
-                transition: { delay: 0 }
+                transition: { delay: 0 },
               },
               animate: {
                 pathLength: [0, 1],
                 opacity: [0, 1],
-                pathOffset: [1, 0]
-              }
+                pathOffset: [1, 0],
+              },
             }}
           />
 
@@ -123,20 +141,20 @@ const GitCompareIcon = forwardRef<GitCompareIconHandle, GitCompareIconProps>(
             transition={{
               duration: DURATION,
               delay: CALCULATE_DELAY(1),
-              opacity: { delay: CALCULATE_DELAY(1) }
+              opacity: { delay: CALCULATE_DELAY(1) },
             }}
             variants={{
               normal: {
                 pathLength: 1,
                 pathOffset: 0,
                 opacity: 1,
-                transition: { delay: 0 }
+                transition: { delay: 0 },
               },
               animate: {
                 pathLength: [0, 1],
                 opacity: [0, 1],
-                pathOffset: [1, 0]
-              }
+                pathOffset: [1, 0],
+              },
             }}
           />
 
@@ -148,22 +166,22 @@ const GitCompareIcon = forwardRef<GitCompareIconHandle, GitCompareIconProps>(
             transition={{
               duration: DURATION,
               delay: CALCULATE_DELAY(2),
-              opacity: { delay: CALCULATE_DELAY(2) }
+              opacity: { delay: CALCULATE_DELAY(2) },
             }}
             variants={{
               normal: { pathLength: 1, opacity: 1, transition: { delay: 0 } },
               animate: {
                 pathLength: [0, 1],
-                opacity: [0, 1]
-              }
+                opacity: [0, 1],
+              },
             }}
           />
         </svg>
       </div>
     );
-  }
+  },
 );
 
-GitCompareIcon.displayName = 'GitCompareIcon';
+GitCompareIconSource.displayName = "GitCompareIcon";
 
-export { GitCompareIcon };
+export { GitCompareIconSource };

@@ -5,6 +5,7 @@ import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 
 const RELIABLE_SAME_ORIGIN_PREFIXES = [
   '/api/logo',
+  '/api/website-logo',
   '/api/agent-images/',
   '/api/agent-home-banners/',
   '/api/user-images/',

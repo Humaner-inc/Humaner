@@ -17,7 +17,7 @@ export type WebsiteMetadata = {
 
 const FETCH_TIMEOUT_MS = 8_000;
 const USER_AGENT =
-  'Mozilla/5.0 (compatible; HumanerBot/1.0; +https://humaner.ai)';
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
 
 function normalizeWebsiteUrl(value: string): URL | null {
   return parsePublicHttpUrl(value);
@@ -31,8 +31,24 @@ function resolveAssetUrl(base: URL, href: string): string | null {
   }
 }
 
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) =>
+      String.fromCodePoint(Number.parseInt(hex, 16))
+    )
+    .replace(/&#(\d+);/g, (_, dec: string) =>
+      String.fromCodePoint(Number.parseInt(dec, 10))
+    )
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ');
+}
+
 function cleanBusinessName(raw: string): string {
-  let name = raw.replace(/\s+/g, ' ').trim();
+  let name = decodeHtmlEntities(raw).replace(/\s+/g, ' ').trim();
   const separators = [' | ', ' - ', ' — ', ' · ', ' :: ', ' : '];
 
   for (const separator of separators) {
@@ -90,9 +106,46 @@ function readTitle(html: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+function parseIconSize(sizes: string | undefined): number {
+  if (!sizes || sizes === 'any') {
+    return 0;
+  }
+  const match = sizes.match(/(\d+)x(\d+)/i);
+  if (!match) {
+    return 0;
+  }
+  return Math.max(Number(match[1]), Number(match[2]));
+}
+
+function scoreIconCandidate(input: {
+  rel: string;
+  href: string;
+  type?: string;
+  sizes?: string;
+}): number {
+  let score = 0;
+  const href = input.href.toLowerCase();
+  const type = input.type?.toLowerCase() ?? '';
+  const size = parseIconSize(input.sizes);
+
+  if (input.rel.includes('apple-touch-icon')) score += 40;
+  if (href.endsWith('.svg') || type.includes('svg')) score += 35;
+  if (href.endsWith('.png') || type.includes('png')) score += 25;
+  if (href.endsWith('.webp') || type.includes('webp')) score += 20;
+  if (href.endsWith('.ico') || type.includes('icon')) score += 5;
+  score += Math.min(size, 512) / 8;
+  return score;
+}
+
 function readFaviconUrl(html: string, pageUrl: URL): string | null {
   const linkTags = html.match(/<link[^>]+>/gi) ?? [];
-  const candidates: Array<{ rel: string; href: string }> = [];
+  const candidates: Array<{
+    rel: string;
+    href: string;
+    type?: string;
+    sizes?: string;
+    score: number;
+  }> = [];
 
   for (const tag of linkTags) {
     const rel = tag.match(/rel=["']([^"']+)["']/i)?.[1]?.toLowerCase() ?? '';
@@ -102,19 +155,28 @@ function readFaviconUrl(html: string, pageUrl: URL): string | null {
     }
 
     if (
-      rel.includes('apple-touch-icon') ||
-      rel.includes('icon') ||
-      rel.includes('shortcut icon')
+      !(
+        rel.includes('apple-touch-icon') ||
+        rel.includes('icon') ||
+        rel.includes('shortcut icon')
+      )
     ) {
-      candidates.push({ rel, href });
+      continue;
     }
+
+    const type = tag.match(/type=["']([^"']+)["']/i)?.[1];
+    const sizes = tag.match(/sizes=["']([^"']+)["']/i)?.[1];
+    candidates.push({
+      rel,
+      href,
+      type,
+      sizes,
+      score: scoreIconCandidate({ rel, href, type, sizes })
+    });
   }
 
-  const preferred =
-    candidates.find((item) => item.rel.includes('apple-touch-icon')) ??
-    candidates.find((item) => item.rel.includes('icon')) ??
-    candidates[0];
-
+  candidates.sort((a, b) => b.score - a.score);
+  const preferred = candidates[0];
   if (preferred) {
     return resolveAssetUrl(pageUrl, preferred.href);
   }
@@ -145,10 +207,18 @@ export async function extractWebsiteMetadata(
       redirect: 'follow'
     });
 
+    const finalUrl = (() => {
+      try {
+        return new URL(response.url);
+      } catch {
+        return pageUrl;
+      }
+    })();
+
     if (!response.ok) {
       return {
         businessName: businessNameFromHostname(hostname),
-        faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
+        faviconUrl: resolveAssetUrl(finalUrl, '/favicon.ico'),
         accentColor: null,
         brandColors: []
       };
@@ -169,7 +239,7 @@ export async function extractWebsiteMetadata(
 
     return {
       businessName,
-      faviconUrl: readFaviconUrl(html, pageUrl),
+      faviconUrl: readFaviconUrl(html, finalUrl),
       accentColor,
       brandColors
     };
