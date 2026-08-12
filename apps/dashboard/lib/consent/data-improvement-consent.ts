@@ -31,7 +31,7 @@ export async function organizationAllowsModelTraining(
 /**
  * Plan + consent gates for training pipelines.
  *
- * Org-scoped Desk features (runbooks, content gaps, resolution clusters /
+ * Org-scoped Desk features (runbooks, content gaps, resolution loops /
  * auto-training) require plan capability only — they serve the customer's own
  * agents under the DPA and do not need "Help improve Humaner" consent.
  *

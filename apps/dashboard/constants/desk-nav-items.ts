@@ -35,7 +35,7 @@ const CLOUD_DESK_NAV_TABS: DeskNavTab[] = [
   },
   {
     id: 'clusters',
-    label: 'Clusters',
+    label: 'Loops',
     icon: Layers,
     href: Routes.DeskClusters,
     requiredCapability: 'autoTraining'

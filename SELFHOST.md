@@ -287,7 +287,7 @@ Report vulnerabilities to dev@humaner.io. Do not file public issues for exploita
 1. DB migrated + email (or console OTP) working
 2. Sign up → verify → complete **OSS onboarding** (no Polar popup)
 3. Custom agent prompt saved and visible in agent settings
-4. Nav shows Helpdesk only (no Inbox / Agent Desk / Clusters)
+4. Nav shows Helpdesk only (no Inbox / Agent Desk / Loops)
 5. Ask about content in `data/knowledge/` → grounded answer
 6. Force handoff (ask for a human) → ticket in Helpdesk
 7. Widget loads from your origin with agent ID
