@@ -20,6 +20,9 @@ __pycache__/
 *.pyc
 package-lock.json
 
+
+/josh/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
