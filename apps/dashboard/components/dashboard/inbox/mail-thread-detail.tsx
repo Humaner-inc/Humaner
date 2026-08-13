@@ -48,7 +48,7 @@ import type {
   MailThreadDetail as MailThreadDetailDto
 } from '@/data/inbox/get-mail-threads';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
-import { isRichMailHtml } from '@/lib/inbox/mail-body-display';
+import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import { tagsForAlias } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
@@ -65,6 +65,12 @@ function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
   if (!thread.isUnread) return false;
   const last = thread.messages[thread.messages.length - 1];
   return last?.direction === 'INBOUND';
+}
+
+function mailSnippet(bodyText: string | null, bodyHtml: string | null): string {
+  const raw =
+    bodyText?.trim() || (bodyHtml ? htmlToPlainText(bodyHtml).trim() : '');
+  return raw.replace(/\s+/g, ' ').slice(0, 140);
 }
 
 function parseMailAddress(raw: string): { name: string | null; email: string } {
@@ -104,6 +110,121 @@ function ForwardGlyph({
   );
 }
 
+const MailThreadMessage = React.memo(function MailThreadMessage({
+  message,
+  subject,
+  eager,
+  expanded,
+  onToggle
+}: {
+  message: MailThreadDetailDto['messages'][number];
+  subject: string;
+  eager: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}): React.JSX.Element {
+  const outbound = message.direction === 'OUTBOUND';
+  const rich = isRichMailHtml(message.bodyHtml);
+  const { name: fromName, email: fromEmail } = parseMailAddress(
+    message.fromAddress
+  );
+  const displayName = fromName || fromEmail;
+  const at = fromEmail.lastIndexOf('@');
+  const fromDomain =
+    at >= 0 ? fromEmail.slice(at + 1).toLowerCase() || null : null;
+
+  return (
+    <li>
+      <article className="space-y-3">
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex w-full cursor-pointer items-start gap-3 px-0.5 text-left"
+          onClick={onToggle}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onToggle();
+            }
+          }}
+          aria-expanded={expanded}
+        >
+          <Avatar className="size-10 shrink-0">
+            {fromDomain ? (
+              <AvatarImage
+                src={getLogoUrl(fromDomain, 64, true)}
+                alt=""
+                loading={eager ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            ) : null}
+            <AvatarFallback className="text-[11px] font-medium">
+              {getInitials(displayName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold leading-5">
+                  {displayName}
+                  {fromName ? (
+                    <span className="ml-1.5 font-normal text-muted-foreground">
+                      &lt;{fromEmail}&gt;
+                    </span>
+                  ) : null}
+                </p>
+                {expanded ? (
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    To {message.toAddresses.join(', ')}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {mailSnippet(message.bodyText, message.bodyHtml) ||
+                      'Show message'}
+                  </p>
+                )}
+              </div>
+              <time
+                dateTime={message.sentAt}
+                className="shrink-0 pt-0.5 text-xs text-muted-foreground"
+              >
+                {formatMailTimestamp(message.sentAt)}
+              </time>
+            </div>
+          </div>
+        </div>
+
+        {expanded ? (
+          rich ? (
+            <MailMessageBody
+              bodyHtml={message.bodyHtml}
+              bodyText={message.bodyText}
+              subject={subject}
+              className="mt-0"
+              eager
+            />
+          ) : (
+            <div
+              className={cn(
+                'bg-background px-5 py-4',
+                outbound && accentSoftBg
+              )}
+            >
+              <MailMessageBody
+                bodyHtml={message.bodyHtml}
+                bodyText={message.bodyText}
+                subject={subject}
+                className="mt-0 px-0.5"
+                eager
+              />
+            </div>
+          )
+        ) : null}
+      </article>
+    </li>
+  );
+});
+
 export function MailThreadDetail({
   thread: threadProp,
   tags = [],
@@ -133,6 +254,34 @@ export function MailThreadDetail({
   React.useEffect(() => {
     setThread(threadProp);
   }, [threadProp]);
+
+  const [expandedIds, setExpandedIds] = React.useState<Set<string>>(() => {
+    const messages = threadProp.messages;
+    const start =
+      messages.length <= 3
+        ? Math.max(0, messages.length - 2)
+        : messages.length - 1;
+    return new Set(messages.slice(start).map((message) => message.id));
+  });
+  React.useEffect(() => {
+    const messages = threadProp.messages;
+    const start =
+      messages.length <= 3
+        ? Math.max(0, messages.length - 2)
+        : messages.length - 1;
+    setExpandedIds(new Set(messages.slice(start).map((message) => message.id)));
+  }, [threadProp.id]);
+
+  const lastMessageId = thread.messages[thread.messages.length - 1]?.id ?? null;
+  React.useEffect(() => {
+    if (!lastMessageId) return;
+    setExpandedIds((current) => {
+      if (current.has(lastMessageId)) return current;
+      const next = new Set(current);
+      next.add(lastMessageId);
+      return next;
+    });
+  }, [lastMessageId]);
 
   const applicableTags = tagsForAlias(tags, thread.aliasId);
   const sendIconRef = React.useRef<SendIconHandle>(null);
@@ -304,12 +453,16 @@ export function MailThreadDetail({
     }
   }, [isExecuting, sendPhase]);
 
-  const latestInbound = [...thread.messages]
-    .reverse()
-    .find((message) => message.direction === 'INBOUND');
   const firstInbound = thread.messages.find(
     (message) => message.direction === 'INBOUND'
   );
+  let latestInbound = firstInbound;
+  for (let i = thread.messages.length - 1; i >= 0; i--) {
+    if (thread.messages[i].direction === 'INBOUND') {
+      latestInbound = thread.messages[i];
+      break;
+    }
+  }
   const senderAddress =
     firstInbound?.fromAddress ?? latestInbound?.fromAddress ?? null;
   const senderMatch = senderAddress?.match(/^(.*?)\s*<([^>]+)>$/);
@@ -536,86 +689,27 @@ export function MailThreadDetail({
       <div className="min-h-0 flex-1 overflow-y-auto bg-background">
         <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6">
           <ol className="space-y-4">
-            {thread.messages.map((message) => {
-              const outbound = message.direction === 'OUTBOUND';
-              const rich = isRichMailHtml(message.bodyHtml);
-              const { name: fromName, email: fromEmail } = parseMailAddress(
-                message.fromAddress
-              );
-              const displayName = fromName || fromEmail;
-              const fromDomain = (() => {
-                const at = fromEmail.lastIndexOf('@');
-                if (at < 0) return null;
-                return fromEmail.slice(at + 1).toLowerCase() || null;
-              })();
-
-              return (
-                <li key={message.id}>
-                  <article className="space-y-3">
-                    {/* Gmail-style: sender chrome on the reading canvas, not inside the email card */}
-                    <div className="flex items-start gap-3 px-0.5">
-                      <Avatar className="size-10 shrink-0">
-                        {fromDomain ? (
-                          <AvatarImage
-                            src={getLogoUrl(fromDomain, 64, true)}
-                            alt=""
-                          />
-                        ) : null}
-                        <AvatarFallback className="text-[11px] font-medium">
-                          {getInitials(displayName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold leading-5">
-                              {displayName}
-                              {fromName ? (
-                                <span className="ml-1.5 font-normal text-muted-foreground">
-                                  &lt;{fromEmail}&gt;
-                                </span>
-                              ) : null}
-                            </p>
-                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                              To {message.toAddresses.join(', ')}
-                            </p>
-                          </div>
-                          <time
-                            dateTime={message.sentAt}
-                            className="shrink-0 pt-0.5 text-xs text-muted-foreground"
-                          >
-                            {formatMailTimestamp(message.sentAt)}
-                          </time>
-                        </div>
-                      </div>
-                    </div>
-
-                    {rich ? (
-                      <MailMessageBody
-                        bodyHtml={message.bodyHtml}
-                        bodyText={message.bodyText}
-                        subject={thread.subject}
-                        className="mt-0"
-                      />
-                    ) : (
-                      <div
-                        className={cn(
-                          'bg-background px-5 py-4',
-                          outbound && accentSoftBg
-                        )}
-                      >
-                        <MailMessageBody
-                          bodyHtml={message.bodyHtml}
-                          bodyText={message.bodyText}
-                          subject={thread.subject}
-                          className="mt-0 px-0.5"
-                        />
-                      </div>
-                    )}
-                  </article>
-                </li>
-              );
-            })}
+            {thread.messages.map((message, index) => (
+              <MailThreadMessage
+                key={message.id}
+                message={message}
+                subject={thread.subject}
+                eager={index >= thread.messages.length - 2}
+                expanded={expandedIds.has(message.id)}
+                onToggle={() => {
+                  setExpandedIds((current) => {
+                    const next = new Set(current);
+                    if (next.has(message.id)) {
+                      if (thread.messages.length === 1) return current;
+                      next.delete(message.id);
+                    } else {
+                      next.add(message.id);
+                    }
+                    return next;
+                  });
+                }}
+              />
+            ))}
           </ol>
 
           {!composerOpen ? (

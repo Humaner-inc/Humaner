@@ -107,6 +107,7 @@ export default async function DashboardLayout({
     includedMessages: 0,
     tier: userFromDb!.organization!.tier ?? 'free'
   };
+  const humanerAgentPublicId = getHumanerAgentPublicId();
 
   const [
     profile,
@@ -116,7 +117,8 @@ export default async function DashboardLayout({
     notificationsResult,
     inboxUnreadCount,
     handoffOpenCounts,
-    mailInboxes
+    mailInboxes,
+    humanerAgentRecord
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -125,7 +127,17 @@ export default async function DashboardLayout({
     getDashboardNotifications(),
     oss ? Promise.resolve(0) : getMailUnreadCount(),
     getHandoffOpenCounts(),
-    oss ? Promise.resolve([]) : getMailInboxes()
+    oss ? Promise.resolve([]) : getMailInboxes(),
+    !oss && humanerAgentPublicId
+      ? prisma.agent.findUnique({
+          where: { publicId: humanerAgentPublicId },
+          select: {
+            image: true,
+            character: true,
+            organization: { select: { name: true } }
+          }
+        })
+      : Promise.resolve(null)
   ]);
   const {
     items: notifications,
@@ -144,7 +156,6 @@ export default async function DashboardLayout({
     userFromDb!.organization!._count.mailboxConnections === 0;
 
   const accentColor = userFromDb!.organization!.accentColor ?? undefined;
-  const humanerAgentPublicId = getHumanerAgentPublicId();
   const dashboardVisitorId = buildDashboardVisitorId(session.user.id);
   const displayName = profile.name.trim();
   const nameParts = displayName.split(/\s+/).filter(Boolean);
@@ -157,20 +168,6 @@ export default async function DashboardLayout({
       : {})
   };
 
-  // Platform Ask Humaner agent may live outside the current org — look up by
-  // publicId so chat uses the agent face and Home uses the company mark.
-  const humanerAgentRecord = humanerAgentPublicId
-    ? await prisma.agent.findUnique({
-        where: { publicId: humanerAgentPublicId },
-        select: {
-          image: true,
-          character: true,
-          organization: {
-            select: { name: true, logoUrl: true, website: true }
-          }
-        }
-      })
-    : null;
   const humanerAgentAvatarUrl = resolveAgentAvatarSrc(
     humanerAgentRecord?.image,
     humanerAgentRecord?.character ?? 'CORPORATE'

@@ -10,7 +10,14 @@ import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
 
 export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
-  const overview = await getInboxOverview();
+  const overviewPromise = getInboxOverview();
+  const listPromise = Promise.all([
+    getMailThreads({ assignedToCurrentUser: true }),
+    getMailTags(),
+    getOrganizationMembers()
+  ]);
+
+  const overview = await overviewPromise;
 
   if (!overview || overview.locked) {
     return (
@@ -28,11 +35,7 @@ export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
     );
   }
 
-  const [threads, tags, members] = await Promise.all([
-    getMailThreads({ assignedToCurrentUser: true }),
-    getMailTags(),
-    getOrganizationMembers()
-  ]);
+  const [threads, tags, members] = await listPromise;
 
   if (threads.length === 0) {
     return (

@@ -12,31 +12,25 @@ import {
 import { cn } from '@/lib/utils';
 
 export type InputPasswordElement = InputWithAdornmentsElement;
-export type InputPasswordProps = Omit<InputWithAdornmentsProps, 'endAdornment'>;
+export type InputPasswordProps = Omit<
+  InputWithAdornmentsProps,
+  'endAdornment' | 'type'
+>;
+
 const InputPassword = React.forwardRef<
   InputPasswordElement,
   InputPasswordProps
->((props, ref) => {
-  const [showPassword, setShowPassword] = React.useState<boolean>(false);
-  const handleClickShowPassword = (): void => {
-    setShowPassword((prev) => !prev);
-  };
-  const handleMouseDownPassword = (event: React.SyntheticEvent): void => {
-    event.preventDefault();
-  };
-  const { className, style, ...rest } = props;
+>(function InputPassword({ className, disabled, ...props }, ref) {
+  const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <InputWithAdornments
+      {...props}
       ref={ref}
-      {...rest}
       type="text"
       spellCheck={false}
+      disabled={disabled}
       className={cn(!showPassword && 'input-sensitive-mask', className)}
-      style={{
-        ...style,
-        WebkitTextSecurity: showPassword ? 'none' : 'square'
-      }}
       endAdornment={
         <Button
           type="button"
@@ -44,9 +38,9 @@ const InputPassword = React.forwardRef<
           size="icon"
           aria-label="Toggle password visibility"
           className="-mr-2.5 size-8"
-          onClick={handleClickShowPassword}
-          onMouseDown={handleMouseDownPassword}
-          disabled={props.disabled}
+          onClick={() => setShowPassword((prev) => !prev)}
+          onMouseDown={(event) => event.preventDefault()}
+          disabled={disabled}
         >
           {showPassword ? (
             <EyeOffIcon className="size-4 shrink-0" />

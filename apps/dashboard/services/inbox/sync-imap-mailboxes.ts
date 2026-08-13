@@ -210,7 +210,9 @@ const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
     'class',
     'align',
     'border',
-    'loading'
+    'loading',
+    'decoding',
+    'referrerpolicy'
   ],
   table: [
     'width',

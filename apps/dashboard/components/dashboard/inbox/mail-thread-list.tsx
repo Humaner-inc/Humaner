@@ -147,6 +147,7 @@ export function MailThreadList({
     React.useState<MailThreadDetailDto | null>(null);
   const [paneLoading, setPaneLoading] = React.useState(false);
   const detailCacheRef = React.useRef(new Map<string, MailThreadDetailDto>());
+  const prefetchingRef = React.useRef(new Set<string>());
 
   React.useEffect(() => {
     activeThreadIdRef.current = activeThreadId;
@@ -244,8 +245,9 @@ export function MailThreadList({
 
   const { execute: loadThread } = useAction(fetchMailThread, {
     onSuccess: ({ data, input }) => {
-      if (!data || input.threadId !== activeThreadIdRef.current) return;
+      if (!data) return;
       detailCacheRef.current.set(input.threadId, data);
+      if (input.threadId !== activeThreadIdRef.current) return;
       setPaneThread(data);
       setPaneLoading(false);
       markThreadOpened(input.threadId);
@@ -257,6 +259,36 @@ export function MailThreadList({
       toast.error(error.serverError || 'Could not open thread');
     }
   });
+
+  const prefetchThread = React.useCallback(
+    (threadId: string) => {
+      if (detailCacheRef.current.has(threadId)) return;
+      if (prefetchingRef.current.has(threadId)) return;
+      prefetchingRef.current.add(threadId);
+      void fetchMailThread({ threadId })
+        .then((result) => {
+          prefetchingRef.current.delete(threadId);
+          if (!result?.data) {
+            if (threadId === activeThreadIdRef.current) {
+              loadThread({ threadId });
+            }
+            return;
+          }
+          detailCacheRef.current.set(threadId, result.data);
+          if (threadId !== activeThreadIdRef.current) return;
+          setPaneThread(result.data);
+          setPaneLoading(false);
+          markThreadOpened(threadId);
+        })
+        .catch(() => {
+          prefetchingRef.current.delete(threadId);
+          if (threadId === activeThreadIdRef.current) {
+            loadThread({ threadId });
+          }
+        });
+    },
+    [loadThread, markThreadOpened]
+  );
 
   const selectThread = React.useCallback(
     (threadId: string) => {
@@ -271,6 +303,7 @@ export function MailThreadList({
       }
       setPaneThread(null);
       setPaneLoading(true);
+      if (prefetchingRef.current.has(threadId)) return;
       loadThread({ threadId });
     },
     [loadThread, markThreadOpened]
@@ -562,7 +595,7 @@ export function MailThreadList({
   const isDesk = variant === 'desk';
   const selectionActive = selectMode || selectedIds.size > 0;
 
-  const threadRows = displayThreads.map((thread) => {
+  const threadRows = displayThreads.map((thread, index) => {
     return (
       <MailThreadRow
         key={thread.id}
@@ -573,8 +606,10 @@ export function MailThreadList({
         previewActive={activeThreadId === thread.id}
         showCheckboxes={selectionActive}
         selected={selectedIds.has(thread.id)}
+        avatarEager={index < 12}
         onToggleSelected={(checked) => toggleOne(thread.id, checked)}
         onSelect={() => selectThread(thread.id)}
+        onPrefetch={() => prefetchThread(thread.id)}
         onAskDelete={() => askDelete([thread.id])}
         onArchive={(archive) => {
           removeThreads([thread.id]);
@@ -949,8 +984,10 @@ function MailThreadRow({
   previewActive,
   showCheckboxes,
   selected,
+  avatarEager,
   onToggleSelected,
   onSelect,
+  onPrefetch,
   onAskDelete,
   onArchive,
   onAssign,
@@ -964,8 +1001,10 @@ function MailThreadRow({
   previewActive: boolean;
   showCheckboxes: boolean;
   selected: boolean;
+  avatarEager: boolean;
   onToggleSelected: (checked: boolean) => void;
   onSelect: () => void;
+  onPrefetch: () => void;
   onAskDelete: () => void;
   onArchive: (archive: boolean) => void;
   onAssign: (assigneeId: string | null) => void;
@@ -1021,7 +1060,7 @@ function MailThreadRow({
   return (
     <li
       className={cn(
-        'message-item group relative border-b border-border last:border-b-0',
+        'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem]',
         MAIL_SPLIT_ROW_HEIGHT_CLASS,
         localUnread
           ? 'bg-sky-50/80 dark:bg-sky-950/25'
@@ -1038,6 +1077,8 @@ function MailThreadRow({
         tabIndex={0}
         className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-5 sm:pr-28"
         onClick={handleRowClick}
+        onMouseEnter={onPrefetch}
+        onFocus={onPrefetch}
         onPointerDown={(event) => {
           if (showCheckboxes || event.button !== 0) return;
           cancelLongPress();
@@ -1078,6 +1119,8 @@ function MailThreadRow({
             <AvatarImage
               src={getLogoUrl(domain, 64, true)}
               alt=""
+              loading={avatarEager ? 'eager' : 'lazy'}
+              decoding="async"
             />
           ) : null}
           <AvatarFallback className="text-[10px] font-medium">

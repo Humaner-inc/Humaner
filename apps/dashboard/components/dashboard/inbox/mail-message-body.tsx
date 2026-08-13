@@ -14,10 +14,13 @@ import { cn } from '@/lib/utils';
 /** Same as page background — one surface behind the email card. */
 const MAIL_CANVAS_LIGHT = '#fff8f2';
 const MAIL_CANVAS_DARK = '#0A0D0D';
+const MAIL_SANDBOX =
+  'allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads';
 
 /**
  * Minimal iframe CSS — do NOT restyle sender HTML (borders, margins, type).
  * Canvas color adapts so white bordered cards stay visible in both themes.
+ * No scripts in the mail document — hide broken images from the parent.
  */
 function mailIframeCss(canvas: string): string {
   return `
@@ -45,10 +48,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-/*
- * sanitize-html drops the author <body>, which often carried bg-white.
- * React-email Containers are tables — restore their card fill so borders read.
- */
 body > table,
 body > div > table {
   background-color: #ffffff;
@@ -75,10 +74,11 @@ img, video, svg {
   max-width: 100%;
   height: auto;
 }
-img.mail-broken {
+img.mail-broken,
+img:not([src]),
+img[src=""] {
   display: none !important;
 }
-/* Soften huge fixed-width tables without killing card borders/margins */
 table {
   max-width: 100%;
 }
@@ -94,33 +94,37 @@ blockquote[type="cite"] {
 }
 
 function buildMailSrcDoc(bodyHtml: string, canvas: string): string {
-  // Script marks broken images so alt text ("X" / "XX") never paints.
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><base target="_blank" rel="noopener noreferrer"><style>${mailIframeCss(canvas)}</style></head><body>${bodyHtml}<script>(function(){function m(i){i.classList.add('mail-broken');i.removeAttribute('alt');i.style.display='none'}document.querySelectorAll('img').forEach(function(i){if(!i.getAttribute('referrerpolicy'))i.referrerPolicy='no-referrer-when-downgrade';if(i.complete&&i.naturalWidth===0&&i.src){m(i);return}i.addEventListener('error',function(){m(i)},{once:true})})})();</script></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';"><base target="_blank" rel="noopener noreferrer"><style>${mailIframeCss(canvas)}</style></head><body>${bodyHtml}</body></html>`;
+}
+
+function hideBrokenImage(img: HTMLImageElement): void {
+  img.classList.add('mail-broken');
+  img.removeAttribute('alt');
+  img.style.display = 'none';
 }
 
 export function MailMessageBody({
   bodyHtml,
   bodyText,
   subject,
-  className
+  className,
+  eager = false
 }: {
   bodyHtml: string | null;
   bodyText: string | null;
   /** Thread subject — stripped when restated as the first body line. */
   subject?: string | null;
   className?: string;
+  /** Mount the iframe immediately (latest messages). Older ones wait until near view. */
+  eager?: boolean;
 }): React.JSX.Element {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const hostRef = React.useRef<HTMLDivElement>(null);
   const [height, setHeight] = React.useState(120);
+  const [active, setActive] = React.useState(eager);
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const canvas =
-    mounted && resolvedTheme === 'dark' ? MAIL_CANVAS_DARK : MAIL_CANVAS_LIGHT;
+    resolvedTheme === 'dark' ? MAIL_CANVAS_DARK : MAIL_CANVAS_LIGHT;
 
   const origin =
     typeof window !== 'undefined' ? window.location.origin : undefined;
@@ -146,13 +150,34 @@ export function MailMessageBody({
   const srcDoc = html ? buildMailSrcDoc(html, canvas) : null;
 
   React.useEffect(() => {
-    if (!srcDoc) return;
+    if (active || !srcDoc) return;
+    const el = hostRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setActive(true);
+        observer.disconnect();
+      },
+      { rootMargin: '240px 0px', threshold: 0.01 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [active, srcDoc]);
+
+  React.useEffect(() => {
+    if (!srcDoc || !active) return;
 
     const frame = iframeRef.current;
     if (!frame) return;
 
     let resizeObserver: ResizeObserver | null = null;
-    const imageListeners: Array<{ img: HTMLImageElement; fn: () => void }> = [];
+    const imageListeners: Array<{
+      img: HTMLImageElement;
+      onLoad: () => void;
+      onError: () => void;
+    }> = [];
     let rafId = 0;
 
     const measure = (): void => {
@@ -174,10 +199,8 @@ export function MailMessageBody({
       rafId = requestAnimationFrame(measure);
     };
 
-    const onLoad = (): void => {
+    const onFrameLoad = (): void => {
       scheduleMeasure();
-      window.setTimeout(scheduleMeasure, 120);
-      window.setTimeout(scheduleMeasure, 480);
 
       const doc = frame.contentDocument;
       if (!doc?.body) return;
@@ -191,40 +214,57 @@ export function MailMessageBody({
         resizeObserver.observe(doc.documentElement);
       }
 
-      for (const { img, fn } of imageListeners) {
-        img.removeEventListener('load', fn);
-        img.removeEventListener('error', fn);
+      for (const { img, onLoad, onError } of imageListeners) {
+        img.removeEventListener('load', onLoad);
+        img.removeEventListener('error', onError);
       }
       imageListeners.length = 0;
 
       for (const img of doc.querySelectorAll('img')) {
         if (!img.getAttribute('referrerpolicy')) {
-          img.referrerPolicy = 'no-referrer-when-downgrade';
+          img.referrerPolicy = 'no-referrer';
         }
-        if (img.complete) {
+        img.decoding = 'async';
+        if (!eager && !img.getAttribute('loading')) {
+          img.loading = 'lazy';
+        }
+
+        const onError = (): void => {
+          hideBrokenImage(img);
           scheduleMeasure();
+        };
+        const onLoad = (): void => {
+          if (img.naturalWidth === 0 && img.src) {
+            hideBrokenImage(img);
+          }
+          scheduleMeasure();
+        };
+
+        if (img.complete) {
+          onLoad();
           continue;
         }
-        const fn = (): void => scheduleMeasure();
-        img.addEventListener('load', fn);
-        img.addEventListener('error', fn);
-        imageListeners.push({ img, fn });
+        img.addEventListener('load', onLoad);
+        img.addEventListener('error', onError);
+        imageListeners.push({ img, onLoad, onError });
       }
     };
 
-    frame.addEventListener('load', onLoad);
-    frame.srcdoc = srcDoc;
+    frame.addEventListener('load', onFrameLoad);
+    if (frame.contentDocument?.readyState === 'complete') {
+      onFrameLoad();
+    }
 
     return () => {
-      frame.removeEventListener('load', onLoad);
+      frame.removeEventListener('load', onFrameLoad);
       resizeObserver?.disconnect();
       cancelAnimationFrame(rafId);
-      for (const { img, fn } of imageListeners) {
-        img.removeEventListener('load', fn);
-        img.removeEventListener('error', fn);
+      for (const { img, onLoad, onError } of imageListeners) {
+        img.removeEventListener('load', onLoad);
+        img.removeEventListener('error', onError);
       }
     };
-  }, [srcDoc]);
+  }, [srcDoc, active, eager]);
 
   if (!srcDoc) {
     return (
@@ -239,6 +279,17 @@ export function MailMessageBody({
     );
   }
 
+  if (!active) {
+    return (
+      <div
+        ref={hostRef}
+        className={cn('overflow-x-auto', className)}
+        style={{ backgroundColor: canvas, minHeight: 120 }}
+        aria-hidden
+      />
+    );
+  }
+
   return (
     <div
       className={cn('overflow-x-auto', className)}
@@ -247,10 +298,13 @@ export function MailMessageBody({
       <iframe
         ref={iframeRef}
         title="Email message"
-        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads allow-scripts"
+        srcDoc={srcDoc}
+        sandbox={MAIL_SANDBOX}
+        referrerPolicy="no-referrer"
         className="block w-full border-0"
         style={{ height, minHeight: 64, backgroundColor: canvas }}
         scrolling="no"
+        suppressHydrationWarning
       />
     </div>
   );

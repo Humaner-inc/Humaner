@@ -99,39 +99,42 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
   });
   const scopedAliasIds = aliasIdFilter(scope);
 
-  const aliases = await prisma.mailAlias.findMany({
-    where: {
-      organizationId,
-      enabled: true,
-      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
-    },
-    orderBy: { address: 'asc' },
-    select: {
-      id: true,
-      address: true,
-      displayName: true
-    }
-  });
+  const aliasWhere = {
+    organizationId,
+    enabled: true,
+    ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+  };
+
+  const [aliases, unreadThreads] = await Promise.all([
+    prisma.mailAlias.findMany({
+      where: aliasWhere,
+      orderBy: { address: 'asc' },
+      select: {
+        id: true,
+        address: true,
+        displayName: true
+      }
+    }),
+    // Same unread rule as getMailUnreadCount, grouped per inbox.
+    prisma.mailThread.findMany({
+      where: {
+        organizationId,
+        isUnread: true,
+        archivedAt: null,
+        alias: aliasWhere
+      },
+      select: {
+        aliasId: true,
+        messages: {
+          orderBy: { sentAt: 'desc' },
+          take: 1,
+          select: { direction: true }
+        }
+      }
+    })
+  ]);
 
   if (aliases.length === 0) return [];
-
-  // Same unread rule as getMailUnreadCount, grouped per inbox.
-  const unreadThreads = await prisma.mailThread.findMany({
-    where: {
-      organizationId,
-      isUnread: true,
-      archivedAt: null,
-      aliasId: { in: aliases.map((alias) => alias.id) }
-    },
-    select: {
-      aliasId: true,
-      messages: {
-        orderBy: { sentAt: 'desc' },
-        take: 1,
-        select: { direction: true }
-      }
-    }
-  });
 
   const unreadByAlias = new Map<string, number>();
   for (const thread of unreadThreads) {

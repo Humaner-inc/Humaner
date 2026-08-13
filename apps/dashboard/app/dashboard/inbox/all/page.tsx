@@ -34,13 +34,20 @@ export default async function InboxAllPage({
     compose?: string;
   }>;
 }): Promise<React.JSX.Element> {
-  const overview = await getInboxOverview();
-  const {
-    alias: aliasParam,
-    filter: filterParam,
-    tag: tagParam,
-    compose: composeParam
-  } = await searchParams;
+  const overviewPromise = getInboxOverview();
+  const inboxesPromise = getMailInboxes();
+  const tagsPromise = getMailTags();
+  const membersPromise = getOrganizationMembers();
+
+  const [
+    {
+      alias: aliasParam,
+      filter: filterParam,
+      tag: tagParam,
+      compose: composeParam
+    },
+    overview
+  ] = await Promise.all([searchParams, overviewPromise]);
   const activeFilter = parseFilter(filterParam);
   const autoCompose = composeParam === '1' || composeParam === 'true';
 
@@ -63,10 +70,23 @@ export default async function InboxAllPage({
     );
   }
 
-  const [inboxes, tags, members] = await Promise.all([
-    getMailInboxes(),
-    getMailTags(),
-    getOrganizationMembers()
+  const threadsPromise = getMailThreads({
+    aliasId: aliasParam ?? null,
+    tagId: tagParam ?? null,
+    unreadOnly: !tagParam && activeFilter === 'unread',
+    status:
+      !tagParam && activeFilter === 'open'
+        ? 'OPEN'
+        : !tagParam && activeFilter === 'pending'
+          ? 'PENDING'
+          : undefined
+  });
+
+  const [inboxes, tags, members, threads] = await Promise.all([
+    inboxesPromise,
+    tagsPromise,
+    membersPromise,
+    threadsPromise
   ]);
 
   const activeAliasId =
@@ -76,18 +96,6 @@ export default async function InboxAllPage({
 
   const activeTagId =
     tagParam && tags.some((tag) => tag.id === tagParam) ? tagParam : null;
-
-  const threads = await getMailThreads({
-    aliasId: activeAliasId,
-    tagId: activeTagId,
-    unreadOnly: !activeTagId && activeFilter === 'unread',
-    status:
-      !activeTagId && activeFilter === 'open'
-        ? 'OPEN'
-        : !activeTagId && activeFilter === 'pending'
-          ? 'PENDING'
-          : undefined
-  });
 
   if (threads.length === 0) {
     return (
