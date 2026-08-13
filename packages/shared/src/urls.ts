@@ -76,7 +76,7 @@ export function getPricingUrl(): string {
 }
 
 export function getBookDemoUrl(): string {
-  return "https://cal.com/alex-neyret/15min";
+  return "https://cal.com/alex-neyret/20min";
 }
 
 export function getPrivacyUrl(): string {

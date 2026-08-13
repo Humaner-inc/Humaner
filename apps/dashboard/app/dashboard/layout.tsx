@@ -8,6 +8,7 @@ import { getPrivacyUrl } from '@humaner/shared/urls';
 import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
 
+import { AskHumanerSlideUp } from '@/components/dashboard/ask-humaner/ask-humaner-slide-up';
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
@@ -43,7 +44,7 @@ import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
-import { HUMANER_DEFAULT_ACCENT } from '@/lib/urls/extract-brand-accent-color';
+import { ASK_HUMANER_ACCENT } from '@/lib/urls/extract-brand-accent-color';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export function generateMetadata(): Metadata {
@@ -227,6 +228,7 @@ export default async function DashboardLayout({
           <DashboardDockPanel />
         </div>
       </SidebarInset>
+      <AskHumanerSlideUp />
     </>
   );
 
@@ -264,7 +266,7 @@ export default async function DashboardLayout({
                     agentAvatarUrl={humanerAgentAvatarUrl}
                     organizationName={humanerOrganizationName}
                     organizationLogoUrl={humanerOrganizationLogoUrl}
-                    widgetColor={HUMANER_DEFAULT_ACCENT}
+                    widgetColor={ASK_HUMANER_ACCENT}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}
