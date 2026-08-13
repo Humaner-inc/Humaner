@@ -1,14 +1,21 @@
 import { MetadataRoute } from 'next';
-import { headers } from 'next/headers';
+import { getAppUrl } from '@humaner/shared/urls';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headersList = await headers();
-  const domain = headersList.get('host') ?? '';
+export default function sitemap(): MetadataRoute.Sitemap {
+  const base = getAppUrl().replace(/\/$/, '');
 
   return [
     {
-      url: `https://${domain}`,
-      lastModified: new Date()
+      url: `${base}/auth/login`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3
+    },
+    {
+      url: `${base}/auth/signup`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.4
     }
   ];
 }

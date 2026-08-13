@@ -2,6 +2,7 @@ import './globals.css';
 
 import * as React from 'react';
 import type { Metadata, Viewport } from 'next';
+import { HUMANER_TITLE } from '@humaner/shared/product-positioning';
 
 import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/sonner';
@@ -11,6 +12,25 @@ import { fellix, humanerMono, theSeasons } from '@/lib/fonts';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 const oss = isOssDeployment();
+const description = oss
+  ? `${AppInfo.APP_NAME} — customer support kit (Helpdesk, BYO agent, team & org).`
+  : AppInfo.APP_DESCRIPTION;
+
+function metadataBaseUrl(clientBaseUrl: string): URL {
+  try {
+    const u = new URL(clientBaseUrl);
+    if (
+      u.protocol === 'http:' &&
+      u.hostname !== 'localhost' &&
+      u.hostname !== '127.0.0.1'
+    ) {
+      u.protocol = 'https:';
+    }
+    return u;
+  } catch {
+    return new URL('https://app.humaner.io');
+  }
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -24,19 +44,28 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
-  title: AppInfo.APP_NAME,
-  description: oss
-    ? `${AppInfo.APP_NAME} — customer support kit (Helpdesk, BYO agent, team & org).`
-    : AppInfo.APP_DESCRIPTION,
+  metadataBase: metadataBaseUrl(getBaseUrl()),
+  title: {
+    default: `${AppInfo.APP_NAME} | ${HUMANER_TITLE}`,
+    template: '%s'
+  },
+  description,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
     apple: '/favicon.svg'
   },
   manifest: `${getBaseUrl()}/manifest`,
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: AppInfo.APP_NAME,
+    title: `${AppInfo.APP_NAME} — ${HUMANER_TITLE}`,
+    description,
+    url: getBaseUrl()
+  },
   robots: {
-    index: true,
+    index: false,
     follow: true
   }
 };

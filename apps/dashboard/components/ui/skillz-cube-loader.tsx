@@ -20,12 +20,16 @@ const HOLD_MS = 400;
 export function SkillzCubeLoader({
   className,
   size = 20,
-  filled = false
+  filled = false,
+  emptyClassName = 'text-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)]',
+  fillClassName = 'text-[var(--accent-color,#e1ccaf)]'
 }: {
   className?: string;
   size?: number;
   /** Fully filled cube (no loop). */
   filled?: boolean;
+  emptyClassName?: string;
+  fillClassName?: string;
 }): React.JSX.Element {
   const [fillProgress, setFillProgress] = React.useState(filled ? 1 : 0);
   const reducedMotion = React.useRef(false);
@@ -84,8 +88,8 @@ export function SkillzCubeLoader({
         fillProgress={fillProgress}
         active
         spec={SKILLZ_GLYPH_SPEC}
-        className="size-full text-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)]"
-        fillClassName="text-[var(--accent-color,#e1ccaf)]"
+        className={cn('size-full', emptyClassName)}
+        fillClassName={fillClassName}
       />
     </span>
   );

@@ -211,8 +211,7 @@ export function MailThreadList({
       [threadId]: {
         ...current[threadId],
         isUnread: false,
-        awaitingReply: false,
-        lastMessageAt: new Date().toISOString()
+        awaitingReply: false
       }
     }));
   }, []);
@@ -243,51 +242,53 @@ export function MailThreadList({
     [clearPane, patchThreads]
   );
 
-  const { execute: loadThread } = useAction(fetchMailThread, {
-    onSuccess: ({ data, input }) => {
-      if (!data) return;
-      detailCacheRef.current.set(input.threadId, data);
-      if (input.threadId !== activeThreadIdRef.current) return;
+  const applyThreadDetail = React.useCallback(
+    (threadId: string, data: MailThreadDetailDto) => {
+      detailCacheRef.current.set(threadId, data);
+      if (threadId !== activeThreadIdRef.current || data.id !== threadId) {
+        return;
+      }
       setPaneThread(data);
       setPaneLoading(false);
-      markThreadOpened(input.threadId);
+      markThreadOpened(threadId);
     },
-    onError: ({ error, input }) => {
-      if (input.threadId !== activeThreadIdRef.current) return;
-      setPaneLoading(false);
-      setPaneThread(null);
-      toast.error(error.serverError || 'Could not open thread');
-    }
-  });
+    [markThreadOpened]
+  );
 
-  const prefetchThread = React.useCallback(
+  const requestThread = React.useCallback(
     (threadId: string) => {
-      if (detailCacheRef.current.has(threadId)) return;
-      if (prefetchingRef.current.has(threadId)) return;
       prefetchingRef.current.add(threadId);
       void fetchMailThread({ threadId })
         .then((result) => {
           prefetchingRef.current.delete(threadId);
           if (!result?.data) {
             if (threadId === activeThreadIdRef.current) {
-              loadThread({ threadId });
+              setPaneLoading(false);
+              setPaneThread(null);
+              toast.error('Could not open thread');
             }
             return;
           }
-          detailCacheRef.current.set(threadId, result.data);
-          if (threadId !== activeThreadIdRef.current) return;
-          setPaneThread(result.data);
-          setPaneLoading(false);
-          markThreadOpened(threadId);
+          applyThreadDetail(threadId, result.data);
         })
         .catch(() => {
           prefetchingRef.current.delete(threadId);
-          if (threadId === activeThreadIdRef.current) {
-            loadThread({ threadId });
-          }
+          if (threadId !== activeThreadIdRef.current) return;
+          setPaneLoading(false);
+          setPaneThread(null);
+          toast.error('Could not open thread');
         });
     },
-    [loadThread, markThreadOpened]
+    [applyThreadDetail]
+  );
+
+  const prefetchThread = React.useCallback(
+    (threadId: string) => {
+      if (detailCacheRef.current.has(threadId)) return;
+      if (prefetchingRef.current.has(threadId)) return;
+      requestThread(threadId);
+    },
+    [requestThread]
   );
 
   const selectThread = React.useCallback(
@@ -304,9 +305,9 @@ export function MailThreadList({
       setPaneThread(null);
       setPaneLoading(true);
       if (prefetchingRef.current.has(threadId)) return;
-      loadThread({ threadId });
+      requestThread(threadId);
     },
-    [loadThread, markThreadOpened]
+    [markThreadOpened, requestThread]
   );
 
   React.useEffect(() => {
@@ -401,9 +402,7 @@ export function MailThreadList({
   // After a reply/refresh, drop cached detail so the pane reloads fresh content.
   React.useEffect(() => {
     if (!activeThreadId) return;
-    const listItem = displayThreads.find(
-      (thread) => thread.id === activeThreadId
-    );
+    const listItem = threads.find((thread) => thread.id === activeThreadId);
     if (!listItem) return;
     const cached = detailCacheRef.current.get(activeThreadId);
     if (!cached) return;
@@ -413,9 +412,9 @@ export function MailThreadList({
     ) {
       detailCacheRef.current.delete(activeThreadId);
       setPaneLoading(true);
-      loadThread({ threadId: activeThreadId });
+      requestThread(activeThreadId);
     }
-  }, [displayThreads, activeThreadId, loadThread]);
+  }, [threads, activeThreadId, requestThread]);
 
   const allSelected =
     displayThreads.length > 0 && selectedIds.size === displayThreads.length;
@@ -701,6 +700,11 @@ export function MailThreadList({
     </ul>
   );
 
+  const paneMatches =
+    paneThread != null &&
+    activeThreadId != null &&
+    paneThread.id === activeThreadId;
+
   const readingPane = (
     <div
       className={cn(
@@ -708,12 +712,7 @@ export function MailThreadList({
         !isDesk && 'border border-border md:border-0 md:border-l'
       )}
     >
-      {paneLoading && !paneThread ? (
-        <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
-          <SkillzCubeLoader size={28} />
-          Opening conversation…
-        </div>
-      ) : paneThread ? (
+      {paneMatches ? (
         <MailThreadDetail
           key={paneThread.id}
           thread={paneThread}
@@ -727,7 +726,7 @@ export function MailThreadList({
           onPatched={(patch) => {
             patchThreads([paneThread.id], patch);
             setPaneThread((current) =>
-              current
+              current && current.id === activeThreadIdRef.current
                 ? {
                     ...current,
                     ...(patch.tag !== undefined ? { tag: patch.tag } : {}),
@@ -739,6 +738,11 @@ export function MailThreadList({
             );
           }}
         />
+      ) : paneLoading || activeThreadId ? (
+        <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
+          <SkillzCubeLoader size={28} />
+          Opening conversation…
+        </div>
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
           Select a thread to open it
@@ -799,7 +803,7 @@ export function MailThreadList({
         )}
       </div>
       <div className="w-full md:hidden">
-        {activeThreadId && paneThread ? (
+        {paneMatches ? (
           <div className="h-full min-h-0 bg-background">{readingPane}</div>
         ) : (
           <div className="h-full border-r border-border/50">{listPanel}</div>

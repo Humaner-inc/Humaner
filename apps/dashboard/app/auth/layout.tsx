@@ -28,7 +28,15 @@ export function generateMetadata(): Metadata {
   const title =
     AUTH_TITLES[pathname] ??
     (pathname.startsWith(Routes.Auth) ? 'Auth' : 'Auth');
-  return createPageMetadata(pathname, title);
+  const publicAuth = pathname === Routes.Login || pathname === Routes.SignUp;
+
+  return {
+    ...createPageMetadata(pathname, title),
+    robots: {
+      index: publicAuth,
+      follow: true
+    }
+  };
 }
 
 function isChangeEmailRoute(): boolean {

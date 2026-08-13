@@ -12,12 +12,13 @@ const RICH_MAIL_BG_STYLE_RE =
   /style\s*=\s*["'][^"']*\bbackground(?:-color)?\s*:/i;
 
 /**
- * React-email / ESP preview text blocks that should stay invisible.
- * When sanitize or client transforms strip `display:none`, the preview
- * leaks as a stray first line (e.g. "Glad you're here.").
+ * React-email / ESP preview text that should stay invisible.
+ * When sanitize strips `display:none`, it leaks as a stray first line
+ * (e.g. "Glad you're here." / "Redis") between the header and the design.
  */
-const PREVIEW_BLOCK_RE =
-  /<div\b[^>]*(?:display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|overflow\s*:\s*hidden)[^>]*>[\s\S]*?<\/div>/gi;
+const PREVIEW_OPEN_RE = /<(div|span|p)\b([^>]*?)>/gi;
+const PREVIEW_ATTR_RE =
+  /id\s*=\s*["']__react-email-preview["']|class\s*=\s*["'][^"']*(?:preheader|preview-text|previewtext|mcnPreviewText)[^"']*["']|display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|overflow\s*:\s*hidden|visibility\s*:\s*hidden|mso-hide/i;
 
 /** Localhost / relative app asset URLs that break when the mail is viewed later. */
 const BROKEN_APP_ASSET_SRC_RE =
@@ -133,12 +134,52 @@ export function rewriteMailAssetUrls(html: string, origin: string): string {
     );
 }
 
+function matchingCloseIndex(html: string, tag: string, from: number): number {
+  const openRe = new RegExp(`<${tag}\\b[^>]*>`, 'gi');
+  const closeRe = new RegExp(`</${tag}\\s*>`, 'gi');
+  let depth = 1;
+  let cursor = from;
+  while (cursor < html.length && depth > 0) {
+    openRe.lastIndex = cursor;
+    closeRe.lastIndex = cursor;
+    const nextOpen = openRe.exec(html);
+    const nextClose = closeRe.exec(html);
+    if (!nextClose) return -1;
+    if (nextOpen && nextOpen.index < nextClose.index) {
+      depth += 1;
+      cursor = nextOpen.index + nextOpen[0].length;
+    } else {
+      depth -= 1;
+      cursor = nextClose.index + nextClose[0].length;
+    }
+  }
+  return depth === 0 ? cursor : -1;
+}
+
 /**
  * Strip ESP / react-email preview dumps that often become visible after
  * sanitize or client transforms remove their hiding styles.
  */
 export function stripMailPreviewBlocks(html: string): string {
-  return html.replace(PREVIEW_BLOCK_RE, '');
+  let out = html;
+  const ranges: Array<{ start: number; end: number }> = [];
+  PREVIEW_OPEN_RE.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = PREVIEW_OPEN_RE.exec(out))) {
+    if (!PREVIEW_ATTR_RE.test(match[2] ?? '')) continue;
+    const tag = match[1] ?? 'div';
+    const end = matchingCloseIndex(out, tag, match.index + match[0].length);
+    if (end < 0) continue;
+    ranges.push({ start: match.index, end });
+    PREVIEW_OPEN_RE.lastIndex = end;
+  }
+  for (let i = ranges.length - 1; i >= 0; i -= 1) {
+    const range = ranges[i];
+    if (!range) continue;
+    out = `${out.slice(0, range.start)}${out.slice(range.end)}`;
+  }
+  // Raw preheader sitting in front of the first tag ("Redis", "Glad you're here.").
+  return out.replace(/^\s*[^<\n\r]{1,80}\s*(?=<)/, '');
 }
 
 /**

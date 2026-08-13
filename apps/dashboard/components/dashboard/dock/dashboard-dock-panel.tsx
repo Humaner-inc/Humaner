@@ -10,6 +10,7 @@ import {
   XIcon
 } from '@humaner/shared/icons';
 
+import { AskHumanerPanel } from '@/components/dashboard/ask-humaner/ask-humaner-panel';
 import {
   useDashboardDock,
   type DockMode
@@ -43,9 +44,7 @@ const BACK_MODES: Partial<
 
 export function DashboardDockPanel(): React.JSX.Element {
   const { activeMode, closeDock, openDock } = useDashboardDock();
-  const sidebarMode =
-    activeMode !== null && activeMode !== 'ask' ? activeMode : null;
-  const isOpen = sidebarMode !== null;
+  const isOpen = activeMode !== null;
 
   return (
     <div
@@ -56,39 +55,45 @@ export function DashboardDockPanel(): React.JSX.Element {
           : 'w-0 border-l-0'
       )}
     >
-      {sidebarMode ? (
+      {activeMode ? (
         <div className="flex h-full w-96 max-lg:w-full flex-col bg-background">
-          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
-            {BACK_MODES[sidebarMode] ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                onClick={() => openDock(BACK_MODES[sidebarMode]!)}
-                aria-label="Back"
-              >
-                <ArrowLeftIcon className="size-4" />
-              </Button>
-            ) : null}
-            <span className="flex-1 truncate font-mono text-xs tracking-tight">
-              {DOCK_TITLES[sidebarMode]}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-              onClick={closeDock}
-              aria-label="Close panel"
-            >
-              <XIcon className="size-4" />
-            </Button>
-          </div>
+          {activeMode === 'ask' ? (
+            <AskHumanerPanel className="h-full min-h-0" />
+          ) : (
+            <>
+              <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
+                {BACK_MODES[activeMode] ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                    onClick={() => openDock(BACK_MODES[activeMode]!)}
+                    aria-label="Back"
+                  >
+                    <ArrowLeftIcon className="size-4" />
+                  </Button>
+                ) : null}
+                <span className="flex-1 truncate font-mono text-xs tracking-tight">
+                  {DOCK_TITLES[activeMode]}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                  onClick={closeDock}
+                  aria-label="Close panel"
+                >
+                  <XIcon className="size-4" />
+                </Button>
+              </div>
 
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <DockContent mode={sidebarMode} />
-          </div>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <DockContent mode={activeMode} />
+              </div>
+            </>
+          )}
         </div>
       ) : null}
     </div>

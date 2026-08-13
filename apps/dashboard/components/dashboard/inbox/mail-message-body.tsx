@@ -52,15 +52,20 @@ body > table,
 body > div > table {
   background-color: #ffffff;
 }
-body > div:first-child[style*="display:none"],
-body > div:first-child[style*="display: none"],
-body > div:first-child[style*="max-height:0"],
-body > div:first-child[style*="max-height: 0"],
-body > div:first-child[style*="opacity:0"],
-body > div:first-child[style*="opacity: 0"],
+body > :first-child[style*="display:none"],
+body > :first-child[style*="display: none"],
+body > :first-child[style*="max-height:0"],
+body > :first-child[style*="max-height: 0"],
+body > :first-child[style*="opacity:0"],
+body > :first-child[style*="opacity: 0"],
+body > :first-child[style*="visibility:hidden"],
+body > :first-child[style*="visibility: hidden"],
+#__react-email-preview,
 [data-skip-in-text="true"],
 .preheader,
-.preview-text {
+.preview-text,
+.previewtext,
+.mcnPreviewText {
   display: none !important;
   max-height: 0 !important;
   max-width: 0 !important;
@@ -101,6 +106,38 @@ function hideBrokenImage(img: HTMLImageElement): void {
   img.classList.add('mail-broken');
   img.removeAttribute('alt');
   img.style.display = 'none';
+}
+
+const PREVIEW_CLASS_RE = /preheader|preview-text|previewtext|mcnpreviewtext/i;
+const PREVIEW_STYLE_RE =
+  /display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|visibility\s*:\s*hidden|mso-hide/i;
+
+/** Drop leaked inbox-preview text that ESPs hide with CSS Gmail honors. */
+function stripLeakedPreheader(body: HTMLElement): void {
+  while (body.firstChild?.nodeType === Node.TEXT_NODE) {
+    const text = body.firstChild.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    if (text.length === 0) {
+      body.removeChild(body.firstChild);
+      continue;
+    }
+    if (text.length <= 80) {
+      body.removeChild(body.firstChild);
+      continue;
+    }
+    break;
+  }
+
+  const first = body.firstElementChild;
+  if (!first) return;
+  const style = first.getAttribute('style') ?? '';
+  const className = typeof first.className === 'string' ? first.className : '';
+  if (
+    first.id === '__react-email-preview' ||
+    PREVIEW_CLASS_RE.test(className) ||
+    PREVIEW_STYLE_RE.test(style)
+  ) {
+    first.remove();
+  }
 }
 
 export function MailMessageBody({
@@ -204,6 +241,8 @@ export function MailMessageBody({
 
       const doc = frame.contentDocument;
       if (!doc?.body) return;
+
+      stripLeakedPreheader(doc.body);
 
       resizeObserver?.disconnect();
       resizeObserver = new ResizeObserver(() => {

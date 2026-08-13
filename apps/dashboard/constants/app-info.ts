@@ -1,4 +1,5 @@
 import { brand } from '@/brand.config';
+import { HUMANER_META_DESCRIPTION } from '@humaner/shared/product-positioning';
 
 import { isOssDeployment } from '@/lib/deployment-mode';
 import type { ObjectValues } from '@/types/object-values';
@@ -13,7 +14,7 @@ export const AppInfo = {
   APP_NAME: brand.name,
   APP_DESCRIPTION: isOssDeployment()
     ? `${brand.name} customer support kit — Helpdesk, BYO agent, team & org.`
-    : 'Personality-driven AI support agents. Accurate as a specialist, human as a person.',
+    : HUMANER_META_DESCRIPTION,
   PRODUCTION: process.env.NODE_ENV === 'production',
   VERSION: packageInfo.version,
   /** Self-Host: Helpdesk. Cloud: Human Desk. */

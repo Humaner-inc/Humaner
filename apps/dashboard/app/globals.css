@@ -861,4 +861,34 @@ input[type='password'],
   .hero-screen-logo--glitch .hero-screen-logo__scanlines {
     opacity: 0;
   }
+
+  .ask-cube-glitch {
+    animation: none;
+  }
+}
+
+@keyframes ask-cube-glitch {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    filter: none;
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(-15deg);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    filter: hue-rotate(20deg);
+  }
+  60% {
+    transform: translate(-1px, -2px);
+  }
+  80% {
+    transform: translate(1px, 1px);
+  }
+}
+
+.ask-cube-glitch {
+  animation: ask-cube-glitch 0.1s steps(2) infinite;
 }

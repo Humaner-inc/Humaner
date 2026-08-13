@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { RefreshCwIcon } from '@humaner/shared/icons';
+import { ChevronDownIcon, RefreshCwIcon } from '@humaner/shared/icons';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -37,6 +37,203 @@ const PANEL_TRANSITION = {
   duration: 0.28,
   ease: [0.22, 1, 0.36, 1] as const
 };
+
+const CHIP_CLASS =
+  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors';
+
+type FilterChipItem = {
+  key: string;
+  href: string;
+  label: string;
+  active: boolean;
+  color?: string;
+};
+
+function chipTone(active: boolean): string {
+  return active
+    ? 'bg-foreground/[0.06] text-foreground'
+    : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground';
+}
+
+function ChipFace({ item }: { item: FilterChipItem }): React.JSX.Element {
+  return (
+    <>
+      {item.color ? (
+        <span
+          className="size-1.5 rounded-full"
+          style={{ backgroundColor: item.color }}
+        />
+      ) : null}
+      {item.label}
+    </>
+  );
+}
+
+function FilterChip({ item }: { item: FilterChipItem }): React.JSX.Element {
+  return (
+    <Link
+      href={item.href}
+      className={cn(CHIP_CLASS, chipTone(item.active))}
+    >
+      <ChipFace item={item} />
+    </Link>
+  );
+}
+
+function splitVisibleChips(
+  items: FilterChipItem[],
+  visibleCount: number
+): { visible: FilterChipItem[]; overflow: FilterChipItem[] } {
+  if (visibleCount >= items.length) {
+    return { visible: items, overflow: [] };
+  }
+
+  const count = Math.max(0, visibleCount);
+  const activeIndex = items.findIndex((item) => item.active);
+  let visible = items.slice(0, count);
+
+  if (activeIndex >= count && count > 0) {
+    visible = [...items.slice(0, count - 1), items[activeIndex]];
+  }
+
+  const visibleKeys = new Set(visible.map((item) => item.key));
+  return {
+    visible,
+    overflow: items.filter((item) => !visibleKeys.has(item.key))
+  };
+}
+
+function InboxFilterOverflow({
+  items
+}: {
+  items: FilterChipItem[];
+}): React.JSX.Element {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const measureRef = React.useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = React.useState(items.length);
+
+  React.useLayoutEffect(() => {
+    const container = containerRef.current;
+    const measure = measureRef.current;
+    if (!container || !measure) return;
+
+    const update = (): void => {
+      const chips = Array.from(
+        measure.querySelectorAll<HTMLElement>('[data-filter-chip]')
+      );
+      const more = measure.querySelector<HTMLElement>('[data-filter-more]');
+      if (chips.length === 0) {
+        setVisibleCount(0);
+        return;
+      }
+
+      const gap = Number.parseFloat(getComputedStyle(measure).columnGap) || 4;
+      const moreWidth = more?.offsetWidth ?? 0;
+      const widths = chips.map((chip) => chip.offsetWidth);
+      const full =
+        widths.reduce((sum, width) => sum + width, 0) +
+        gap * Math.max(0, widths.length - 1);
+
+      if (full <= container.clientWidth) {
+        setVisibleCount(widths.length);
+        return;
+      }
+
+      let used = 0;
+      let count = 0;
+      for (let i = 0; i < widths.length; i++) {
+        const next = used + (count > 0 ? gap : 0) + widths[i];
+        const remaining = widths.length - (i + 1);
+        const withMore = next + (remaining > 0 ? gap + moreWidth : 0);
+        if (withMore > container.clientWidth) break;
+        used = next;
+        count += 1;
+      }
+
+      setVisibleCount(count);
+    };
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [items]);
+
+  const { visible, overflow } = splitVisibleChips(items, visibleCount);
+  const overflowActive = overflow.some((item) => item.active);
+
+  return (
+    <div className="relative min-w-0 flex-1">
+      <div
+        ref={measureRef}
+        aria-hidden
+        className="pointer-events-none invisible absolute inset-y-0 left-0 flex items-center gap-1"
+      >
+        {items.map((item) => (
+          <span
+            key={item.key}
+            data-filter-chip
+            className={cn(CHIP_CLASS, chipTone(item.active))}
+          >
+            <ChipFace item={item} />
+          </span>
+        ))}
+        <span
+          data-filter-more
+          className={cn(CHIP_CLASS, 'px-1.5')}
+        >
+          <ChevronDownIcon className="size-3.5" />
+        </span>
+      </div>
+
+      <div
+        ref={containerRef}
+        className="flex min-w-0 items-center gap-1 overflow-hidden"
+      >
+        {visible.map((item) => (
+          <FilterChip
+            key={item.key}
+            item={item}
+          />
+        ))}
+        {overflow.length > 0 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className={cn(CHIP_CLASS, 'px-1.5', chipTone(overflowActive))}
+                aria-label="More filters"
+              >
+                <ChevronDownIcon className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {overflow.map((item) => (
+                <DropdownMenuItem
+                  key={item.key}
+                  asChild
+                >
+                  <Link
+                    href={item.href}
+                    className="font-mono text-[10px] uppercase tracking-wider"
+                  >
+                    {item.color ? (
+                      <span
+                        className="mr-2 size-2.5 rounded-full"
+                        style={{ backgroundColor: item.color }}
+                      />
+                    ) : null}
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function InboxListHeader({
   activeFilter = 'all',
@@ -100,10 +297,31 @@ export function InboxListHeader({
 
   const hasSelection = Boolean(selection?.selectMode);
 
+  const filterItems = React.useMemo<FilterChipItem[]>(
+    () => [
+      ...FILTERS.map((filter) => ({
+        key: filter.id,
+        href: hrefFor({ filter: filter.id }),
+        label: filter.label,
+        active: !activeTagId && activeFilter === filter.id
+      })),
+      ...tags.map((tag) => ({
+        key: tag.id,
+        href: hrefFor({ tagId: activeTagId === tag.id ? null : tag.id }),
+        label: tag.name,
+        active: activeTagId === tag.id,
+        color: tag.color
+      }))
+    ],
+    // hrefFor is rebuilt from the current route + selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeAliasId, activeFilter, activeTagId, pathname, tags]
+  );
+
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-2 rounded-lg border bg-background px-2 py-1.5 sm:gap-3 sm:px-3',
+        'flex flex-nowrap items-center gap-2 overflow-hidden rounded-lg border bg-background px-2 py-1.5 sm:gap-3 sm:px-3',
         className
       )}
     >
@@ -261,70 +479,18 @@ export function InboxListHeader({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 28 }}
               transition={PANEL_TRANSITION}
-              className="flex min-w-0 flex-wrap items-center gap-1"
+              className="flex min-w-0 flex-1 items-center gap-1"
             >
-              {FILTERS.map((filter) => {
-                const active = !activeTagId && activeFilter === filter.id;
-                return (
-                  <Link
-                    key={filter.id}
-                    href={hrefFor({ filter: filter.id })}
-                    className={cn(
-                      'rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
-                      active
-                        ? 'bg-foreground/[0.06] text-foreground'
-                        : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
-                    )}
-                  >
-                    {filter.label}
-                  </Link>
-                );
-              })}
-
-              {tags.length > 0 ? (
-                <>
-                  <div
-                    className="mx-1 hidden h-4 w-px bg-border sm:block"
-                    aria-hidden
-                  />
-                  {tags.map((tag) => {
-                    const active = activeTagId === tag.id;
-                    return (
-                      <Link
-                        key={tag.id}
-                        href={hrefFor({ tagId: active ? null : tag.id })}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
-                          active
-                            ? 'bg-foreground/[0.06] text-foreground'
-                            : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
-                        )}
-                      >
-                        <span
-                          className="size-1.5 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        {tag.name}
-                      </Link>
-                    );
-                  })}
-                </>
-              ) : null}
+              <InboxFilterOverflow items={filterItems} />
 
               {selection ? (
-                <>
-                  <div
-                    className="mx-1 hidden h-4 w-px bg-border sm:block"
-                    aria-hidden
-                  />
-                  <button
-                    type="button"
-                    className="rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
-                    onClick={selection.enterSelectMode}
-                  >
-                    Select
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className={cn(CHIP_CLASS, chipTone(false), 'shrink-0')}
+                  onClick={selection.enterSelectMode}
+                >
+                  Select
+                </button>
               ) : null}
             </motion.div>
           )}

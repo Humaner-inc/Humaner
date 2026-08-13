@@ -13,5 +13,6 @@ export * from "./widget-icons";
 export * from "./widget-radius";
 export * from "./widget-surface";
 export * from "./product-positioning";
+export * from "./json-ld";
 export * from "./mask-sensitive-value";
 export * from "./chat-attachments";

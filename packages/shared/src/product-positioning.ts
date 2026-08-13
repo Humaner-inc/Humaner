@@ -1,5 +1,8 @@
 export const HUMANER_TAGLINE = "Customer care compounds. Indifference doesn't.";
 
+/** Primary product line — browser title, OG titles, and positioning. */
+export const HUMANER_TITLE = "The support layer for developers.";
+
 export const HUMANER_META_DESCRIPTION =
   "Customer support that humanly cares. Agents, helpdesk, loops, inboxes and team management for developers.";
 
