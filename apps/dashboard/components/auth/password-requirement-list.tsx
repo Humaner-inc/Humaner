@@ -11,6 +11,7 @@ import type { Maybe } from '@/types/maybe';
 
 export type PasswordRequirementListProps = {
   password: Maybe<string>;
+  inverted?: boolean;
 };
 
 type Requirement = {
@@ -53,7 +54,8 @@ function formatMissingLabel(missing: string[]): string {
  * Text shifts left → right when the hint changes.
  */
 export function PasswordRequirementList({
-  password
+  password,
+  inverted = false
 }: PasswordRequirementListProps): React.JSX.Element {
   const oss = false; // Humaner brand chrome
   const requirements = getRequirements(password);
@@ -89,10 +91,10 @@ export function PasswordRequirementList({
             className={cn(
               'absolute inset-x-0 top-0 flex items-center gap-1.5 text-sm',
               complete
-                ? oss
+                ? oss || inverted
                   ? 'text-emerald-600'
                   : 'text-emerald-400'
-                : oss
+                : oss || inverted
                   ? 'text-[#18181b]/70'
                   : 'text-white/40'
             )}

@@ -336,7 +336,7 @@ input[type='number'] {
 
 input[type='password'],
 .input-sensitive-mask {
-  -webkit-text-security: square;
+  -webkit-text-security: square !important;
 }
 
 /* OTP paste highlight */
@@ -371,6 +371,19 @@ input[type='password'],
   -webkit-text-fill-color: #fff8f2 !important;
   caret-color: #fff8f2;
   transition: background-color 99999s ease-out 0s;
+}
+
+.onboarding-root[data-onboarding-appearance='light'] .auth-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='light']
+  .auth-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='light']
+  .auth-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='light']
+  .auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #fff8f2 inset !important;
+  box-shadow: 0 0 0 1000px #fff8f2 inset !important;
+  -webkit-text-fill-color: #0a0d0d !important;
+  caret-color: #0a0d0d;
 }
 
 @keyframes auth-input-highlight {
@@ -709,36 +722,37 @@ input[type='password'],
   }
 }
 
-/* Auth hero panel — matches landing Hero right frame */
+/* Auth hero panel — cream plate + image fade into the page at the bottom */
 .auth-hero-background {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-}
-
-.auth-hero-background__image {
-  position: absolute;
-  inset: 0;
+  background: #fff8f2;
   -webkit-mask-image: linear-gradient(
     to bottom,
     #000 0%,
-    #000 58%,
-    rgb(0 0 0 / 0.92) 72%,
-    rgb(0 0 0 / 0.62) 84%,
-    rgb(0 0 0 / 0.22) 94%,
+    #000 42%,
+    rgb(0 0 0 / 0.88) 62%,
+    rgb(0 0 0 / 0.5) 78%,
+    rgb(0 0 0 / 0.16) 90%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     #000 0%,
-    #000 58%,
-    rgb(0 0 0 / 0.92) 72%,
-    rgb(0 0 0 / 0.62) 84%,
-    rgb(0 0 0 / 0.22) 94%,
+    #000 42%,
+    rgb(0 0 0 / 0.88) 62%,
+    rgb(0 0 0 / 0.5) 78%,
+    rgb(0 0 0 / 0.16) 90%,
     transparent 100%
   );
+}
+
+.auth-hero-background__image {
+  position: absolute;
+  inset: 0;
 }
 
 .hero-screen-logo__layer--warm,

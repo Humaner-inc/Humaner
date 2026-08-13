@@ -3,6 +3,10 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  ctaPrimaryOnLightClassName,
+  ctaSecondaryOnLightClassName
+} from '@humaner/shared/cta';
 import { AlertCircleIcon } from '@humaner/shared/icons';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import GitHubLogo from 'public/github-logo.svg';
@@ -26,6 +30,7 @@ import {
   authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
+import { useOnboardingTheme } from '@/components/onboarding/onboarding-theme-context';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -84,6 +89,13 @@ export function SignUpCard({
   const password = methods.watch('password');
   const intent = methods.watch('intent') ?? 'business_owner';
   const emailLocked = Boolean(invitationEmail);
+  const inverted = intent === 'team_member';
+  const { setAppearance } = useOnboardingTheme();
+
+  React.useLayoutEffect(() => {
+    setAppearance(inverted ? 'light' : 'dark');
+    return () => setAppearance('dark');
+  }, [inverted, setAppearance]);
 
   const persistIntent = async (next: SignUpIntent): Promise<void> => {
     await setSignupIntent({
@@ -137,21 +149,59 @@ export function SignUpCard({
   };
 
   const oss = false; // Humaner brand chrome
+  const titleClassName = cn(
+    authPageTitleClassName,
+    'transition-colors duration-300',
+    inverted && 'text-[#0A0D0D]'
+  );
+  const mutedClassName = cn(
+    authMutedTextClassName,
+    'transition-colors duration-300',
+    inverted && 'text-[#0A0D0D]/50'
+  );
+  const linkClassName = cn(
+    authLinkClassName,
+    inverted && 'text-[#0A0D0D]/50 hover:text-[#0A0D0D]'
+  );
+  const labelClassName = cn(
+    authLabelClassName,
+    inverted && 'text-[#0A0D0D]/65'
+  );
+  const inputClassName = cn(
+    authInputClassName,
+    inverted &&
+      'border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] placeholder:text-[#0A0D0D]/35 selection:text-[#0A0D0D]'
+  );
+  const primaryButtonClassName = inverted
+    ? `${ctaPrimaryOnLightClassName} h-11 w-full`
+    : authPrimaryButtonClassName;
+  const outlineButtonClassName = inverted
+    ? `${ctaSecondaryOnLightClassName} h-11 w-full`
+    : authOutlineButtonClassName;
+  const dividerClassName = inverted
+    ? 'flex items-center gap-x-3 font-mono text-xs text-[#0A0D0D]/30 before:h-px before:flex-1 before:bg-[#0A0D0D]/[0.08] after:h-px after:flex-1 after:bg-[#0A0D0D]/[0.08]'
+    : authDividerClassName;
+  const destructiveClassName = inverted
+    ? 'text-red-600'
+    : authDestructiveMessageClassName;
+  const alertClassName = inverted
+    ? 'border-red-500/25 bg-red-500/[0.08] text-red-700'
+    : authAlertDestructiveClassName;
 
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
       <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
-        <h1 className={authPageTitleClassName}>
+        <h1 className={titleClassName}>
           {oss ? 'Create an account' : 'Humaner'}
         </h1>
-        <p className={authMutedTextClassName}>
+        <p className={mutedClassName}>
           {organizationName
             ? `Join ${organizationName}`
             : 'Already have an account?'}{' '}
           {!organizationName ? (
             <Link
               href={Routes.Login}
-              className={authLinkClassName}
+              className={linkClassName}
             >
               Log in
             </Link>
@@ -163,7 +213,9 @@ export function SignUpCard({
         className={
           oss
             ? 'flex gap-1 rounded-[0.5rem] border border-[#eaeaea] bg-[#f2f2f2] p-1'
-            : 'flex rounded-none border border-white/[0.08] bg-white/[0.04]'
+            : inverted
+              ? 'flex rounded-none border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04]'
+              : 'flex rounded-none border border-white/[0.08] bg-white/[0.04]'
         }
         role="group"
         aria-label="Account type"
@@ -182,7 +234,11 @@ export function SignUpCard({
             <React.Fragment key={option.value}>
               {index > 0 && !oss ? (
                 <div
-                  className="w-px shrink-0 bg-white/[0.08]"
+                  className={
+                    inverted
+                      ? 'w-px shrink-0 bg-[#0A0D0D]/[0.08]'
+                      : 'w-px shrink-0 bg-white/[0.08]'
+                  }
                   aria-hidden
                 />
               ) : null}
@@ -202,9 +258,13 @@ export function SignUpCard({
                     ? selected
                       ? 'bg-[#0A0D0D] text-white shadow-sm'
                       : 'bg-transparent text-[#18181b]/70 hover:text-[#0A0D0D]'
-                    : selected
-                      ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
-                      : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
+                    : inverted
+                      ? selected
+                        ? 'bg-[#0A0D0D] text-[#fff8f2] hover:bg-[#0A0D0D] hover:text-[#fff8f2]'
+                        : 'bg-transparent text-[#0A0D0D]/40 hover:bg-[#0A0D0D]/[0.06] hover:text-[#0A0D0D]/70'
+                      : selected
+                        ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
+                        : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
                   disabled && !selected && 'cursor-not-allowed opacity-40'
                 )}
               >
@@ -217,7 +277,7 @@ export function SignUpCard({
 
       <p
         className={cn(
-          authMutedTextClassName,
+          mutedClassName,
           'text-center text-xs',
           oss && 'text-[#18181b]/70'
         )}
@@ -247,19 +307,19 @@ export function SignUpCard({
             name="name"
             render={({ field }) => (
               <FormItem className="flex w-full flex-col">
-                <FormLabel className={authLabelClassName}>Name</FormLabel>
+                <FormLabel className={labelClassName}>Name</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
                     maxLength={64}
                     autoComplete="name"
                     placeholder="Enter your name"
-                    className={authInputClassName}
+                    className={inputClassName}
                     disabled={methods.formState.isSubmitting}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className={authDestructiveMessageClassName} />
+                <FormMessage className={destructiveClassName} />
               </FormItem>
             )}
           />
@@ -268,19 +328,19 @@ export function SignUpCard({
             name="email"
             render={({ field }) => (
               <FormItem className="flex w-full flex-col">
-                <FormLabel className={authLabelClassName}>Email</FormLabel>
+                <FormLabel className={labelClassName}>Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     maxLength={255}
                     autoComplete="username"
                     placeholder="Enter your email address"
-                    className={authInputClassName}
+                    className={inputClassName}
                     disabled={methods.formState.isSubmitting || emailLocked}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className={authDestructiveMessageClassName} />
+                <FormMessage className={destructiveClassName} />
               </FormItem>
             )}
           />
@@ -290,28 +350,31 @@ export function SignUpCard({
               name="password"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className={authLabelClassName}>Password</FormLabel>
+                  <FormLabel className={labelClassName}>Password</FormLabel>
                   <FormControl>
                     <InputPassword
                       maxLength={72}
                       autoCapitalize="off"
                       autoComplete="new-password"
                       placeholder="Enter your password"
-                      className={authInputClassName}
+                      className={inputClassName}
                       disabled={methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className={authDestructiveMessageClassName} />
+                  <FormMessage className={destructiveClassName} />
                 </FormItem>
               )}
             />
-            <PasswordRequirementList password={password} />
+            <PasswordRequirementList
+              password={password}
+              inverted={inverted}
+            />
           </div>
           {errorMessage && (
             <Alert
               variant="destructive"
-              className={authAlertDestructiveClassName}
+              className={alertClassName}
             >
               <div className="flex flex-row items-center gap-2 text-sm">
                 <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -322,7 +385,7 @@ export function SignUpCard({
           <Button
             type="submit"
             variant="ghost"
-            className={authPrimaryButtonClassName}
+            className={primaryButtonClassName}
             disabled={methods.formState.isSubmitting}
             loading={methods.formState.isSubmitting}
           >
@@ -331,14 +394,14 @@ export function SignUpCard({
         </form>
       </FormProvider>
 
-      <p className={authDividerClassName}>or</p>
+      <p className={dividerClassName}>or</p>
 
       <div className="flex flex-row gap-3">
         <Button
           type="button"
           variant="ghost"
           aria-label="Continue with Google"
-          className={cn(authOutlineButtonClassName, 'flex-1')}
+          className={cn(outlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGoogle()}
         >
@@ -351,7 +414,7 @@ export function SignUpCard({
           type="button"
           variant="ghost"
           aria-label="Continue with GitHub"
-          className={cn(authOutlineButtonClassName, 'flex-1')}
+          className={cn(outlineButtonClassName, 'flex-1')}
           disabled={methods.formState.isSubmitting}
           onClick={() => void handleSignInWithGitHub()}
         >
@@ -362,23 +425,18 @@ export function SignUpCard({
         </Button>
       </div>
 
-      <p
-        className={cn(
-          authMutedTextClassName,
-          'text-center text-xs leading-relaxed'
-        )}
-      >
+      <p className={cn(mutedClassName, 'text-center text-xs leading-relaxed')}>
         By signing up, you agree to our{' '}
         <Link
           href="#"
-          className={authLinkClassName}
+          className={linkClassName}
         >
           Terms of Use
         </Link>{' '}
         and{' '}
         <Link
           href={getPrivacyUrl()}
-          className={authLinkClassName}
+          className={linkClassName}
         >
           Privacy Policy
         </Link>

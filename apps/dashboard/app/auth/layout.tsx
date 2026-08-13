@@ -2,9 +2,7 @@ import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
-import { AuthHeroPanel } from '@/components/auth/auth-hero-panel';
-import { GrainAmbient } from '@/components/ui/grain-ambient';
+import { AuthLayoutFrame } from '@/components/auth/auth-layout-frame';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
@@ -98,17 +96,8 @@ export default async function AuthLayout({
   const showBackToMarketing = !oss && isLoginOrSignUpRoute();
 
   return (
-    <div className="relative flex min-h-screen bg-[#0A0D0D]">
-      <GrainAmbient className="fixed inset-0 z-0" />
-      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
-        {showBackToMarketing ? <AuthBackToMarketing /> : null}
-        {children}
-      </main>
-      <div className="relative z-10 hidden lg:block lg:w-1/2">
-        <div className="absolute inset-4 overflow-hidden rounded-2xl">
-          <AuthHeroPanel />
-        </div>
-      </div>
-    </div>
+    <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
+      {children}
+    </AuthLayoutFrame>
   );
 }

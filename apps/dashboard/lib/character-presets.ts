@@ -27,7 +27,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     tagline: 'Warm, human, contractions. A knowledgeable friend.',
     image: '/personas/Astral.png',
     example:
-      "Hey, totally get that — it's a bit confusing on first sign-up. Go to Settings → Account and hit reset. Takes 30 seconds!"
+      "Hey, totally get that. It's a bit confusing on first sign-up. Go to Settings → Account and hit reset. Takes 30 seconds!"
   },
   CORPORATE: {
     id: 'CORPORATE',
@@ -54,7 +54,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     tagline: 'Your own voice. Write the character prompt from scratch.',
     image: '/personas/Custom.png',
     example:
-      'Define how your agent speaks — tone, style, boundaries — in your own words.'
+      'Define how your agent speaks: tone, style, and boundaries, in your own words.'
   }
 };
 

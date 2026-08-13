@@ -9,6 +9,7 @@ import {
   type InputWithAdornmentsElement,
   type InputWithAdornmentsProps
 } from '@/components/ui/input-with-adornments';
+import { cn } from '@/lib/utils';
 
 export type InputPasswordElement = InputWithAdornmentsElement;
 export type InputPasswordProps = Omit<InputWithAdornmentsProps, 'endAdornment'>;
@@ -23,10 +24,19 @@ const InputPassword = React.forwardRef<
   const handleMouseDownPassword = (event: React.SyntheticEvent): void => {
     event.preventDefault();
   };
+  const { className, style, ...rest } = props;
+
   return (
     <InputWithAdornments
       ref={ref}
-      type={showPassword ? 'text' : 'password'}
+      {...rest}
+      type="text"
+      spellCheck={false}
+      className={cn(!showPassword && 'input-sensitive-mask', className)}
+      style={{
+        ...style,
+        WebkitTextSecurity: showPassword ? 'none' : 'square'
+      }}
       endAdornment={
         <Button
           type="button"
@@ -45,7 +55,6 @@ const InputPassword = React.forwardRef<
           )}
         </Button>
       }
-      {...props}
     />
   );
 });

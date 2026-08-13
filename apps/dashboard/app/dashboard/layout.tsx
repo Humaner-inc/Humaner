@@ -43,6 +43,7 @@ import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
+import { HUMANER_DEFAULT_ACCENT } from '@/lib/urls/extract-brand-accent-color';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export function generateMetadata(): Metadata {
@@ -266,7 +267,7 @@ export default async function DashboardLayout({
                     agentAvatarUrl={humanerAgentAvatarUrl}
                     organizationName={humanerOrganizationName}
                     organizationLogoUrl={humanerOrganizationLogoUrl}
-                    widgetColor={accentColor}
+                    widgetColor={HUMANER_DEFAULT_ACCENT}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}

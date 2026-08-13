@@ -178,7 +178,7 @@ function AuthComputerFrame({
 /** Landing Hero right frame — backdrop + computer — for the auth split panel. */
 export function AuthHeroPanel(): React.JSX.Element {
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-[#fff8f2] px-8 py-16">
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden px-8 py-16">
       <div
         className="auth-hero-background"
         aria-hidden
