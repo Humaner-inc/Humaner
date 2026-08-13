@@ -57,7 +57,7 @@ export function NavMain({
 
   return (
     <SidebarNavAccordionProvider agents={agents}>
-      <SidebarMainNavHighlight className="flex flex-col gap-0 px-2 pt-1">
+      <SidebarMainNavHighlight className="flex flex-col gap-0 px-2 pt-4">
         <NavOrganizationTree />
         {!isOssDeployment() && canAccessPage(profile, 'inbox') ? (
           <NavInboxTree

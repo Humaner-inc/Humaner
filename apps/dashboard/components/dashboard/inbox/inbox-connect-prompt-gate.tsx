@@ -55,10 +55,10 @@ export function InboxConnectPromptGate({
           <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
             <MailIcon className="size-5 text-muted-foreground" />
           </div>
-          <DialogTitle>Your paid plan is active</DialogTitle>
+          <DialogTitle>Connect your Inboxes?</DialogTitle>
           <DialogDescription>
-            Inbox is optional. If you want, connect IMAP or Gmail and bring
-            support aliases such as hello@ or security@ into Humaner.
+            You can link your mails right away to manage all your support in one
+            place.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
