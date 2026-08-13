@@ -668,7 +668,7 @@ export function MailThreadDetail({
                   <div className="flex min-w-0 items-center gap-2.5">
                     <SkillzCubeLoader size={32} />
                     <p className="text-sm text-muted-foreground">
-                      Suggesting reply
+                      Suggesting replies
                     </p>
                   </div>
                   <Button
