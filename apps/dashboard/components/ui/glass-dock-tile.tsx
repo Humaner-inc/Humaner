@@ -9,6 +9,8 @@ export type GlassDockTileProps = {
   size?: 'sm' | 'md' | 'lg';
   /** `soft` = light-theme neutral grey chrome. Default dark glass. */
   tone?: 'dark' | 'soft';
+  /** Logo tiles skip the white ring. */
+  framed?: boolean;
 };
 
 const SIZE_CLASS = {
@@ -23,7 +25,8 @@ export function GlassDockTile({
   className,
   active = true,
   size = 'sm',
-  tone = 'dark'
+  tone = 'dark',
+  framed = true
 }: GlassDockTileProps): React.JSX.Element {
   const soft = tone === 'soft';
 
@@ -41,18 +44,22 @@ export function GlassDockTile({
       />
       <span
         className={cn(
-          'absolute inset-0 flex items-center justify-center overflow-hidden border p-0 transition-[border-color,background-color,box-shadow] duration-300',
+          'absolute inset-0 flex items-center justify-center overflow-hidden p-0 transition-[border-color,background-color,box-shadow] duration-300',
           SIZE_CLASS[size],
-          soft
-            ? active
-              ? 'border-black/[0.1] bg-[#f2f2f2]/95 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_10px_24px_-16px_rgb(0_0_0_/_0.1)]'
-              : 'border-black/[0.08] bg-[#f2f2f2]/80'
-            : active
-              ? 'border-white/24 bg-[#0A0D0D]/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
-              : 'border-white/16 bg-[#0A0D0D]/40'
+          !framed
+            ? soft
+              ? 'border-0 bg-[#f2f2f2]'
+              : 'border-0 bg-[#0A0D0D]'
+            : soft
+              ? active
+                ? 'border border-black/[0.1] bg-[#f2f2f2]/95 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_10px_24px_-16px_rgb(0_0_0_/_0.1)]'
+                : 'border border-black/[0.08] bg-[#f2f2f2]/80'
+              : active
+                ? 'border border-white/24 bg-[#0A0D0D]/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                : 'border border-white/16 bg-[#0A0D0D]/40'
         )}
       >
-        {active ? (
+        {active && framed ? (
           <span
             aria-hidden
             className={cn(
