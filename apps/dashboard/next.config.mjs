@@ -80,7 +80,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.supabase.co'
+        hostname: '**.neon.tech'
       }
     ]
   },
