@@ -238,14 +238,14 @@ function InboxFilterOverflow({
 export function InboxListHeader({
   activeFilter = 'all',
   activeTagId = null,
-  activeAliasId = null,
+  activeMailboxId = null,
   tags = [],
   selection,
   className
 }: {
   activeFilter?: InboxListFilter;
   activeTagId?: string | null;
-  activeAliasId?: string | null;
+  activeMailboxId?: string | null;
   tags?: MailTagItem[];
   selection?: MailListSelectionApi;
   className?: string;
@@ -273,8 +273,8 @@ export function InboxListHeader({
     tagId?: string | null;
   }): string => {
     const params = new URLSearchParams();
-    if (activeAliasId) {
-      params.set('alias', activeAliasId);
+    if (activeMailboxId) {
+      params.set('mailbox', activeMailboxId);
     }
 
     if (next.filter !== undefined) {
@@ -315,7 +315,7 @@ export function InboxListHeader({
     ],
     // hrefFor is rebuilt from the current route + selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeAliasId, activeFilter, activeTagId, pathname, tags]
+    [activeMailboxId, activeFilter, activeTagId, pathname, tags]
   );
 
   return (

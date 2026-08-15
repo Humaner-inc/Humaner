@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   CheckIcon,
   CopyIcon,
+  InfoIcon,
   MailIcon,
   MoreHorizontalIcon,
   PlusIcon,
@@ -601,8 +602,8 @@ export function ConnectImapForm({
           <div className="space-y-5">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                We scanned mail addresses on this mailbox. Select the ones you
-                want this workspace to handle.
+                We scanned aliases on this mailbox. Select the ones you want to
+                uses within your inbox.
               </p>
               <p className="font-mono text-xs text-muted-foreground">
                 {selectedAliases.length} of {remaining} alias slot
@@ -646,7 +647,7 @@ export function ConnectImapForm({
             </ul>
 
             <div className="space-y-2">
-              <Label htmlFor="inbox-manual-alias">Add another alias</Label>
+              <Label htmlFor="inbox-manual-alias">Add a missing alias</Label>
               <div className="flex gap-2">
                 <Input
                   id="inbox-manual-alias"
@@ -670,6 +671,13 @@ export function ConnectImapForm({
                   Add
                 </Button>
               </div>
+              <p className="flex items-start gap-2 border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  Humaner does not create aliases. It connects them as different
+                  sending addresses on this mailbox.
+                </span>
+              </p>
             </div>
           </div>
         )}

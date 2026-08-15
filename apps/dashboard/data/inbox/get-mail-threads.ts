@@ -49,6 +49,7 @@ export type MailThreadDetail = {
   archivedAt: string | null;
   assigneeId: string | null;
   tag: MailTagItem | null;
+  sendAliases: MailSendAlias[];
   messages: Array<{
     id: string;
     direction: string;
@@ -66,6 +67,15 @@ export type MailInboxOption = {
   address: string;
   displayName: string | null;
   unreadCount: number;
+  connectionId: string;
+  connectionEmail: string;
+  providerName: string;
+};
+
+export type MailSendAlias = {
+  id: string;
+  address: string;
+  displayName: string | null;
 };
 
 function previewText(value: string | null): string | null {
@@ -112,7 +122,15 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
       select: {
         id: true,
         address: true,
-        displayName: true
+        displayName: true,
+        connection: {
+          select: {
+            id: true,
+            email: true,
+            provider: true,
+            providerPresetId: true
+          }
+        }
       }
     }),
     // Same unread rule as getMailUnreadCount, grouped per inbox.
@@ -145,10 +163,21 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
     );
   }
 
-  return aliases.map((alias) => ({
-    ...alias,
-    unreadCount: unreadByAlias.get(alias.id) ?? 0
-  }));
+  return aliases.map((alias) => {
+    const preset = alias.connection.providerPresetId
+      ? getMailProviderById(alias.connection.providerPresetId)
+      : undefined;
+
+    return {
+      id: alias.id,
+      address: alias.address,
+      displayName: alias.displayName,
+      unreadCount: unreadByAlias.get(alias.id) ?? 0,
+      connectionId: alias.connection.id,
+      connectionEmail: alias.connection.email,
+      providerName: preset?.name ?? alias.connection.provider
+    };
+  });
 }
 
 export async function getMailUnreadCount(): Promise<number> {
@@ -191,6 +220,7 @@ export async function getMailThreads(options?: {
   assignedToCurrentUser?: boolean;
   archived?: boolean;
   aliasId?: string | null;
+  connectionId?: string | null;
   unreadOnly?: boolean;
   status?: 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED';
   tagId?: string | null;
@@ -223,11 +253,18 @@ export async function getMailThreads(options?: {
       ...(options?.unreadOnly ? { isUnread: true } : {}),
       ...(options?.status ? { status: options.status } : {}),
       ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
-      ...(options?.aliasId
-        ? { aliasId: options.aliasId }
-        : scopedAliasIds
-          ? { aliasId: scopedAliasIds }
-          : {}),
+      ...(options?.connectionId
+        ? {
+            alias: {
+              connectionId: options.connectionId,
+              ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+            }
+          }
+        : options?.aliasId
+          ? { aliasId: options.aliasId }
+          : scopedAliasIds
+            ? { aliasId: scopedAliasIds }
+            : {}),
       ...(options?.assignedToCurrentUser ? { assigneeId: session.user.id } : {})
     },
     orderBy: { lastMessageAt: 'desc' },
@@ -346,7 +383,7 @@ export async function getMailThread(
       archivedAt: true,
       assigneeId: true,
       lastMessageAt: true,
-      alias: { select: { id: true, address: true } },
+      alias: { select: { id: true, address: true, connectionId: true } },
       tags: {
         take: 1,
         orderBy: { createdAt: 'asc' },
@@ -375,6 +412,17 @@ export async function getMailThread(
 
   if (!thread) return null;
 
+  const sendAliases = await prisma.mailAlias.findMany({
+    where: {
+      organizationId,
+      enabled: true,
+      connectionId: thread.alias.connectionId,
+      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+    },
+    orderBy: { address: 'asc' },
+    select: { id: true, address: true, displayName: true }
+  });
+
   const latest = thread.messages[thread.messages.length - 1];
   const awaitingReply = latest?.direction === 'INBOUND';
 
@@ -389,6 +437,7 @@ export async function getMailThread(
     archivedAt: thread.archivedAt?.toISOString() ?? null,
     assigneeId: thread.assigneeId,
     tag: thread.tags[0]?.tag ?? null,
+    sendAliases,
     messages: thread.messages.map((message) => ({
       id: message.id,
       direction: message.direction,

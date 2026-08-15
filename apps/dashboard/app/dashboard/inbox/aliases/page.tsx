@@ -22,12 +22,34 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
     return (
       <InboxOptionalEmptyState
         title="No aliases yet"
-        description="Connect a provider first, then choose which addresses (hello@, security@, …) this workspace handles. Caps depend on your plan."
+        description="Connect a mailbox first. Aliases are sending addresses on that inbox — Humaner does not create them."
       />
     );
   }
 
   const aliases = await getMailAliases();
+  const mailboxes = new Map<
+    string,
+    {
+      email: string;
+      providerName: string;
+      aliases: typeof aliases;
+    }
+  >();
+
+  for (const alias of aliases) {
+    const key = `${alias.providerName}::${alias.connectionEmail}`;
+    const existing = mailboxes.get(key);
+    if (existing) {
+      existing.aliases.push(alias);
+    } else {
+      mailboxes.set(key, {
+        email: alias.connectionEmail,
+        providerName: alias.providerName,
+        aliases: [alias]
+      });
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -35,7 +57,8 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
         <div>
           <h1 className="page-title">Aliases</h1>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
-            {overview.aliasCount} of {overview.mailboxAliasLimit} used
+            {overview.aliasCount} of {overview.mailboxAliasLimit} sending
+            addresses · grouped by mailbox
           </p>
         </div>
         <Link
@@ -46,25 +69,47 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
         </Link>
       </div>
 
-      <ul className="divide-y rounded-md border">
-        {aliases.map((alias) => (
-          <li
-            key={alias.id}
-            className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+      <div className="space-y-4">
+        {[...mailboxes.values()].map((mailbox) => (
+          <section
+            key={`${mailbox.providerName}-${mailbox.email}`}
+            className="overflow-hidden rounded-md border"
           >
-            <div>
-              <p className="font-mono text-sm font-medium">{alias.address}</p>
+            <div className="border-b bg-muted/30 px-4 py-2.5">
+              <p className="font-mono text-sm font-medium">{mailbox.email}</p>
               <p className="text-xs text-muted-foreground">
-                via {alias.providerName} · {alias.memberCount} member
-                {alias.memberCount === 1 ? '' : 's'}
+                {mailbox.providerName} · one inbox
               </p>
             </div>
-            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              {alias.enabled ? 'Active' : 'Disabled'}
-            </span>
-          </li>
+            <ul className="divide-y">
+              {mailbox.aliases.map((alias) => {
+                const isLogin =
+                  alias.address.toLowerCase() === mailbox.email.toLowerCase();
+                return (
+                  <li
+                    key={alias.id}
+                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  >
+                    <div>
+                      <p className="font-mono text-sm font-medium">
+                        {alias.address}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {isLogin ? 'Mailbox login' : 'Sending alias'} ·{' '}
+                        {alias.memberCount} member
+                        {alias.memberCount === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {alias.enabled ? 'Active' : 'Disabled'}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

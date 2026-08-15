@@ -88,7 +88,9 @@ export const replyMailThread = pageActionClient('inbox')
         providerThreadId: true,
         alias: {
           select: {
+            id: true,
             address: true,
+            connectionId: true,
             connection: {
               select: {
                 email: true,
@@ -159,7 +161,28 @@ export const replyMailThread = pageActionClient('inbox')
       throw new ValidationError('No inbound sender to reply to.');
     }
 
-    const fromAddress = normalizeAddress(thread.alias.address);
+    let fromAddress = normalizeAddress(thread.alias.address);
+    if (parsedInput.aliasId && parsedInput.aliasId !== thread.alias.id) {
+      if (
+        scope.type === 'ids' &&
+        !scope.aliasIds.includes(parsedInput.aliasId)
+      ) {
+        throw new ValidationError('That alias is not on this mailbox.');
+      }
+      const sendAlias = await prisma.mailAlias.findFirst({
+        where: {
+          id: parsedInput.aliasId,
+          organizationId,
+          enabled: true,
+          connectionId: thread.alias.connectionId
+        },
+        select: { address: true }
+      });
+      if (!sendAlias) {
+        throw new ValidationError('That alias is not on this mailbox.');
+      }
+      fromAddress = normalizeAddress(sendAlias.address);
+    }
     const references = thread.messages
       .map((message) => message.providerMessageId)
       .filter(Boolean)

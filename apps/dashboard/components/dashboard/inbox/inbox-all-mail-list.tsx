@@ -14,13 +14,14 @@ import type {
   MailTagItem,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
+import { primaryAliasForMailbox } from '@/lib/inbox/mail-inbox-groups';
 
 export function InboxAllMailList({
   threads,
   tags,
   members,
   inboxes,
-  activeAliasId,
+  activeMailboxId,
   activeFilter,
   activeTagId,
   autoCompose = false
@@ -29,7 +30,7 @@ export function InboxAllMailList({
   tags: MailTagItem[];
   members: Array<{ id: string; name: string }>;
   inboxes: MailInboxOption[];
-  activeAliasId: string | null;
+  activeMailboxId: string | null;
   activeFilter: InboxListFilter;
   activeTagId: string | null;
   autoCompose?: boolean;
@@ -44,11 +45,11 @@ export function InboxAllMailList({
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
           <InboxDomainSwitcher
             inboxes={inboxes}
-            activeAliasId={activeAliasId}
+            activeMailboxId={activeMailboxId}
           />
           <ComposeMailButton
             inboxes={inboxes}
-            defaultAliasId={activeAliasId}
+            defaultAliasId={primaryAliasForMailbox(inboxes, activeMailboxId)}
             autoOpen={autoCompose}
           />
         </div>
@@ -57,7 +58,7 @@ export function InboxAllMailList({
         <InboxListHeader
           activeFilter={activeFilter}
           activeTagId={activeTagId}
-          activeAliasId={activeAliasId}
+          activeMailboxId={activeMailboxId}
           tags={tags}
           selection={selection}
         />

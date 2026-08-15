@@ -38,6 +38,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
 import { mailStatusToGlyph, StatusGlyph } from '@/components/ui/status-glyph';
@@ -288,6 +295,8 @@ export function MailThreadDetail({
   const successTimerRef = React.useRef<number | null>(null);
   const [body, setBody] = React.useState('');
   const [composerOpen, setComposerOpen] = React.useState(false);
+  const [sendAliasId, setSendAliasId] = React.useState(threadProp.aliasId);
+  const composerRef = React.useRef<HTMLTextAreaElement>(null);
   const [suggesting, setSuggesting] = React.useState(() =>
     shouldAutoSuggest(threadProp)
   );
@@ -428,8 +437,14 @@ export function MailThreadDetail({
     setSelectedIndex(null);
     setComposerOpen(false);
     setBody('');
+    setSendAliasId(thread.aliasId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread.id]);
+
+  React.useEffect(() => {
+    if (!composerOpen) return;
+    composerRef.current?.focus();
+  }, [composerOpen]);
 
   React.useEffect(() => {
     if (!thread.isUnread || markedReadRef.current) return;
@@ -507,6 +522,7 @@ export function MailThreadDetail({
     sendIconRef.current?.startAnimation();
     sendReply({
       threadId: thread.id,
+      aliasId: sendAliasId,
       body
     });
   };
@@ -712,49 +728,6 @@ export function MailThreadDetail({
             ))}
           </ol>
 
-          {!composerOpen ? (
-            <div className="sticky bottom-0 z-20 -mx-4 mt-1 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-2 rounded-none bg-background px-4"
-                    onClick={openReply}
-                  >
-                    <ArrowRightIcon className="size-3.5 rotate-180" />
-                    Reply
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-2 rounded-none bg-background px-4"
-                    onClick={() => {
-                      toast.message('Forward is coming soon');
-                    }}
-                  >
-                    <ForwardGlyph className="size-3.5" />
-                    Forward
-                  </Button>
-                </div>
-                {!suggesting ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
-                    onClick={suggestAgain}
-                  >
-                    <SkillzCubeLoader size={18} />
-                    Suggest
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
           {suggesting ? (
             <article className="w-full border border-border/50 bg-background px-4 py-3.5 shadow-sm">
               {suggestionsLoading ? (
@@ -871,8 +844,51 @@ export function MailThreadDetail({
               )}
             </article>
           ) : null}
+        </div>
+      </div>
 
-          {composerOpen ? (
+      <div className="shrink-0 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
+          {!composerOpen ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={openReply}
+                >
+                  <ArrowRightIcon className="size-3.5 rotate-180" />
+                  Reply
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={() => {
+                    toast.message('Forward is coming soon');
+                  }}
+                >
+                  <ForwardGlyph className="size-3.5" />
+                  Forward
+                </Button>
+              </div>
+              {!suggesting ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={suggestAgain}
+                >
+                  <SkillzCubeLoader size={18} />
+                  Suggest
+                </Button>
+              ) : null}
+            </div>
+          ) : (
             <section
               className={cn(
                 'w-full border bg-background px-4 py-3.5 shadow-sm',
@@ -881,11 +897,38 @@ export function MailThreadDetail({
               )}
             >
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium">Reply</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Sends from {thread.aliasAddress}
-                  </p>
+                  {(thread.sendAliases ?? []).length > 1 ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        From
+                      </span>
+                      <Select
+                        value={sendAliasId}
+                        onValueChange={setSendAliasId}
+                        disabled={sendPhase !== 'idle'}
+                      >
+                        <SelectTrigger className="h-8 w-auto min-w-48 max-w-72 rounded-none font-mono text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(thread.sendAliases ?? []).map((alias) => (
+                            <SelectItem
+                              key={alias.id}
+                              value={alias.id}
+                            >
+                              {alias.address}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Sends from {thread.aliasAddress}
+                    </p>
+                  )}
                 </div>
                 {!suggesting ? (
                   <Button
@@ -900,11 +943,12 @@ export function MailThreadDetail({
                 ) : null}
               </div>
               <Textarea
+                ref={composerRef}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
                 placeholder="Write your reply…"
-                rows={6}
-                className="min-h-32 resize-y rounded-none bg-background"
+                rows={5}
+                className="min-h-28 resize-y rounded-none bg-background"
               />
               <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                 <Button
@@ -941,7 +985,7 @@ export function MailThreadDetail({
                 </Button>
               </div>
             </section>
-          ) : null}
+          )}
         </div>
       </div>
 

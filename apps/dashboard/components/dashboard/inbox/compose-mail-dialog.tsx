@@ -19,13 +19,16 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import { Textarea } from '@/components/ui/textarea';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
+import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
 
 export function ComposeMailDialog({
   open,
@@ -67,6 +70,11 @@ export function ComposeMailDialog({
       toast.error(error.serverError || 'Could not send email');
     }
   });
+
+  const mailboxGroups = React.useMemo(
+    () => groupMailInboxes(inboxes),
+    [inboxes]
+  );
 
   const canSend =
     Boolean(aliasId) &&
@@ -118,15 +126,22 @@ export function ComposeMailDialog({
                 <SelectValue placeholder="Select alias" />
               </SelectTrigger>
               <SelectContent>
-                {inboxes.map((inbox) => (
-                  <SelectItem
-                    key={inbox.id}
-                    value={inbox.id}
-                  >
-                    {inbox.displayName
-                      ? `${inbox.displayName} <${inbox.address}>`
-                      : inbox.address}
-                  </SelectItem>
+                {mailboxGroups.map((mailbox) => (
+                  <SelectGroup key={mailbox.connectionId}>
+                    <SelectLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {mailbox.providerName} · {mailbox.email}
+                    </SelectLabel>
+                    {mailbox.aliases.map((inbox) => (
+                      <SelectItem
+                        key={inbox.id}
+                        value={inbox.id}
+                      >
+                        {inbox.displayName
+                          ? `${inbox.displayName} <${inbox.address}>`
+                          : inbox.address}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>

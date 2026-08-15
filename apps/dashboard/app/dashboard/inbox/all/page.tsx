@@ -28,6 +28,7 @@ export default async function InboxAllPage({
   searchParams
 }: {
   searchParams: Promise<{
+    mailbox?: string;
     alias?: string;
     filter?: string;
     tag?: string;
@@ -41,6 +42,7 @@ export default async function InboxAllPage({
 
   const [
     {
+      mailbox: mailboxParam,
       alias: aliasParam,
       filter: filterParam,
       tag: tagParam,
@@ -64,14 +66,15 @@ export default async function InboxAllPage({
       <div className="p-6 md:p-8">
         <InboxOptionalEmptyState
           title="No mail connected yet"
-          description="Connect IMAP or Gmail when you want shared support aliases in Humaner. Until then, agents and Desk work as usual."
+          description="Connect your email provider to start using inbox and automatize your mail support."
         />
       </div>
     );
   }
 
   const threadsPromise = getMailThreads({
-    aliasId: aliasParam ?? null,
+    connectionId: mailboxParam ?? null,
+    aliasId: mailboxParam ? null : (aliasParam ?? null),
     tagId: tagParam ?? null,
     unreadOnly: !tagParam && activeFilter === 'unread',
     status:
@@ -89,9 +92,9 @@ export default async function InboxAllPage({
     threadsPromise
   ]);
 
-  const activeAliasId =
-    aliasParam && inboxes.some((inbox) => inbox.id === aliasParam)
-      ? aliasParam
+  const activeMailboxId =
+    mailboxParam && inboxes.some((inbox) => inbox.connectionId === mailboxParam)
+      ? mailboxParam
       : null;
 
   const activeTagId =
@@ -104,7 +107,7 @@ export default async function InboxAllPage({
           <InboxListHeader
             activeFilter={activeFilter}
             activeTagId={activeTagId}
-            activeAliasId={activeAliasId}
+            activeMailboxId={activeMailboxId}
             tags={tags}
           />
         </div>
@@ -128,7 +131,7 @@ export default async function InboxAllPage({
         name: member.name
       }))}
       inboxes={inboxes}
-      activeAliasId={activeAliasId}
+      activeMailboxId={activeMailboxId}
       activeFilter={activeFilter}
       activeTagId={activeTagId}
       autoCompose={autoCompose}
