@@ -1,5 +1,5 @@
--- Phase 3: run before `pnpm db:push` (or via Supabase SQL editor on DIRECT connection).
--- Step 1 (required once): Supabase Dashboard → Database → Extensions → enable "vector".
+-- Phase 3: run before `pnpm db:push` (or via Neon SQL editor on DIRECT connection).
+-- Step 1 (required once): Neon Console → Extensions → enable "vector".
 -- Step 2: run this file — uses DIRECT_URL if set, else DATABASE_URL.
 
 CREATE EXTENSION IF NOT EXISTS vector;

@@ -1,5 +1,5 @@
 -- Deprecated: use prisma/sql/phase3-gap-clustering.sql
--- Kept for reference — enable vector in Supabase Dashboard first.
+-- Kept for reference — enable vector in Neon Console first.
 
 CREATE EXTENSION IF NOT EXISTS vector;
 

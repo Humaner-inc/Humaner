@@ -1,5 +1,5 @@
 -- Phase 3: semantic gap clustering (pgvector + KnowledgeGapCluster)
--- Enable "vector" in Supabase Dashboard → Database → Extensions before migrate deploy.
+-- Enable "vector" in Neon Console → Extensions before migrate deploy.
 -- Prefer `pnpm db:phase3` + `pnpm db:push` locally (uses DIRECT_URL when set).
 
 CREATE EXTENSION IF NOT EXISTS vector;

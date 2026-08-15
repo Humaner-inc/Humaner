@@ -44,7 +44,7 @@ export function getEffectiveMemberLimit(
   return bypassLimits ? UNLIMITED_MEMBERS : plan.members;
 }
 
-/** Live (non-paused) agents count toward the plan slot limit — like Supabase projects. */
+/** Live (non-paused) agents count toward the plan slot limit. */
 export function hasReachedAgentLimit(
   liveAgentCount: number,
   plan: PlanDefinition,
