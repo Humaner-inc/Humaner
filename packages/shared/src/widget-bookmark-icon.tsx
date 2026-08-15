@@ -1,79 +1,115 @@
+"use client";
+
 import * as React from "react";
 
+import {
+  AlertCircleIcon,
+  BarChart3,
+  BlocksIcon,
+  BookOpen,
+  CreditCardIcon,
+  ExternalLinkIcon,
+  FileTextIcon,
+  HeadsetIcon,
+  InfoIcon,
+  Link2Icon,
+  ShieldCheck,
+  Sparkles,
+  type LucideIcon,
+} from "./icons";
 import type { WidgetBookmarkIconId } from "./widget-bookmarks";
 
 type WidgetBookmarkIconProps = {
   icon: WidgetBookmarkIconId;
   size?: number;
   className?: string;
+  animated?: boolean;
 };
+
+const LUCIDE_BOOKMARK_ICONS: Partial<Record<WidgetBookmarkIconId, LucideIcon>> =
+  {
+    features: Sparkles,
+    billing: CreditCardIcon,
+    security: ShieldCheck,
+    integrations: BlocksIcon,
+    support: HeadsetIcon,
+    documentation: BookOpen,
+    faq: InfoIcon,
+    book: BookOpen,
+    chart: BarChart3,
+    link: Link2Icon,
+    doc: FileTextIcon,
+    help: InfoIcon,
+    external: ExternalLinkIcon,
+    bug: AlertCircleIcon,
+  };
+
+function WavingHandIcon({
+  size = 14,
+  className,
+  animated = true,
+}: {
+  size?: number;
+  className?: string;
+  animated?: boolean;
+}): React.JSX.Element {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={
+        animated
+          ? { transformOrigin: "70% 80%", display: "block" }
+          : { display: "block" }
+      }
+      data-humaner-wave={animated ? "true" : undefined}
+    >
+      <path d="M8.5 13.5V7.2a1.4 1.4 0 1 1 2.8 0V12" />
+      <path d="M11.3 12.2V5.8a1.4 1.4 0 1 1 2.8 0V12" />
+      <path d="M14.1 12.4V7.6a1.4 1.4 0 1 1 2.8 0v7.1c0 3.1-2.2 5.3-5.4 5.3-2.4 0-4.2-1-5.5-2.6L6 14.4a1.5 1.5 0 0 1 2.2-2.1l.3.3" />
+      <path d="M17 8.2c.6-.7 1.1-1 1.7-1" />
+    </svg>
+  );
+}
+
+export function WidgetBookmarkIconStyles(): React.JSX.Element {
+  return (
+    <style>{`
+      @keyframes humaner-wave {
+        0%, 100% { transform: rotate(0deg); }
+        20% { transform: rotate(16deg); }
+        40% { transform: rotate(-8deg); }
+        60% { transform: rotate(12deg); }
+        80% { transform: rotate(-4deg); }
+      }
+      a:hover [data-humaner-wave="true"],
+      button:hover [data-humaner-wave="true"],
+      [data-icon-hover]:hover [data-humaner-wave="true"] {
+        animation: humaner-wave 0.65s ease-in-out;
+      }
+    `}</style>
+  );
+}
 
 export function WidgetBookmarkIcon({
   icon,
   size = 14,
   className,
+  animated = true,
 }: WidgetBookmarkIconProps): React.JSX.Element {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    className,
-  };
-
-  switch (icon) {
-    case "book":
-      return (
-        <svg {...common}>
-          <path d="M12 7v14" />
-          <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
-        </svg>
-      );
-    case "chart":
-      return (
-        <svg {...common}>
-          <path d="M3 3v18h18" />
-          <path d="M7 16V9" />
-          <path d="M12 16V5" />
-          <path d="M17 16v-3" />
-        </svg>
-      );
-    case "doc":
-      return (
-        <svg {...common}>
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-          <path d="M10 13h4" />
-          <path d="M10 17h4" />
-        </svg>
-      );
-    case "help":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-          <path d="M12 17h.01" />
-        </svg>
-      );
-    case "external":
-      return (
-        <svg {...common}>
-          <path d="M15 3h6v6" />
-          <path d="M10 14 21 3" />
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-        </svg>
-      );
-    case "link":
-    default:
-      return (
-        <svg {...common}>
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
-      );
+  if (icon === "wave") {
+    return (
+      <WavingHandIcon size={size} className={className} animated={animated} />
+    );
   }
+
+  const Icon = LUCIDE_BOOKMARK_ICONS[icon] ?? Link2Icon;
+  return <Icon size={size} className={className} animateOnHover={animated} />;
 }

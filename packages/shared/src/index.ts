@@ -6,6 +6,7 @@ export * from "./email-brand";
 export * from "./visitor-id";
 export * from "./widget-bookmarks";
 export * from "./widget-bookmark-icon";
+export * from "./widget-proactive";
 export * from "./cta";
 export * from "./company";
 export * from "./typography";

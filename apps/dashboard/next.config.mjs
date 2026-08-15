@@ -166,6 +166,16 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: '/desk/clusters',
+        destination: '/desk/loops',
+        permanent: true
+      },
+      {
+        source: '/dashboard/desk/clusters',
+        destination: '/desk/loops',
+        permanent: true
+      },
+      {
         source: '/inbox',
         destination: '/inbox/all',
         permanent: false

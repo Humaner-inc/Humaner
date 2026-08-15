@@ -1,4 +1,13 @@
 export const WIDGET_BOOKMARK_ICON_IDS = [
+  "wave",
+  "features",
+  "billing",
+  "security",
+  "integrations",
+  "support",
+  "documentation",
+  "faq",
+  "bug",
   "book",
   "chart",
   "link",
@@ -19,6 +28,15 @@ export const WIDGET_BOOKMARK_ICON_META: Record<
   WidgetBookmarkIconId,
   { label: string }
 > = {
+  wave: { label: "Getting started" },
+  features: { label: "Features" },
+  billing: { label: "Billing" },
+  security: { label: "Security" },
+  integrations: { label: "Integrations" },
+  support: { label: "Support" },
+  documentation: { label: "Documentation" },
+  faq: { label: "FAQ" },
+  bug: { label: "Bug" },
   book: { label: "Book" },
   chart: { label: "Chart" },
   link: { label: "Link" },
@@ -27,7 +45,7 @@ export const WIDGET_BOOKMARK_ICON_META: Record<
   external: { label: "External" },
 };
 
-export const MAX_WIDGET_BOOKMARKS = 6;
+export const MAX_WIDGET_BOOKMARKS = 9;
 
 function isWidgetBookmarkIconId(value: string): value is WidgetBookmarkIconId {
   return (WIDGET_BOOKMARK_ICON_IDS as readonly string[]).includes(value);

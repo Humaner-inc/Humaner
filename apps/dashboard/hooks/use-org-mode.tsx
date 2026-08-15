@@ -21,7 +21,7 @@ const OrgModeCtx = React.createContext<OrgModeContext>({
   isB2B: false,
   isB2C: true,
   labels: {
-    clusters: 'Resolution Templates',
+    clusters: 'Loops',
     runbooks: 'Runbooks',
     ticketGrouping: 'By urgency',
     assignment: 'First available'

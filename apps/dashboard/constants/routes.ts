@@ -39,7 +39,7 @@ export enum Routes {
   DeskAgent = '/desk/agent',
   DeskHuman = '/desk/human',
   DeskRunbooks = '/desk/runbooks',
-  DeskClusters = '/desk/clusters',
+  DeskClusters = '/desk/loops',
   DeskEscalation = '/desk/escalation',
   DeskTeam = '/desk/team',
   DeskSettings = '/desk/settings',
