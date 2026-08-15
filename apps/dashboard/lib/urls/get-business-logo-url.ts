@@ -34,12 +34,6 @@ function isReliableLogoUrl(url: string): boolean {
   );
 }
 
-/**
- * Resolves a business logo URL for display.
- *
- * Prefers a reliable stored logo (same-origin upload / logo proxy), then the
- * scraped favicon proxy, then `/api/logo` (logo.dev, then our favicon scrape).
- */
 export function getBusinessLogoUrl(
   website: string | null | undefined,
   options?: {
