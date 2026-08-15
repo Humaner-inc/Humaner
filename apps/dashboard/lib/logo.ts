@@ -43,3 +43,16 @@ export function toHostname(value: string): string | null {
     );
   }
 }
+
+/** Best-effort business name from a website URL when the scrape fails. */
+export function businessNameFromWebsite(website: string): string {
+  const hostname = toHostname(website);
+  if (!hostname) {
+    return 'Your business';
+  }
+  const base = hostname.split('.')[0] ?? hostname;
+  if (!base) {
+    return 'Your business';
+  }
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}

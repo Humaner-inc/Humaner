@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
+import { businessNameFromWebsite } from '@/lib/logo';
 import { extractWebsiteMetadata } from '@/lib/urls/extract-website-metadata';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request): Promise<NextResponse> {
   const session = await dedupedAuth();
@@ -15,10 +19,19 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'URL is required' }, { status: 400 });
   }
 
-  const metadata = await extractWebsiteMetadata(website);
-  if (!metadata) {
-    return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+  try {
+    const metadata = await extractWebsiteMetadata(website);
+    if (!metadata) {
+      return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+    }
+    return NextResponse.json(metadata);
+  } catch (error) {
+    console.error('[website-metadata] extract failed', error);
+    return NextResponse.json({
+      businessName: businessNameFromWebsite(website),
+      faviconUrl: null,
+      accentColor: null,
+      brandColors: []
+    });
   }
-
-  return NextResponse.json(metadata);
 }

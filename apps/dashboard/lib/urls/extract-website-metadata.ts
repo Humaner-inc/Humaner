@@ -234,7 +234,11 @@ export async function extractWebsiteMetadata(
       accentColor,
       brandColors
     };
-  } catch {
+  } catch (error) {
+    console.error('[extractWebsiteMetadata] fetch failed', {
+      website,
+      error
+    });
     return {
       businessName: businessNameFromHostname(hostname),
       faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),

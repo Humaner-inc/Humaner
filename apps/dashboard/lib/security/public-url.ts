@@ -63,8 +63,16 @@ function inCidr(ipInt: number, base: string, bits: number): boolean {
   return (ipInt & mask) === (baseInt & mask);
 }
 
+/** Windows / some resolvers append `%eth0` / `%12` zone IDs to IPv6. */
+function stripIpZoneId(ip: string): string {
+  const index = ip.indexOf('%');
+  return index === -1 ? ip : ip.slice(0, index);
+}
+
 /** True for loopback, RFC1918, link-local, CGNAT, multicast, etc. */
 export function isNonPublicIp(ip: string): boolean {
+  ip = stripIpZoneId(ip);
+
   if (net.isIPv4(ip)) {
     const n = ipv4ToInt(ip);
     if (n === null) return true;
@@ -124,7 +132,7 @@ async function resolveHostIps(hostname: string): Promise<string[]> {
   }
 
   const results = await dns.lookup(key, { all: true, verbatim: true });
-  const ips = results.map((result) => result.address);
+  const ips = results.map((result) => stripIpZoneId(result.address));
   dnsCache.set(key, { ips, expires: Date.now() + DNS_TTL_MS });
   return ips;
 }

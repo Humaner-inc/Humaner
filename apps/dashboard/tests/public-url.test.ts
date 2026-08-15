@@ -35,6 +35,11 @@ describe('isNonPublicIp', () => {
     expect(isNonPublicIp('2606:4700:4700::1111')).toBe(false);
   });
 
+  it('strips IPv6 zone IDs before classifying', () => {
+    expect(isNonPublicIp('fe80::1%12')).toBe(true);
+    expect(isNonPublicIp('2606:4700:4700::1111%eth0')).toBe(false);
+  });
+
   it('treats anything unparseable as non-public', () => {
     expect(isNonPublicIp('not-an-ip')).toBe(true);
     expect(isNonPublicIp('')).toBe(true);
