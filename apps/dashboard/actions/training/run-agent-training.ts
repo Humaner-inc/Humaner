@@ -3,16 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { runAgentEval } from '@/services/training/agent-eval';
 import Anthropic from '@anthropic-ai/sdk';
-import { getPlanForTier } from '@humaner/shared/plans';
 import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
-import { getAccountOrganizationIds } from '@/lib/billing/account-scope';
-import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
-import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
-import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
+import { reserveTrainingRun } from '@/lib/training/reserve-training-run';
 import {
   GatewayError,
   NotFoundError,
@@ -58,36 +54,14 @@ export const runAgentTraining = pageActionClient('agents')
       select: { tier: true }
     });
     const tier = organization?.tier ?? 'free';
-    const plan = getPlanForTier(tier);
 
-    const bypassLimits = await organizationBypassesPlanLimits(organizationId);
-
-    if (!bypassLimits) {
-      const accountOrganizationIds =
-        await getAccountOrganizationIds(organizationId);
-      const [trainingUsed, messagesUsed] = await Promise.all([
-        getTrainingMessagesUsedThisMonth(accountOrganizationIds),
-        getMessagesUsedThisMonth(organizationId, tier)
-      ]);
-
-      const freeRemaining = Math.max(
-        0,
-        plan.freeTrainingMessages - trainingUsed
-      );
-      const overageForThisRun = Math.max(
-        0,
-        parsedInput.questionCount - freeRemaining
-      );
-
-      if (
-        overageForThisRun > 0 &&
-        plan.overagePerMessage === null &&
-        messagesUsed + overageForThisRun > plan.includedMessages
-      ) {
-        throw new PreConditionError(
-          `You've used your ${plan.freeTrainingMessages} free training questions this month, and the ${plan.name} plan's message quota is exhausted. Upgrade to keep testing.`
-        );
-      }
+    const reservation = await reserveTrainingRun({
+      organizationId,
+      questionCount: parsedInput.questionCount,
+      tier
+    });
+    if (!reservation.allowed) {
+      throw new PreConditionError(reservation.reason);
     }
 
     try {
@@ -115,5 +89,7 @@ export const runAgentTraining = pageActionClient('agents')
       }
 
       throw error;
+    } finally {
+      await reservation.release();
     }
   });

@@ -32,12 +32,19 @@ cp apps/dashboard/.env.example apps/dashboard/.env.local
 Required variables:
 
 ```bash
-NEXT_PUBLIC_DEPLOYMENT_MODE=oss #mandatory to deploy self-hosting framework
+NEXT_PUBLIC_DEPLOYMENT_MODE=oss   # mandatory to deploy the self-hosting framework
 DATABASE_URL=postgresql://acme:password@localhost:5432/acme
 DIRECT_URL=postgresql://acme:password@localhost:5432/acme
 AUTH_SECRET="$(openssl rand -base64 32)"
+AUTH_TRUST_HOST=true
 NEXT_PUBLIC_APP_URL=http://localhost:3001
 ```
+
+`NEXT_PUBLIC_DEPLOYMENT_MODE` is read at **build time** — it selects the Self-Host build (nav, no Polar gates). Changing it later requires a rebuild, not just a restart.
+
+`AUTH_SECRET` signs sessions and the sign-up verification OTP. If it is missing, authentication fails in ways that are hard to diagnose, so set it before first boot and keep it stable — rotating it invalidates every existing session.
+
+Set `AUTH_TRUST_HOST=true` when the dashboard runs behind a reverse proxy or in Docker so auth callback URLs resolve to your public origin.
 
 ### 4. Email (SMTP or Resend)
 
@@ -68,13 +75,22 @@ EMAIL_SERVER_PASS=your-app-specific-password
 
 For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users.
 
-### 5. LLM key — BYO inference
+### 5. LLM keys — BYO inference
+
+Agent chat and handoff summarization run on **Claude**. This key is required — without it, `/api/v1/chat` responds `503` and the agent cannot reply:
 
 ```bash
-OPENAI_API_KEY=sk-ant-...   # or whichever you prefer.
+CLAUDE_API_KEY=sk-ant-...   # ANTHROPIC_API_KEY is accepted as an alias
 ```
 
-The starter agent uses whichever key is set for chat inference and handoff summarization.
+OpenAI is a **separate, optional** key. It powers knowledge embeddings and reranking, not chat:
+
+```bash
+# OPENAI_API_KEY=sk-...     # semantic knowledge search
+# COHERE_API_KEY=...        # dedicated reranker (rerank-v3.5), otherwise gpt-4o-mini
+```
+
+Without `OPENAI_API_KEY` the agent still answers — knowledge retrieval falls back to keyword-only search, which is less accurate on paraphrased questions.
 
 ### 6. Knowledge base (optional)
 
@@ -202,11 +218,14 @@ Chat streams SSE. On the final event, if `escalate: true`, a Helpdesk ticket is 
 
 ```bash
 export AUTH_SECRET="$(openssl rand -base64 32)"
-export OPENAI_API_KEY="sk-ant-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export OPENAI_API_KEY="sk-..."
 # Also export EMAIL_* or SELF_HOST_LOG_VERIFICATION=true
 
 docker compose up --build
 ```
+
+Compose starts `pgvector/pgvector:pg16` and the dashboard together, and the entrypoint rejects a missing or placeholder `AUTH_SECRET`.
 
 Open http://localhost:3001 → follow steps 8–12.
 

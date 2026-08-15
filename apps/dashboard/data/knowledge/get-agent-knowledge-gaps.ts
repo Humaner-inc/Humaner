@@ -33,6 +33,7 @@ export async function getAgentKnowledgeGaps(
   const gaps = await prisma.knowledgeGap.findMany({
     where: {
       agentId,
+      agent: { organizationId: session.user.organizationId },
       status: 'PENDING'
     },
     orderBy: { createdAt: 'desc' },

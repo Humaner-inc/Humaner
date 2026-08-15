@@ -1,17 +1,13 @@
 import { revalidatePath } from 'next/cache';
 import { runAgentEval } from '@/services/training/agent-eval';
 import Anthropic from '@anthropic-ai/sdk';
-import { getPlanForTier } from '@humaner/shared/plans';
 import { z } from 'zod';
 
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
-import { getAccountOrganizationIds } from '@/lib/billing/account-scope';
-import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
-import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
-import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
+import { reserveTrainingRun } from '@/lib/training/reserve-training-run';
 import type { TrainingProgressEvent } from '@/lib/training/training-progress';
 
 export const maxDuration = 300;
@@ -84,41 +80,14 @@ export async function POST(request: Request): Promise<Response> {
     select: { tier: true }
   });
   const tier = organization?.tier ?? 'free';
-  const plan = getPlanForTier(tier);
 
-  const bypassLimits = await organizationBypassesPlanLimits(organizationId);
-
-  if (!bypassLimits) {
-    const accountOrganizationIds =
-      await getAccountOrganizationIds(organizationId);
-    const [trainingUsed, messagesUsed] = await Promise.all([
-      getTrainingMessagesUsedThisMonth(accountOrganizationIds),
-      getMessagesUsedThisMonth(organizationId, tier)
-    ]);
-
-    const freeRemaining = Math.max(0, plan.freeTrainingMessages - trainingUsed);
-    const overageForThisRun = Math.max(
-      0,
-      parsed.data.questionCount - freeRemaining
-    );
-
-    // Hard-cap tiers (no paid overage) cannot dip into a quota that's already
-    // exhausted — everyone else deducts overage from the regular message plan.
-    if (
-      overageForThisRun > 0 &&
-      plan.overagePerMessage === null &&
-      messagesUsed + overageForThisRun > plan.includedMessages
-    ) {
-      return Response.json(
-        {
-          error:
-            trainingUsed >= plan.freeTrainingMessages
-              ? `You've used all ${plan.freeTrainingMessages} free training questions this month, and your ${plan.name} message quota is exhausted. Upgrade to keep testing.`
-              : `Only ${freeRemaining} free training question${freeRemaining === 1 ? '' : 's'} left this month, and your ${plan.name} message quota can't cover the rest. Try a smaller batch or upgrade.`
-        },
-        { status: 429 }
-      );
-    }
+  const reservation = await reserveTrainingRun({
+    organizationId,
+    questionCount: parsed.data.questionCount,
+    tier
+  });
+  if (!reservation.allowed) {
+    return Response.json({ error: reservation.reason }, { status: 429 });
   }
 
   const encoder = new TextEncoder();
@@ -147,6 +116,8 @@ export async function POST(request: Request): Promise<Response> {
       } catch (error) {
         send({ type: 'error', message: trainingErrorMessage(error) });
         controller.close();
+      } finally {
+        await reservation.release();
       }
     }
   });

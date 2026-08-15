@@ -5,6 +5,7 @@ import { addMinutes } from 'date-fns';
 import { actionClient } from '@/actions/safe-action';
 import { EMAIL_VERIFICATION_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
+import { requireAuthSecret } from '@/lib/auth/auth-secret';
 import {
   assertEmailVerificationResendRateLimit,
   generateEmailVerificationOtp
@@ -37,7 +38,7 @@ export const resendEmailConfirmation = actionClient
     assertEmailVerificationResendRateLimit(normalizedEmail);
 
     const otp = generateEmailVerificationOtp();
-    const hashedOtp = await createHash(`${otp}${process.env.AUTH_SECRET}`);
+    const hashedOtp = await createHash(`${otp}${requireAuthSecret()}`);
     const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
     await prisma.verificationToken.deleteMany({

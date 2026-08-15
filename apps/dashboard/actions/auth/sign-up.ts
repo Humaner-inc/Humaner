@@ -8,6 +8,7 @@ import { actionClient } from '@/actions/safe-action';
 import { EMAIL_VERIFICATION_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
+import { requireAuthSecret } from '@/lib/auth/auth-secret';
 import { generateEmailVerificationOtp } from '@/lib/auth/email-verification-otp';
 import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
 import {
@@ -137,7 +138,7 @@ export const signUp = actionClient
 
     try {
       const otp = generateEmailVerificationOtp();
-      const hashedOtp = await createHash(`${otp}${process.env.AUTH_SECRET}`);
+      const hashedOtp = await createHash(`${otp}${requireAuthSecret()}`);
       const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
       await prisma.verificationToken.deleteMany({

@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server';
 
+import { fetchPublicUrl } from '@/lib/security/fetch-public-url';
 import { parsePublicHttpUrl } from '@/lib/urls/is-public-http-url';
 
 export const runtime = 'nodejs';
@@ -72,14 +73,13 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
-    const upstream = await fetch(target.toString(), {
+    const { response: upstream } = await fetchPublicUrl(target, {
+      timeoutMs: FETCH_TIMEOUT_MS,
       headers: {
         Accept: 'image/*,*/*;q=0.8',
         'User-Agent':
           'Mozilla/5.0 (compatible; HumanerBot/1.0; +https://humaner.ai)'
-      },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      redirect: 'follow'
+      }
     });
 
     if (!upstream.ok) {

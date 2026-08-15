@@ -50,8 +50,8 @@ git clone https://github.com/Humaner-inc/humaner.git
 cd humaner
 pnpm install
 cp apps/dashboard/.env.example apps/dashboard/.env.local
-# fill DATABASE_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL, LLM API KEY
-pnpm --filter @humaner/dashboard exec prisma migrate dev
+# fill DATABASE_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL, CLAUDE_API_KEY
+pnpm --filter @humaner/dashboard exec prisma migrate deploy
 pnpm --filter @humaner/dashboard dev
 ```
 
@@ -79,7 +79,8 @@ Open [http://localhost:3001](http://localhost:3001) · set `NEXT_PUBLIC_DEPLOYME
 
 ### Services
 
-- Anthropic or OpenAI (BYO LLM for agent chat)
+- Anthropic (BYO LLM — required for agent chat)
+- OpenAI (optional — knowledge embeddings and reranking)
 - Resend or SMTP (transactional email)
 
 ```

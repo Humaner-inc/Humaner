@@ -1,7 +1,7 @@
 # Humaner Self-Host — one-command local deploy
 # Usage:
 #   cp apps/dashboard/.env.example .env.self-host
-#   # set AUTH_SECRET + ANTHROPIC_API_KEY (or OPENAI_API_KEY)
+#   # set AUTH_SECRET + LLM_API_KEY (required for chat)
 #   docker compose up --build
 
 services:

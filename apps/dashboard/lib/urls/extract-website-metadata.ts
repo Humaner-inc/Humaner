@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { toHostname } from '@/lib/logo';
+import { fetchPublicUrl } from '@/lib/security/fetch-public-url';
 import {
   extractBrandAccentColor,
   extractBrandColorPalette
@@ -198,22 +199,13 @@ export async function extractWebsiteMetadata(
   }
 
   try {
-    const response = await fetch(pageUrl.toString(), {
+    const { response, finalUrl } = await fetchPublicUrl(pageUrl, {
+      timeoutMs: FETCH_TIMEOUT_MS,
       headers: {
         Accept: 'text/html,application/xhtml+xml',
         'User-Agent': USER_AGENT
-      },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-      redirect: 'follow'
-    });
-
-    const finalUrl = (() => {
-      try {
-        return new URL(response.url);
-      } catch {
-        return pageUrl;
       }
-    })();
+    });
 
     if (!response.ok) {
       return {

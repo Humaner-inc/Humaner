@@ -158,7 +158,9 @@ export async function getAnalyticsOverview(options?: {
             SELECT date_trunc('day', m."createdAt") AS day, COUNT(*)::bigint AS count
             FROM "Message" m
             JOIN "Conversation" c ON c.id = m."conversationId"
+            JOIN "Agent" a ON a.id = c."agentId"
             WHERE c."agentId" = ${agentId}
+              AND a."organizationId" = ${organizationId}
               AND m."createdAt" >= ${volumeStart}
             GROUP BY 1 ORDER BY 1
           `

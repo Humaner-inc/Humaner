@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache';
 
 import { authActionClient } from '@/actions/safe-action';
 import { Caching, UserCacheKey } from '@/data/caching';
+import { assertContactInOrganization } from '@/lib/db/assert-ownership';
 import { prisma } from '@/lib/db/prisma';
 import { updateFavoritesOrder } from '@/lib/db/update-favorites-order';
 import { addFavoriteSchema } from '@/schemas/favorites/add-favorite-schema';
@@ -12,6 +13,11 @@ export const addFavorite = authActionClient
   .metadata({ actionName: 'addFavorite' })
   .schema(addFavoriteSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
+    await assertContactInOrganization(
+      parsedInput.contactId,
+      session.user.organizationId
+    );
+
     const count = await prisma.favorite.count({
       where: {
         userId: session.user.id,

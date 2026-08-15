@@ -4,6 +4,7 @@ import { addMinutes, isAfter } from 'date-fns';
 
 import { TOTP_AND_RECOVERY_CODES_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
+import { requireAuthSecret } from '@/lib/auth/auth-secret';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
@@ -82,9 +83,7 @@ export async function completeEmailVerification(
       ? await prisma.verificationToken.findFirst({
           where: {
             identifier: input.email.toLowerCase(),
-            token: await createHash(
-              `${input.otp.trim()}${process.env.AUTH_SECRET}`
-            )
+            token: await createHash(`${input.otp.trim()}${requireAuthSecret()}`)
           },
           select: { identifier: true, expires: true }
         })
