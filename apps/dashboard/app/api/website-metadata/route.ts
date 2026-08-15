@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { businessNameFromWebsite } from '@/lib/logo';
-import { extractWebsiteMetadata } from '@/lib/urls/extract-website-metadata';
+import { resolveBrandAssets } from '@/lib/urls/resolve-brand-assets';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,15 +20,17 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const metadata = await extractWebsiteMetadata(website);
-    if (!metadata) {
+    const assets = await resolveBrandAssets(website);
+    if (!assets) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
-    return NextResponse.json(metadata);
+    return NextResponse.json(assets);
   } catch (error) {
     console.error('[website-metadata] extract failed', error);
     return NextResponse.json({
       businessName: businessNameFromWebsite(website),
+      logoUrl: null,
+      logoSource: 'none',
       faviconUrl: null,
       accentColor: null,
       brandColors: []

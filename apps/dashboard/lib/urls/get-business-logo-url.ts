@@ -2,6 +2,7 @@ import 'server-only';
 
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
+import { websiteLogoProxyUrl } from '@/lib/urls/website-logo-proxy-url';
 
 const RELIABLE_SAME_ORIGIN_PREFIXES = [
   '/api/logo',
@@ -36,13 +37,16 @@ function isReliableLogoUrl(url: string): boolean {
 /**
  * Resolves a business logo URL for display.
  *
- * Prefers a reliable stored logo (same-origin upload / logo proxy), then falls
- * back to logo.dev via `/api/logo`. External scraped favicons are skipped —
- * they frequently render as broken images inside the chat widget iframe.
+ * Prefers a reliable stored logo (same-origin upload / logo proxy), then the
+ * scraped favicon proxy, then `/api/logo` (logo.dev, then our favicon scrape).
  */
 export function getBusinessLogoUrl(
   website: string | null | undefined,
-  options?: { size?: number; logoUrl?: string | null }
+  options?: {
+    size?: number;
+    logoUrl?: string | null;
+    faviconUrl?: string | null;
+  }
 ): string | null {
   const size = options?.size ?? 128;
   const stored = options?.logoUrl?.trim();
@@ -54,9 +58,14 @@ export function getBusinessLogoUrl(
     }
   }
 
+  const scraped = options?.faviconUrl?.trim();
+  if (scraped && /^https?:\/\//i.test(scraped)) {
+    return websiteLogoProxyUrl(scraped);
+  }
+
   const domain = website ? toHostname(website) : null;
   if (domain) {
-    return getLogoUrl(domain, size, true);
+    return getLogoUrl(domain, size, false);
   }
 
   if (stored) {
