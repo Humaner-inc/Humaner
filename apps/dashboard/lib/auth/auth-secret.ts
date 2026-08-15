@@ -1,13 +1,6 @@
-/**
- * `AUTH_SECRET` is the key behind session encryption, TOTP secrets, and the
- * email OTP hash. Several of those call sites interpolate it into a string, so
- * a missing value does not throw — it silently produces the literal
- * `"undefined"`, making every OTP hash in the deployment predictable.
- *
- * Reading it through this module makes that impossible.
- */
+//Avoiding OTP hashes being predictable
+//Short enough to accept existing secrets, long enough to reject placeholders.
 
-/** Short enough to accept existing secrets, long enough to reject placeholders. */
 const MIN_LENGTH = 32;
 
 const PLACEHOLDERS = new Set([
@@ -42,10 +35,7 @@ export function requireAuthSecret(): string {
   return validate(process.env.AUTH_SECRET);
 }
 
-/**
- * Fail the process at boot rather than at the first sign-in attempt. Called
- * from `instrumentation.ts`.
- */
+//Fail the process at boot rather than at the first sign in attempt.
 export function assertAuthSecretConfigured(): void {
   validate(process.env.AUTH_SECRET);
 }

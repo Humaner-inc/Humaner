@@ -81,6 +81,10 @@ export const actionClient = createSafeActionClient({
       return e.message;
     }
 
+    console.error('[action] Unhandled server error', {
+      name: e instanceof Error ? e.name : typeof e,
+      message: e instanceof Error ? e.message : String(e)
+    });
     return DEFAULT_SERVER_ERROR_MESSAGE;
   },
   defineMetadataSchema() {

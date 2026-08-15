@@ -20,10 +20,6 @@ function isTicketNumberCollision(error: unknown): boolean {
 
 /**
  * Create a handoff ticket with the next org-scoped ticket number.
- *
- * `MAX(ticketNumber) + 1` is unsafe under concurrency even inside a
- * transaction: READ COMMITTED lets two transactions read the same maximum, and
- * the loser hits the unique constraint — which reached a live visitor as a 500.
  * Rather than lock the table on every handoff, retry the allocation.
  * Collisions are rare and each retry re-reads a committed maximum.
  */

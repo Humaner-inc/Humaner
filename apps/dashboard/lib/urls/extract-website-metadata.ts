@@ -12,7 +12,6 @@ export type WebsiteMetadata = {
   businessName: string;
   faviconUrl: string | null;
   accentColor: string | null;
-  /** Usable brand swatches scraped with the logo (theme-color, CSS vars, …). */
   brandColors: string[];
 };
 

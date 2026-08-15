@@ -17,8 +17,7 @@ describe('requireAuthSecret', () => {
     expect(requireAuthSecret()).toBe(VALID);
   });
 
-  // Unset, this used to stringify into OTP hashes as "undefined", making every
-  // verification code in the deployment predictable.
+  // Unset, this used to stringify into OTP hashes as "undefined", making every verification code in the deployment predictable.
   it('throws when unset instead of yielding a usable value', () => {
     expect(() => requireAuthSecret()).toThrow('AUTH_SECRET is not set');
   });
