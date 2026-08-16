@@ -235,7 +235,7 @@ export function ActivityNotificationsCard({
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium">Mail</p>
                     <p className="text-sm text-muted-foreground">
-                      Inbox activity, optionally limited to specific tags.
+                      Urgent threads only — not every inbound mail.
                     </p>
                   </div>
 
@@ -247,8 +247,7 @@ export function ActivityNotificationsCard({
                         <div className="space-y-0.5">
                           <FormLabel>In the app</FormLabel>
                           <FormDescription>
-                            Show matching mail activity in your notification
-                            drawer.
+                            Show high-urgency mail in your notification panel.
                           </FormDescription>
                         </div>
                         <FormControl>

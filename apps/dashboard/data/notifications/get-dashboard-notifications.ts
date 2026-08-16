@@ -2,8 +2,9 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 import { getEffectivePlan } from '@humaner/shared/plans';
-import { subDays } from 'date-fns';
+import { addDays, formatDistanceToNow } from 'date-fns';
 
+import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
@@ -15,12 +16,18 @@ import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import {
+  aliasIdFilter,
+  resolveMailAliasScope
+} from '@/lib/inbox/mail-alias-scope';
+import {
   parseActivityNotificationPreferences,
   shouldNotifyDeskInApp
 } from '@/lib/notifications/activity-notification-preferences';
-import { detectConversationHighlights } from '@/lib/notifications/conversation-highlights';
+import {
+  getDemoDashboardNotifications,
+  isLocalNotificationsDemo
+} from '@/lib/notifications/demo-dashboard-notifications';
 import { reportBugTabLabel } from '@/lib/report-bug-context-options';
-import { supportTicketStatusLabel } from '@/lib/support-ticket-labels';
 import type {
   DashboardNotification,
   DashboardNotificationsSnapshot
@@ -30,32 +37,30 @@ import type {
   HandoffTicketUrgency
 } from '@/types/handoff-ticket';
 
-const HISTORY_LOOKBACK_DAYS = 14;
+const GROUP_LIMIT = 6;
+const API_KEY_REMINDER_DAYS = 14;
+const LOOP_ACTIONABLE = new Set(['DRAFT_READY', 'FAILED']);
 
-function severityRank(severity: DashboardNotification['severity']): number {
-  switch (severity) {
-    case 'critical':
-      return 0;
-    case 'warning':
-      return 1;
-    case 'success':
-      return 2;
+function urgencyLabel(urgency: string): string {
+  switch (urgency) {
+    case 'HIGH':
+      return 'high';
+    case 'MEDIUM':
+      return 'medium';
+    case 'LOW':
+      return 'low';
     default:
-      return 3;
+      return urgency.toLowerCase();
   }
 }
 
-function sortNotifications(
-  items: DashboardNotification[]
-): DashboardNotification[] {
-  return [...items].sort((a, b) => {
-    const severityDiff = severityRank(a.severity) - severityRank(b.severity);
-    if (severityDiff !== 0) {
-      return severityDiff;
-    }
-
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+function ticketSeverity(
+  urgency: string,
+  status: string
+): DashboardNotification['severity'] {
+  if (urgency === 'HIGH') return 'critical';
+  if (status === 'OPEN') return 'warning';
+  return 'info';
 }
 
 export async function getDashboardNotifications(): Promise<DashboardNotificationsSnapshot> {
@@ -66,11 +71,15 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const organizationId = session.user.organizationId;
   const userId = session.user.id;
+
+  if (isLocalNotificationsDemo()) {
+    return getDemoDashboardNotifications(userId);
+  }
+
   const items: DashboardNotification[] = [];
   const oss = isOssDeployment();
   const bypassLimits = await organizationBypassesPlanLimits(organizationId);
-
-  const historySince = subDays(new Date(), HISTORY_LOOKBACK_DAYS);
+  const now = new Date();
 
   const [
     organization,
@@ -78,9 +87,10 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     memberCount,
     handoffTickets,
     supportTickets,
-    recentConversations,
+    expiringApiKeys,
     teamMembers,
-    currentUser
+    currentUser,
+    mailScope
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
@@ -109,13 +119,12 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         status: true,
         urgency: true,
         assigneeId: true,
+        loopStatus: true,
         createdAt: true
       },
-
       orderBy: { createdAt: 'desc' },
-      take: 8
+      take: 32
     }),
-    // Cloud-only: Humaner support / bug tickets (not Self-Host Helpdesk).
     oss
       ? Promise.resolve([])
       : prisma.supportTicket.findMany({
@@ -132,25 +141,22 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             updatedAt: true
           },
           orderBy: { updatedAt: 'desc' },
-          take: 8
+          take: GROUP_LIMIT
         }),
-    prisma.conversation.findMany({
+    prisma.apiKey.findMany({
       where: {
-        updatedAt: { gte: historySince },
-        agent: { organizationId }
+        organizationId,
+        expiresAt: {
+          lte: addDays(now, API_KEY_REMINDER_DAYS)
+        }
       },
       select: {
         id: true,
-        updatedAt: true,
-        agent: { select: { name: true } },
-        messages: {
-          select: { role: true, unanswered: true, content: true },
-          orderBy: { createdAt: 'asc' },
-          take: 50
-        }
+        description: true,
+        expiresAt: true
       },
-      orderBy: { updatedAt: 'desc' },
-      take: 40
+      orderBy: { expiresAt: 'asc' },
+      take: GROUP_LIMIT
     }),
     prisma.organizationMembership.findMany({
       where: { organizationId },
@@ -169,12 +175,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     prisma.user.findFirst({
       where: { id: userId },
       select: { notificationPreferences: true }
-    })
+    }),
+    oss
+      ? Promise.resolve(null)
+      : resolveMailAliasScope({ userId, organizationId })
   ]);
-
-  const activityPrefs = parseActivityNotificationPreferences(
-    currentUser?.notificationPreferences
-  );
 
   if (!organization) {
     return {
@@ -185,15 +190,44 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     };
   }
 
+  const activityPrefs = parseActivityNotificationPreferences(
+    currentUser?.notificationPreferences
+  );
   const tier = normalizeTier(organization.tier);
   const plan = getEffectivePlan(tier, organization.includedMessages);
 
-  // Self-Host: no Polar billing / plan-limit upgrade nudges.
+  const [messagesUsed, urgentMail] = await Promise.all([
+    oss
+      ? Promise.resolve(0)
+      : getMessagesUsedThisMonth(session.user.organizationId, tier),
+    oss || !mailScope
+      ? Promise.resolve([])
+      : prisma.mailThread.findMany({
+          where: {
+            organizationId,
+            isUnread: true,
+            archivedAt: null,
+            status: { in: ['OPEN', 'PENDING'] },
+            aliasId: aliasIdFilter(mailScope),
+            handoffTicket: { urgency: 'HIGH' }
+          },
+          select: {
+            id: true,
+            subject: true,
+            lastMessageAt: true,
+            messages: {
+              where: { direction: 'INBOUND' },
+              orderBy: { sentAt: 'desc' },
+              take: 1,
+              select: { fromAddress: true }
+            }
+          },
+          orderBy: { lastMessageAt: 'desc' },
+          take: GROUP_LIMIT
+        })
+  ]);
+
   if (!oss) {
-    const messagesUsed = await getMessagesUsedThisMonth(
-      session.user.organizationId,
-      tier
-    );
     const messageQuotaExhausted =
       plan.overagePerMessage === null &&
       plan.includedMessages > 0 &&
@@ -210,62 +244,62 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
           items.push({
             id: 'billing-free-quota',
             kind: 'billing',
-            title: `${plan.name} message quota exhausted`,
+            title: `${plan.name} message quota`,
+            emphasis: 'exhausted',
             description:
               'Free messages for this period are used up. Upgrade to keep agents responding.',
             href: Routes.Billing,
             severity: 'critical',
-            tag: plan.name,
-            createdAt: new Date().toISOString()
+            createdAt: now.toISOString()
           });
         } else {
           items.push({
             id: 'plan-messages-critical',
-            kind: 'plan_limit',
+            kind: 'billing',
             title: 'Message limit reached',
+            emphasis: `${usagePercent}% used`,
             description: `${plan.name} includes ${plan.includedMessages.toLocaleString()} messages/mo. Upgrade or wait for the next billing period.`,
             href: Routes.Billing,
             severity: 'critical',
-            tag: `${usagePercent}% used`,
-            createdAt: new Date().toISOString()
+            createdAt: now.toISOString()
           });
         }
       } else if (usagePercent >= 80) {
         items.push({
           id: 'plan-messages-warning',
-          kind: 'plan_limit',
+          kind: 'billing',
           title: 'Approaching message limit',
+          emphasis: `${usagePercent}% used`,
           description: `${messagesUsed.toLocaleString()} of ${plan.includedMessages.toLocaleString()} included messages used this period.`,
           href: Routes.Billing,
           severity: 'warning',
-          tag: `${usagePercent}% used`,
-          createdAt: new Date().toISOString()
+          createdAt: now.toISOString()
         });
       }
 
       if (agentCount >= plan.agents) {
         items.push({
           id: 'plan-agents-limit',
-          kind: 'plan_limit',
+          kind: 'billing',
           title: 'Agent limit reached',
+          emphasis: `${agentCount}/${plan.agents} agents`,
           description: `${plan.name} includes ${plan.agents} ${plan.agents === 1 ? 'agent' : 'agents'}. Upgrade to add more.`,
           href: Routes.Billing,
           severity: agentCount > plan.agents ? 'critical' : 'warning',
-          tag: `${agentCount}/${plan.agents} agents`,
-          createdAt: new Date().toISOString()
+          createdAt: now.toISOString()
         });
       }
 
       if (memberCount >= plan.members) {
         items.push({
           id: 'plan-members-limit',
-          kind: 'plan_limit',
+          kind: 'billing',
           title: 'Member limit reached',
+          emphasis: `${memberCount}/${plan.members} members`,
           description: `${plan.name} includes ${plan.members} ${plan.members === 1 ? 'member' : 'members'}. Upgrade to invite more teammates.`,
           href: Routes.OrganizationTeam,
           severity: memberCount > plan.members ? 'critical' : 'warning',
-          tag: `${memberCount}/${plan.members} members`,
-          createdAt: new Date().toISOString()
+          createdAt: now.toISOString()
         });
       }
     }
@@ -274,46 +308,92 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       items.push({
         id: 'billing-missing-customer',
         kind: 'billing',
-        title: 'Billing setup incomplete',
+        title: 'Billing setup',
+        emphasis: 'incomplete',
         description:
           'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
         href: Routes.Billing,
         severity: 'warning',
-        tag: 'Billing',
-        createdAt: new Date().toISOString()
+        createdAt: now.toISOString()
       });
     }
   }
 
-  if (organization.humanDeskEnabled) {
-    for (const ticket of handoffTickets) {
-      if (!shouldNotifyDeskInApp(activityPrefs, ticket.urgency)) {
-        continue;
-      }
-      const customerRequest =
-        ticket.note?.trim() || ticket.summary?.trim() || ticket.subject;
+  let ticketCount = 0;
+  let taskCount = 0;
+  let loopCount = 0;
+
+  for (const ticket of handoffTickets) {
+    const ref = formatTicketRef(ticket.ticketNumber);
+    const loopStatus = ticket.loopStatus;
+    const isLoopActionable =
+      typeof loopStatus === 'string' && LOOP_ACTIONABLE.has(loopStatus);
+
+    if (isLoopActionable && loopCount < GROUP_LIMIT) {
+      loopCount += 1;
+      const failed = loopStatus === 'FAILED';
       items.push({
-        id: `human-desk-${ticket.id}`,
-        kind: 'human_desk',
-        title: ticket.subject,
-        description: customerRequest,
-        tag: formatTicketRef(ticket.ticketNumber),
-        href: Routes.DeskHuman,
-        severity:
-          ticket.urgency === 'HIGH'
-            ? 'critical'
-            : ticket.status === 'OPEN'
-              ? 'warning'
-              : 'info',
-        createdAt: ticket.createdAt.toISOString(),
-        handoff: {
-          ticketId: ticket.id,
-          status: ticket.status as HandoffTicketStatus,
-          urgency: ticket.urgency as HandoffTicketUrgency,
-          assigneeId: ticket.assigneeId
-        }
+        id: `loop-${ticket.id}`,
+        kind: 'loop',
+        title: failed ? 'Loop failed' : 'Draft ready',
+        emphasis: ref,
+        description: ticket.subject,
+        href: Routes.DeskAgent,
+        severity: failed ? 'critical' : 'warning',
+        createdAt: ticket.createdAt.toISOString()
       });
+      continue;
     }
+
+    if (!organization.humanDeskEnabled) {
+      continue;
+    }
+
+    const handoff = {
+      ticketId: ticket.id,
+      status: ticket.status as HandoffTicketStatus,
+      urgency: ticket.urgency as HandoffTicketUrgency,
+      assigneeId: ticket.assigneeId
+    };
+
+    if (ticket.assigneeId === userId && taskCount < GROUP_LIMIT) {
+      taskCount += 1;
+      items.push({
+        id: `task-${ticket.id}`,
+        kind: 'task',
+        title: ticket.subject,
+        emphasis: ref,
+        description:
+          ticket.note?.trim() || ticket.summary?.trim() || ticket.subject,
+        href: Routes.DeskHuman,
+        severity: ticketSeverity(ticket.urgency, ticket.status),
+        createdAt: ticket.createdAt.toISOString(),
+        handoff
+      });
+      continue;
+    }
+
+    if (
+      ticket.assigneeId ||
+      !shouldNotifyDeskInApp(activityPrefs, ticket.urgency) ||
+      ticketCount >= GROUP_LIMIT
+    ) {
+      continue;
+    }
+
+    ticketCount += 1;
+    items.push({
+      id: `ticket-${ticket.id}`,
+      kind: 'ticket',
+      title: ticket.subject,
+      emphasis: urgencyLabel(ticket.urgency),
+      description:
+        ticket.note?.trim() || ticket.summary?.trim() || ticket.subject,
+      href: Routes.DeskHuman,
+      severity: ticketSeverity(ticket.urgency, ticket.status),
+      createdAt: ticket.createdAt.toISOString(),
+      handoff
+    });
   }
 
   for (const ticket of supportTickets) {
@@ -324,38 +404,53 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
     items.push({
       id: `workspace-ticket-${ticket.id}`,
-      kind: 'workspace_ticket',
+      kind: 'ticket',
       title: ticket.title,
+      emphasis: areaLabel,
       description: `Bug report in ${areaLabel}${featureSuffix}`,
       href: Routes.HumanDesk,
       severity: ticket.status === 'OPEN' ? 'warning' : 'info',
-      tag: `${supportTicketStatusLabel(ticket.status)} · Bug report`,
       createdAt: ticket.updatedAt.toISOString(),
       action: 'open_support_tickets'
     });
   }
 
-  const conversationHighlights =
-    detectConversationHighlights(recentConversations);
-
-  for (const highlight of conversationHighlights) {
+  for (const thread of urgentMail) {
+    const from = thread.messages[0]?.fromAddress;
     items.push({
-      id: highlight.id,
-      kind: 'history_highlight',
-      title: highlight.title,
-      description: highlight.description,
-      href: Routes.History,
-      severity: highlight.severity,
-      tag: highlight.tag,
-      createdAt: highlight.createdAt
+      id: `mail-${thread.id}`,
+      kind: 'mail',
+      title: from ? `${thread.subject} from` : thread.subject,
+      emphasis: from,
+      description: thread.subject,
+      href: inboxThreadRoute(thread.id),
+      severity: 'critical',
+      createdAt: thread.lastMessageAt.toISOString()
     });
   }
 
-  const sorted = sortNotifications(items).slice(0, 24);
+  for (const apiKey of expiringApiKeys) {
+    if (!apiKey.expiresAt) continue;
+    const expired = apiKey.expiresAt.getTime() <= now.getTime();
+    items.push({
+      id: `api-key-${apiKey.id}`,
+      kind: 'api_key',
+      title: expired ? apiKey.description : `${apiKey.description} expires`,
+      emphasis: expired
+        ? 'expired'
+        : formatDistanceToNow(apiKey.expiresAt, { addSuffix: true }),
+      description: expired
+        ? `${apiKey.description} has expired.`
+        : `${apiKey.description} expires ${formatDistanceToNow(apiKey.expiresAt, { addSuffix: true })}.`,
+      href: Routes.Developers,
+      severity: expired ? 'critical' : 'warning',
+      createdAt: apiKey.expiresAt.toISOString()
+    });
+  }
 
   return {
-    items: sorted,
-    unreadCount: sorted.length,
+    items,
+    unreadCount: items.length,
     teamMembers: teamMembers.map((membership) => ({
       id: membership.user.id,
       name: membership.user.name,

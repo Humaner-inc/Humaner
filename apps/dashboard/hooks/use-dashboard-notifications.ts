@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import {
   dismissAllDashboardNotifications,
+  dismissDashboardNotifications,
   isDashboardNotificationUnread,
   loadDashboardNotificationState,
   markDashboardNotificationsSeen
@@ -16,6 +17,7 @@ export function useDashboardNotifications(
   visibleNotifications: DashboardNotification[];
   unreadCount: number;
   markSeen: () => void;
+  dismissOne: (id: string) => void;
   dismissAll: () => void;
 } {
   const [state, setState] = React.useState<{
@@ -53,6 +55,11 @@ export function useDashboardNotifications(
     setState((current) => ({ ...current, lastSeenAt }));
   }, []);
 
+  const dismissOne = React.useCallback((id: string) => {
+    const dismissedIds = dismissDashboardNotifications([id]);
+    setState((current) => ({ ...current, dismissedIds }));
+  }, []);
+
   const dismissAll = React.useCallback(() => {
     const dismissedIds = dismissAllDashboardNotifications(
       visibleNotifications.map((item) => item.id)
@@ -64,6 +71,7 @@ export function useDashboardNotifications(
     visibleNotifications,
     unreadCount,
     markSeen,
+    dismissOne,
     dismissAll
   };
 }

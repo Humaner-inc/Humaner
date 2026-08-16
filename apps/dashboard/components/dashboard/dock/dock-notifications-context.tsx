@@ -14,6 +14,7 @@ type DockNotificationsContextValue = {
   teamMembers: DashboardNotificationAssignee[];
   currentUserId: string;
   markSeen: () => void;
+  dismissOne: (id: string) => void;
   dismissAll: () => void;
 };
 
@@ -50,12 +51,14 @@ export function DockNotificationsProvider({
       teamMembers,
       currentUserId,
       markSeen: notifs.markSeen,
+      dismissOne: notifs.dismissOne,
       dismissAll: notifs.dismissAll
     }),
     [
       notifs.visibleNotifications,
       notifs.unreadCount,
       notifs.markSeen,
+      notifs.dismissOne,
       notifs.dismissAll,
       teamMembers,
       currentUserId

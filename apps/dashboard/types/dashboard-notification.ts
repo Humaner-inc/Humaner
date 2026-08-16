@@ -4,11 +4,12 @@ import type {
 } from '@/types/handoff-ticket';
 
 export type DashboardNotificationKind =
-  | 'plan_limit'
-  | 'human_desk'
-  | 'workspace_ticket'
-  | 'billing'
-  | 'history_highlight';
+  | 'ticket'
+  | 'task'
+  | 'mail'
+  | 'api_key'
+  | 'loop'
+  | 'billing';
 
 export type DashboardNotificationSeverity =
   | 'info'
@@ -35,7 +36,10 @@ export type DashboardNotificationAssignee = {
 export type DashboardNotification = {
   id: string;
   kind: DashboardNotificationKind;
+  /** Muted lead-in, e.g. "Password reset" */
   title: string;
+  /** Bold tail, e.g. "high" or "#00042", rendered as [high] / [#00042] */
+  emphasis?: string;
   description: string;
   href: string;
   severity: DashboardNotificationSeverity;

@@ -78,13 +78,17 @@ export function markDashboardNotificationsSeen(): string {
   return seenAt;
 }
 
-export function dismissAllDashboardNotifications(ids: string[]): Set<string> {
+export function dismissDashboardNotifications(ids: string[]): Set<string> {
   const dismissedIds = readDismissedIds();
   for (const id of ids) {
     dismissedIds.add(id);
   }
   writeDismissedIds(dismissedIds);
   return dismissedIds;
+}
+
+export function dismissAllDashboardNotifications(ids: string[]): Set<string> {
+  return dismissDashboardNotifications(ids);
 }
 
 export function isDashboardNotificationUnread(
