@@ -141,7 +141,6 @@ function NotificationLine({
 }): React.JSX.Element {
   const [checked, setChecked] = React.useState(false);
   const label = [item.title, item.emphasis].filter(Boolean).join(' ');
-  const isTask = item.kind === 'task';
 
   const completeTask = (): void => {
     if (checked) return;
@@ -190,7 +189,7 @@ function NotificationLine({
         dashboardRadiusClassName
       )}
     >
-      {isTask ? (
+      {item.kind === 'task' ? (
         <button
           type="button"
           className={cn(
