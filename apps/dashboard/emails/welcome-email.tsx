@@ -22,8 +22,8 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
     </EmailText>
     <EmailText>
       We want to give Customer Support the attention and the tools it deserves.{' '}
-      {AppInfo.APP_NAME} have one goal in mind: developers to offer exceptional
-      support in the AI era.
+      {AppInfo.APP_NAME} have one goal in mind: allowing developers to offer
+      exceptional support in the AI era.
     </EmailText>
     <EmailText>
       Open your account, we've added some extra for being here first.

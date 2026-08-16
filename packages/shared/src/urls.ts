@@ -125,6 +125,11 @@ export function getXUrl(): string {
   return "https://x.com/usehumaner";
 }
 
+/** Prefilled compose — the user can edit or write anything. */
+export function getXComposeUrl(text: string): string {
+  return `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
+}
+
 /** Account notification settings — used as the email unsubscribe destination. */
 export function getUnsubscribeUrl(): string {
   return `${getAppUrl()}/settings/account/notifications`;
