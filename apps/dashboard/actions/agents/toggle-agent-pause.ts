@@ -35,6 +35,7 @@ export const toggleAgentPause = pageActionClient('agents')
       Caching.createOrganizationTag(
         OrganizationCacheKey.Agents,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

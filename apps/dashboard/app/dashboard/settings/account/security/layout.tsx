@@ -17,35 +17,67 @@ export type SecurityLayoutProps = {
   auditLogs: React.ReactNode;
 };
 
-export default async function SecurityLayout({
+async function getSecurityLayoutUser(): Promise<{
+  showMfaRecommendation: boolean;
+  isOwner: boolean;
+}> {
+  const authSession = await dedupedAuth();
+  if (!checkSession(authSession)) {
+    return { showMfaRecommendation: false, isOwner: false };
+  }
+
+  const user = await prisma.user.findFirst({
+    where: { id: authSession.user.id },
+    select: { workspaceRole: true, role: true }
+  });
+  if (!user) {
+    return { showMfaRecommendation: false, isOwner: false };
+  }
+
+  return {
+    isOwner: user.workspaceRole === WorkspaceRole.OWNER,
+    showMfaRecommendation: await shouldRecommendMfa(
+      authSession.user.id,
+      user.workspaceRole,
+      user.role
+    )
+  };
+}
+
+async function MfaRecommendation(): Promise<React.JSX.Element | null> {
+  const { showMfaRecommendation } = await getSecurityLayoutUser();
+  return showMfaRecommendation ? <MfaRecommendedBanner /> : null;
+}
+
+async function OwnerAuditLogs({
+  auditLogs
+}: {
+  auditLogs: React.ReactNode;
+}): Promise<React.JSX.Element | null> {
+  const { isOwner } = await getSecurityLayoutUser();
+  if (!isOwner) {
+    return null;
+  }
+  return (
+    <>
+      <Separator />
+      {auditLogs}
+    </>
+  );
+}
+
+export default function SecurityLayout({
   changePassword,
   connectedAccounts,
   multiFactorAuthentication,
   manageSessions,
   auditLogs
-}: SecurityLayoutProps): Promise<React.JSX.Element> {
-  const authSession = await dedupedAuth();
-  let showMfaRecommendation = false;
-  let isOwner = false;
-
-  if (checkSession(authSession)) {
-    const user = await prisma.user.findFirst({
-      where: { id: authSession.user.id },
-      select: { workspaceRole: true, role: true }
-    });
-    if (user) {
-      isOwner = user.workspaceRole === WorkspaceRole.OWNER;
-      showMfaRecommendation = await shouldRecommendMfa(
-        authSession.user.id,
-        user.workspaceRole,
-        user.role
-      );
-    }
-  }
-
+}: SecurityLayoutProps): React.JSX.Element {
   return (
     <AnnotatedLayout className="py-0">
-      {showMfaRecommendation ? <MfaRecommendedBanner /> : null}
+      <React.Suspense fallback={null}>
+        <MfaRecommendation />
+      </React.Suspense>
       {changePassword}
       <Separator />
       {connectedAccounts}
@@ -57,12 +89,9 @@ export default async function SecurityLayout({
           {manageSessions}
         </>
       )}
-      {isOwner ? (
-        <>
-          <Separator />
-          {auditLogs}
-        </>
-      ) : null}
+      <React.Suspense fallback={null}>
+        <OwnerAuditLogs auditLogs={auditLogs} />
+      </React.Suspense>
     </AnnotatedLayout>
   );
 }

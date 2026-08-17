@@ -4,8 +4,6 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { readOrgEventsSince } from '@/lib/realtime/org-events';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 /** Long-lived SSE; keep under typical serverless max. */
 export const maxDuration = 60;
 

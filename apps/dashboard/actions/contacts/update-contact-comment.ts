@@ -35,6 +35,7 @@ export const updateContactComment = authActionClient
         OrganizationCacheKey.ContactTimelineEvents,
         session.user.organizationId,
         comment.contactId
-      )
+      ),
+      'max'
     );
   });

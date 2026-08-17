@@ -24,7 +24,23 @@ function parseFilter(value: string | undefined): InboxListFilter {
   return 'all';
 }
 
-export default async function InboxAllPage({
+function InboxAllFallback(): React.JSX.Element {
+  return (
+    <div
+      className="flex h-full min-h-0 flex-1 flex-col"
+      data-dashboard-page-shell="inbox"
+    >
+      <div className="shrink-0 border-b border-border/50 px-4 py-3">
+        <div className="h-8 w-40 animate-pulse rounded-md bg-muted/40" />
+      </div>
+      <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
+        Loading inbox…
+      </div>
+    </div>
+  );
+}
+
+async function InboxAllPageContent({
   searchParams
 }: {
   searchParams: Promise<{
@@ -136,5 +152,23 @@ export default async function InboxAllPage({
       activeTagId={activeTagId}
       autoCompose={autoCompose}
     />
+  );
+}
+
+export default function InboxAllPage({
+  searchParams
+}: {
+  searchParams: Promise<{
+    mailbox?: string;
+    alias?: string;
+    filter?: string;
+    tag?: string;
+    compose?: string;
+  }>;
+}): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<InboxAllFallback />}>
+      <InboxAllPageContent searchParams={searchParams} />
+    </React.Suspense>
   );
 }

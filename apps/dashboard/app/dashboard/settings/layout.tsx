@@ -4,14 +4,26 @@ import { SettingsNavTabs } from '@/components/dashboard/settings/settings-nav-ta
 import { SectionPage } from '@/components/ui/section-shell';
 import { getProfile } from '@/data/account/get-profile';
 
-export default async function SettingsLayout({
-  children
-}: React.PropsWithChildren): Promise<React.JSX.Element> {
+async function SettingsNav(): Promise<React.JSX.Element> {
   const profile = await getProfile();
+  return <SettingsNavTabs profile={profile} />;
+}
 
+export default function SettingsLayout({
+  children
+}: React.PropsWithChildren): React.JSX.Element {
   return (
     <SectionPage width="xl">
-      <SettingsNavTabs profile={profile} />
+      <React.Suspense
+        fallback={
+          <div
+            className="h-10"
+            aria-hidden
+          />
+        }
+      >
+        <SettingsNav />
+      </React.Suspense>
       {children}
     </SectionPage>
   );

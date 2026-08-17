@@ -38,6 +38,7 @@ export const updateSocialMedia = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.SocialMedia,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

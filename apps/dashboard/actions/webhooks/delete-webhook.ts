@@ -33,6 +33,7 @@ export const deleteWebhook = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Webhooks,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

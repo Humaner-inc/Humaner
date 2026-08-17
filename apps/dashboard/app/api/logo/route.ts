@@ -2,8 +2,6 @@ import { type NextRequest } from 'next/server';
 
 import { fetchScrapedFavicon } from '@/lib/urls/fetch-scraped-favicon';
 
-export const runtime = 'nodejs';
-
 const DOMAIN_PATTERN = /^[a-z0-9.-]+\.[a-z]{2,}$/i;
 const ALLOWED_SIZES = new Set([32, 48, 64, 72, 96, 128, 200, 256]);
 

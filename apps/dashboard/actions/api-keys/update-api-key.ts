@@ -40,6 +40,7 @@ export const updateApiKey = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.ApiKeys,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

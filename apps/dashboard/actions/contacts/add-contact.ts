@@ -30,10 +30,12 @@ export const addContact = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contacts,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.Favorites, session.user.id)
+      Caching.createUserTag(UserCacheKey.Favorites, session.user.id),
+      'max'
     );
   });

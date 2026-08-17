@@ -5,9 +5,6 @@ import { checkSession } from '@/lib/auth/session';
 import { businessNameFromWebsite } from '@/lib/logo';
 import { resolveBrandAssets } from '@/lib/urls/resolve-brand-assets';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 export async function GET(request: Request): Promise<NextResponse> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {

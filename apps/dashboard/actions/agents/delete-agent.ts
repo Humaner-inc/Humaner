@@ -60,6 +60,7 @@ export const deleteAgent = pageActionClient('agents')
       Caching.createOrganizationTag(
         OrganizationCacheKey.Agents,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

@@ -71,12 +71,14 @@ export const updatePersonalDetails = authActionClient
     await prisma.$transaction(transactions);
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.PersonalDetails, session.user.id)
+      Caching.createUserTag(UserCacheKey.PersonalDetails, session.user.id),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Members,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

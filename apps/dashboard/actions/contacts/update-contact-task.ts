@@ -32,6 +32,7 @@ export const updateContactTask = authActionClient
         OrganizationCacheKey.ContactTasks,
         session.user.organizationId,
         task.contactId
-      )
+      ),
+      'max'
     );
   });

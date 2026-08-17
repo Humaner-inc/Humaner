@@ -70,9 +70,9 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children
-}: React.PropsWithChildren): Promise<React.JSX.Element> {
+}: React.PropsWithChildren): React.JSX.Element {
   return (
     <html
       lang="en"
@@ -80,12 +80,14 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="size-full font-sans">
-        <Providers>
-          {children}
-          <React.Suspense>
-            <Toaster />
-          </React.Suspense>
-        </Providers>
+        <React.Suspense>
+          <Providers>
+            {children}
+            <React.Suspense>
+              <Toaster />
+            </React.Suspense>
+          </Providers>
+        </React.Suspense>
       </body>
     </html>
   );

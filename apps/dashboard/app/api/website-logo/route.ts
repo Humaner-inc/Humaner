@@ -3,8 +3,6 @@ import { type NextRequest } from 'next/server';
 import { fetchPublicUrl } from '@/lib/security/fetch-public-url';
 import { parsePublicHttpUrl } from '@/lib/urls/is-public-http-url';
 
-export const runtime = 'nodejs';
-
 const FETCH_TIMEOUT_MS = 8_000;
 const MAX_BYTES = 1_500_000;
 const ALLOWED_TYPES = new Set([

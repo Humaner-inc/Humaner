@@ -72,7 +72,8 @@ export const updateAgentImage = pageActionClient('agents')
       Caching.createOrganizationTag(
         OrganizationCacheKey.Agents,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
 
     return { imageUrl: imageUrl ?? null };

@@ -71,7 +71,8 @@ export const enableAuthenticatorApp = authActionClient
         Caching.createUserTag(
           UserCacheKey.MultiFactorAuthentication,
           session.user.id
-        )
+        ),
+        'max'
       );
 
       return { recoveryCodes };

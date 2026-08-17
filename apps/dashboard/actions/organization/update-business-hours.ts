@@ -64,6 +64,7 @@ export const updateBusinessHours = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.BusinessHours,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

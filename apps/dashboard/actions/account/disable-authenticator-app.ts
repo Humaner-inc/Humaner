@@ -59,6 +59,7 @@ export const disableAuthenticatorApp = authActionClient
       Caching.createUserTag(
         UserCacheKey.MultiFactorAuthentication,
         session.user.id
-      )
+      ),
+      'max'
     );
   });

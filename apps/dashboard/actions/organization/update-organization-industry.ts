@@ -56,12 +56,14 @@ export const updateOrganizationIndustry = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Industry,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Agents,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

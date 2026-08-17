@@ -18,9 +18,20 @@ export const metadata: Metadata = {
   title: createTitle('Log in')
 };
 
-export default async function LoginPage({
+function LoginFallback(): React.JSX.Element {
+  return (
+    <AuthOnboardingCardShell
+      showLogo={false}
+      maxWidth="sm"
+    >
+      <LoginCard />
+    </AuthOnboardingCardShell>
+  );
+}
+
+async function LoginPageContent({
   searchParams
-}: NextPageProps): Promise<React.JSX.Element> {
+}: Pick<NextPageProps, 'searchParams'>): Promise<React.JSX.Element> {
   const { error, callbackUrl } = await searchParamsCache.parse(searchParams);
   const oauthErrorMessage = error ? resolveAuthErrorMessage(error) : undefined;
 
@@ -35,5 +46,13 @@ export default async function LoginPage({
       ) : null}
       <LoginCard initialErrorMessage={oauthErrorMessage} />
     </AuthOnboardingCardShell>
+  );
+}
+
+export default function LoginPage(props: NextPageProps): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<LoginFallback />}>
+      <LoginPageContent searchParams={props.searchParams} />
+    </React.Suspense>
   );
 }

@@ -52,6 +52,7 @@ export const revokeApiKey = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.ApiKeys,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

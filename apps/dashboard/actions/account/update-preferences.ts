@@ -22,12 +22,14 @@ export const updatePreferences = authActionClient
     });
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.Preferences, session.user.id)
+      Caching.createUserTag(UserCacheKey.Preferences, session.user.id),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Members,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

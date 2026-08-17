@@ -6,9 +6,6 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 export async function GET(
   req: NextRequest,
   props: { params: Promise<{ contactId: string }> }

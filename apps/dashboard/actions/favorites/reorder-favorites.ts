@@ -41,7 +41,8 @@ export const reorderFavorites = authActionClient
       ]);
 
       revalidateTag(
-        Caching.createUserTag(UserCacheKey.Favorites, session.user.id)
+        Caching.createUserTag(UserCacheKey.Favorites, session.user.id),
+        'max'
       );
     }
   });

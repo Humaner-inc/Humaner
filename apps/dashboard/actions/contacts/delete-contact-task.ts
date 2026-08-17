@@ -34,6 +34,7 @@ export const deleteContactTask = authActionClient
         OrganizationCacheKey.ContactTasks,
         session.user.organizationId,
         deletedTask.contactId
-      )
+      ),
+      'max'
     );
   });

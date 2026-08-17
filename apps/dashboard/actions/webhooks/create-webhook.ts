@@ -45,6 +45,7 @@ export const createWebhook = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Webhooks,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });
