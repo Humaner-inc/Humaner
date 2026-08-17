@@ -4,7 +4,7 @@ import type { PlanTier } from '@humaner/shared/plans';
 export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
   free: '#18181b',
   /** Cobalt — matches Humaner v1.0 */
-  classic: '#0682de',
+  classic: '#2252bc',
   /** Accent — matches Humaner v2.0 */
   frontier: '#e1ccaf',
   humaner: '#e1ccaf'

@@ -9,7 +9,7 @@ export type MetricCellProps = React.HTMLAttributes<HTMLDivElement> & {
   hint?: string;
 };
 
-/** Straight metric display — mono label + tabular value, no charts. */
+/** Metric value with its label beside it — not stacked or centered above. */
 export function MetricCell({
   label,
   value,
@@ -19,24 +19,20 @@ export function MetricCell({
 }: MetricCellProps): React.JSX.Element {
   return (
     <div
-      className={cn('px-3 py-2.5', className)}
+      className={cn('flex h-11 items-center gap-2 px-3', className)}
       {...props}
     >
-      {typeof label === 'string' ? (
-        <MicroLabel>{label}</MicroLabel>
-      ) : (
-        <span className="flex min-h-3.5 items-center justify-center">
-          {label}
-        </span>
-      )}
-      <p className="mt-1 font-mono text-xl tabular-nums leading-none tracking-tight">
+      <p className="w-[2ch] shrink-0 font-mono text-xl tabular-nums leading-none tracking-tight">
         {value}
       </p>
-      {hint ? (
-        <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-          {hint}
-        </p>
-      ) : null}
+      <div className="flex min-w-0 items-center">
+        {typeof label === 'string' ? <MicroLabel>{label}</MicroLabel> : label}
+        {hint ? (
+          <p className="ml-1.5 truncate font-info text-[10px] leading-none text-muted-foreground">
+            {hint}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

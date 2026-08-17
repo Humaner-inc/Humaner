@@ -105,13 +105,17 @@ Details: [`Docs/OPEN_SOURCING.md`](./Docs/OPEN_SOURCING.md) · [`SELFHOST.md`](.
 
 ## Brand tokens
 
-| Token  | Hex       | Use                              |
-| ------ | --------- | -------------------------------- |
-| White  | `#fff8f2` | Primary light surface            |
-| Black  | `#070607` | Primary dark surface             |
-| Accent | `#e1ccaf` | Links, emphasis, warm CTAs       |
-| Grey   | `#7b7b73` | Selective CTA fills              |
-| Cobalt | `#0682de` | Docs warnings, messages, banners |
+| Token  | Hex                               | Use                               |
+| ------ | --------------------------------- | --------------------------------- |
+| White  | `#F2F2F2`                         | Cool light surfaces               |
+| Cream  | `#fcf4ec`                         | Warm light surface, dark-mode ink |
+| Black  | `#0A0D0D`                         | Primary dark surface              |
+| Greys  | `#eaeaea` · `#18181b` · `#1c1c1e` | Existing app greys                |
+| Accent | `#e1ccaf`                         | Links, emphasis, warm CTAs        |
+| Blue   | `#2252bc`                         | Docs, info, Classic plan          |
+| Orange | `#f85919`                         | Warnings                          |
+| Red    | `#aa1f18`                         | Deletion, unsolved                |
+| Green  | `#023404` / `#226342`             | Validation, solved (light / dark) |
 
 ## License
 

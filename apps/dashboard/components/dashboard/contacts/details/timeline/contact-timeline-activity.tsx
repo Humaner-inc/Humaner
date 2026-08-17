@@ -89,7 +89,7 @@ export function ContactTimelineActivity({
         )}
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
-            <div className="flex w-fit items-center space-x-1 text-xs text-muted-foreground">
+            <div className="flex w-fit items-center space-x-1 font-info text-xs text-muted-foreground">
               <ClockIcon className="size-3 shrink-0" />
               <time suppressHydrationWarning>
                 {formatDistanceToNow(event.occurredAt, { addSuffix: true })}

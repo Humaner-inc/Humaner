@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { connection } from 'next/server';
 import { formatAgents, getEffectivePlan } from '@humaner/shared/plans';
 
 import { AgentCard } from '@/components/dashboard/agents/agent-card';
@@ -41,21 +42,19 @@ function HomePageFallback(): React.JSX.Element {
   return (
     <SectionPage width="xl">
       <div
-        className="space-y-6"
+        className="flex flex-col gap-4"
         data-dashboard-page-shell="organization"
       >
-        <div className="h-24 animate-pulse rounded-md bg-muted/40" />
-        <h2 className="section-title">Agents</h2>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
-          <div className="h-36 animate-pulse rounded-md bg-muted/40" />
-          <div className="h-36 animate-pulse rounded-md bg-muted/40" />
-        </div>
+        <div className="h-8 w-48 animate-pulse rounded-md bg-muted/40" />
+        <div className="h-32 animate-pulse rounded-md bg-muted/40" />
+        <div className="h-32 animate-pulse rounded-md bg-muted/40" />
       </div>
     </SectionPage>
   );
 }
 
 async function HomePageContent(): Promise<React.JSX.Element> {
+  await connection();
   const session = await dedupedAuth();
   const oss = isOssDeployment();
 

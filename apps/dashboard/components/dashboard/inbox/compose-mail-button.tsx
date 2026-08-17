@@ -44,7 +44,7 @@ export function ComposeMailButton({
       className={cn(
         'h-9 gap-1.5 rounded-none px-3 font-mono text-[11px] normal-case tracking-normal',
         // Force visible ink on cream (default CTA dark:text can lose to font styles).
-        'dark:bg-[#fff8f2] dark:text-[#0A0D0D] dark:hover:bg-white dark:hover:text-[#0A0D0D]',
+        'dark:bg-[#fcf4ec] dark:text-[#0A0D0D] dark:hover:bg-white dark:hover:text-[#0A0D0D]',
         '[&_svg]:text-current',
         className
       )}

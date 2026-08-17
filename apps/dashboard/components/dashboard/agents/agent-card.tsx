@@ -94,7 +94,7 @@ function AgentStatusBadge({
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300',
+          'inline-flex items-center gap-1.5 border border-warning/30 bg-warning/10 font-info uppercase tracking-[0.08em] text-warning',
           dashboardRadiusClassName,
           compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-[11px]'
         )}
@@ -113,11 +113,11 @@ function AgentStatusBadge({
     >
       <span
         className={cn(
-          'inline-flex size-1.5 shrink-0 bg-emerald-500',
+          'inline-flex size-1.5 shrink-0 bg-success',
           'rounded-none'
         )}
       />
-      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-foreground/70">
+      <span className="font-info text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
         [live]
       </span>
     </span>
@@ -161,7 +161,7 @@ function IdDotStrip({
         <span className="truncate">{maskedId}</span>
         <span className="shrink-0 opacity-50 transition-opacity group-hover/id:opacity-100">
           {copied ? (
-            <CheckIcon className="size-3 text-emerald-500" />
+            <CheckIcon className="size-3 text-success" />
           ) : (
             <CopyIcon className="size-3" />
           )}
@@ -331,7 +331,7 @@ export function AgentCard({
 
           <h3
             className={cn(
-              'mt-4 max-w-full truncate font-display leading-none tracking-tight',
+              'mt-4 max-w-full truncate font-display font-normal leading-none tracking-tight',
               compact ? 'text-xl' : 'text-[1.5rem]'
             )}
           >
@@ -347,19 +347,21 @@ export function AgentCard({
             )}
           </h3>
 
-          <p className="micro-label mt-2.5 text-foreground/80">{passLabel}</p>
+          <p className="mt-1.5 max-w-[11rem] truncate font-info text-[10px] uppercase tracking-[0.04em] text-muted-foreground">
+            {passLabel}
+          </p>
         </div>
 
         {agent.metrics.gaps.length > 0 ? (
           <div
             className={cn(
-              'mt-3 flex items-center justify-center gap-2 border border-[#0682de]/30 bg-[#0682de]/10 px-2.5 py-2',
+              'mt-3 flex items-center justify-center gap-2 border border-[#2252bc]/30 bg-[#2252bc]/10 px-2.5 py-2',
               dashboardRadiusClassName,
               compact && 'mt-2'
             )}
           >
-            <AlertCircleIcon className="size-3 shrink-0 text-[#0682de]" />
-            <p className="line-clamp-2 text-center text-[10px] leading-relaxed text-[#0682de]">
+            <AlertCircleIcon className="size-3 shrink-0 text-[#2252bc]" />
+            <p className="line-clamp-2 text-center font-info text-[10px] leading-relaxed text-[#2252bc]">
               {agent.metrics.gaps[0]}
             </p>
           </div>

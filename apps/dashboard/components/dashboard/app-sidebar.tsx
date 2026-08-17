@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 
+import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
@@ -19,7 +19,6 @@ import {
 import { AppInfo } from '@/constants/app-info';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { getLogo } from '@/lib/theme/brand';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
@@ -58,13 +57,10 @@ export function AppSidebar({
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
         <div className="flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
-            <Image
-              src={getLogo('light')}
-              alt=""
+            <HumanerLogoImage
               width={32}
               height={32}
-              unoptimized
-              className="size-7 shrink-0 dark:brightness-0 dark:invert"
+              className="size-7 shrink-0"
             />
           ) : (
             <BrandWordmark
@@ -72,7 +68,7 @@ export function AppSidebar({
               hoverText={appName}
               onMouseEnter={() => setBrandHovered(true)}
               onMouseLeave={() => setBrandHovered(false)}
-              className="truncate text-center font-display text-lg font-semibold tracking-tight text-sidebar-foreground"
+              className="truncate text-center font-display text-lg font-normal tracking-tight text-sidebar-foreground"
             >
               {appName}
             </BrandWordmark>

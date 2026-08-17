@@ -6,8 +6,8 @@ export const EMAIL_COLORS = {
   background: "#ffffff",
   border: "#eaeaea",
   muted: "#18181b",
-  canvas: "#f2f2f2",
-  link: "#2563eb",
+  canvas: "#F2F2F2",
+  link: "#2252bc",
 } as const;
 
 export const EMAIL_BODY_CLASS = "m-auto bg-white px-2 font-sans";
@@ -27,7 +27,7 @@ export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#18181b]";
 export const EMAIL_MUTED_CENTER_CLASS =
   "text-center text-[14px] leading-[24px] text-[#18181b]";
 
-export const EMAIL_LINK_CLASS = "text-blue-600 no-underline";
+export const EMAIL_LINK_CLASS = "text-[#2252bc] no-underline";
 
 export const EMAIL_HR_CLASS =
   "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";

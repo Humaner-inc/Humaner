@@ -69,7 +69,7 @@ export function LogoutCard(): React.JSX.Element {
         <span
           className={cn(
             'font-medium',
-            oss ? 'text-[#0A0D0D]' : 'text-[#fff8f2]'
+            oss ? 'text-[#0A0D0D]' : 'text-[#fcf4ec]'
           )}
         >
           {countdown}

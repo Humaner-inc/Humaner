@@ -38,7 +38,7 @@ export const viewport: Viewport = {
   minimumScale: 1,
   maximumScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#0A0D0D' },
+    { media: '(prefers-color-scheme: light)', color: '#fcf4ec' },
     { media: '(prefers-color-scheme: dark)', color: '#0A0D0D' }
   ]
 };
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   },
   description,
   icons: {
-    icon: '/favicon.svg',
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
     shortcut: '/favicon.svg',
     apple: '/favicon.svg'
   },

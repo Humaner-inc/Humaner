@@ -123,7 +123,7 @@ export const DeleteAccountModal = NiceModal.create<DeleteAccountModalProps>(
               aria-label="Copy email"
             >
               {copiedEmail ? (
-                <CheckIcon className="size-4 text-emerald-500" />
+                <CheckIcon className="size-4 text-success" />
               ) : (
                 <CopyIcon className="size-4" />
               )}

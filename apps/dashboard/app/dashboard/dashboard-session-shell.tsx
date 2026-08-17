@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
 import { getPlanForTier } from '@humaner/shared/plans';
@@ -46,6 +47,7 @@ import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-
 export async function DashboardSessionShell({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
+  await connection();
   const session = await dedupedAuth();
   if (!checkAuthenticatedSession(session)) {
     return redirect(getLoginRedirect());

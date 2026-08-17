@@ -93,7 +93,7 @@ export function OrganizationVerticalTopics({
                   className={cn(
                     'mt-0.5 flex size-4 shrink-0 items-center justify-center border',
                     isSelected
-                      ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                      ? 'border-success/50 bg-success/15 text-success'
                       : 'border-border/70 bg-transparent text-transparent'
                   )}
                 >

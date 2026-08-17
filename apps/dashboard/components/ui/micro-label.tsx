@@ -34,7 +34,7 @@ export function StatusTag({
   return (
     <span
       className={cn(
-        'inline-flex items-center border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+        'inline-flex items-center border px-2 py-0.5 font-info text-[10px] uppercase tracking-[0.08em]',
         active
           ? 'border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_12%,transparent)] text-foreground'
           : 'border-border/60 bg-muted/30 text-muted-foreground',

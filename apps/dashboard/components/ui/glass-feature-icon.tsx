@@ -58,7 +58,7 @@ export function GlassFeatureIcon({
       />
       <span
         className={cn(
-          'relative z-10 flex items-center justify-center text-foreground/80 dark:text-[#fff8f2]',
+          'relative z-10 flex items-center justify-center text-foreground/80 dark:text-[#fcf4ec]',
           ICON_CLASS[size]
         )}
       >

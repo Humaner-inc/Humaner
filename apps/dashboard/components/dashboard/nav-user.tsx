@@ -59,7 +59,7 @@ function MenuRow({
   return (
     <DropdownMenuItem
       asChild
-      className="rounded-md px-2.5 py-2"
+      className="rounded-none px-2.5 py-2"
     >
       <Link href={href}>
         <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -194,14 +194,21 @@ export function NavUser({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-72 rounded-none p-2"
+        className={cn(
+          dashboardRadiusClassName,
+          'w-72 origin-top-right overflow-hidden border border-foreground/15 bg-[#fcf4ec]/55 p-2 text-foreground shadow-[0_24px_80px_-24px_rgb(10_13_13_/_0.45)] backdrop-blur-xl',
+          'dark:border-white/[0.12] dark:bg-[#0A0D0D]/55 dark:text-[#fcf4ec]'
+        )}
         align="end"
         forceMount
+        style={{
+          clipPath: 'polygon(0 0, 100% 0, calc(100% - 1.125rem) 100%, 0 100%)'
+        }}
       >
-        <div className="relative mb-1 overflow-hidden rounded-lg border border-border/50 bg-muted/40 p-3 pr-16">
+        <div className="relative mb-1 overflow-hidden rounded-none border border-border/50 bg-muted/30 p-3 pr-16">
           {!isOssDeployment() ? (
             <span
-              className="absolute right-2.5 top-2.5 inline-flex rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
+              className="absolute right-2.5 top-2.5 inline-flex rounded-none px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
               style={{
                 backgroundColor:
                   'color-mix(in srgb, var(--accent-color, hsl(var(--brand))) 20%, transparent)',
@@ -246,7 +253,7 @@ export function NavUser({
               {workspaces.map((workspace) => (
                 <DropdownMenuItem
                   key={workspace.id}
-                  className="rounded-md px-2.5 py-2"
+                  className="rounded-none px-2.5 py-2"
                   onClick={() => void handleSwitchWorkspace(workspace.id)}
                 >
                   <span className="min-w-0 flex-1 truncate">
@@ -263,7 +270,7 @@ export function NavUser({
                 </DropdownMenuItem>
               ))}
               <DropdownMenuItem
-                className="justify-between gap-2 rounded-md px-2.5 py-2"
+                className="justify-between gap-2 rounded-none px-2.5 py-2"
                 onClick={handleCreateWorkspace}
               >
                 <span>New Workspace</span>
@@ -283,7 +290,7 @@ export function NavUser({
           type="button"
           variant="secondary"
           size="sm"
-          className="mt-1 h-9 w-full justify-center gap-1.5 rounded-md bg-red-500/10 px-2 text-xs text-red-600 hover:bg-red-500/15 hover:text-red-600 dark:text-red-400 dark:hover:text-red-400"
+          className="mt-1 h-9 w-full justify-center gap-1.5 rounded-none bg-destructive/10 px-2 text-xs text-destructive hover:bg-destructive/15 hover:text-destructive"
           onClick={() => void handleLogOut()}
         >
           Log out

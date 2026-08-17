@@ -78,7 +78,7 @@ const sourceTypeButtonClassName = cn(
 );
 
 const sourceTypeButtonSelectedClassName = cn(
-  'inline-flex w-full items-center justify-center rounded-none border border-transparent bg-[#0A0D0D] text-[#fff8f2] transition-[color,background-color,border-color] duration-200 dark:bg-[#fff8f2] dark:text-[#0A0D0D]',
+  'inline-flex w-full items-center justify-center rounded-none border border-transparent bg-[#0A0D0D] text-[#fcf4ec] transition-[color,background-color,border-color] duration-200 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
   sourceTypeButtonSizeClassName
 );
 
@@ -683,7 +683,7 @@ export function AddSourceDialog({
                       href="https://markdown.humaner.io"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-[#0682de]"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-[#2252bc]"
                     >
                       Convert a full site into a .md file
                       <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" />

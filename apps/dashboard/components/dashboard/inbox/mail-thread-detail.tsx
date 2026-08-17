@@ -64,9 +64,9 @@ type Suggestion = { label: string; draft: string };
 type SendPhase = 'idle' | 'sending' | 'success';
 
 const accentBorder =
-  'border-[color-mix(in_srgb,var(--accent-color,#0682de)_55%,transparent)]';
+  'border-[color-mix(in_srgb,var(--accent-color,#2252bc)_55%,transparent)]';
 const accentSoftBg =
-  'bg-[color-mix(in_srgb,var(--accent-color,#0682de)_10%,transparent)]';
+  'bg-[color-mix(in_srgb,var(--accent-color,#2252bc)_10%,transparent)]';
 
 function shouldAutoSuggest(thread: MailThreadDetailDto): boolean {
   if (!thread.isUnread) return false;
@@ -175,17 +175,17 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
                 <p className="truncate text-sm font-semibold leading-5">
                   {displayName}
                   {fromName ? (
-                    <span className="ml-1.5 font-normal text-muted-foreground">
+                    <span className="ml-1.5 font-info text-muted-foreground">
                       &lt;{fromEmail}&gt;
                     </span>
                   ) : null}
                 </p>
                 {expanded ? (
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate font-info text-xs text-muted-foreground">
                     To {message.toAddresses.join(', ')}
                   </p>
                 ) : (
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate font-info text-xs text-muted-foreground">
                     {mailSnippet(message.bodyText, message.bodyHtml) ||
                       'Show message'}
                   </p>
@@ -193,7 +193,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
               </div>
               <time
                 dateTime={message.sentAt}
-                className="shrink-0 pt-0.5 text-xs text-muted-foreground"
+                className="shrink-0 pt-0.5 font-info text-xs text-muted-foreground"
               >
                 {formatMailTimestamp(message.sentAt)}
               </time>
@@ -573,7 +573,7 @@ export function MailThreadDetail({
             ) : null}
           </div>
           {!embedded ? (
-            <p className="mt-1 truncate pl-[1.375rem] text-xs text-muted-foreground">
+            <p className="mt-1 truncate pl-[1.375rem] font-info text-xs text-muted-foreground">
               {senderLabel}
             </p>
           ) : null}
@@ -763,7 +763,7 @@ export function MailThreadDetail({
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
                         To:{' '}
-                        <span style={{ color: 'var(--accent-color, #0682de)' }}>
+                        <span style={{ color: 'var(--accent-color, #2252bc)' }}>
                           {toName}
                         </span>
                       </p>
@@ -816,7 +816,7 @@ export function MailThreadDetail({
                                   active
                                     ? {
                                         backgroundColor:
-                                          'color-mix(in srgb, var(--accent-color, #0682de) 28%, transparent)'
+                                          'color-mix(in srgb, var(--accent-color, #2252bc) 28%, transparent)'
                                       }
                                     : undefined
                                 }
@@ -830,7 +830,7 @@ export function MailThreadDetail({
                                 <CheckIcon
                                   className="size-3.5 shrink-0"
                                   style={{
-                                    color: 'var(--accent-color, #0682de)'
+                                    color: 'var(--accent-color, #2252bc)'
                                   }}
                                 />
                               ) : null}

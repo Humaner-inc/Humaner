@@ -11,9 +11,8 @@ export const statusPillVariants = cva(
     variants: {
       variant: {
         pending:
-          'border-0 bg-orange-500/15 px-2.5 text-orange-700 hover:bg-orange-500/15 dark:text-orange-300',
-        success:
-          'border border-emerald-500/30 bg-emerald-500/10 px-2.5 text-emerald-700 dark:text-emerald-300',
+          'border-0 bg-warning/15 px-2.5 text-warning hover:bg-warning/15',
+        success: 'border border-success/30 bg-success/10 px-2.5 text-success',
         failed:
           'border border-destructive/25 bg-destructive/10 px-2.5 text-destructive'
       },

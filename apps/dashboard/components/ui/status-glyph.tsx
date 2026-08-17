@@ -22,7 +22,7 @@ export function StatusGlyph({
     return (
       <span
         className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-blue-500',
+          'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
           className
         )}
         aria-hidden
@@ -36,7 +36,7 @@ export function StatusGlyph({
     return (
       <span
         className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-blue-500',
+          'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
           className
         )}
         aria-hidden
@@ -50,7 +50,7 @@ export function StatusGlyph({
     return (
       <span
         className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-amber-500',
+          'inline-flex size-3.5 shrink-0 items-center justify-center text-warning',
           className
         )}
         aria-hidden
@@ -76,18 +76,28 @@ export function StatusGlyph({
 
   if (kind === 'closed') {
     return (
-      <XIcon
-        className={cn('size-3.5 shrink-0 text-muted-foreground', className)}
+      <span
+        className={cn(
+          'inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground',
+          className
+        )}
         aria-hidden
-      />
+      >
+        <XIcon className="size-3.5" />
+      </span>
     );
   }
 
   return (
-    <CheckIcon
-      className={cn('size-3.5 shrink-0 text-emerald-500', className)}
+    <span
+      className={cn(
+        'inline-flex size-3.5 shrink-0 items-center justify-center text-success',
+        className
+      )}
       aria-hidden
-    />
+    >
+      <CheckIcon className="size-3.5" />
+    </span>
   );
 }
 
@@ -99,9 +109,9 @@ export function StatusGlyphMetricLabel({
   label: string;
 }): React.JSX.Element {
   return (
-    <span className="inline-flex items-center justify-center gap-1.5">
+    <span className="inline-flex h-3.5 items-center gap-1.5 whitespace-nowrap">
       <StatusGlyph kind={kind} />
-      <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+      <span className="font-info text-[9px] uppercase leading-none tracking-[0.08em] text-muted-foreground">
         {label}
       </span>
     </span>

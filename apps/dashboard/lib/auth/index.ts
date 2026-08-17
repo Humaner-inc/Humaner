@@ -64,5 +64,6 @@ export const authConfig = {
 // All those actions need to be called server-side
 export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);
 
-// Deduplicated server-side auth call
+// Deduplicated per-request session. `auth()` already reads cookies (request-time);
+// do not wrap it in `connection()` — that blocks instant navigations.
 export const dedupedAuth = cache(auth);

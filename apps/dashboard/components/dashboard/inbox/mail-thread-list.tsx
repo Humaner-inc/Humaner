@@ -59,7 +59,7 @@ import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#0682de';
+const DEFAULT_UNREAD = '#2252bc';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
   'h-8 rounded-none font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
@@ -1147,10 +1147,7 @@ function MailThreadRow({
             )}
           >
             {thread.subject}
-            <span className="font-normal text-muted-foreground">
-              {' '}
-              · {label}
-            </span>
+            <span className="font-info text-muted-foreground"> · {label}</span>
             {thread.messageCount > 1 ? (
               <span
                 className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-none bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
@@ -1161,7 +1158,7 @@ function MailThreadRow({
             ) : null}
           </p>
 
-          <p className="mt-0.5 min-w-0 truncate text-xs leading-4 text-muted-foreground">
+          <p className="mt-0.5 min-w-0 truncate font-info text-xs leading-4 text-muted-foreground">
             {thread.preview ?? 'No preview'}
           </p>
         </div>
@@ -1174,7 +1171,7 @@ function MailThreadRow({
         <time
           dateTime={thread.lastMessageAt}
           suppressHydrationWarning
-          className="pointer-events-none font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
+          className="pointer-events-none font-info text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
         >
           {formatDistanceToNow(new Date(thread.lastMessageAt), {
             addSuffix: true

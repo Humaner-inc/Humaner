@@ -74,7 +74,7 @@ function ApiKeyStatusMark({
   if (status === 'active') {
     return (
       <span
-        className="inline-flex size-4 items-center justify-center text-[#22C55E]"
+        className="inline-flex size-4 items-center justify-center text-success"
         title="Active"
         aria-label="Active"
       >
@@ -149,7 +149,7 @@ function ApiKeyListItem({
         </div>
         <p
           suppressHydrationWarning
-          className="mt-0.5 text-xs text-muted-foreground"
+          className="mt-0.5 font-info text-xs text-muted-foreground"
         >
           {status === 'broken'
             ? apiKey.expiresAt

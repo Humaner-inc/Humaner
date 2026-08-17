@@ -7,26 +7,27 @@
 @layer base {
   :root {
     /*
-     * Neutrals (light → dark among lights): #fff8f2 · #f2f2f2 · #eaeaea
+     * Neutrals (light → dark among lights): #fcf4ec · #F2F2F2 · #eaeaea
      * Neutrals (dark → light among darks):  #0A0D0D · #18181b · #1c1c1e
-     * Accents kept: brand/fracture cream, destructive, charts, banner hues.
+     * Accent cream #e1ccaf. Status: info #2252bc · warning #f85919 ·
+     * destructive #aa1f18 · success #226342.
      */
-    /* #fff8f2 */
-    --background: 28 100% 97.5%;
+    /* #fcf4ec */
+    --background: 30 73% 95.7%;
     /* #0A0D0D */
     --foreground: 180 13% 4.5%;
 
-    --card: 28 100% 97.5%;
+    --card: 30 73% 95.7%;
     --card-foreground: 180 13% 4.5%;
 
-    --popover: 28 100% 97.5%;
+    --popover: 30 73% 95.7%;
     --popover-foreground: 180 13% 4.5%;
 
     /* Accent cream — not a neutral */
     --primary: 35 45% 78%;
     --primary-foreground: 180 13% 4.5%;
 
-    /* #f2f2f2 */
+    /* #F2F2F2 */
     --secondary: 0 0% 95%;
     --secondary-foreground: 180 13% 4.5%;
 
@@ -45,10 +46,20 @@
 
     /* Selective CTA — #18181b on cream */
     --frame: #18181b;
-    --frame-foreground: #fff8f2;
+    --frame-foreground: #fcf4ec;
 
-    --destructive: 0 72% 45%;
+    /* #aa1f18 */
+    --destructive: 3 75% 38%;
     --destructive-foreground: 0 0% 100%;
+    /* #2252bc */
+    --info: 221 69% 43.5%;
+    --info-foreground: 0 0% 100%;
+    /* #f85919 */
+    --warning: 17 94% 53.5%;
+    --warning-foreground: 180 13% 4.5%;
+    /* #226342 — same green in light and dark */
+    --success: 150 49% 26.1%;
+    --success-foreground: 30 73% 95.7%;
 
     /* #eaeaea */
     --border: 0 0% 92%;
@@ -56,6 +67,9 @@
     --ring: 240 6% 10%;
 
     --radius: 0px;
+    --font-fellix: var(--font-geist-sans);
+    --font-the-seasons: var(--font-geist-sans);
+    --font-humaner-mono: var(--font-geist-mono);
 
     --chart-1: 180 13% 4.5%;
     --chart-2: 35 45% 78%;
@@ -63,14 +77,14 @@
     --chart-4: 43 74% 60%;
     --chart-5: 240 6% 10%;
 
-    --sidebar-background: 28 100% 97.5%;
+    --sidebar-background: 30 73% 95.7%;
     --sidebar-foreground: 180 13% 4.5%;
     --sidebar-primary: 35 45% 78%;
     --sidebar-primary-foreground: 180 13% 4.5%;
     --sidebar-accent: 0 0% 95%;
     --sidebar-accent-foreground: 180 13% 4.5%;
     --sidebar-active: 180 13% 4.5%;
-    --sidebar-active-foreground: 28 100% 97.5%;
+    --sidebar-active-foreground: 30 73% 95.7%;
     --sidebar-border: 0 0% 92%;
     --sidebar-ring: 240 6% 10%;
   }
@@ -78,29 +92,29 @@
   .dark {
     /* #0A0D0D */
     --background: 180 13% 4.5%;
-    /* #fff8f2 */
-    --foreground: 28 100% 97.5%;
+    /* #fcf4ec */
+    --foreground: 30 73% 95.7%;
 
     /* #18181b */
     --card: 240 6% 10%;
-    --card-foreground: 28 100% 97.5%;
+    --card-foreground: 30 73% 95.7%;
 
     --popover: 240 6% 10%;
-    --popover-foreground: 28 100% 97.5%;
+    --popover-foreground: 30 73% 95.7%;
 
     --primary: 35 45% 82%;
     --primary-foreground: 180 13% 4.5%;
 
     /* #1c1c1e */
     --secondary: 240 4% 11%;
-    --secondary-foreground: 28 100% 97.5%;
+    --secondary-foreground: 30 73% 95.7%;
 
     --muted: 240 4% 11%;
     /* #eaeaea */
     --muted-foreground: 0 0% 92%;
 
     --accent: 240 4% 11%;
-    --accent-foreground: 28 100% 97.5%;
+    --accent-foreground: 30 73% 95.7%;
 
     --brand: 35 45% 82%;
     --brand-foreground: 180 13% 4.5%;
@@ -109,10 +123,17 @@
     --fracture-foreground: 180 13% 4.5%;
 
     --frame: #1c1c1e;
-    --frame-foreground: #fff8f2;
+    --frame-foreground: #fcf4ec;
 
-    --destructive: 0 62% 42%;
+    --destructive: 3 75% 38%;
     --destructive-foreground: 0 0% 100%;
+    --info: 221 69% 43.5%;
+    --info-foreground: 0 0% 100%;
+    --warning: 17 94% 53.5%;
+    --warning-foreground: 180 13% 4.5%;
+    /* #226342 */
+    --success: 150 49% 26.1%;
+    --success-foreground: 30 73% 95.7%;
 
     --border: 240 4% 11%;
     --input: 240 4% 11%;
@@ -125,12 +146,12 @@
     --chart-5: 0 0% 92%;
 
     --sidebar-background: 180 13% 4.5%;
-    --sidebar-foreground: 28 100% 97.5%;
+    --sidebar-foreground: 30 73% 95.7%;
     --sidebar-primary: 35 45% 82%;
     --sidebar-primary-foreground: 180 13% 4.5%;
     --sidebar-accent: 240 6% 10%;
-    --sidebar-accent-foreground: 28 100% 97.5%;
-    --sidebar-active: 28 100% 97.5%;
+    --sidebar-accent-foreground: 30 73% 95.7%;
+    --sidebar-active: 30 73% 95.7%;
     --sidebar-active-foreground: 180 13% 4.5%;
     --sidebar-border: 240 4% 11%;
     --sidebar-ring: 0 0% 92%;
@@ -200,9 +221,6 @@
   }
 
   .font-display {
-    font-feature-settings:
-      'liga' 0,
-      'dlig' 0;
     letter-spacing: -0.01em;
   }
 }
@@ -221,24 +239,29 @@
     @apply font-mono;
   }
 
-  /* Dashboard micro-labels — mono uppercase tags */
+  /* Secondary list meta — Geist Mono Light (times, previews, ticket refs) */
+  .sub-info {
+    @apply font-info;
+  }
+
+  /* Dashboard micro-labels — Geist Mono Light uppercase tags */
   .micro-label {
-    @apply font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground;
+    @apply font-info text-[10px] uppercase tracking-[0.08em] text-muted-foreground;
   }
 
-  /* Dashboard page titles — Escalation size, The Seasons (display) */
+  /* Dashboard page titles — Geist Sans Regular */
   .page-title {
-    @apply font-display text-2xl font-medium leading-none tracking-tight;
+    @apply font-display text-2xl font-normal leading-none tracking-tight;
   }
 
-  /* Dashboard section titles — in-page section headings (The Seasons) */
+  /* Dashboard section titles — Geist Sans Regular */
   .section-title {
-    @apply font-display text-base font-medium leading-none tracking-tight;
+    @apply font-display text-base font-normal leading-none tracking-tight;
   }
 
-  /* Dashboard subsection titles — in-card section headings (The Seasons) */
+  /* Dashboard subsection titles — Geist Sans Regular */
   .subsection-title {
-    @apply font-display text-base font-medium leading-tight;
+    @apply font-display text-base font-normal leading-tight;
   }
 
   /* Card hover — border lift, no shadow */
@@ -368,8 +391,8 @@ input[type='password'],
 .auth-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
-  -webkit-text-fill-color: #fff8f2 !important;
-  caret-color: #fff8f2;
+  -webkit-text-fill-color: #fcf4ec !important;
+  caret-color: #fcf4ec;
   transition: background-color 99999s ease-out 0s;
 }
 
@@ -380,8 +403,8 @@ input[type='password'],
   .auth-input:-webkit-autofill:focus,
 .onboarding-root[data-onboarding-appearance='light']
   .auth-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fff8f2 inset !important;
-  box-shadow: 0 0 0 1000px #fff8f2 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   -webkit-text-fill-color: #0a0d0d !important;
   caret-color: #0a0d0d;
 }
@@ -407,8 +430,8 @@ input[type='password'],
 .onboarding-input:-webkit-autofill:hover,
 .onboarding-input:-webkit-autofill:focus,
 .onboarding-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fff8f2 inset !important;
-  box-shadow: 0 0 0 1000px #fff8f2 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   -webkit-text-fill-color: #0A0D0D !important;
   caret-color: #0A0D0D;
   transition: background-color 99999s ease-out 0s;
@@ -419,8 +442,8 @@ input[type='password'],
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:hover,
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:focus,
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fff8f2 inset !important;
-  box-shadow: 0 0 0 1000px #fff8f2 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
   caret-color: #0A0D0D;
@@ -436,8 +459,8 @@ input[type='password'],
   .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
-  -webkit-text-fill-color: #fff8f2 !important;
-  caret-color: #fff8f2;
+  -webkit-text-fill-color: #fcf4ec !important;
+  caret-color: #fcf4ec;
 }
 
 .onboarding-root[data-onboarding-appearance='light']
@@ -456,7 +479,7 @@ input[type='password'],
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
-  caret-color: #fff8f2;
+  caret-color: #fcf4ec;
 }
 
 /* Self-Host Acme — zinc autofill (no cream fracture fill) */
@@ -729,7 +752,7 @@ input[type='password'],
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #fff8f2;
+  background: #fcf4ec;
   -webkit-mask-image: linear-gradient(
     to bottom,
     #000 0%,
@@ -891,4 +914,13 @@ input[type='password'],
 
 .ask-cube-glitch {
   animation: ask-cube-glitch 0.1s steps(2) infinite;
+}
+
+/* Titles: Geist Sans Regular. Infos/banners: Geist Mono Light. */
+.font-display {
+  font-weight: 400;
+}
+
+.font-info {
+  font-weight: 300;
 }

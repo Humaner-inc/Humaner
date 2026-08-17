@@ -246,7 +246,7 @@ export function DataImprovementConsentCard({
           </p>
         ) : null}
         {consent === null && isOwner ? (
-          <p className="text-sm text-amber-600 dark:text-amber-500">
+          <p className="text-sm text-warning dark:text-warning">
             You haven&apos;t responded to the data improvement prompt yet.
             Choose below or it will appear on your next visit.
           </p>

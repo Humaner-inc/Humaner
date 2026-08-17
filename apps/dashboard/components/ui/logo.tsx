@@ -2,11 +2,10 @@
 
 import * as React from 'react';
 import { useState } from 'react';
-import Image from 'next/image';
 import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 
+import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import { AppInfo } from '@/constants/app-info';
-import { getLogo } from '@/lib/theme/brand';
 import { cn } from '@/lib/utils';
 
 export type LogoProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -31,20 +30,17 @@ export function Logo({
       {...other}
     >
       {!hideSymbol && (
-        <Image
-          src={getLogo('light')}
-          alt=""
+        <HumanerLogoImage
           width={600}
           height={600}
-          unoptimized
-          className="h-8 w-auto shrink-0 dark:brightness-0 dark:invert"
+          className="h-8 w-auto shrink-0"
         />
       )}
       {!hideWordmark && (
         <BrandWordmark
           active={hovered}
           hoverText={name}
-          className="font-display text-lg font-semibold tracking-tight text-foreground"
+          className="font-display text-lg font-normal tracking-tight text-foreground"
         >
           {name}
         </BrandWordmark>

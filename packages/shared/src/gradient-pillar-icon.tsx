@@ -5,7 +5,6 @@ import * as React from "react";
 export type PillarGradientTone = {
   from: string;
   to: string;
-  glow: string;
 };
 
 export type GradientPillarIconProps = {
@@ -31,7 +30,7 @@ const PLATE_CLASS = {
     "border-[#0A0D0D]/[0.1] bg-[#18181b] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_18px_40px_-24px_rgb(0_0_0_/_0.35)]",
 } as const;
 
-/** Framework / pillar icon — gradient stroke, glow, inset depth; sharp brand radius. */
+/** Framework / pillar icon — gradient stroke, inset depth; sharp brand radius. */
 export function GradientPillarIcon({
   gradId,
   tone,
@@ -43,14 +42,6 @@ export function GradientPillarIcon({
 }: GradientPillarIconProps): React.JSX.Element {
   return (
     <div className={cn("relative inline-flex", className)}>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-3 opacity-50 blur-2xl transition-opacity duration-300 group-hover:opacity-80"
-        style={{
-          background: `radial-gradient(circle, ${tone.glow}, transparent 72%)`,
-        }}
-      />
-
       <div
         className={cn(
           "relative flex items-center justify-center overflow-hidden rounded-none",

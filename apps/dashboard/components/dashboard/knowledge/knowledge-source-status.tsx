@@ -74,7 +74,7 @@ export function KnowledgeSourceStatus({
           className="flex items-center justify-center"
         >
           <CheckIcon
-            className="size-4 text-emerald-500"
+            className="size-4 text-success"
             aria-hidden
           />
         </motion.span>

@@ -32,7 +32,7 @@ function ScreenLogo({ className }: { className?: string }): React.JSX.Element {
       }}
     >
       <Image
-        src="/humaner.svg"
+        src="/logo-black.png"
         alt=""
         fill
         unoptimized

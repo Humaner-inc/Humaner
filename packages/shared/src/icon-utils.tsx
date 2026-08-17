@@ -125,6 +125,7 @@ export function createAnimatedIcon(
         height,
         onMouseEnter,
         onMouseLeave,
+        style,
         ...props
       },
       ref,
@@ -169,13 +170,15 @@ export function createAnimatedIcon(
           <span
             ref={wrapperRef}
             className={cn(
-              "inline-flex shrink-0 items-center justify-center",
+              "inline-flex shrink-0 items-center justify-center text-current",
               className,
             )}
+            style={style}
           >
             <Icon
               {...props}
               ref={innerRef}
+              className="text-current"
               size={resolvedSize}
               animateOnHover={false}
               onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
@@ -194,9 +197,10 @@ export function createAnimatedIcon(
           {...props}
           ref={innerRef}
           className={cn(
-            "inline-flex shrink-0 items-center justify-center",
+            "inline-flex shrink-0 items-center justify-center text-current",
             className,
           )}
+          style={style}
           size={resolvedSize}
           animateOnHover={false}
           onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {

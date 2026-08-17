@@ -185,7 +185,7 @@ export function ContactTimelineComment({
         </div>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
-            <div className="mt-2 flex w-fit items-center space-x-1 text-xs text-muted-foreground">
+            <div className="mt-2 flex w-fit items-center space-x-1 font-info text-xs text-muted-foreground">
               <ClockIcon className="size-3 shrink-0" />
               <time suppressHydrationWarning>
                 {formatDistanceToNow(event.createdAt, { addSuffix: true })}

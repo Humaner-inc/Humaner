@@ -143,13 +143,13 @@ export function DeskTicketPreviewRow({
         </p>
         {actions ? null : statusBadge}
       </div>
-      <p className="mt-0.5 line-clamp-1 font-fellix text-[11px] text-[#0A0D0D]/90 dark:text-foreground/90">
-        <span className="mr-1 font-mono text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
+      <p className="mt-0.5 line-clamp-1 font-info text-[11px] text-[#0A0D0D]/90 dark:text-foreground/90">
+        <span className="mr-1 text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
           {formatTicketRef(ticket.ticketNumber)}
         </span>
         {ticket.subject}
       </p>
-      <p className="mt-0.5 line-clamp-1 text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
+      <p className="mt-0.5 line-clamp-1 font-info text-[10px] text-[#0A0D0D]/45 dark:text-muted-foreground">
         {formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
         {metaSuffix}
       </p>

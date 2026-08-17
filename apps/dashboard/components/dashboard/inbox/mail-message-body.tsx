@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 
 /** Same as page background — one surface behind the email card. */
-const MAIL_CANVAS_LIGHT = '#fff8f2';
+const MAIL_CANVAS_LIGHT = '#fcf4ec';
 const MAIL_CANVAS_DARK = '#0A0D0D';
 const MAIL_SANDBOX =
   'allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads';

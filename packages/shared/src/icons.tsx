@@ -97,6 +97,7 @@ import {
   ArrowUpRightIcon as ArrowUpRightIconSource,
 } from "lucide-animated";
 
+import { AtomIconSource } from "./atom-icon";
 import { GitCompareIconSource } from "./git-compare-icon";
 import {
   createAnimatedIcon,
@@ -122,6 +123,7 @@ export const ArrowUp = createAnimatedIcon(ArrowUpIconSource);
 export const ArrowUpIcon = createAnimatedIcon(ArrowUpIconSource);
 export const ArrowUpRight = createAnimatedIcon(ArrowUpRightIconSource);
 export const ArrowUpRightIcon = createAnimatedIcon(ArrowUpRightIconSource);
+export const AtomIcon = createAnimatedIcon(AtomIconSource);
 export const BanIcon = createAnimatedIcon(BanIconSource);
 export const BarChart3 = createAnimatedIcon(ChartBarIncreasingIcon);
 export const BarChart3Icon = createAnimatedIcon(ChartBarIncreasingIcon);

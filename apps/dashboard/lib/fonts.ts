@@ -1,37 +1,14 @@
-import localFont from 'next/font/local';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 
-export const fellix = localFont({
-  src: '../public/fonts/Fellix-Regular.ttf',
-  variable: '--font-fellix',
-  display: 'swap',
-  weight: '400'
-});
+/** Geist Sans Regular — body, UI, and titles. */
+export const geistSans = GeistSans;
 
-export const theSeasons = localFont({
-  src: '../public/fonts/Fontspring-DEMO-theseasons-bd.otf',
-  variable: '--font-the-seasons',
-  display: 'swap',
-  weight: '700'
-});
+/** Alias — same face as sans (widget / mockup classes). */
+export const fellix = GeistSans;
 
-export const humanerMono = localFont({
-  src: [
-    {
-      path: '../public/fonts/JetBrainsMono-Regular.woff2',
-      weight: '400',
-      style: 'normal'
-    },
-    {
-      path: '../public/fonts/JetBrainsMono-Medium.woff2',
-      weight: '500',
-      style: 'normal'
-    },
-    {
-      path: '../public/fonts/JetBrainsMono-SemiBold.woff2',
-      weight: '600',
-      style: 'normal'
-    }
-  ],
-  variable: '--font-humaner-mono',
-  display: 'swap'
-});
+/** Alias — titles now use Geist Sans Regular (replaces The Seasons). */
+export const theSeasons = GeistSans;
+
+/** Geist Mono — Regular for code, Light for banners and added infos. */
+export const humanerMono = GeistMono;

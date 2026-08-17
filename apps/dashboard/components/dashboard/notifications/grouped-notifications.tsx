@@ -49,9 +49,9 @@ export type GroupedNotificationsProps = {
 
 const SECTION_SURFACE: Record<DashboardNotificationKind, string> = {
   ticket: 'bg-muted/50',
-  task: 'bg-emerald-500/[0.07] dark:bg-emerald-400/[0.08]',
+  task: 'bg-success/[0.07] dark:bg-success/[0.08]',
   mail: 'bg-sky-500/[0.07] dark:bg-sky-400/[0.08]',
-  api_key: 'bg-amber-500/[0.08] dark:bg-amber-400/[0.09]',
+  api_key: 'bg-warning/[0.08] dark:bg-warning/[0.09]',
   loop: 'bg-violet-500/[0.07] dark:bg-violet-400/[0.08]',
   billing: 'bg-orange-500/[0.07] dark:bg-orange-400/[0.08]'
 };
@@ -74,7 +74,7 @@ export function GroupedNotifications({
       <div className="flex items-center justify-between gap-3 px-0.5">
         <p className="font-fellix text-[15px] leading-none tracking-tight">
           <span className="text-foreground">{weekday}</span>{' '}
-          <span className="text-muted-foreground">{today}</span>
+          <span className="font-info text-muted-foreground">{today}</span>
         </p>
         {headerAction}
       </div>
@@ -170,7 +170,7 @@ function NotificationLine({
           {item.title ? ' ' : null}
           <span
             className={cn(
-              'font-medium',
+              'font-info',
               checked ? 'text-muted-foreground/70' : 'text-foreground'
             )}
           >
@@ -184,7 +184,7 @@ function NotificationLine({
   return (
     <div
       className={cn(
-        'group/item relative flex items-start gap-2.5 px-1.5 py-2 text-[13px] leading-5 text-muted-foreground transition-colors',
+        'group/item relative flex items-center gap-2.5 px-1.5 py-1.5 text-[13px] leading-5 text-muted-foreground transition-colors',
         'hover:bg-background/55 hover:text-foreground',
         dashboardRadiusClassName
       )}
@@ -193,7 +193,7 @@ function NotificationLine({
         <button
           type="button"
           className={cn(
-            'mt-0.5 flex size-3.5 shrink-0 items-center justify-center border border-muted-foreground/50 transition-colors',
+            'flex size-3.5 shrink-0 items-center justify-center border border-muted-foreground/50 transition-colors',
             dashboardRadiusClassName,
             checked
               ? 'border-foreground bg-foreground text-background'
@@ -237,7 +237,7 @@ function NotificationLine({
         <button
           type="button"
           className={cn(
-            'mt-0.5 flex size-6 shrink-0 items-center justify-center text-muted-foreground transition-all',
+            'flex size-6 shrink-0 items-center justify-center text-muted-foreground transition-all',
             'opacity-0 group-hover/item:opacity-100 hover:text-destructive',
             'focus-visible:opacity-100'
           )}
@@ -264,7 +264,7 @@ function GroupGlyph({
     return (
       <TicketIcon
         size={14}
-        className="mt-0.5 shrink-0 text-muted-foreground"
+        className="shrink-0 text-muted-foreground"
         aria-hidden
       />
     );
@@ -273,7 +273,7 @@ function GroupGlyph({
   if (kind === 'loop') {
     return (
       <GitCompareIcon
-        className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+        className="size-3.5 shrink-0 text-muted-foreground"
         aria-hidden
       />
     );
@@ -282,7 +282,7 @@ function GroupGlyph({
   const Icon = GROUP_ICONS[kind];
   return (
     <Icon
-      className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+      className="size-3.5 shrink-0 text-muted-foreground"
       strokeWidth={1.5}
       aria-hidden
     />

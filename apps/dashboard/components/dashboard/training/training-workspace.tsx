@@ -58,17 +58,17 @@ export function AgentAccuracyCard({
 
   const scoreTone =
     displayScore >= 90
-      ? 'text-emerald-600'
+      ? 'text-success'
       : displayScore >= 70
-        ? 'text-amber-600'
-        : 'text-red-600';
+        ? 'text-warning'
+        : 'text-destructive';
 
   const barTone =
     displayScore >= 90
-      ? 'bg-emerald-500'
+      ? 'bg-success'
       : displayScore >= 70
-        ? 'bg-amber-500'
-        : 'bg-red-500';
+        ? 'bg-warning'
+        : 'bg-destructive';
 
   return (
     <Card>
@@ -408,7 +408,7 @@ export function TrainingInsightsPanel({
                   key={run.id}
                   className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
                 >
-                  <span className="text-muted-foreground">
+                  <span className="font-info text-muted-foreground">
                     {formatDistanceToNow(new Date(run.createdAt), {
                       addSuffix: true
                     })}

@@ -51,7 +51,7 @@ const pillButtonClassName =
   'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e1ccaf]/40 sm:min-h-10 sm:text-xs';
 
 const glassCardClassName =
-  'relative overflow-hidden rounded-none border border-white/[0.12] bg-muted/20 text-[#fff8f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)]';
+  'relative overflow-hidden rounded-none border border-white/[0.12] bg-muted/20 text-[#fcf4ec] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)]';
 
 const inputClassName = cn(authInputClassName, 'rounded-none');
 
@@ -242,7 +242,7 @@ export function NoWorkspacePage({
   };
 
   return (
-    <div className="relative flex min-h-screen bg-[#0A0D0D] text-[#fff8f2]">
+    <div className="relative flex min-h-screen bg-[#0A0D0D] text-[#fcf4ec]">
       <GrainAmbient className="fixed inset-0 z-0" />
 
       <header className="absolute inset-x-0 top-0 z-20 flex justify-center px-6 pt-6 sm:pt-8">
@@ -255,7 +255,7 @@ export function NoWorkspacePage({
         <div className="flex w-full max-w-md flex-1 flex-col justify-center gap-8">
           <div className="flex flex-col items-center space-y-1.5 text-center">
             <p
-              className="font-fellix text-lg font-medium tracking-tight text-[#fff8f2] sm:text-xl"
+              className="font-fellix text-lg font-medium tracking-tight text-[#fcf4ec] sm:text-xl"
               suppressHydrationWarning
             >
               {greetingLead ? <>{greetingLead} </> : null}
@@ -310,7 +310,7 @@ export function NoWorkspacePage({
                       className={cn(
                         pillButtonClassName,
                         selected
-                          ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
+                          ? 'bg-[#fcf4ec] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
                           : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70'
                       )}
                     >
@@ -329,7 +329,7 @@ export function NoWorkspacePage({
                     onSubmit={joinMethods.handleSubmit(onJoin)}
                   >
                     <div className="space-y-1">
-                      <p className="font-fellix text-base font-medium text-[#fff8f2]">
+                      <p className="font-fellix text-base font-medium text-[#fcf4ec]">
                         Request access
                       </p>
                       <p className={cn(authMutedTextClassName, 'text-xs')}>
@@ -401,7 +401,7 @@ export function NoWorkspacePage({
                     onSubmit={createMethods.handleSubmit(onCreate)}
                   >
                     <div className="space-y-1">
-                      <p className="font-fellix text-base font-medium text-[#fff8f2]">
+                      <p className="font-fellix text-base font-medium text-[#fcf4ec]">
                         Create a workspace
                       </p>
                       <p className={cn(authMutedTextClassName, 'text-xs')}>
@@ -472,7 +472,7 @@ export function NoWorkspacePage({
           <DangerZoneCard
             email={email}
             isOwner={false}
-            className="rounded-none border-red-500/35 bg-red-500/10 text-[#fff8f2] [&_.subsection-title]:text-[#fff8f2] [&_p]:text-white/55"
+            className="rounded-none border-red-500/35 bg-red-500/10 text-[#fcf4ec] [&_.subsection-title]:text-[#fcf4ec] [&_p]:text-white/55"
           />
         </div>
       </main>

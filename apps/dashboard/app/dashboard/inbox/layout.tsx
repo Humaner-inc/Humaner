@@ -5,7 +5,7 @@ import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
 /** Brand cobalt — inbox accents (cube, hovers, selection). */
-const INBOX_ACCENT = '#0682de';
+const INBOX_ACCENT = '#2252bc';
 
 /**
  * Shell only — triage routes (Inbox / Assigned / Providers) are full-bleed;

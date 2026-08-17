@@ -12,10 +12,11 @@ import {
 export const BRAND_WORDMARK_DEFAULT = "Humaner";
 export const BRAND_WORDMARK_HOVER = "Humaner";
 
-/** Mono UI on hover — pairs with display `font-display` at rest. */
+/** Geist Mono on hover — pairs with Geist Sans Regular (`font-display`) at rest. */
 const HOVER_TYPOGRAPHY: CSSProperties = {
-  fontFamily: "var(--font-humaner-mono), ui-monospace, monospace",
-  fontWeight: 500,
+  fontFamily:
+    "var(--font-geist-mono), var(--font-humaner-mono), ui-monospace, monospace",
+  fontWeight: 400,
   fontSynthesis: "none",
   letterSpacing: "0.02em",
 };

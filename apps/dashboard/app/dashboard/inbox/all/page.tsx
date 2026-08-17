@@ -27,15 +27,12 @@ function parseFilter(value: string | undefined): InboxListFilter {
 function InboxAllFallback(): React.JSX.Element {
   return (
     <div
-      className="flex h-full min-h-0 flex-1 flex-col"
+      className="flex h-full min-h-0 flex-1 flex-col gap-4 p-6"
       data-dashboard-page-shell="inbox"
     >
-      <div className="shrink-0 border-b border-border/50 px-4 py-3">
-        <div className="h-8 w-40 animate-pulse rounded-md bg-muted/40" />
-      </div>
-      <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
-        Loading inbox…
-      </div>
+      <div className="h-8 w-48 animate-pulse rounded-md bg-muted/40" />
+      <div className="h-32 animate-pulse rounded-md bg-muted/40" />
+      <div className="h-32 animate-pulse rounded-md bg-muted/40" />
     </div>
   );
 }

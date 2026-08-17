@@ -30,7 +30,7 @@ export function ForgotPasswordSuccessCard({
         <AuthInnerCardTitle>Reset instructions sent</AuthInnerCardTitle>
         <AuthInnerCardDescription>
           An email with a link and reset instructions is on its way to{' '}
-          <strong className="font-medium text-[#fff8f2]">{email}</strong>.
+          <strong className="font-medium text-[#fcf4ec]">{email}</strong>.
         </AuthInnerCardDescription>
       </AuthInnerCardHeader>
       <AuthInnerCardContent>

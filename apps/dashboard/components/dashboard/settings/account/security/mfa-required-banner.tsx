@@ -10,7 +10,7 @@ export function MfaRecommendedBanner(): React.JSX.Element {
   return (
     <div
       className={cn(
-        'mb-6 flex items-start gap-3 px-4 py-3 text-sm text-foreground',
+        'mb-6 flex items-start gap-3 px-4 py-3 font-info text-sm text-foreground',
         oss
           ? cn(
               dashboardRadiusClassName,
@@ -26,9 +26,7 @@ export function MfaRecommendedBanner(): React.JSX.Element {
         )}
       />
       <div>
-        <p className="font-medium">
-          Two-factor authentication is highly recommended
-        </p>
+        <p>Two-factor authentication is highly recommended</p>
         <p className="mt-0.5 text-muted-foreground">
           Workspace owners and platform admins should enable an authenticator
           app to protect account access. This is optional, but strongly

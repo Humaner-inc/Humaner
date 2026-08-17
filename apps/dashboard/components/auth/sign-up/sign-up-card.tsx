@@ -260,10 +260,10 @@ export function SignUpCard({
                       : 'bg-transparent text-[#18181b]/70 hover:text-[#0A0D0D]'
                     : inverted
                       ? selected
-                        ? 'bg-[#0A0D0D] text-[#fff8f2] hover:bg-[#0A0D0D] hover:text-[#fff8f2]'
+                        ? 'bg-[#0A0D0D] text-[#fcf4ec] hover:bg-[#0A0D0D] hover:text-[#fcf4ec]'
                         : 'bg-transparent text-[#0A0D0D]/40 hover:bg-[#0A0D0D]/[0.06] hover:text-[#0A0D0D]/70'
                       : selected
-                        ? 'bg-[#fff8f2] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
+                        ? 'bg-[#fcf4ec] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
                         : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
                   disabled && !selected && 'cursor-not-allowed opacity-40'
                 )}

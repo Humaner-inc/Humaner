@@ -13,7 +13,7 @@ export type ChatPlainSendButtonProps = {
 /** Raw upward arrow — square wash appears on hover. */
 export function ChatPlainSendButton({
   disabled = false,
-  color = '#fff8f2',
+  color = 'currentColor',
   className
 }: ChatPlainSendButtonProps): React.JSX.Element {
   return (

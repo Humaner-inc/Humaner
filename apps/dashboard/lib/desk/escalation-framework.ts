@@ -24,7 +24,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
     sla: '< 5 min',
     defaultSlaMinutes: 5,
     urgencyLevel: 'HIGH',
-    color: '#DC143C'
+    color: '#f85919'
   },
   {
     mode: 'PRIORITY',
@@ -32,7 +32,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
     sla: '< 2 hr',
     defaultSlaMinutes: 120,
     urgencyLevel: 'MEDIUM',
-    color: '#EA580C'
+    color: '#e8b04d'
   },
   {
     mode: 'STANDARD',
@@ -40,7 +40,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
     sla: '< 24 hr',
     defaultSlaMinutes: 1440,
     urgencyLevel: 'MEDIUM',
-    color: '#3B82F6'
+    color: '#2252bc'
   },
   {
     mode: 'SELF_RESOLVING',
@@ -48,7 +48,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
     sla: 'No human queue',
     defaultSlaMinutes: null,
     urgencyLevel: 'LOW',
-    color: '#22C55E'
+    color: '#226342'
   }
 ];
 
@@ -60,10 +60,10 @@ export const MODE_LABEL: Record<EscalationMode, string> = {
 };
 
 export const MODE_COLOR: Record<EscalationMode, string> = {
-  LIVE: '#DC143C',
-  PRIORITY: '#EA580C',
-  STANDARD: '#3B82F6',
-  SELF_RESOLVING: '#22C55E'
+  LIVE: '#f85919',
+  PRIORITY: '#e8b04d',
+  STANDARD: '#2252bc',
+  SELF_RESOLVING: '#226342'
 };
 
 export const URGENCY_LABEL = {

@@ -5,27 +5,27 @@ import type { BrandConfig } from '@/lib/theme/types';
  * Feature/content splits stay on `NEXT_PUBLIC_DEPLOYMENT_MODE=oss`.
  *
  * Neutrals only:
- *   Light: #fff8f2 · #f2f2f2 · #eaeaea
+ *   Light: #fcf4ec · #F2F2F2 · #eaeaea
  *   Dark:  #0A0D0D · #18181b · #1c1c1e
- * Accents (cream / charts / destructive) are not neutrals.
+ * Accents (cream / charts / status) are not neutrals.
  */
 
 const humanerBrand: BrandConfig = {
   name: 'Humaner',
   shortName: 'Humaner',
-  logo: '/humaner.svg',
-  logoDark: '/humaner.svg',
+  logo: '/logo-black.png',
+  logoDark: '/logo-white.png',
   favicon: '/favicon.svg',
   labels: {
     helpdesk: 'Helpdesk',
     agent: 'Agent'
   },
   light: {
-    /* #fff8f2 */
-    background: '28 100% 97.5%',
+    /* #fcf4ec */
+    background: '30 73% 95.7%',
     /* #0A0D0D */
     foreground: '180 13% 4.5%',
-    card: '28 100% 97.5%',
+    card: '30 73% 95.7%',
     primary: '35 45% 78%',
     primaryForeground: '180 13% 4.5%',
     /* #f2f2f2 */
@@ -38,17 +38,17 @@ const humanerBrand: BrandConfig = {
     accentForeground: '180 13% 4.5%',
     brand: '35 45% 78%',
     brandForeground: '180 13% 4.5%',
-    destructive: '0 72% 45%',
+    destructive: '3 75% 38%',
     destructiveForeground: '0 0% 100%',
     /* #eaeaea */
     border: '0 0% 92%',
     input: '0 0% 92%',
     ring: '240 6% 10%',
-    sidebarBackground: '28 100% 97.5%',
+    sidebarBackground: '30 73% 95.7%',
     sidebarForeground: '180 13% 4.5%',
     sidebarPrimary: '35 45% 78%',
     sidebarActive: '180 13% 4.5%',
-    sidebarActiveForeground: '28 100% 97.5%',
+    sidebarActiveForeground: '30 73% 95.7%',
     sidebarBorder: '0 0% 92%',
     chart1: '180 13% 4.5%',
     chart2: '35 45% 78%',
@@ -59,31 +59,31 @@ const humanerBrand: BrandConfig = {
   dark: {
     /* #0A0D0D */
     background: '180 13% 4.5%',
-    /* #fff8f2 */
-    foreground: '28 100% 97.5%',
+    /* #fcf4ec */
+    foreground: '30 73% 95.7%',
     /* #18181b */
     card: '240 6% 10%',
     primary: '35 45% 82%',
     primaryForeground: '180 13% 4.5%',
     /* #1c1c1e */
     secondary: '240 4% 11%',
-    secondaryForeground: '28 100% 97.5%',
+    secondaryForeground: '30 73% 95.7%',
     muted: '240 4% 11%',
     /* #eaeaea */
     mutedForeground: '0 0% 92%',
     accent: '240 4% 11%',
-    accentForeground: '28 100% 97.5%',
+    accentForeground: '30 73% 95.7%',
     brand: '35 45% 82%',
     brandForeground: '180 13% 4.5%',
-    destructive: '0 62% 42%',
+    destructive: '3 75% 38%',
     destructiveForeground: '0 0% 100%',
     border: '240 4% 11%',
     input: '240 4% 11%',
     ring: '0 0% 92%',
     sidebarBackground: '180 13% 4.5%',
-    sidebarForeground: '28 100% 97.5%',
+    sidebarForeground: '30 73% 95.7%',
     sidebarPrimary: '35 45% 82%',
-    sidebarActive: '28 100% 97.5%',
+    sidebarActive: '30 73% 95.7%',
     sidebarActiveForeground: '180 13% 4.5%',
     sidebarBorder: '240 4% 11%',
     chart1: '0 0% 95%',

@@ -14,14 +14,14 @@ const dashboardCtaCaseClassName = 'normal-case';
 const cloudNeutralCtaClasses = cn(
   dashboardCtaCaseClassName,
   // Explicit pairs so cream/ink never fight (Compose was invisible on dark).
-  'border border-[#0A0D0D]/15 bg-[#0A0D0D] font-mono text-xs font-medium uppercase tracking-wider text-[#fff8f2]',
-  'hover:bg-[#0A0D0D]/85 hover:text-[#fff8f2]',
-  'dark:border-white/20 dark:bg-[#fff8f2] dark:text-[#0A0D0D]',
+  'border border-[#0A0D0D]/15 bg-[#0A0D0D] font-mono text-xs font-medium uppercase tracking-wider text-[#fcf4ec]',
+  'hover:bg-[#0A0D0D]/85 hover:text-[#fcf4ec]',
+  'dark:border-white/20 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
   'dark:hover:border-white dark:hover:bg-white dark:hover:text-[#0A0D0D]'
 );
 
 const cloudUpgradeCtaClasses =
-  'border border-[#0A0D0D]/14 bg-[#fff8f2] font-mono font-medium text-[#0A0D0D] shadow-sm transition-colors hover:border-transparent hover:bg-[#e1ccaf] hover:text-[#0A0D0D] dark:border-[#0A0D0D]/22 dark:bg-[#0A0D0D] dark:text-[#fff8f2] dark:hover:border-transparent dark:hover:bg-[#e1ccaf] dark:hover:text-[#0A0D0D]';
+  'border border-[#0A0D0D]/14 bg-[#fcf4ec] font-mono font-medium text-[#0A0D0D] shadow-sm transition-colors hover:border-transparent hover:bg-[#e1ccaf] hover:text-[#0A0D0D] dark:border-[#0A0D0D]/22 dark:bg-[#0A0D0D] dark:text-[#fcf4ec] dark:hover:border-transparent dark:hover:bg-[#e1ccaf] dark:hover:text-[#0A0D0D]';
 
 const cloudOutlineClasses = cn(
   ctaSecondaryAdaptiveClassName,

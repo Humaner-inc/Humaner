@@ -19,15 +19,11 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-fellix)', 'system-ui', 'sans-serif'],
-        display: [
-          'Humaner Display Fallback',
-          'var(--font-the-seasons)',
-          'Georgia',
-          'serif'
-        ],
-        mono: ['var(--font-humaner-mono)', 'ui-monospace', 'monospace'],
-        fellix: ['var(--font-fellix)', 'system-ui', 'sans-serif']
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+        info: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+        fellix: ['var(--font-geist-sans)', 'system-ui', 'sans-serif']
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -58,6 +54,18 @@ module.exports = {
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))'
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))'
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))'
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))'
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

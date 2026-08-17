@@ -31,7 +31,7 @@ export function sidebarNavChildClassName(
   disabled?: boolean
 ): string {
   return cn(
-    'flex w-full items-center gap-2 py-1.5 pl-4 pr-2 text-left font-fellix text-sm transition-colors',
+    'flex w-full items-center gap-2 py-1.5 pl-4 pr-2 text-left font-fellix text-sm font-light transition-colors',
     dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'
@@ -205,7 +205,7 @@ export function SidebarNavUpgradeHeader({
   return (
     <Link
       href={href}
-      className="mb-1 mx-3 flex items-center justify-center bg-[#e1ccaf] px-2 py-1 font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-[#0A0D0D] transition-colors hover:bg-[#ebe0cd]"
+      className="mb-1 mx-3 flex items-center justify-center bg-[#e1ccaf] px-2 py-1 font-info text-[9px] uppercase tracking-[0.14em] text-[#0A0D0D] transition-colors hover:bg-[#ebe0cd]"
     >
       Upgrade
     </Link>

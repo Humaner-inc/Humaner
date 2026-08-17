@@ -79,7 +79,7 @@ export function KnowledgeIngestionPanel({
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-                className="absolute inset-0 rounded-full bg-emerald-500/10"
+                className="absolute inset-0 rounded-full bg-success/10"
               />
               <motion.span
                 initial={{ scale: 0.6, opacity: 0 }}
@@ -105,7 +105,7 @@ export function KnowledgeIngestionPanel({
                     damping: 20,
                     delay: 0.12
                   }}
-                  className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm"
+                  className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-success text-white shadow-sm"
                 >
                   <CheckIcon
                     className="size-3"

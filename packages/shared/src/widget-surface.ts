@@ -4,8 +4,8 @@ const HEADER = "#0A0D0D";
 const CHROME = "#1c1c1e";
 const INPUT_ELEVATED = "#2c2c2e";
 
-/** Brand-agnostic light neutrals — same family as dashboard (#f2f2f2 / #eaeaea). */
-export const WIDGET_LIGHT_SOFT = "#f2f2f2";
+/** Brand-agnostic light neutrals — same family as dashboard (#F2F2F2 / #eaeaea). */
+export const WIDGET_LIGHT_SOFT = "#F2F2F2";
 export const WIDGET_LIGHT_SOFT_DEEP = "#eaeaea";
 
 export type WidgetSurfaceTokens = {
@@ -31,6 +31,11 @@ export type WidgetSurfaceTokens = {
   userMetaText: string;
 };
 
+/** Title on accent / dark chrome. */
+export const WIDGET_ON_ACCENT_TITLE = "#ffffff";
+/** Description / role on accent chrome — slightly greyer than the title. */
+export const WIDGET_ON_ACCENT_MUTED = "rgba(255,255,255,0.78)";
+
 export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
   if (theme === "LIGHT") {
     return {
@@ -39,9 +44,9 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
       header: WIDGET_LIGHT_SOFT_DEEP,
       headerBorder: "rgba(10,13,13,0.08)",
       headerText: "#0A0D0D",
-      headerMuted: "rgba(10,13,13,0.55)",
+      headerMuted: "rgba(10,13,13,0.62)",
       navBorder: "rgba(10,13,13,0.1)",
-      navText: "rgba(10,13,13,0.55)",
+      navText: "#52525b",
       inputShell: "#ffffff",
       inputRing: "rgba(10,13,13,0.1)",
       inputText: "#0A0D0D",
@@ -53,7 +58,7 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
       userText: "#ffffff",
       supportBubble: WIDGET_LIGHT_SOFT_DEEP,
       supportText: "#0A0D0D",
-      metaText: "rgba(10,13,13,0.5)",
+      metaText: "#52525b",
       userMetaText: "rgba(255,255,255,0.55)",
     };
   }
@@ -62,25 +67,25 @@ export function widgetSurface(theme: WidgetIconThemeId): WidgetSurfaceTokens {
     body: CHROME,
     header: HEADER,
     headerBorder: "rgba(255,255,255,0.08)",
-    headerText: "#fff8f2",
-    headerMuted: "rgba(255,248,242,0.5)",
+    headerText: "#fcf4ec",
+    headerMuted: "rgba(252,244,236,0.5)",
     navBorder: "rgba(255,255,255,0.08)",
-    navText: "rgba(255,248,242,0.55)",
+    navText: "rgba(252,244,236,0.72)",
     inputShell: INPUT_ELEVATED,
     inputRing: "rgba(255,255,255,0.1)",
-    inputText: "#fff8f2",
+    inputText: "#fcf4ec",
     formBg: CHROME,
     watermarkBg: CHROME,
     listCardBg: INPUT_ELEVATED,
     listHover: "rgba(255,255,255,0.06)",
     userBubble:
       "linear-gradient(160deg, #1a1716 0%, #121110 55%, #080706 100%)",
-    userText: "#fff8f2",
+    userText: "#fcf4ec",
     supportBubble:
       "linear-gradient(160deg, #4a4a4e 0%, #3a3a3e 45%, #2e2e32 100%)",
-    supportText: "#fff8f2",
-    metaText: "rgba(255,248,242,0.45)",
-    userMetaText: "rgba(255,248,242,0.5)",
+    supportText: "#fcf4ec",
+    metaText: "rgba(252,244,236,0.72)",
+    userMetaText: "rgba(252,244,236,0.5)",
   };
 }
 
