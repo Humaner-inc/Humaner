@@ -16,6 +16,8 @@ import {
   formatSatisfactionDetail
 } from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
+import { getDemoAnalyticsOverview } from '@/lib/demo/demo-analytics';
+import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import {
   extractDetectedContentGaps,
   type DetectedContentGap
@@ -115,6 +117,10 @@ export async function getAnalyticsOverview(options?: {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
+  }
+
+  if (isLocalDemo()) {
+    return getDemoAnalyticsOverview();
   }
 
   const organizationId = session.user.organizationId;

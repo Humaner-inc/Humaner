@@ -7,6 +7,8 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { getOrganizationCapabilities } from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
+import { getDemoPendingKnowledgeGaps } from '@/lib/demo/demo-answers';
+import { isLocalDemo } from '@/lib/demo/is-local-demo';
 
 export type AgentKnowledgeGapItem = {
   id: string;
@@ -21,6 +23,10 @@ export async function getAgentKnowledgeGaps(
   const session = await dedupedAuth();
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
+  }
+
+  if (isLocalDemo()) {
+    return getDemoPendingKnowledgeGaps();
   }
 
   const capabilities = await getOrganizationCapabilities(

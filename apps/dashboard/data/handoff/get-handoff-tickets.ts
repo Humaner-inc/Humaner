@@ -6,6 +6,8 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { getDemoHandoffTickets } from '@/lib/demo/demo-desk';
+import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import { getTierForMode } from '@/lib/desk/escalation-framework';
 import { toDeskRoutedTo } from '@/lib/desk/routed-to';
 import type {
@@ -236,9 +238,73 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
     slaMinutes: policy.slaMinutes
   }));
 
+  const mappedTeamMembers = teamMembers.map((membership) => ({
+    id: membership.user.id,
+    name: membership.user.name,
+    image: membership.user.image,
+    email: membership.user.email
+  }));
+
+  const mappedTickets = tickets.map((ticket) => {
+    const urgency = ticket.urgency as HandoffTicketUrgency;
+    return {
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      agentId: ticket.agentId,
+      agentName: ticket.agent.name,
+      slaMinutes: resolveSlaMinutes({
+        agentId: ticket.agentId,
+        urgency,
+        policies: policyRows
+      }),
+      visitorEmail: ticket.visitorEmail,
+      visitorFirstName: ticket.visitorFirstName ?? null,
+      visitorLastName: ticket.visitorLastName ?? null,
+      visitorCompany: ticket.visitorCompany ?? null,
+      visitorLeftAt: ticket.visitorLeftAt?.toISOString() ?? null,
+      subject: ticket.subject,
+      summary: ticket.summary,
+      // Heavy fields are loaded on ticket select via getHandoffTicketDetail.
+      whySummary: null,
+      howSummary: null,
+      transcript: '',
+      note: null,
+      source: ticket.source,
+      status: ticket.status as HandoffTicketStatus,
+      urgency,
+      routedTo: toDeskRoutedTo(ticket.routedTo),
+      clusterId: ticket.clusterId,
+      runbookId: ticket.runbookId,
+      resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
+      resolvedBy: ticket.resolvedBy ?? null,
+      resolvedByName: ticket.resolvedByName ?? null,
+      resolutionSolution: null,
+      loopStatus: ticket.loopStatus ?? null,
+      draftSolution: null,
+      loopSolvedAt: ticket.loopSolvedAt?.toISOString() ?? null,
+      loopError: ticket.loopError ?? null,
+      liveChatTimedOut: ticket.liveChatTimedOut ?? false,
+      assignee: ticket.assignee
+        ? {
+            id: ticket.assignee.id,
+            name: ticket.assignee.name,
+            image: ticket.assignee.image,
+            email: ticket.assignee.email
+          }
+        : null,
+      assignedAt: ticket.assignedAt?.toISOString() ?? null,
+      createdAt: ticket.createdAt.toISOString(),
+      updatedAt: ticket.updatedAt.toISOString()
+    };
+  });
+
   return {
-    humanDeskEnabled: organization?.humanDeskEnabled ?? false,
-    supportEmail: organization?.supportEmail ?? null,
+    humanDeskEnabled: isLocalDemo()
+      ? true
+      : (organization?.humanDeskEnabled ?? false),
+    supportEmail: isLocalDemo()
+      ? (organization?.supportEmail ?? 'support@demo.humaner.local')
+      : (organization?.supportEmail ?? null),
     liveChatEnabled: organization?.liveChatEnabled ?? false,
     liveChatTimeoutMinutes: organization?.liveChatTimeoutMinutes ?? 20,
     liveChatTimeoutMessage: organization?.liveChatTimeoutMessage ?? null,
@@ -248,64 +314,10 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
     mailFromAddresses,
     integrationProfile,
     currentUserId: session.user.id,
-    teamMembers: teamMembers.map((membership) => ({
-      id: membership.user.id,
-      name: membership.user.name,
-      image: membership.user.image,
-      email: membership.user.email
-    })),
+    teamMembers: mappedTeamMembers,
     businessHours,
-    tickets: tickets.map((ticket) => {
-      const urgency = ticket.urgency as HandoffTicketUrgency;
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticketNumber,
-        agentId: ticket.agentId,
-        agentName: ticket.agent.name,
-        slaMinutes: resolveSlaMinutes({
-          agentId: ticket.agentId,
-          urgency,
-          policies: policyRows
-        }),
-        visitorEmail: ticket.visitorEmail,
-        visitorFirstName: ticket.visitorFirstName ?? null,
-        visitorLastName: ticket.visitorLastName ?? null,
-        visitorCompany: ticket.visitorCompany ?? null,
-        visitorLeftAt: ticket.visitorLeftAt?.toISOString() ?? null,
-        subject: ticket.subject,
-        summary: ticket.summary,
-        // Heavy fields are loaded on ticket select via getHandoffTicketDetail.
-        whySummary: null,
-        howSummary: null,
-        transcript: '',
-        note: null,
-        source: ticket.source,
-        status: ticket.status as HandoffTicketStatus,
-        urgency,
-        routedTo: toDeskRoutedTo(ticket.routedTo),
-        clusterId: ticket.clusterId,
-        runbookId: ticket.runbookId,
-        resolvedAt: ticket.resolvedAt?.toISOString() ?? null,
-        resolvedBy: ticket.resolvedBy ?? null,
-        resolvedByName: ticket.resolvedByName ?? null,
-        resolutionSolution: null,
-        loopStatus: ticket.loopStatus ?? null,
-        draftSolution: null,
-        loopSolvedAt: ticket.loopSolvedAt?.toISOString() ?? null,
-        loopError: ticket.loopError ?? null,
-        liveChatTimedOut: ticket.liveChatTimedOut ?? false,
-        assignee: ticket.assignee
-          ? {
-              id: ticket.assignee.id,
-              name: ticket.assignee.name,
-              image: ticket.assignee.image,
-              email: ticket.assignee.email
-            }
-          : null,
-        assignedAt: ticket.assignedAt?.toISOString() ?? null,
-        createdAt: ticket.createdAt.toISOString(),
-        updatedAt: ticket.updatedAt.toISOString()
-      };
-    })
+    tickets: isLocalDemo()
+      ? getDemoHandoffTickets(session.user.id, mappedTeamMembers)
+      : mappedTickets
   };
 }

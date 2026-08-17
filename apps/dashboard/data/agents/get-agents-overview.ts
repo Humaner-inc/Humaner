@@ -26,6 +26,8 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { countConversationOutcomes } from '@/lib/conversations/conversation-outcome';
 import { prisma } from '@/lib/db/prisma';
+import { DEMO_AGENT_METRICS } from '@/lib/demo/demo-analytics';
+import { isLocalDemo } from '@/lib/demo/is-local-demo';
 
 export type AgentOverviewItem = {
   id: string;
@@ -54,7 +56,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
     return redirect(getLoginRedirect());
   }
 
-  return cache(
+  const overview = await cache(
     async () => {
       const agents = await prisma.agent.findMany({
         where: { organizationId: session.user.organizationId },
@@ -156,4 +158,13 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
       ]
     }
   )();
+
+  if (isLocalDemo()) {
+    return overview.map((agent) => ({
+      ...agent,
+      metrics: DEMO_AGENT_METRICS
+    }));
+  }
+
+  return overview;
 }

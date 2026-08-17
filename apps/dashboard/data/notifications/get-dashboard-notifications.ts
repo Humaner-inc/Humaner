@@ -13,6 +13,7 @@ import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
+import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import {
@@ -23,10 +24,7 @@ import {
   parseActivityNotificationPreferences,
   shouldNotifyDeskInApp
 } from '@/lib/notifications/activity-notification-preferences';
-import {
-  getDemoDashboardNotifications,
-  isLocalNotificationsDemo
-} from '@/lib/notifications/demo-dashboard-notifications';
+import { getDemoDashboardNotifications } from '@/lib/notifications/demo-dashboard-notifications';
 import { reportBugTabLabel } from '@/lib/report-bug-context-options';
 import type {
   DashboardNotification,
@@ -72,7 +70,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   const organizationId = session.user.organizationId;
   const userId = session.user.id;
 
-  if (isLocalNotificationsDemo()) {
+  if (isLocalDemo()) {
     return getDemoDashboardNotifications(userId);
   }
 
