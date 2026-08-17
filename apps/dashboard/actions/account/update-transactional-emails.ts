@@ -24,6 +24,7 @@ export const updateTransactionalEmails = authActionClient
     });
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.TransactionalEmails, session.user.id)
+      Caching.createUserTag(UserCacheKey.TransactionalEmails, session.user.id),
+      'max'
     );
   });

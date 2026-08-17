@@ -8,9 +8,6 @@ import {
   heartbeatPresence
 } from '@/lib/realtime/org-events';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 const bodySchema = z.object({
   resourceType: z.enum(['ticket', 'thread']),
   resourceId: z.string().uuid(),

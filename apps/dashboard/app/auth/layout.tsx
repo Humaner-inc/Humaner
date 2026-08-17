@@ -11,33 +11,13 @@ import { isOssDeployment } from '@/lib/deployment-mode';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
 import { getPathname } from '@/lib/network/get-pathname';
 
-const AUTH_TITLES: Record<string, string> = {
-  [Routes.Login]: 'Log in',
-  [Routes.SignUp]: 'Sign up',
-  [Routes.ForgotPassword]: 'Forgot password',
-  [Routes.ForgotPasswordSuccess]: 'Forgot password',
-  [Routes.ResetPassword]: 'Reset password',
-  [Routes.VerifyEmail]: 'Verify email',
-  [Routes.Totp]: 'Two-factor authentication',
-  [Routes.RecoveryCode]: 'Recovery code',
-  [Routes.Logout]: 'Log out'
+export const metadata: Metadata = {
+  ...createPageMetadata(Routes.Login, 'Log in'),
+  robots: {
+    index: true,
+    follow: true
+  }
 };
-
-export function generateMetadata(): Metadata {
-  const pathname = getPathname() ?? Routes.Login;
-  const title =
-    AUTH_TITLES[pathname] ??
-    (pathname.startsWith(Routes.Auth) ? 'Auth' : 'Auth');
-  const publicAuth = pathname === Routes.Login || pathname === Routes.SignUp;
-
-  return {
-    ...createPageMetadata(pathname, title),
-    robots: {
-      index: publicAuth,
-      follow: true
-    }
-  };
-}
 
 function isChangeEmailRoute(): boolean {
   const pathname = getPathname();
@@ -86,7 +66,7 @@ async function getAuthenticatedRedirect(userId: string): Promise<string> {
   });
 }
 
-export default async function AuthLayout({
+async function AuthSessionGate({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
@@ -107,5 +87,19 @@ export default async function AuthLayout({
     <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
       {children}
     </AuthLayoutFrame>
+  );
+}
+
+export default function AuthLayout({
+  children
+}: React.PropsWithChildren): React.JSX.Element {
+  return (
+    <React.Suspense
+      fallback={
+        <AuthLayoutFrame showBackToMarketing>{children}</AuthLayoutFrame>
+      }
+    >
+      <AuthSessionGate>{children}</AuthSessionGate>
+    </React.Suspense>
   );
 }

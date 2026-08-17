@@ -46,19 +46,22 @@ export const updateOrganizationVerticalTopics = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.OrganizationDetails,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Industry,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Agents,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidatePath('/dashboard', 'layout');
   });

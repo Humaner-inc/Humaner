@@ -35,6 +35,7 @@ export const updateContactNote = authActionClient
         OrganizationCacheKey.ContactNotes,
         session.user.organizationId,
         note.contactId
-      )
+      ),
+      'max'
     );
   });

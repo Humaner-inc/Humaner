@@ -53,13 +53,15 @@ export const updateContactTags = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contacts,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contact,
         session.user.organizationId,
         parsedInput.id
-      )
+      ),
+      'max'
     );
   });

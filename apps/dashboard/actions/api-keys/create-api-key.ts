@@ -65,7 +65,8 @@ export const createApiKey = ownerActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.ApiKeys,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
 
     return { apiKey };

@@ -33,6 +33,7 @@ export const addContactNote = authActionClient
         OrganizationCacheKey.ContactNotes,
         session.user.organizationId,
         parsedInput.contactId
-      )
+      ),
+      'max'
     );
   });

@@ -23,6 +23,7 @@ export const updateMarketingEmails = authActionClient
     });
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.MarketingEmails, session.user.id)
+      Caching.createUserTag(UserCacheKey.MarketingEmails, session.user.id),
+      'max'
     );
   });

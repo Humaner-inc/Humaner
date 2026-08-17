@@ -39,16 +39,19 @@ export const updateContactProperties = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contacts,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contact,
         session.user.organizationId,
         parsedInput.id
-      )
+      ),
+      'max'
     );
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.Favorites, session.user.id)
+      Caching.createUserTag(UserCacheKey.Favorites, session.user.id),
+      'max'
     );
   });

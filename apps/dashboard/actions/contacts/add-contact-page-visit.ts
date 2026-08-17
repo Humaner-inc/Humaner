@@ -36,6 +36,7 @@ export const addContactPageVisit = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.ContactPageVisits,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
   });

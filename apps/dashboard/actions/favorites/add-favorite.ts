@@ -53,7 +53,8 @@ export const addFavorite = authActionClient
     ]);
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.Favorites, session.user.id)
+      Caching.createUserTag(UserCacheKey.Favorites, session.user.id),
+      'max'
     );
 
     revalidateTag(
@@ -61,6 +62,7 @@ export const addFavorite = authActionClient
         UserCacheKey.ContactIsInFavorites,
         session.user.id,
         parsedInput.contactId
-      )
+      ),
+      'max'
     );
   });

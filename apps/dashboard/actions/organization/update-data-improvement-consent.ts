@@ -42,7 +42,8 @@ export const updateDataImprovementConsent = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.OrganizationDetails,
         organizationId
-      )
+      ),
+      'max'
     );
 
     return { consent: parsedInput.consent };

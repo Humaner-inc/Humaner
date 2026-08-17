@@ -7,9 +7,6 @@ import { checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
 import { runWithTenantScope } from '@/lib/db/tenant-context';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 /**
  * Owner-only audit log export (GDPR access). POST avoids CSRF via top-level GET.
  * Body (optional JSON): `{ "format": "json" | "csv" }` — default json.

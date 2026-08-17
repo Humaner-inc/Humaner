@@ -33,6 +33,7 @@ export const addContactComment = authActionClient
         OrganizationCacheKey.ContactTimelineEvents,
         session.user.organizationId,
         parsedInput.contactId
-      )
+      ),
+      'max'
     );
   });

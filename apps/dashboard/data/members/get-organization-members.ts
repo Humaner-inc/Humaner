@@ -53,7 +53,8 @@ async function ensureMembershipRows(organizationId: string): Promise<boolean> {
   );
 
   revalidateTag(
-    Caching.createOrganizationTag(OrganizationCacheKey.Members, organizationId)
+    Caching.createOrganizationTag(OrganizationCacheKey.Members, organizationId),
+    'max'
   );
   return true;
 }

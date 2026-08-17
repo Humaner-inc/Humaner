@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   title: createTitle('Sign up')
 };
 
-export default async function SignUpPage({
+async function SignUpPageContent({
   searchParams
-}: NextPageProps): Promise<React.JSX.Element> {
+}: Pick<NextPageProps, 'searchParams'>): Promise<React.JSX.Element> {
   const {
     intent: intentParam,
     invitation: invitationToken,
@@ -73,5 +73,24 @@ export default async function SignUpPage({
         lockIntent={lockIntent}
       />
     </AuthOnboardingCardShell>
+  );
+}
+
+function SignUpFallback(): React.JSX.Element {
+  return (
+    <AuthOnboardingCardShell
+      showLogo={false}
+      maxWidth="sm"
+    >
+      <SignUpCard initialIntent="business_owner" />
+    </AuthOnboardingCardShell>
+  );
+}
+
+export default function SignUpPage(props: NextPageProps): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<SignUpFallback />}>
+      <SignUpPageContent searchParams={props.searchParams} />
+    </React.Suspense>
   );
 }

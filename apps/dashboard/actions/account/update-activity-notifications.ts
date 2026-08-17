@@ -22,6 +22,10 @@ export const updateActivityNotifications = authActionClient
     });
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.ActivityNotifications, session.user.id)
+      Caching.createUserTag(
+        UserCacheKey.ActivityNotifications,
+        session.user.id
+      ),
+      'max'
     );
   });

@@ -37,7 +37,25 @@ export const metadata: Metadata = createDashboardPageMetadata(
   'Organization'
 );
 
-export default async function HomePage(): Promise<React.JSX.Element> {
+function HomePageFallback(): React.JSX.Element {
+  return (
+    <SectionPage width="xl">
+      <div
+        className="space-y-6"
+        data-dashboard-page-shell="organization"
+      >
+        <div className="h-24 animate-pulse rounded-md bg-muted/40" />
+        <h2 className="section-title">Agents</h2>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
+          <div className="h-36 animate-pulse rounded-md bg-muted/40" />
+          <div className="h-36 animate-pulse rounded-md bg-muted/40" />
+        </div>
+      </div>
+    </SectionPage>
+  );
+}
+
+async function HomePageContent(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
   const oss = isOssDeployment();
 
@@ -208,5 +226,13 @@ export default async function HomePage(): Promise<React.JSX.Element> {
         )}
       </div>
     </SectionPage>
+  );
+}
+
+export default function HomePage(): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<HomePageFallback />}>
+      <HomePageContent />
+    </React.Suspense>
   );
 }

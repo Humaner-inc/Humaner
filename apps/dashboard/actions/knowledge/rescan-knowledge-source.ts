@@ -40,7 +40,8 @@ export const rescanKnowledgeSourceAction = pageActionClient('agents')
         OrganizationCacheKey.KnowledgeSources,
         session.user.organizationId,
         source.agentId
-      )
+      ),
+      'max'
     );
     revalidatePath(agentKnowledgeRoute(source.agentId));
 

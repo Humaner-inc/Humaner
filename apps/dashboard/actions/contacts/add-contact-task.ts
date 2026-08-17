@@ -35,6 +35,7 @@ export const addContactTask = authActionClient
         OrganizationCacheKey.ContactTasks,
         session.user.organizationId,
         parsedInput.contactId
-      )
+      ),
+      'max'
     );
   });

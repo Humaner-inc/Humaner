@@ -38,7 +38,8 @@ export const deleteContact = authActionClient
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contacts,
         session.user.organizationId
-      )
+      ),
+      'max'
     );
 
     revalidateTag(
@@ -46,10 +47,12 @@ export const deleteContact = authActionClient
         OrganizationCacheKey.Contact,
         session.user.organizationId,
         parsedInput.id
-      )
+      ),
+      'max'
     );
 
     revalidateTag(
-      Caching.createUserTag(UserCacheKey.Favorites, session.user.id)
+      Caching.createUserTag(UserCacheKey.Favorites, session.user.id),
+      'max'
     );
   });

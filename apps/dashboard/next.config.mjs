@@ -38,7 +38,10 @@ const nextConfig = {
   // Prefer skillz/runtime on hot paths; full package stays external on the server.
   serverExternalPackages: ['@humaner/customer-support-skillz'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
+  cacheComponents: true,
+  partialPrefetching: true,
   experimental: {
+    exposeTestingApiInProductionBuild: true,
     optimizePackageImports: [
       'date-fns',
       'recharts',
@@ -65,6 +68,9 @@ const nextConfig = {
     ]
   },
   turbopack: {
+    resolveAlias: {
+      '@prisma/client': './lib/generated/prisma'
+    },
     rules: {
       '*.svg': {
         loaders: [svgLoader],
