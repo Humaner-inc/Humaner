@@ -147,7 +147,6 @@ export async function DashboardSessionShell({
     getPlanForTier(userFromDb!.organization!.tier).mailboxAliases > 0 &&
     userFromDb!.organization!._count.mailboxConnections === 0;
 
-  const accentColor = userFromDb!.organization!.accentColor ?? undefined;
   const dashboardVisitorId = buildDashboardVisitorId(session.user.id);
   const displayName = profile.name.trim();
   const nameParts = displayName.split(/\s+/).filter(Boolean);
