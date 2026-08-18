@@ -26,6 +26,7 @@ export function AuthContainer({
         <div className="mb-5 flex flex-col items-center">
           <Logo
             hideSymbol
+            onDark
             className={cn(authLogoClassName, '[&_span]:text-white')}
           />
         </div>

@@ -39,6 +39,7 @@ export function NotFoundPage({
       >
         <Logo
           hideSymbol
+          onDark
           className="gap-0 [&_span]:text-lg [&_span]:text-white sm:[&_span]:text-xl"
         />
       </Link>

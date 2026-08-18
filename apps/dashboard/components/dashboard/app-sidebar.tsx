@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 
+import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
 import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { NavMain } from '@/components/dashboard/nav-main';
@@ -45,7 +45,6 @@ export function AppSidebar({
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
-  const [brandHovered, setBrandHovered] = React.useState(false);
   const oss = isOssDeployment();
   const appName = AppInfo.APP_NAME;
 
@@ -63,15 +62,11 @@ export function AppSidebar({
               className="size-7 shrink-0"
             />
           ) : (
-            <BrandWordmark
-              active={brandHovered}
-              hoverText={appName}
-              onMouseEnter={() => setBrandHovered(true)}
-              onMouseLeave={() => setBrandHovered(false)}
-              className="truncate text-center font-display text-lg font-normal tracking-tight text-sidebar-foreground"
-            >
-              {appName}
-            </BrandWordmark>
+            <HumanerBrandTitle
+              name={appName}
+              className="min-w-0"
+              wordmarkClassName="truncate text-center font-display text-lg font-normal tracking-tight text-sidebar-foreground"
+            />
           )}
         </div>
       </SidebarHeader>

@@ -24,6 +24,7 @@ export function AuthOnboardingCardShell({
         <div className="mb-5 flex flex-col items-center sm:mb-6">
           <Logo
             hideSymbol
+            onDark
             className={cn(authLogoClassName, '[&_span]:text-white')}
           />
         </div>
