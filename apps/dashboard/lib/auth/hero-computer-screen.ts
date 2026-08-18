@@ -24,17 +24,29 @@ export const HERO_COMPUTER_FRAME_LAYOUT = {
   top: `${(-HERO_COMPUTER_CROP.top / HERO_COMPUTER_CROP.height) * 100}%`
 } as const;
 
+function pct(value: number, total: number): string {
+  return `${(value / total) * 100}%`;
+}
+
+/**
+ * Measured lit-glass AABB (px on the full frame), inset inside the bezel
+ * so the brandmark stays on the CRT.
+ */
+const HERO_COMPUTER_SCREEN_PX = {
+  left: 734,
+  top: 162,
+  width: 232,
+  height: 170
+} as const;
+
 export const HERO_COMPUTER_SCREEN = {
-  top: '26%',
-  left: '45.4%',
-  width: '20%',
-  height: '28.7%',
-  borderRadius: '2.4%',
+  top: pct(HERO_COMPUTER_SCREEN_PX.top, HERO_COMPUTER_FRAME.height),
+  left: pct(HERO_COMPUTER_SCREEN_PX.left, HERO_COMPUTER_FRAME.width),
+  width: pct(HERO_COMPUTER_SCREEN_PX.width, HERO_COMPUTER_FRAME.width),
+  height: pct(HERO_COMPUTER_SCREEN_PX.height, HERO_COMPUTER_FRAME.height),
+  borderRadius: '9%',
   rotateY: '-7deg',
   rotateX: '0.75deg',
   screenOffsetX: '0%',
-  screenOffsetY: '0%',
-  logoOffsetX: '0%',
-  logoOffsetY: '0%',
-  logoScale: 0.86
+  screenOffsetY: '0%'
 } as const;

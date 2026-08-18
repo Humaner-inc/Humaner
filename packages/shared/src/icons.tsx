@@ -99,6 +99,7 @@ import {
 
 import { AtomIconSource } from "./atom-icon";
 import { GitCompareIconSource } from "./git-compare-icon";
+import { ShredderIconSource } from "./shredder-icon";
 import {
   createAnimatedIcon,
   type AnimatedIconHandle,
@@ -222,6 +223,7 @@ export const RefreshCwIcon = createAnimatedIcon(RefreshCwIconSource);
 export const Rocket = createAnimatedIcon(RocketIconSource);
 export const SearchIcon = createAnimatedIcon(SearchIconSource);
 export const SettingsIcon = createAnimatedIcon(SettingsIconSource);
+export const ShredderIcon = createAnimatedIcon(ShredderIconSource);
 export const ShieldCheck = createAnimatedIcon(ShieldCheckIconSource);
 export const ShieldIcon = createAnimatedIcon(ShieldCheckIconSource);
 export const ShoppingBag = createAnimatedIcon(CartIcon);

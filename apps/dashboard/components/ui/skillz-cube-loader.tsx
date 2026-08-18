@@ -14,7 +14,7 @@ const FILL_MS = 1600;
 const HOLD_MS = 400;
 
 /**
- * Exact Skillz card cube — staggered square fill (landing Skillz glyph).
+ * Exact Skills card cube — staggered square fill (landing Skills glyph).
  * Pass `filled` for the completed static glyph.
  */
 export function SkillzCubeLoader({

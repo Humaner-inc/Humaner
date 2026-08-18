@@ -13,7 +13,7 @@ import type {
 
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 
-// Vertical Configuration for Agent Training / Prompts.Runtime catalog shape > keep in sync with skillz `dist/runtime.d.ts`.
+// Vertical Configuration for Agent Training / Prompts.Runtime catalog shape > keep in sync with skills `dist/runtime.d.ts`.
 
 type SkillzRuntimePackage = {
   id: string;
@@ -98,7 +98,7 @@ const PACKAGE_ID_BY_INDUSTRY: Record<IndustryType, string> = {
 const INDUSTRY_IDS = Object.keys(PACKAGE_ID_BY_INDUSTRY) as IndustryType[];
 
 /**
- * PRIVATE persona presets per industry (Layer 1 Core Skillz).
+ * PRIVATE persona presets per industry (Layer 1 Core Skills).
  * These are NOT open-sourced. The OSS catalog provides only generic structural
  * content; persona dimensions are Humaner's private runtime concern.
  */
@@ -265,7 +265,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = new Proxy(
   }
 );
 
-/** Catalog-level skillz version (same for every industry). */
+/** Catalog-level skills version (same for every industry). */
 export const VERTICAL_VERSIONS: Record<IndustryType, string> =
   Object.fromEntries(
     INDUSTRY_IDS.map((industry) => [industry, SKILLZ_VERSION])

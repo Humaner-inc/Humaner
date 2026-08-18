@@ -20,24 +20,16 @@ function randomBetween(min: number, max: number): number {
 }
 
 function ScreenLogo({ className }: { className?: string }): React.JSX.Element {
-  const logoSize = `${HERO_COMPUTER_SCREEN.logoScale * 100}%`;
-
   return (
-    <div
-      className={cn('relative', className)}
-      style={{
-        width: logoSize,
-        height: logoSize,
-        transform: `translate(${HERO_COMPUTER_SCREEN.logoOffsetX}, ${HERO_COMPUTER_SCREEN.logoOffsetY})`
-      }}
-    >
+    <div className={cn('relative aspect-square h-[82%]', className)}>
       <Image
-        src="/logo-black.png"
+        src="/brandmark-white.svg"
         alt=""
         fill
         unoptimized
+        priority
         className="object-contain object-center"
-        sizes="200px"
+        sizes="180px"
       />
     </div>
   );

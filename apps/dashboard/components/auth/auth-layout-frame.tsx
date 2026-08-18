@@ -8,7 +8,6 @@ import {
   OnboardingThemeProvider,
   useOnboardingThemeClasses
 } from '@/components/onboarding/onboarding-theme-context';
-import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { cn } from '@/lib/utils';
 
 export type AuthLayoutFrameProps = React.PropsWithChildren<{
@@ -28,7 +27,6 @@ function AuthLayoutChrome({
         theme.pageBg
       )}
     >
-      {theme.showGrain ? <GrainAmbient className="fixed inset-0 z-0" /> : null}
       <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
         {showBackToMarketing ? <AuthBackToMarketing /> : null}
         {children}

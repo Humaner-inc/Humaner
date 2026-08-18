@@ -17,13 +17,13 @@
 
 Humaner is the customer support layer made for customers care and built for developers.
 Host your own support using Humaner infra to run agents, escalation, ticketing and manage team members.  
-Your agent is onboarded like a real employee through [Industry Skillz](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt, knowledge and API.
+Your agent is onboarded like a real employee through [Industry Skills](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt, knowledge and API.
 
 This repository do not include Humaner Intelligence, Agent Desk, loops, live chat or Inboxes from [Humaner Cloud](https://app.humaner.io).
 
 ## Features
 
-**Starter agent**: Your Custom system prompt, Industry Skillz, markdown knowledge (`data/knowledge/`) and your LLM API.
+**Starter agent**: Your Custom system prompt, Industry Skills, markdown knowledge (`data/knowledge/`) and your LLM API.
 
 **Helpdesk**: Async tickets, urgency, assignees | Handoffs from agents land in a ticket dashboard for your team.
 
@@ -97,7 +97,7 @@ packages/
 | Self-Host (this repo)                                   | Humaner Cloud                                       |
 | ------------------------------------------------------- | --------------------------------------------------- |
 | Self-Host dashboard (`NEXT_PUBLIC_DEPLOYMENT_MODE=oss`) | Hosted `app.humaner.io`                             |
-| Custom prompt · Industry Skillz · markdown KB · BYO LLM | Inboxes · Cross-Session memory · Auto-training loop |
+| Custom prompt · Industry Skills · markdown KB · BYO LLM | Inboxes · Cross-Session memory · Auto-training loop |
 | Helpdesk, org/team, Widget / React / API                | Agent Desk · Runbooks · Live Chat handle            |
 | No Polar / plan gates                                   | Polar billing · quotas · paid personas              |
 

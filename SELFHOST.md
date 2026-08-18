@@ -1,6 +1,6 @@
 # Humaner Self-Host | Customer Support Kit
 
-Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skillz + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
+Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skills + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
 
 ### 1. Clone and install
 
@@ -134,7 +134,7 @@ Then sign in at `/auth/login`.
 2. **Website** — your company URL
 3. **Business** — name, industry, company size (no docs URL crawl)
 4. **Invite team** — skip if solo
-5. **Agent prompt** — required Custom-style system prompt for your agent behavior . Industry skillz + `data/knowledge/` are appended at reply time; they do not replace your prompt.
+5. **Agent prompt** — required Custom-style system prompt for your agent behavior . Industry skills + `data/knowledge/` are appended at reply time; they do not replace your prompt.
 6. **Launch** — accept operator responsibilities (GDPR compliance and everything data related is on your own)
 
 ### 10. Create agent → copy Agent ID
@@ -235,7 +235,7 @@ Open http://localhost:3001 → follow steps 8–12.
 
 | Layer        | Your job                                                     | Dashboard job                                        |
 | ------------ | ------------------------------------------------------------ | ---------------------------------------------------- |
-| Agent prompt | Write the system prompt in onboarding or agent settings      | Wraps it with industry skillz, knowledge, and safety |
+| Agent prompt | Write the system prompt in onboarding or agent settings      | Wraps it with industry skills, knowledge, and safety |
 | Handoff      | Agent emits `escalate: true` when a human should take over   | Creates Helpdesk ticket with transcript + summary    |
 | Helpdesk     | Staff the queue and reply to tickets                         | Assignment, replies, audit trail                     |
 | Organization | —                                                            | Workspaces, roles, access control                    |

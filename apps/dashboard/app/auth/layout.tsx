@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 
 import { AuthLayoutFrame } from '@/components/auth/auth-layout-frame';
 import { Routes } from '@/constants/routes';
@@ -69,6 +70,7 @@ async function getAuthenticatedRedirect(userId: string): Promise<string> {
 async function AuthSessionGate({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
+  await connection();
   const session = await dedupedAuth();
   if (
     !isChangeEmailRoute() &&
