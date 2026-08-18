@@ -13,8 +13,8 @@ import type { BrandConfig } from '@/lib/theme/types';
 const humanerBrand: BrandConfig = {
   name: 'Humaner',
   shortName: 'Humaner',
-  logo: '/logo-black.png',
-  logoDark: '/logo-white.png',
+  logo: '/brand/brandmark-white.svg',
+  logoDark: '/brand/brandmark-dark.svg',
   favicon: '/favicon.svg',
   labels: {
     helpdesk: 'Helpdesk',

@@ -120,7 +120,7 @@ export function createAnimatedIcon(
         // (controlled mode). We always attach a ref for imperative handles,
         // so hover must be driven from this wrapper.
         animateOnHover = true,
-        strokeWidth: _strokeWidth,
+        strokeWidth,
         width,
         height,
         onMouseEnter,
@@ -180,6 +180,7 @@ export function createAnimatedIcon(
               ref={innerRef}
               className="text-current"
               size={resolvedSize}
+              strokeWidth={strokeWidth}
               animateOnHover={false}
               onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
                 onMouseEnter?.(event);
@@ -202,6 +203,7 @@ export function createAnimatedIcon(
           )}
           style={style}
           size={resolvedSize}
+          strokeWidth={strokeWidth}
           animateOnHover={false}
           onMouseEnter={(event: MouseEvent<HTMLDivElement>) => {
             onMouseEnter?.(event);

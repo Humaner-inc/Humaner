@@ -26,10 +26,10 @@ export function getHumanerAgentPublicId(): string | undefined {
 export const HUMANER_LOGO_LIGHT_PATH = "/logo-black.png";
 /** White mark — dark surfaces. */
 export const HUMANER_LOGO_DARK_PATH = "/logo-white.png";
-/** Black brandmark — light mail headers and light widget chrome. */
-export const HUMANER_BRANDMARK_LIGHT_PATH = "/brandmark-dark.svg";
-/** White brandmark — dark widget chrome. */
-export const HUMANER_BRANDMARK_DARK_PATH = "/brandmark-white.svg";
+/** Brandmark for white / cream chrome (emails, light widgets, light sidebar). */
+export const HUMANER_BRANDMARK_LIGHT_PATH = "/brand/brandmark-white.svg";
+/** Brandmark for black / dark chrome (dark widgets, dark sidebar). */
+export const HUMANER_BRANDMARK_DARK_PATH = "/brand/brandmark-dark.svg";
 
 /** PNG logo for transactional email (SVG is blocked by most clients). */
 export const EMAIL_LOGO_PATH = "/humaner-email.png";
