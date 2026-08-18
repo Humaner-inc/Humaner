@@ -17,7 +17,7 @@
 
 Humaner is the customer support layer made for customers care and built for developers.
 Host your own support using Humaner infra to run agents, escalation, ticketing and manage team members.  
-Your agent is onboarded like a real employee through [Industry Skills](https://github.com/Humaner-inc/customer-support-skillz) | Simply add your own Custom prompt, knowledge and API.
+Your agent is onboarded like a real employee through [Industry Skills](https://github.com/Humaner-inc/customer-support-skills) | Simply add your own Custom prompt, knowledge and API.
 
 This repository do not include Humaner Intelligence, Agent Desk, loops, live chat or Inboxes from [Humaner Cloud](https://app.humaner.io).
 

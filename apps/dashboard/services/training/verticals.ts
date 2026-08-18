@@ -1,7 +1,7 @@
 import {
   getIndustry,
-  SKILLZ_VERSION
-} from '@humaner/customer-support-skillz/runtime';
+  SKILLS_VERSION
+} from '@humaner/customer-support-skills/runtime';
 import type {
   CharacterType,
   EmojiMode,
@@ -215,8 +215,8 @@ function requireSkillzPackage(industry: IndustryType): SkillzRuntimePackage {
   const pkg = getIndustry(packageId) as SkillzRuntimePackage | undefined;
   if (!pkg) {
     throw new Error(
-      `@humaner/customer-support-skillz/runtime package "${packageId}" not found for industry "${industry}". ` +
-        'Reinstall `@humaner/customer-support-skillz` (>=0.3.2) and ensure the package version includes this industry.'
+      `@humaner/customer-support-skills/runtime package "${packageId}" not found for industry "${industry}". ` +
+        'Reinstall `@humaner/customer-support-skills` (>=0.3.3) and ensure the package version includes this industry.'
     );
   }
   return pkg;
@@ -268,7 +268,7 @@ export const VERTICAL_CONFIGS: Record<IndustryType, VerticalConfig> = new Proxy(
 /** Catalog-level skills version (same for every industry). */
 export const VERTICAL_VERSIONS: Record<IndustryType, string> =
   Object.fromEntries(
-    INDUSTRY_IDS.map((industry) => [industry, SKILLZ_VERSION])
+    INDUSTRY_IDS.map((industry) => [industry, SKILLS_VERSION])
   ) as Record<IndustryType, string>;
 
 export function getVerticalVersion(industry: IndustryType): string {

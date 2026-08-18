@@ -249,7 +249,7 @@ Open http://localhost:3001 → follow steps 8–12.
 | LLM API key         | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                   |
 | Email delivery      | `EMAIL_*` in `.env.local`                                 |
 | Agent system prompt | Onboarding → Agent prompt, or Dashboard → Agent → Persona |
-| Industry behavior   | Agent onboarding (`@humaner/customer-support-skillz`)     |
+| Industry behavior   | Agent onboarding (`@humaner/customer-support-skills`)     |
 | Knowledge           | `data/knowledge/*.md`                                     |
 | Support email       | Helpdesk settings (async follow-up)                       |
 | Team                | Organization → Members / invitations                      |
@@ -314,7 +314,7 @@ Report vulnerabilities to dev@humaner.io. Do not file public issues for exploita
 
 ## Packages
 
-- [`@humaner/customer-support-skillz`](https://github.com/Humaner-inc/customer-support-skillz) — industry behavior
+- [`@humaner/customer-support-skills`](https://github.com/Humaner-inc/customer-support-skills) — industry behavior
 - [`@humaner/into-markdown`](https://github.com/Humaner-inc/into-markdown) — crawl site → `.md`
 - [`@humaner/react`](./packages/react) — widget SDK
 

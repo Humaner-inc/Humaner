@@ -35,8 +35,8 @@ const nextConfig = {
   // Docker / self-host: emit standalone server bundle
   ...(isSelfHostBuild ? { output: 'standalone' } : {}),
   transpilePackages: ['@humaner/shared', 'lucide-animated'],
-  // Prefer skillz/runtime on hot paths; full package stays external on the server.
-  serverExternalPackages: ['@humaner/customer-support-skillz'],
+  // Prefer skills/runtime on hot paths; full package stays external on the server.
+  serverExternalPackages: ['@humaner/customer-support-skills'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   cacheComponents: true,
   partialPrefetching: true,
