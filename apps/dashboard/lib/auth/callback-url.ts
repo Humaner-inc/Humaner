@@ -135,7 +135,6 @@ export function isBlockedAuthCallbackUrl(callbackUrl: string): boolean {
   return toSafeRelativeCallbackPath(callbackUrl) === null;
 }
 
-/** Former default post-login landing — send these to org overview instead. */
 const LEGACY_DEFAULT_LANDING = new Set<string>([
   Routes.Settings,
   Routes.Account,
