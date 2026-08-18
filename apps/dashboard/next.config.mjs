@@ -142,6 +142,11 @@ const nextConfig = {
         permanent: false
       },
       {
+        source: '/organization',
+        destination: '/organization/overview',
+        permanent: false
+      },
+      {
         source: '/auth',
         destination: '/auth/login',
         permanent: false

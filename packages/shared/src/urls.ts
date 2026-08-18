@@ -68,7 +68,7 @@ export function getDashboardLoginUrl(): string {
 
 /** Default authenticated landing in the dashboard (org overview). */
 export function getDashboardHomeUrl(): string {
-  return `${getAppUrl()}/organization/overview`;
+  return `${getAppUrl()}/organization`;
 }
 
 export function getDashboardOnboardingUrl(): string {

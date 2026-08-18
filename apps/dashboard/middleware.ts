@@ -141,6 +141,7 @@ export function middleware(request: NextRequest): NextResponse {
 export const config = {
   matcher: [
     '/favicon.ico',
+    '/organization',
     '/organization/:path*',
     '/agents/:path*',
     '/desk/:path*',

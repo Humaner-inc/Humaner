@@ -4,6 +4,10 @@ import type { NextAuthConfig } from 'next-auth';
 import { TOTP_AND_RECOVERY_CODES_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { adapter } from '@/lib/auth/adapter';
+import {
+  getSafeAuthCallbackUrl,
+  toMfaChallengeRedirect
+} from '@/lib/auth/callback-url';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
 import {
@@ -214,5 +218,14 @@ export const callbacks = {
     }
 
     return session;
+  },
+  async redirect({ url, baseUrl }) {
+    const mfa = toMfaChallengeRedirect(url);
+    if (mfa) {
+      return new URL(mfa, baseUrl).toString();
+    }
+
+    const safe = getSafeAuthCallbackUrl(url, Routes.Home);
+    return new URL(safe, baseUrl).toString();
   }
 } satisfies NextAuthConfig['callbacks'];

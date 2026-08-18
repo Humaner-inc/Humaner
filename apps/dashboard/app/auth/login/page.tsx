@@ -5,6 +5,8 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { LoginCard } from '@/components/auth/login/login-card';
 import { PersistAuthCallbackUrl } from '@/components/auth/persist-auth-callback-url';
+import { Routes } from '@/constants/routes';
+import { getSafeAuthCallbackUrl } from '@/lib/auth/callback-url';
 import { resolveAuthErrorMessage } from '@/lib/auth/errors';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
@@ -40,10 +42,12 @@ async function LoginPageContent({
       showLogo={false}
       maxWidth="sm"
     >
-      {/* Cookie writes must run in a Server Action, not during RSC render. */}
-      {callbackUrl ? (
-        <PersistAuthCallbackUrl callbackUrl={callbackUrl} />
-      ) : null}
+      {/* Cookie writes must run in a Server Action, not during RSC render.
+          Always persist a destination so a stale Auth.js callback cookie
+          (e.g. /settings/account/profile) cannot override the org home. */}
+      <PersistAuthCallbackUrl
+        callbackUrl={getSafeAuthCallbackUrl(callbackUrl, Routes.Home)}
+      />
       <LoginCard initialErrorMessage={oauthErrorMessage} />
     </AuthOnboardingCardShell>
   );

@@ -135,11 +135,28 @@ export function isBlockedAuthCallbackUrl(callbackUrl: string): boolean {
   return toSafeRelativeCallbackPath(callbackUrl) === null;
 }
 
+/** Former default post-login landing — send these to org overview instead. */
+const LEGACY_DEFAULT_LANDING = new Set<string>([
+  Routes.Settings,
+  Routes.Account,
+  Routes.Profile
+]);
+
 export function getSafeAuthCallbackUrl(
   callbackUrl: string | undefined,
   fallback: string = Routes.Home
 ): string {
-  return toSafeRelativeCallbackPath(callbackUrl) ?? fallback;
+  const relative = toSafeRelativeCallbackPath(callbackUrl);
+  if (!relative) {
+    return fallback;
+  }
+
+  const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
+  if (LEGACY_DEFAULT_LANDING.has(pathname)) {
+    return fallback;
+  }
+
+  return relative;
 }
 
 function extractSignInResultUrl(result: unknown): string | undefined {
