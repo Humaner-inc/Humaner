@@ -8,7 +8,7 @@ import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { getDemoHandoffTickets } from '@/lib/demo/demo-desk';
 import { isLocalDemo } from '@/lib/demo/is-local-demo';
-import { getTierForMode } from '@/lib/desk/escalation-framework';
+import { resolveTicketSlaMinutes } from '@/lib/desk/resolve-ticket-sla';
 import { toDeskRoutedTo } from '@/lib/desk/routed-to';
 import type {
   HandoffInboxAssignee,
@@ -46,34 +46,6 @@ export type HandoffDeskData = {
   tickets: HandoffTicketItem[];
   businessHours: WorkHoursDto[];
 };
-
-function resolveSlaMinutes(input: {
-  agentId: string;
-  urgency: HandoffTicketUrgency;
-  policies: Array<{
-    agentId: string;
-    urgencyLevel: HandoffTicketUrgency;
-    mode: Parameters<typeof getTierForMode>[0];
-    slaMinutes: number | null;
-  }>;
-}): number | null {
-  const match = input.policies.find(
-    (policy) =>
-      policy.agentId === input.agentId && policy.urgencyLevel === input.urgency
-  );
-  if (match) return match.slaMinutes;
-
-  // Fallback to tier defaults when no policy is configured.
-  const tier = (
-    [
-      { urgency: 'HIGH' as const, mode: 'LIVE' as const },
-      { urgency: 'MEDIUM' as const, mode: 'STANDARD' as const },
-      { urgency: 'LOW' as const, mode: 'SELF_RESOLVING' as const }
-    ] as const
-  ).find((entry) => entry.urgency === input.urgency);
-
-  return tier ? (getTierForMode(tier.mode)?.defaultSlaMinutes ?? null) : null;
-}
 
 export async function getHandoffDeskData(): Promise<HandoffDeskData> {
   const session = await dedupedAuth();
@@ -252,7 +224,7 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
       ticketNumber: ticket.ticketNumber,
       agentId: ticket.agentId,
       agentName: ticket.agent.name,
-      slaMinutes: resolveSlaMinutes({
+      slaMinutes: resolveTicketSlaMinutes({
         agentId: ticket.agentId,
         urgency,
         policies: policyRows
