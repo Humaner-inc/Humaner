@@ -16,9 +16,7 @@ export default function DashboardLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <React.Suspense
-      fallback={<DashboardChromeFallback>{children}</DashboardChromeFallback>}
-    >
+    <React.Suspense fallback={<DashboardChromeFallback />}>
       <DashboardSessionShell>{children}</DashboardSessionShell>
     </React.Suspense>
   );

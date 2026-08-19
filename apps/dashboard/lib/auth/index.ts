@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { cookies } from 'next/headers';
 import NextAuth, { type DefaultSession, type NextAuthConfig } from 'next-auth';
 
 import { Routes } from '@/constants/routes';
@@ -64,6 +65,10 @@ export const authConfig = {
 // All those actions need to be called server-side
 export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);
 
-// Deduplicated per-request session. `auth()` already reads cookies (request-time);
-// do not wrap it in `connection()` — that blocks instant navigations.
-export const dedupedAuth = cache(auth);
+// Deduplicated per-request session. Await cookies first so Cache Components
+// postpones before Auth.js calls `crypto.getRandomValues()` (CSRF / session).
+// Do not use `connection()` here — it blocks instant client navigations.
+export const dedupedAuth = cache(async () => {
+  await cookies();
+  return auth();
+});

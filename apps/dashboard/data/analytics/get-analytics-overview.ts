@@ -5,6 +5,7 @@ import { getEffectivePlan, getPlanCapabilities } from '@humaner/shared/plans';
 import type { MessageRole } from '@prisma/client';
 import { format, startOfDay, subDays } from 'date-fns';
 
+import { queryKnowledgeGapCoversForOrganization } from '@/data/knowledge/query-knowledge-gap-covers';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -22,6 +23,7 @@ import {
   extractDetectedContentGaps,
   type DetectedContentGap
 } from '@/lib/knowledge/extract-detected-gaps';
+import { filterCoveredContentGaps } from '@/lib/knowledge/filter-covered-content-gaps';
 
 export type AnalyticsVolumePoint = {
   date: string;
@@ -140,7 +142,8 @@ export async function getAnalyticsOverview(options?: {
     volumeConversations,
     gapConversations,
     messagesUsed,
-    totalMessages
+    totalMessages,
+    gapCovers
   ] = await Promise.all([
     prisma.conversation.findMany({
       where: { agent: { organizationId, ...agentFilter } },
@@ -226,7 +229,8 @@ export async function getAnalyticsOverview(options?: {
     getMessagesUsedThisMonth(organizationId, tier),
     prisma.message.count({
       where: { conversation: { agent: { organizationId, ...agentFilter } } }
-    })
+    }),
+    queryKnowledgeGapCoversForOrganization(organizationId, options?.agentId)
   ]);
 
   const outcomeCounts = countConversationOutcomes(conversations);
@@ -236,7 +240,10 @@ export async function getAnalyticsOverview(options?: {
       : 0;
 
   const contentGapsEnabled = getPlanCapabilities(tier).contentGaps;
-  const detectedGaps = extractDetectedContentGaps(gapConversations);
+  const detectedGaps = filterCoveredContentGaps(
+    extractDetectedContentGaps(gapConversations),
+    gapCovers
+  );
   const knowledgeGaps = contentGapsEnabled ? detectedGaps : [];
   const unansweredCount = detectedGaps.reduce(
     (total, gap) => total + gap.count,

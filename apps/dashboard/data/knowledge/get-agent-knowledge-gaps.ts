@@ -2,6 +2,7 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 
+import { queryKnowledgeGapCoversForAgent } from '@/data/knowledge/query-knowledge-gap-covers';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -9,6 +10,7 @@ import { getOrganizationCapabilities } from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
 import { getDemoPendingKnowledgeGaps } from '@/lib/demo/demo-answers';
 import { isLocalDemo } from '@/lib/demo/is-local-demo';
+import { filterCoveredContentGaps } from '@/lib/knowledge/filter-covered-content-gaps';
 
 export type AgentKnowledgeGapItem = {
   id: string;
@@ -16,6 +18,15 @@ export type AgentKnowledgeGapItem = {
   suggestedAnswer: string | null;
   createdAt: string;
 };
+
+function toKnowledgeGapItem(gap: AgentKnowledgeGapItem): AgentKnowledgeGapItem {
+  return {
+    id: gap.id,
+    question: gap.question,
+    suggestedAnswer: gap.suggestedAnswer,
+    createdAt: gap.createdAt
+  };
+}
 
 export async function getAgentKnowledgeGaps(
   agentId: string
@@ -25,15 +36,29 @@ export async function getAgentKnowledgeGaps(
     return redirect(getLoginRedirect());
   }
 
-  if (isLocalDemo()) {
-    return getDemoPendingKnowledgeGaps();
+  if (!isLocalDemo()) {
+    const capabilities = await getOrganizationCapabilities(
+      session.user.organizationId
+    );
+    if (!capabilities.contentGaps) {
+      return [];
+    }
   }
 
-  const capabilities = await getOrganizationCapabilities(
+  const covers = await queryKnowledgeGapCoversForAgent(
+    agentId,
     session.user.organizationId
   );
-  if (!capabilities.contentGaps) {
-    return [];
+
+  if (isLocalDemo()) {
+    return filterCoveredContentGaps(
+      getDemoPendingKnowledgeGaps().map((gap) => ({
+        ...gap,
+        agentId,
+        lastAskedAt: gap.createdAt
+      })),
+      covers
+    ).map(toKnowledgeGapItem);
   }
 
   const gaps = await prisma.knowledgeGap.findMany({
@@ -52,10 +77,15 @@ export async function getAgentKnowledgeGaps(
     }
   });
 
-  return gaps.map((gap) => ({
-    id: gap.id,
-    question: gap.question,
-    suggestedAnswer: gap.suggestedAnswer,
-    createdAt: gap.createdAt.toISOString()
-  }));
+  return filterCoveredContentGaps(
+    gaps.map((gap) => ({
+      id: gap.id,
+      question: gap.question,
+      suggestedAnswer: gap.suggestedAnswer,
+      createdAt: gap.createdAt.toISOString(),
+      agentId,
+      lastAskedAt: gap.createdAt.toISOString()
+    })),
+    covers
+  ).map(toKnowledgeGapItem);
 }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connection } from 'next/server';
 
 import { InboxAllMailList } from '@/components/dashboard/inbox/inbox-all-mail-list';
 import {
@@ -48,6 +49,7 @@ async function InboxAllPageContent({
     compose?: string;
   }>;
 }): Promise<React.JSX.Element> {
+  await connection();
   const overviewPromise = getInboxOverview();
   const inboxesPromise = getMailInboxes();
   const tagsPromise = getMailTags();
