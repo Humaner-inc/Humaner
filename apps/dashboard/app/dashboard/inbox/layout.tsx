@@ -2,6 +2,7 @@ import * as React from 'react';
 import { redirect } from 'next/navigation';
 
 import { Routes } from '@/constants/routes';
+import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
 /** Brand cobalt — inbox accents (cube, hovers, selection). */
@@ -12,12 +13,14 @@ const INBOX_ACCENT = '#2252bc';
  * settings-style routes (Aliases / Tags / Archive) opt into Escalation `xl`.
  * Self-Host: collaborative Inbox is Cloud-only — leave before Polar/mail compiles.
  */
-export default function InboxLayout({
+export default async function InboxLayout({
   children
-}: React.PropsWithChildren): React.JSX.Element {
+}: React.PropsWithChildren): Promise<React.JSX.Element> {
   if (isOssDeployment()) {
     redirect(Routes.Home);
   }
+
+  await requireDashboardPageOrRedirect('inbox');
 
   return (
     <div

@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { dedupedAuth } from '@/lib/auth';
+import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import {
@@ -96,9 +97,18 @@ function parseFromDisplay(fromAddress: string | null): {
   return { email: fromAddress.trim().toLowerCase(), name: null };
 }
 
-export async function getMailInboxes(): Promise<MailInboxOption[]> {
+async function requireInboxReadSession() {
   const session = await dedupedAuth();
-  if (!checkSession(session)) return [];
+  if (!checkSession(session)) return null;
+  if (!(await userCanAccessDashboardPage(session.user.id, 'inbox'))) {
+    return null;
+  }
+  return session;
+}
+
+export async function getMailInboxes(): Promise<MailInboxOption[]> {
+  const session = await requireInboxReadSession();
+  if (!session) return [];
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];
@@ -181,8 +191,8 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
 }
 
 export async function getMailUnreadCount(): Promise<number> {
-  const session = await dedupedAuth();
-  if (!checkSession(session)) return 0;
+  const session = await requireInboxReadSession();
+  if (!session) return 0;
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return 0;
@@ -225,8 +235,8 @@ export async function getMailThreads(options?: {
   status?: 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED';
   tagId?: string | null;
 }): Promise<MailThreadListItem[]> {
-  const session = await dedupedAuth();
-  if (!checkSession(session)) return [];
+  const session = await requireInboxReadSession();
+  if (!session) return [];
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];
@@ -356,8 +366,8 @@ export async function getMailThreads(options?: {
 export async function getMailThread(
   threadId: string
 ): Promise<MailThreadDetail | null> {
-  const session = await dedupedAuth();
-  if (!checkSession(session)) return null;
+  const session = await requireInboxReadSession();
+  if (!session) return null;
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return null;
@@ -452,8 +462,8 @@ export async function getMailThread(
 }
 
 export async function getMailTags(): Promise<MailTagItem[]> {
-  const session = await dedupedAuth();
-  if (!checkSession(session)) return [];
+  const session = await requireInboxReadSession();
+  if (!session) return [];
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];
@@ -557,8 +567,8 @@ export async function getConnectedProviderPresetIds(): Promise<string[]> {
 }
 
 export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
-  const session = await dedupedAuth();
-  if (!checkSession(session)) return [];
+  const session = await requireInboxReadSession();
+  if (!session) return [];
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];

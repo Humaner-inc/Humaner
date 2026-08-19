@@ -33,6 +33,7 @@ export type NavMainProps = SidebarGroupProps & {
   profile: ProfileDto;
   agents: SidebarAgent[];
   orgTier: string;
+  frontierBetaEnabled?: boolean;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
@@ -42,6 +43,7 @@ export function NavMain({
   profile,
   agents,
   orgTier,
+  frontierBetaEnabled = true,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
   agentDeskOpenCount = 0,
@@ -68,6 +70,7 @@ export function NavMain({
         {canAccessPage(profile, 'desk') ? (
           <NavDeskTree
             orgTier={orgTier}
+            frontierBetaEnabled={frontierBetaEnabled}
             handoffOpenCount={handoffOpenCount}
             agentDeskOpenCount={agentDeskOpenCount}
           />
@@ -108,6 +111,7 @@ export function NavMain({
             <NavAgentTree
               agents={agents}
               orgTier={orgTier}
+              frontierBetaEnabled={frontierBetaEnabled}
             />
           </>
         ) : null}

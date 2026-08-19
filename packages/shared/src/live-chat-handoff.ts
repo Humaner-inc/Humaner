@@ -96,6 +96,21 @@ export function resolveLiveChatWaitMinutes(config: LiveChatConfig): number {
   return fallback;
 }
 
+/**
+ * Visitor-facing countdown. Always uses the live-chat wait window from Desk
+ * settings (min of org timeout and SLA) so the widget stays in sync with
+ * the "20 min" timeout — not the longer escalation-policy SLA.
+ */
+export function resolveLiveChatCountdownMinutes(
+  config: LiveChatConfig | null | undefined,
+  _hasTeamMember?: boolean,
+): number | null {
+  if (!config?.enabled) {
+    return null;
+  }
+  return resolveLiveChatWaitMinutes(config);
+}
+
 export function formatSlaCountdown(
   createdAtMs: number,
   slaMinutes: number | null | undefined,

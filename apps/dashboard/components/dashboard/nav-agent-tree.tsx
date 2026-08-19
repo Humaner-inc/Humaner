@@ -37,6 +37,7 @@ export type SidebarAgent = {
 export type NavAgentTreeProps = {
   agents: SidebarAgent[];
   orgTier: string;
+  frontierBetaEnabled?: boolean;
 };
 
 function AgentAvatarIcon({
@@ -73,10 +74,12 @@ function AgentAvatarIcon({
 
 function AgentTreeNode({
   agent,
-  orgTier
+  orgTier,
+  frontierBetaEnabled = true
 }: {
   agent: SidebarAgent;
   orgTier: string;
+  frontierBetaEnabled?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
   const activeTab = getActiveAgentTab(pathname);
@@ -85,8 +88,9 @@ function AgentTreeNode({
     SIDEBAR_DRAWER_IDS.agent(agent.id)
   );
   const tabs = getAgentNavTabs();
+  const capabilityContext = { frontierBetaEnabled };
   const lockedCount = tabs.filter((tab) =>
-    isAgentTabLocked(tab, orgTier)
+    isAgentTabLocked(tab, orgTier, capabilityContext)
   ).length;
   const showUpgradeBanner = shouldShowSidebarUpgradeBanner(lockedCount);
 
@@ -113,7 +117,7 @@ function AgentTreeNode({
           <SidebarNavUpgradeHeader href={Routes.Billing} />
         ) : null}
         {tabs.map((tab) => {
-          const locked = isAgentTabLocked(tab, orgTier);
+          const locked = isAgentTabLocked(tab, orgTier, capabilityContext);
           return (
             <SidebarNavChild
               key={tab.id}
@@ -139,7 +143,8 @@ function AgentTreeNode({
 
 export function NavAgentTree({
   agents,
-  orgTier
+  orgTier,
+  frontierBetaEnabled = true
 }: NavAgentTreeProps): React.JSX.Element {
   if (agents.length === 0) {
     return <></>;
@@ -153,6 +158,7 @@ export function NavAgentTree({
             key={agent.id}
             agent={agent}
             orgTier={orgTier}
+            frontierBetaEnabled={frontierBetaEnabled}
           />
         ))}
       </div>

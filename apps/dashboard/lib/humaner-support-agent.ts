@@ -3,6 +3,7 @@ import 'server-only';
 import {
   getPlanCapabilities,
   type PlanCapabilities,
+  type PlanCapabilityContext,
   type PlanTier
 } from '@humaner/shared/plans';
 
@@ -29,13 +30,15 @@ export function getHumanerSupportPlanCapabilities(): PlanCapabilities {
 
 export function resolveAgentChatCapabilities(
   agentPublicId: string,
-  organizationTier: string
+  organizationTier: string,
+  frontierBetaEnabled?: boolean | null
 ): PlanCapabilities {
   if (isHumanerSupportAgent(agentPublicId)) {
     return getHumanerSupportPlanCapabilities();
   }
 
-  return getPlanCapabilities(organizationTier);
+  const context: PlanCapabilityContext = { frontierBetaEnabled };
+  return getPlanCapabilities(organizationTier, context);
 }
 
 export function resolveAgentChatTier(

@@ -16,6 +16,7 @@ export type SidebarRendererProps = {
   messageUsage: SidebarMessageUsageDto;
   agents: SidebarAgent[];
   orgTier: string;
+  frontierBetaEnabled?: boolean;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
@@ -27,6 +28,7 @@ export function SidebarRenderer({
   messageUsage,
   agents,
   orgTier,
+  frontierBetaEnabled = true,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
   agentDeskOpenCount = 0
@@ -39,6 +41,7 @@ export function SidebarRenderer({
         messageUsage={messageUsage}
         agents={agents}
         orgTier={orgTier}
+        frontierBetaEnabled={frontierBetaEnabled}
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCount}
         agentDeskOpenCount={agentDeskOpenCount}

@@ -888,6 +888,10 @@ input[type='password'],
   .ask-cube-glitch {
     animation: none;
   }
+
+  .frontier-load-glitch {
+    animation: none;
+  }
 }
 
 @keyframes ask-cube-glitch {
@@ -914,6 +918,40 @@ input[type='password'],
 
 .ask-cube-glitch {
   animation: ask-cube-glitch 0.1s steps(2) infinite;
+}
+
+@keyframes frontier-load-glitch {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+    text-shadow: none;
+  }
+  18% {
+    opacity: 0.82;
+    transform: translate(-1px, 0);
+    text-shadow:
+      1px 0 #e1ccaf,
+      -1px 0 #2252bc;
+  }
+  36% {
+    opacity: 1;
+    transform: translate(1px, 0);
+    text-shadow: none;
+  }
+  54% {
+    opacity: 0.9;
+    transform: translate(0, 1px);
+    text-shadow: -1px 0 #e1ccaf;
+  }
+  72% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+.frontier-load-glitch {
+  animation: frontier-load-glitch 0.16s steps(2) infinite;
 }
 
 /* Titles: Geist Sans Regular. Infos/banners: Geist Mono Light. */

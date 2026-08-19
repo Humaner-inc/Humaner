@@ -7,7 +7,10 @@ import {
   ShieldIcon,
   UserIcon
 } from '@humaner/shared/icons';
-import type { PlanCapabilities } from '@humaner/shared/plans';
+import type {
+  PlanCapabilities,
+  PlanCapabilityContext
+} from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import {
@@ -124,9 +127,13 @@ export function isAgentWorkspacePath(pathname: string): boolean {
   return /^\/agents\/(?!new(?:\/|$))[^/]+/.test(publicPath);
 }
 
-export function isAgentTabLocked(tab: AgentNavTab, orgTier: string): boolean {
+export function isAgentTabLocked(
+  tab: AgentNavTab,
+  orgTier: string,
+  context?: PlanCapabilityContext
+): boolean {
   if (isOssDeployment()) return false;
   if (!tab.requiredCapability) return false;
-  const capabilities = getPlanCapabilities(orgTier);
+  const capabilities = getPlanCapabilities(orgTier, context);
   return !capabilities[tab.requiredCapability];
 }

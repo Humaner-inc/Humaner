@@ -20,10 +20,12 @@ export const getOrganizationCapabilities = cache(
   async (organizationId: string): Promise<PlanCapabilities> => {
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { tier: true }
+      select: { tier: true, frontierBetaEnabled: true }
     });
 
-    return getPlanCapabilities(organization?.tier ?? 'free');
+    return getPlanCapabilities(organization?.tier ?? 'free', {
+      frontierBetaEnabled: organization?.frontierBetaEnabled ?? false
+    });
   }
 );
 

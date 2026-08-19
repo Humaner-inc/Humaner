@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
+import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 
 import {
@@ -20,6 +21,8 @@ export async function getKnowledgeSources(
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
   }
+
+  await requireDashboardPageOrRedirect('agents');
 
   return queryKnowledgeSourcesForAgent(agentId, session.user.organizationId);
 }

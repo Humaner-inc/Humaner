@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 
 import { dedupedAuth } from '@/lib/auth';
+import { requireApiDashboardPageAccess } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import {
   getResourcePresence,
@@ -31,6 +32,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Invalid query' }, { status: 400 });
   }
 
+  const pageKey = parsed.data.resourceType === 'ticket' ? 'desk' : 'inbox';
+  const access = await requireApiDashboardPageAccess(pageKey);
+  if (!access.ok) {
+    return access.response;
+  }
+
   const presence = await getResourcePresence({
     organizationId: session.user.organizationId,
     resourceType: parsed.data.resourceType,
@@ -56,6 +63,12 @@ export async function POST(request: NextRequest): Promise<Response> {
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+  }
+
+  const pageKey = parsed.data.resourceType === 'ticket' ? 'desk' : 'inbox';
+  const access = await requireApiDashboardPageAccess(pageKey);
+  if (!access.ok) {
+    return access.response;
   }
 
   const presence = await heartbeatPresence({

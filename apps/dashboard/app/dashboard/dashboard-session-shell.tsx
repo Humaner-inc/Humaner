@@ -3,7 +3,10 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
-import { getPlanForTier } from '@humaner/shared/plans';
+import {
+  FRONTIER_PLAN_COMING_SOON,
+  getPlanForTier
+} from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
@@ -19,6 +22,7 @@ import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-conne
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
+import { FrontierBetaPromptGate } from '@/components/onboarding/frontier-beta-prompt-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
@@ -35,6 +39,10 @@ import { OrgModeProvider } from '@/hooks/use-org-mode';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
+import {
+  canAccessPageKey,
+  requirePathAccessFromHeaders
+} from '@/lib/auth/require-workspace-access';
 import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
@@ -58,8 +66,10 @@ export async function DashboardSessionShell({
     select: {
       completedOnboarding: true,
       inboxConnectPromptPending: true,
+      frontierBetaEnabled: true,
       workspaceRole: true,
       role: true,
+      allowedPages: true,
       organization: {
         select: {
           completedOnboarding: true,
@@ -67,6 +77,7 @@ export async function DashboardSessionShell({
           targetAudience: true,
           industry: true,
           tier: true,
+          frontierBetaEnabled: true,
           accentColor: true,
           name: true,
           verticalTopics: true,
@@ -95,7 +106,25 @@ export async function DashboardSessionShell({
     return redirect(Routes.Onboarding);
   }
 
+  await requirePathAccessFromHeaders();
+
   const oss = isOssDeployment();
+  const canDesk = canAccessPageKey(
+    {
+      role: userFromDb!.role,
+      workspaceRole: userFromDb!.workspaceRole,
+      allowedPages: userFromDb!.allowedPages
+    },
+    'desk'
+  );
+  const canInbox = canAccessPageKey(
+    {
+      role: userFromDb!.role,
+      workspaceRole: userFromDb!.workspaceRole,
+      allowedPages: userFromDb!.allowedPages
+    },
+    'inbox'
+  );
   const emptyMessageUsage: SidebarMessageUsageDto = {
     messagesUsed: 0,
     includedMessages: 0,
@@ -119,9 +148,11 @@ export async function DashboardSessionShell({
     getWorkspaceSwitcherData(),
     oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
     getDashboardNotifications(),
-    oss ? Promise.resolve(0) : getMailUnreadCount(),
-    getHandoffOpenCounts(),
-    oss ? Promise.resolve([]) : getMailInboxes(),
+    oss || !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
+    canDesk
+      ? getHandoffOpenCounts()
+      : Promise.resolve({ humanOpen: 0, agentOpen: 0 }),
+    oss || !canInbox ? Promise.resolve([]) : getMailInboxes(),
     !oss && humanerAgentPublicId
       ? prisma.agent.findUnique({
           where: { publicId: humanerAgentPublicId },
@@ -142,7 +173,16 @@ export async function DashboardSessionShell({
   const showDataImprovementPrompt =
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.organization!.dataImprovementConsent === null;
+  const showFrontierBetaPrompt =
+    FRONTIER_PLAN_COMING_SOON &&
+    !showDataImprovementPrompt &&
+    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    userFromDb!.inboxConnectPromptPending &&
+    userFromDb!.organization!.tier === 'classic' &&
+    !userFromDb!.frontierBetaEnabled &&
+    !userFromDb!.organization!.frontierBetaEnabled;
   const showInboxConnectPrompt =
+    !FRONTIER_PLAN_COMING_SOON &&
     !showDataImprovementPrompt &&
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.inboxConnectPromptPending &&
@@ -187,6 +227,7 @@ export async function DashboardSessionShell({
         workspaces={workspaces}
         messageUsage={messageUsage}
         orgTier={userFromDb!.organization!.tier ?? 'free'}
+        frontierBetaEnabled={userFromDb!.organization!.frontierBetaEnabled}
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCounts.humanOpen}
         agentDeskOpenCount={handoffOpenCounts.agentOpen}
@@ -234,6 +275,9 @@ export async function DashboardSessionShell({
             privacyPolicyUrl={getPrivacyUrl()}
             showPrompt={showDataImprovementPrompt}
           />
+        ) : null}
+        {!isOssDeployment() ? (
+          <FrontierBetaPromptGate showPrompt={showFrontierBetaPrompt} />
         ) : null}
         {!isOssDeployment() ? (
           <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />

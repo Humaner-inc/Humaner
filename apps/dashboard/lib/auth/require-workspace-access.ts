@@ -1,6 +1,9 @@
 import 'server-only';
 
+import { cache } from 'react';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { NextResponse } from 'next/server';
 import { Role, WorkspaceRole } from '@prisma/client';
 
 import { resolvePathAccess } from '@/constants/dashboard-pages';
@@ -18,23 +21,41 @@ export type UserAccessContext = {
   allowedPages: string[];
 };
 
-export async function getUserAccessContext(
-  userId: string
-): Promise<UserAccessContext | null> {
-  const user = await prisma.user.findFirst({
-    where: { id: userId },
-    select: {
-      role: true,
-      workspaceRole: true,
-      allowedPages: true
+export const getUserAccessContext = cache(
+  async (userId: string): Promise<UserAccessContext | null> => {
+    const user = await prisma.user.findFirst({
+      where: { id: userId },
+      select: {
+        role: true,
+        workspaceRole: true,
+        allowedPages: true
+      }
+    });
+
+    if (!user) {
+      return null;
     }
-  });
 
-  if (!user) {
-    return null;
+    return user;
   }
+);
 
-  return user;
+export async function userCanAccessDashboardPage(
+  userId: string,
+  pageKey: DashboardPageKey
+): Promise<boolean> {
+  const context = await getUserAccessContext(userId);
+  return Boolean(context && canAccessPageKey(context, pageKey));
+}
+
+export async function userCanAccessAnyDashboardPage(
+  userId: string,
+  pageKeys: DashboardPageKey[]
+): Promise<boolean> {
+  const context = await getUserAccessContext(userId);
+  return Boolean(
+    context && pageKeys.some((pageKey) => canAccessPageKey(context, pageKey))
+  );
 }
 
 export function canAccessPathWithContext(
@@ -112,6 +133,64 @@ export async function requirePathAccess(pathname: string): Promise<void> {
   if (!canAccessPathWithContext(context, pathname)) {
     redirect(Routes.Home);
   }
+}
+
+/** RSC layouts: gate using the pathname stamped by middleware. */
+export async function requirePathAccessFromHeaders(): Promise<void> {
+  const pathname = (await headers()).get('x-pathname');
+  if (!pathname || pathname.startsWith('/api/')) {
+    return;
+  }
+
+  await requirePathAccess(pathname);
+}
+
+/** Data loaders: stop ticket/mail/history queries before they run. */
+export async function requireDashboardPageOrRedirect(
+  pageKey: DashboardPageKey
+): Promise<void> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) {
+    redirect(getLoginRedirect());
+  }
+
+  if (!(await userCanAccessDashboardPage(session.user.id, pageKey))) {
+    redirect(Routes.Home);
+  }
+}
+
+export async function requireAnyDashboardPageOrRedirect(
+  pageKeys: DashboardPageKey[]
+): Promise<void> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) {
+    redirect(getLoginRedirect());
+  }
+
+  if (!(await userCanAccessAnyDashboardPage(session.user.id, pageKeys))) {
+    redirect(Routes.Home);
+  }
+}
+
+export async function requireApiDashboardPageAccess(
+  pageKey: DashboardPageKey
+): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+    };
+  }
+
+  if (!(await userCanAccessDashboardPage(session.user.id, pageKey))) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+    };
+  }
+
+  return { ok: true };
 }
 
 export async function requireWorkspaceOwnerSession(): Promise<void> {

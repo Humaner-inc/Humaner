@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
+import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { getDemoHandoffTickets } from '@/lib/demo/demo-desk';
@@ -52,6 +53,8 @@ export async function getHandoffDeskData(): Promise<HandoffDeskData> {
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
   }
+
+  await requireDashboardPageOrRedirect('desk');
 
   const organizationId = session.user.organizationId;
 

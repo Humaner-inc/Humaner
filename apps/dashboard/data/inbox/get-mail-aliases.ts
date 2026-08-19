@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { dedupedAuth } from '@/lib/auth';
+import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { getMailProviderById } from '@/lib/inbox/mail-providers';
@@ -19,6 +20,10 @@ export type MailAliasListItem = {
 export async function getMailAliases(): Promise<MailAliasListItem[]> {
   const session = await dedupedAuth();
   if (!checkSession(session)) return [];
+
+  if (!(await userCanAccessDashboardPage(session.user.id, 'inbox'))) {
+    return [];
+  }
 
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];

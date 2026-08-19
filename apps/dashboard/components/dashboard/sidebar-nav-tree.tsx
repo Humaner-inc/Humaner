@@ -128,9 +128,7 @@ export function SidebarNavParent({
         >
           {leadingNode}
           <span className="min-w-0 flex-1 truncate">{label}</span>
-          {badge && !expanded ? (
-            <span className="mr-1 shrink-0">{badge}</span>
-          ) : null}
+          {badge ? <span className="mr-1 shrink-0">{badge}</span> : null}
         </button>
         <button
           type="button"

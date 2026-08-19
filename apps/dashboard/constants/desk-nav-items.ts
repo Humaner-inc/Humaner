@@ -1,6 +1,9 @@
 import type { LucideIcon } from '@humaner/shared/icons';
 import { BotIcon, GitCompareIcon, SettingsIcon } from '@humaner/shared/icons';
-import type { PlanCapabilities } from '@humaner/shared/plans';
+import type {
+  PlanCapabilities,
+  PlanCapabilityContext
+} from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import { AppInfo } from '@/constants/app-info';
@@ -72,9 +75,12 @@ export function getDeskNavTabs(): DeskNavTab[] {
   return CLOUD_DESK_NAV_TABS;
 }
 
-export function getDeskHomeHref(orgTier?: string): string {
+export function getDeskHomeHref(
+  orgTier?: string,
+  context?: PlanCapabilityContext
+): string {
   if (isOssDeployment()) return Routes.DeskHuman;
-  if (orgTier && !getPlanCapabilities(orgTier).agentDesk) {
+  if (orgTier && !getPlanCapabilities(orgTier, context).agentDesk) {
     return Routes.DeskHuman;
   }
   return Routes.DeskAgent;
@@ -100,9 +106,13 @@ export function isDeskPath(pathname: string): boolean {
   return pathname.startsWith(Routes.Desk);
 }
 
-export function isDeskTabLocked(tab: DeskNavTab, orgTier: string): boolean {
+export function isDeskTabLocked(
+  tab: DeskNavTab,
+  orgTier: string,
+  context?: PlanCapabilityContext
+): boolean {
   if (isOssDeployment()) return false;
   if (!tab.requiredCapability) return false;
-  const capabilities = getPlanCapabilities(orgTier);
+  const capabilities = getPlanCapabilities(orgTier, context);
   return !capabilities[tab.requiredCapability];
 }

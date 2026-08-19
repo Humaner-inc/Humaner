@@ -14,18 +14,21 @@ const CACHE_TTL_SECONDS = 3_600;
 /** Hot-path process cache in front of Redis (Fluid Compute / long-lived workers). */
 const LOCAL_TTL_MS = 60_000;
 
+type CachedChatOrganization = {
+  tier: string;
+  frontierBetaEnabled?: boolean;
+  email: string | null;
+  supportEmail: string | null;
+  humanDeskEnabled: boolean;
+};
+
 export type CachedChatAgent = SystemPromptAgent & {
   id: string;
   publicId: string;
   isPaused: boolean;
   allowedDomains: string[];
   organizationId: string;
-  organization: {
-    tier: string;
-    email: string | null;
-    supportEmail: string | null;
-    humanDeskEnabled: boolean;
-  } | null;
+  organization: CachedChatOrganization | null;
 };
 
 const localAgentCache = new TtlMap<CachedChatAgent>(LOCAL_TTL_MS, {
@@ -50,12 +53,7 @@ type AgentChatRow = {
   isPaused: boolean;
   allowedDomains: string[];
   organizationId: string;
-  organization: {
-    tier: string;
-    email: string | null;
-    supportEmail: string | null;
-    humanDeskEnabled: boolean;
-  } | null;
+  organization: CachedChatOrganization | null;
 };
 
 const agentSelect = {
@@ -79,6 +77,7 @@ const agentSelect = {
   organization: {
     select: {
       tier: true,
+      frontierBetaEnabled: true,
       email: true,
       supportEmail: true,
       humanDeskEnabled: true
@@ -90,9 +89,18 @@ function cacheKey(publicId: string): string {
   return `${CACHE_PREFIX}${publicId}`;
 }
 
+function hasCrossSessionMemoryForOrg(
+  organization: CachedChatOrganization | null
+): boolean {
+  return (
+    getPlanCapabilities(organization?.tier ?? 'free', {
+      frontierBetaEnabled: organization?.frontierBetaEnabled
+    }).memory === 'cross-session'
+  );
+}
+
 function toCachedChatAgent(row: AgentChatRow): CachedChatAgent {
   const persona = getVerticalPersonaPreset(row.industry);
-  const tier = row.organization?.tier ?? 'free';
 
   return {
     id: row.id,
@@ -114,7 +122,7 @@ function toCachedChatAgent(row: AgentChatRow): CachedChatAgent {
     allowedDomains: row.allowedDomains,
     organizationId: row.organizationId,
     organization: row.organization,
-    hasCrossSessionMemory: getPlanCapabilities(tier).memory === 'cross-session'
+    hasCrossSessionMemory: hasCrossSessionMemoryForOrg(row.organization)
   };
 }
 
@@ -123,13 +131,12 @@ function backfillCachedAgent(cached: CachedChatAgent): CachedChatAgent {
     return cached;
   }
   const persona = getVerticalPersonaPreset(cached.industry);
-  const tier = cached.organization?.tier ?? 'free';
   return {
     ...cached,
     typoExceptions: cached.typoExceptions ?? persona.typoExceptions,
     hasCrossSessionMemory:
       cached.hasCrossSessionMemory ??
-      getPlanCapabilities(tier).memory === 'cross-session'
+      hasCrossSessionMemoryForOrg(cached.organization)
   };
 }
 

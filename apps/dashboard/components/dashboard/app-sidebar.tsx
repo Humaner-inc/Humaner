@@ -28,6 +28,7 @@ export type AppSidebarProps = {
   messageUsage: SidebarMessageUsageDto;
   agents: SidebarAgent[];
   orgTier: string;
+  frontierBetaEnabled?: boolean;
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
@@ -39,6 +40,7 @@ export function AppSidebar({
   messageUsage,
   agents,
   orgTier,
+  frontierBetaEnabled = true,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
   agentDeskOpenCount = 0
@@ -79,6 +81,7 @@ export function AppSidebar({
             profile={profile}
             agents={agents}
             orgTier={orgTier}
+            frontierBetaEnabled={frontierBetaEnabled}
             inboxUnreadCount={inboxUnreadCount}
             handoffOpenCount={handoffOpenCount}
             agentDeskOpenCount={agentDeskOpenCount}

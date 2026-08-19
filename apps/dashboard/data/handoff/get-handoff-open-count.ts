@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { dedupedAuth } from '@/lib/auth';
+import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 
@@ -18,6 +19,10 @@ export async function getHandoffOpenCounts(): Promise<HandoffOpenCounts> {
 
   const organizationId = session.user.organizationId;
   if (!organizationId) {
+    return { humanOpen: 0, agentOpen: 0 };
+  }
+
+  if (!(await userCanAccessDashboardPage(session.user.id, 'desk'))) {
     return { humanOpen: 0, agentOpen: 0 };
   }
 

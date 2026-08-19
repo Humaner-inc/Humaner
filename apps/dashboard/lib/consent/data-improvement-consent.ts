@@ -62,13 +62,16 @@ export async function getOrganizationTrainingAccess(
     select: {
       dataImprovementConsent: true,
       modelTrainingConsent: true,
-      tier: true
+      tier: true,
+      frontierBetaEnabled: true
     }
   });
 
   const consent = organization?.dataImprovementConsent === true;
   const modelTrainingConsent = organization?.modelTrainingConsent === true;
-  const capabilities = getPlanCapabilities(organization?.tier ?? 'free');
+  const capabilities = getPlanCapabilities(organization?.tier ?? 'free', {
+    frontierBetaEnabled: organization?.frontierBetaEnabled
+  });
 
   return {
     consent,

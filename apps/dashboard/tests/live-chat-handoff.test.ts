@@ -2,6 +2,7 @@ import {
   formatSlaCountdown,
   isLiveChatHandoffActive,
   parseSessionHandoffRecord,
+  resolveLiveChatCountdownMinutes,
   resolveLiveChatWaitMinutes,
   sessionHandoffIsSame
 } from '@humaner/shared/live-chat-handoff';
@@ -38,6 +39,31 @@ describe('resolveLiveChatWaitMinutes', () => {
         slaMinutes: 5
       })
     ).toBe(20);
+  });
+});
+
+describe('resolveLiveChatCountdownMinutes', () => {
+  it('mirrors Desk wait timeout even after a team member joins', () => {
+    expect(
+      resolveLiveChatCountdownMinutes(
+        {
+          enabled: true,
+          timeoutMinutes: 20,
+          slaMinutes: 120
+        },
+        true
+      )
+    ).toBe(20);
+  });
+
+  it('is hidden when live chat is off', () => {
+    expect(
+      resolveLiveChatCountdownMinutes({
+        enabled: false,
+        timeoutMinutes: 20,
+        slaMinutes: 120
+      })
+    ).toBeNull();
   });
 });
 
