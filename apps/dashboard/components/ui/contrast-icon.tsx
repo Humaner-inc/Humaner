@@ -1,9 +1,15 @@
 'use client';
 
 import type { HTMLAttributes } from 'react';
-import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react';
 import type { Variants } from 'motion/react';
-import { motion, useAnimation } from 'motion/react';
+import { motion } from 'motion/react';
 
 import { cn } from '@/lib/utils';
 
@@ -31,14 +37,14 @@ const PATH_VARIANT: Variants = {
 
 const ContrastIcon = forwardRef<ContrastIconHandle, ContrastIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
-    const controls = useAnimation();
+    const [variant, setVariant] = useState<'normal' | 'animate'>('normal');
     const isControlledRef = useRef(false);
 
     useImperativeHandle(ref, () => {
       isControlledRef.current = true;
       return {
-        startAnimation: () => controls.start('animate'),
-        stopAnimation: () => controls.start('normal')
+        startAnimation: () => setVariant('animate'),
+        stopAnimation: () => setVariant('normal')
       };
     });
 
@@ -47,10 +53,10 @@ const ContrastIcon = forwardRef<ContrastIconHandle, ContrastIconProps>(
         if (isControlledRef.current) {
           onMouseEnter?.(e);
         } else {
-          void controls.start('animate');
+          setVariant('animate');
         }
       },
-      [controls, onMouseEnter]
+      [onMouseEnter]
     );
 
     const handleMouseLeave = useCallback(
@@ -58,10 +64,10 @@ const ContrastIcon = forwardRef<ContrastIconHandle, ContrastIconProps>(
         if (isControlledRef.current) {
           onMouseLeave?.(e);
         } else {
-          void controls.start('normal');
+          setVariant('normal');
         }
       },
-      [controls, onMouseLeave]
+      [onMouseLeave]
     );
 
     return (
@@ -88,7 +94,7 @@ const ContrastIcon = forwardRef<ContrastIconHandle, ContrastIconProps>(
             r="10"
           />
           <motion.path
-            animate={controls}
+            animate={variant}
             d="M12 18a6 6 0 0 0 0-12v12z"
             initial="normal"
             variants={PATH_VARIANT}

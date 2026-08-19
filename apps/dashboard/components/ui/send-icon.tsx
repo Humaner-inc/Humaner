@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useAnimation } from 'motion/react';
+import { motion } from 'motion/react';
 
 import { cn } from '@/lib/utils';
 
@@ -16,18 +16,16 @@ type SendIconProps = React.HTMLAttributes<HTMLDivElement> & {
 
 export const SendIcon = React.forwardRef<SendIconHandle, SendIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {
-    const controls = useAnimation();
+    const [variant, setVariant] = React.useState<'normal' | 'animate'>(
+      'normal'
+    );
     const isControlledRef = React.useRef(false);
 
     React.useImperativeHandle(ref, () => {
       isControlledRef.current = true;
       return {
-        startAnimation: () => {
-          void controls.start('animate');
-        },
-        stopAnimation: () => {
-          void controls.start('normal');
-        }
+        startAnimation: () => setVariant('animate'),
+        stopAnimation: () => setVariant('normal')
       };
     });
 
@@ -36,10 +34,10 @@ export const SendIcon = React.forwardRef<SendIconHandle, SendIconProps>(
         if (isControlledRef.current) {
           onMouseEnter?.(event);
         } else {
-          void controls.start('animate');
+          setVariant('animate');
         }
       },
-      [controls, onMouseEnter]
+      [onMouseEnter]
     );
 
     const handleMouseLeave = React.useCallback(
@@ -47,10 +45,10 @@ export const SendIcon = React.forwardRef<SendIconHandle, SendIconProps>(
         if (isControlledRef.current) {
           onMouseLeave?.(event);
         } else {
-          void controls.start('normal');
+          setVariant('normal');
         }
       },
-      [controls, onMouseLeave]
+      [onMouseLeave]
     );
 
     return (
@@ -73,7 +71,7 @@ export const SendIcon = React.forwardRef<SendIconHandle, SendIconProps>(
           xmlns="http://www.w3.org/2000/svg"
         >
           <motion.g
-            animate={controls}
+            animate={variant}
             transition={{ duration: 0.5 }}
             variants={{
               normal: { x: 0, y: 0, scale: 1 },
@@ -88,7 +86,7 @@ export const SendIcon = React.forwardRef<SendIconHandle, SendIconProps>(
             <path d="m21.854 2.147-10.94 10.939" />
           </motion.g>
           <motion.path
-            animate={controls}
+            animate={variant}
             d="M -3 28 C -0.5 26.8 1.6 24.6 3.3 22 C 4.8 19.7 5.2 17.6 4.2 16.1 C 3.2 14.7 1.4 14.5 0.3 15.8 C -0.9 17.2 -0.6 19.4 1.2 20.4 C 3.4 21.5 6.4 19.4 9 15.8"
             fill="none"
             initial={{ opacity: 0, pathLength: 0 }}

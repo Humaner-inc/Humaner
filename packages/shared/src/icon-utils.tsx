@@ -132,6 +132,7 @@ export function createAnimatedIcon(
     ) {
       const innerRef = useRef<AnimatedIconHandle>(null);
       const wrapperRef = useRef<HTMLSpanElement>(null);
+      const frameRef = useRef(0);
       const resolvedSize =
         size ??
         width ??
@@ -140,21 +141,31 @@ export function createAnimatedIcon(
         defaultSize;
 
       const start = useCallback(() => {
-        innerRef.current?.startAnimation();
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = requestAnimationFrame(() => {
+          innerRef.current?.startAnimation();
+        });
       }, []);
 
       const stop = useCallback(() => {
-        innerRef.current?.stopAnimation();
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = requestAnimationFrame(() => {
+          innerRef.current?.stopAnimation();
+        });
       }, []);
 
       useImperativeHandle(
         ref,
         () => ({
-          startAnimation: () => innerRef.current?.startAnimation(),
-          stopAnimation: () => innerRef.current?.stopAnimation(),
+          startAnimation: start,
+          stopAnimation: stop,
         }),
-        [],
+        [start, stop],
       );
+
+      useEffect(() => {
+        return () => cancelAnimationFrame(frameRef.current);
+      }, []);
 
       useEffect(() => {
         return bindIconHoverToParent(
