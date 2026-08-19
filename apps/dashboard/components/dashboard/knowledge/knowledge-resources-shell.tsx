@@ -49,6 +49,10 @@ export function useKnowledgeResources(): KnowledgeResourcesContextValue {
   return value;
 }
 
+export function useOptionalKnowledgeResources(): KnowledgeResourcesContextValue | null {
+  return React.useContext(KnowledgeResourcesContext);
+}
+
 const EMPTY_KNOWLEDGE_SOURCES: KnowledgeSourceItem[] = [];
 
 export function useOptionalKnowledgeResourcesSources(): KnowledgeSourceItem[] {
