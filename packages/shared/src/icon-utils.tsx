@@ -181,7 +181,7 @@ export function createAnimatedIcon(
           <span
             ref={wrapperRef}
             className={cn(
-              "inline-flex shrink-0 items-center justify-center text-current",
+              "inline-flex shrink-0 items-center justify-center",
               className,
             )}
             style={style}

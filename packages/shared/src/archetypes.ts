@@ -1,5 +1,32 @@
 export type PersonalityTone = "casual" | "corporate" | "efficient" | "custom";
 
+/** Solid persona discs — Humaner green, cobalt, orange, custom grey. */
+export const PERSONA_DISK: Record<PersonalityTone, string> = {
+  casual: "#226342",
+  corporate: "#2252bc",
+  efficient: "#f85919",
+  custom: "#F2F2F2",
+};
+
+/** Panel behind persona color fields — shows through the top-left dissolve. */
+export const PERSONA_FIELD_BACKGROUND = "#101010";
+
+/**
+ * Color blooms from the lower-right and dissolves into the panel at the
+ * top-left. Interpolates in oklab so the hue never muddies through black
+ * (the usual cheap look of `transparent` in sRGB).
+ */
+export function personaSquareFillStyle(color: string): {
+  backgroundImage: string;
+} {
+  return {
+    backgroundImage: [
+      `radial-gradient(90% 80% at 72% 68% in oklab, ${color} 0%, transparent 70%)`,
+      `radial-gradient(155% 140% at 118% 122% in oklab, ${color} 0%, ${color} 46%, transparent 78%)`,
+    ].join(", "),
+  };
+}
+
 export type ArchetypeDefinition = {
   id: PersonalityTone;
   /** Persona name — Astral, Taleb, Vidi, Custom. */

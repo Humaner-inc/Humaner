@@ -1,3 +1,4 @@
+import { PERSONA_DISK } from '@humaner/shared/archetypes';
 import type { PersonalityAccess } from '@humaner/shared/plans';
 import type {
   CharacterType,
@@ -16,6 +17,8 @@ export type CharacterMeta = {
   tagline: string;
   /** Profile cover image in /public. */
   image: string;
+  /** Landing-matching solid disk used when the portrait is a color circle. */
+  disk: string;
   example: string;
 };
 
@@ -26,6 +29,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     label: 'Casual',
     tagline: 'Warm, human, contractions. A knowledgeable friend.',
     image: '/personas/Astral.png',
+    disk: PERSONA_DISK.casual,
     example:
       "Hey, totally get that. It's a bit confusing on first sign-up. Go to Settings → Account and hit reset. Takes 30 seconds!"
   },
@@ -35,6 +39,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     label: 'Corporate',
     tagline: 'Polished, complete sentences. The voice of a well-run company.',
     image: '/personas/Taleb.png',
+    disk: PERSONA_DISK.corporate,
     example:
       'Thank you for reaching out. To resolve this, please navigate to Settings, select Account, and click Reset. The change takes effect immediately.'
   },
@@ -44,6 +49,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     label: 'Efficient',
     tagline: 'Confident, direct, zero filler. Answers in the fewest words.',
     image: '/personas/Vidi.png',
+    disk: PERSONA_DISK.efficient,
     example:
       'Settings → Account → Reset. Done in 30 seconds. Still broken? support@company.com.'
   },
@@ -53,6 +59,7 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
     label: 'Zero preset',
     tagline: 'Your own voice. Write the character prompt from scratch.',
     image: '/personas/Custom.png',
+    disk: PERSONA_DISK.custom,
     example:
       'Define how your agent speaks: tone, style, and boundaries, in your own words.'
   }
