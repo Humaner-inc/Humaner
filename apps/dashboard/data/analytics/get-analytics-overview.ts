@@ -160,31 +160,42 @@ export async function getAnalyticsOverview(options?: {
       take: OUTCOME_CONVERSATION_LIMIT
     }),
     (async () => {
-      type VolumeRow = { day: Date; count: bigint };
+      type VolumeRow = { day: string; count: bigint };
       const agentId = options?.agentId;
       const rows = agentId
         ? await prisma.$queryRaw<VolumeRow[]>`
-            SELECT date_trunc('day', m."createdAt") AS day, COUNT(*)::bigint AS count
+            SELECT to_char(
+                     date_trunc('day', m."createdAt" AT TIME ZONE 'UTC'),
+                     'YYYY-MM-DD'
+                   ) AS day,
+                   COUNT(*)::bigint AS count
             FROM "Message" m
             JOIN "Conversation" c ON c.id = m."conversationId"
             JOIN "Agent" a ON a.id = c."agentId"
-            WHERE c."agentId" = ${agentId}
-              AND a."organizationId" = ${organizationId}
+            WHERE c."agentId" = ${agentId}::uuid
+              AND a."organizationId" = ${organizationId}::uuid
               AND m."createdAt" >= ${volumeStart}
             GROUP BY 1 ORDER BY 1
           `
         : await prisma.$queryRaw<VolumeRow[]>`
-            SELECT date_trunc('day', m."createdAt") AS day, COUNT(*)::bigint AS count
+            SELECT to_char(
+                     date_trunc('day', m."createdAt" AT TIME ZONE 'UTC'),
+                     'YYYY-MM-DD'
+                   ) AS day,
+                   COUNT(*)::bigint AS count
             FROM "Message" m
             JOIN "Conversation" c ON c.id = m."conversationId"
             JOIN "Agent" a ON a.id = c."agentId"
-            WHERE a."organizationId" = ${organizationId}
+            WHERE a."organizationId" = ${organizationId}::uuid
               AND m."createdAt" >= ${volumeStart}
             GROUP BY 1 ORDER BY 1
           `;
       const map = new Map<string, number>();
       for (const row of rows) {
-        map.set(format(row.day, 'yyyy-MM-dd'), Number(row.count));
+        if (!row.day) {
+          continue;
+        }
+        map.set(String(row.day).slice(0, 10), Number(row.count));
       }
       return map;
     })(),
