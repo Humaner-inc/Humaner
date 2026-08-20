@@ -12,6 +12,7 @@ export type ResolvedBrandAssets = {
   faviconUrl: string | null;
   accentColor: string | null;
   brandColors: string[];
+  canonicalUrl: string | null;
 };
 
 /**
@@ -36,7 +37,8 @@ export async function resolveBrandAssets(
       logoSource: 'logo.dev',
       faviconUrl: metadata.faviconUrl,
       accentColor: metadata.accentColor,
-      brandColors: metadata.brandColors
+      brandColors: metadata.brandColors,
+      canonicalUrl: metadata.canonicalUrl
     };
   }
 
@@ -47,7 +49,8 @@ export async function resolveBrandAssets(
       logoSource: 'favicon',
       faviconUrl: metadata.faviconUrl,
       accentColor: metadata.accentColor,
-      brandColors: metadata.brandColors
+      brandColors: metadata.brandColors,
+      canonicalUrl: metadata.canonicalUrl
     };
   }
 
@@ -57,6 +60,7 @@ export async function resolveBrandAssets(
     logoSource: 'none',
     faviconUrl: null,
     accentColor: metadata.accentColor,
-    brandColors: metadata.brandColors
+    brandColors: metadata.brandColors,
+    canonicalUrl: metadata.canonicalUrl
   };
 }

@@ -87,8 +87,13 @@ describe('assertPublicHttpUrl', () => {
 
   it('treats www and apex as the same site', async () => {
     await expect(
-      assertPublicHttpUrl('https://8.8.8.8/a', {
-        sameSiteAs: new URL('https://8.8.8.8')
+      assertPublicHttpUrl('https://www.example.com/docs', {
+        sameSiteAs: new URL('https://example.com')
+      })
+    ).resolves.toBeInstanceOf(URL);
+    await expect(
+      assertPublicHttpUrl('https://example.com/docs', {
+        sameSiteAs: new URL('https://www.example.com')
       })
     ).resolves.toBeInstanceOf(URL);
   });

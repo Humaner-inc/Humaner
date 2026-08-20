@@ -16,6 +16,171 @@ export type SessionHandoffRecord = {
 
 const DEFAULT_LIVE_CHAT_TIMEOUT_MINUTES = 20;
 
+/** Visitor-facing copy when the live-chat wait / SLA window elapses with no human reply. */
+export const LIVE_CHAT_SLA_OVERDUE_VISITOR_MESSAGE =
+  "No one from the team is actually available, we will get back to you shortly by email concerning your request.";
+
+export function withLiveChatSlaOverdueMessage<T extends LiveChatLocalMessage>(
+  prev: T[],
+): T[] {
+  if (
+    prev.some(
+      (message) =>
+        message.role === "assistant" &&
+        message.content === LIVE_CHAT_SLA_OVERDUE_VISITOR_MESSAGE,
+    )
+  ) {
+    return prev;
+  }
+  return [
+    ...prev,
+    {
+      role: "assistant",
+      content: LIVE_CHAT_SLA_OVERDUE_VISITOR_MESSAGE,
+    } as T,
+  ];
+}
+
+export type LiveChatIncomingMessage = {
+  id: string;
+  role: string;
+  content: string;
+  createdAt?: string;
+};
+
+export type LiveChatLocalMessage = {
+  id?: string;
+  role: "user" | "human" | "assistant";
+  content: string;
+  createdAt?: string;
+};
+
+function normalizeLiveChatContent(content: string): string {
+  return content
+    .replace(/##(?:FORK|HANDOFF)##[^\n]*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Merge poll results into the local transcript without replaying the
+ * pre-handoff conversation that the widget already shows.
+ *
+ * Live-chat polling is for team-member replies. Assistant turns already live
+ * in the visitor transcript; appending them from the ticket conversation
+ * duplicates the handoff history when the first poll has no `after` cursor.
+ */
+export function mergeLiveChatPollMessages<T extends LiveChatLocalMessage>(
+  prev: T[],
+  incoming: LiveChatIncomingMessage[],
+): T[] {
+  const seenIds = new Set(
+    prev.map((message) => message.id).filter((id): id is string => Boolean(id)),
+  );
+  const seenContent = new Set(
+    prev.map((message) => normalizeLiveChatContent(message.content)),
+  );
+
+  const extra: T[] = [];
+  for (const message of incoming) {
+    if (message.role !== "HUMAN") {
+      continue;
+    }
+    const content = message.content.trim();
+    if (!content) {
+      continue;
+    }
+    if (seenIds.has(message.id)) {
+      continue;
+    }
+    const key = normalizeLiveChatContent(content);
+    if (!key || seenContent.has(key)) {
+      continue;
+    }
+    seenIds.add(message.id);
+    seenContent.add(key);
+    extra.push({
+      id: message.id,
+      role: "human",
+      content: message.content,
+      ...(message.createdAt ? { createdAt: message.createdAt } : {}),
+    } as T);
+  }
+
+  return extra.length > 0 ? [...prev, ...extra] : prev;
+}
+
+export function isLiveChatWaitElapsed(
+  createdAtMs: number,
+  config: LiveChatConfig | null | undefined,
+  nowMs: number = Date.now(),
+): boolean {
+  const minutes = resolveLiveChatCountdownMinutes(config);
+  if (minutes == null || minutes <= 0) {
+    return false;
+  }
+  return nowMs >= createdAtMs + minutes * 60_000;
+}
+
+export function visitorTicketStatusLabel(
+  status?: string | null,
+  timedOut?: boolean,
+): string {
+  if (status === "RESOLVED") {
+    return "Resolved";
+  }
+  if (status === "CLOSED") {
+    return "Closed";
+  }
+  if (status === "IN_PROGRESS") {
+    return "In progress";
+  }
+  if (timedOut) {
+    return "Open";
+  }
+  return "Open";
+}
+
+export type VisitorHomeTicket = {
+  sessionId: string;
+  ticketRef: string;
+  statusLabel: string;
+  title: string;
+  detail: string;
+};
+
+export function buildVisitorHomeTickets(
+  conversations: Array<{ sessionId: string; title: string }>,
+  loadHandoff: (sessionId: string) => SessionHandoffRecord | null,
+): VisitorHomeTicket[] {
+  const seen = new Set<string>();
+  const tickets: VisitorHomeTicket[] = [];
+
+  for (const conversation of conversations) {
+    const record = loadHandoff(conversation.sessionId);
+    if (!record || seen.has(record.ticketId)) {
+      continue;
+    }
+    seen.add(record.ticketId);
+    const resolved = record.status === "RESOLVED" || record.status === "CLOSED";
+    const title = conversation.title.trim() || "Support request";
+    tickets.push({
+      sessionId: conversation.sessionId,
+      ticketRef: `#${String(record.ticketNumber).padStart(5, "0")}`,
+      statusLabel: visitorTicketStatusLabel(
+        record.status,
+        record.liveChatTimedOut,
+      ),
+      title,
+      detail: resolved
+        ? `The team marked this as resolved.\n\nRequest: ${title}`
+        : title,
+    });
+  }
+
+  return tickets;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -120,7 +285,7 @@ export function formatSlaCountdown(
   }
   const remainingMs = createdAtMs + slaMinutes * 60_000 - Date.now();
   if (remainingMs <= 0) {
-    return "SLA overdue";
+    return null;
   }
   const mins = Math.max(1, Math.ceil(remainingMs / 60_000));
   if (mins < 60) {
@@ -153,11 +318,25 @@ export function isHandoffTicketClosed(
   if (!record) {
     return false;
   }
-  return (
-    record.status === "RESOLVED" ||
-    record.status === "CLOSED" ||
-    Boolean(record.liveChatTimedOut)
-  );
+  return record.status === "RESOLVED" || record.status === "CLOSED";
+}
+
+export function shouldReplaceVisitorTranscript(
+  current: Array<{ role: string }>,
+  incoming: Array<{ role: string }>,
+): boolean {
+  if (incoming.length === 0) {
+    return false;
+  }
+  if (current.length === 0) {
+    return true;
+  }
+  const currentHasHuman = current.some((message) => message.role === "human");
+  const incomingHasHuman = incoming.some((message) => message.role === "human");
+  if (currentHasHuman && !incomingHasHuman) {
+    return false;
+  }
+  return incoming.length > current.length;
 }
 
 export function sessionHandoffIsSame(

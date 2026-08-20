@@ -13,6 +13,8 @@ export type WebsiteMetadata = {
   faviconUrl: string | null;
   accentColor: string | null;
   brandColors: string[];
+  /** Live origin after same-site redirects (apex → www). */
+  canonicalUrl: string | null;
 };
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -200,6 +202,7 @@ export async function extractWebsiteMetadata(
   try {
     const { response, finalUrl } = await fetchPublicUrl(pageUrl, {
       timeoutMs: FETCH_TIMEOUT_MS,
+      sameSiteAs: pageUrl,
       headers: {
         Accept: 'text/html,application/xhtml+xml',
         'User-Agent': USER_AGENT
@@ -211,7 +214,8 @@ export async function extractWebsiteMetadata(
         businessName: businessNameFromHostname(hostname),
         faviconUrl: resolveAssetUrl(finalUrl, '/favicon.ico'),
         accentColor: null,
-        brandColors: []
+        brandColors: [],
+        canonicalUrl: finalUrl.origin
       };
     }
 
@@ -232,7 +236,8 @@ export async function extractWebsiteMetadata(
       businessName,
       faviconUrl: readFaviconUrl(html, finalUrl),
       accentColor,
-      brandColors
+      brandColors,
+      canonicalUrl: finalUrl.origin
     };
   } catch (error) {
     console.error('[extractWebsiteMetadata] fetch failed', {
@@ -243,7 +248,8 @@ export async function extractWebsiteMetadata(
       businessName: businessNameFromHostname(hostname),
       faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
       accentColor: null,
-      brandColors: []
+      brandColors: [],
+      canonicalUrl: null
     };
   }
 }

@@ -30,7 +30,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       logoSource: 'none',
       faviconUrl: null,
       accentColor: null,
-      brandColors: []
+      brandColors: [],
+      canonicalUrl: null
     });
   }
 }
