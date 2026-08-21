@@ -746,17 +746,14 @@ input[type='password'],
 }
 
 /* Auth hero panel — icon wheel on the page background */
-.auth-hero-stage {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.auth-hero-panel {
+  pointer-events: none;
+}
+
+.auth-hero-cluster {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.75rem;
-  padding: 0 2.5rem;
-  overflow: hidden;
-  pointer-events: none;
+  gap: 2rem;
 }
 
 .auth-hero-wheel {
@@ -790,10 +787,18 @@ input[type='password'],
 .auth-hero-feature {
   position: relative;
   z-index: 1;
+  width: 13rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.auth-hero-feature__label {
+  position: absolute;
+  inset: 0;
   display: flex;
-  min-width: 12rem;
   align-items: center;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .auth-hero-wheel__drum {

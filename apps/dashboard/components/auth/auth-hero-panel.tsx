@@ -13,7 +13,7 @@ import { Robot } from '@phosphor-icons/react/dist/ssr/Robot';
 import { ShieldCheck } from '@phosphor-icons/react/dist/ssr/ShieldCheck';
 import { TrayArrowDownIcon } from '@phosphor-icons/react/dist/ssr/TrayArrowDown';
 import { UsersThree } from '@phosphor-icons/react/dist/ssr/UsersThree';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 import { useOnboardingTheme } from '@/components/onboarding/onboarding-theme-context';
 
@@ -151,7 +151,6 @@ export function AuthHeroPanel(): React.JSX.Element {
   }, [reducedMotion]);
 
   const activeIndex = ((index % TILE_COUNT) + TILE_COUNT) % TILE_COUNT;
-  const active = FEATURE_TILES[activeIndex]!;
   const rotation = reducedMotion ? 0 : index * STEP_ANGLE;
   const labelColor = isInverted ? TILE.ink : TILE.cream;
   const labelGlow = isInverted
@@ -160,10 +159,10 @@ export function AuthHeroPanel(): React.JSX.Element {
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden"
+      className="auth-hero-panel"
       aria-hidden
     >
-      <div className="auth-hero-stage">
+      <div className="auth-hero-cluster">
         <div className="auth-hero-wheel">
           <div
             className="auth-hero-wheel__drum"
@@ -191,45 +190,39 @@ export function AuthHeroPanel(): React.JSX.Element {
         </div>
 
         <div className="auth-hero-feature">
-          <AnimatePresence
-            mode="wait"
-            initial={false}
-          >
-            <motion.p
-              key={active.id}
-              initial={
-                reducedMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                      filter: 'blur(10px) brightness(2.6)',
-                      textShadow: labelGlow
-                    }
-              }
-              animate={{
-                opacity: 1,
-                filter: 'blur(0px) brightness(1)',
-                textShadow: '0 0 0px transparent'
-              }}
-              exit={
-                reducedMotion
-                  ? { opacity: 0 }
-                  : {
-                      opacity: 0,
-                      filter: 'blur(8px) brightness(1.8)',
-                      textShadow: labelGlow
-                    }
-              }
-              transition={{
-                duration: reducedMotion ? 0 : 0.48,
-                ease: LIGHT_EASE
-              }}
-              className="font-display text-2xl font-normal tracking-tight sm:text-3xl"
-              style={{ color: labelColor }}
-            >
-              {active.label}
-            </motion.p>
-          </AnimatePresence>
+          {FEATURE_TILES.map((item, itemIndex) => {
+            const isFront = itemIndex === activeIndex;
+
+            return (
+              <motion.p
+                key={item.id}
+                className="auth-hero-feature__label font-display text-2xl font-normal tracking-tight sm:text-3xl"
+                initial={false}
+                animate={
+                  reducedMotion
+                    ? { opacity: isFront ? 1 : 0 }
+                    : isFront
+                      ? {
+                          opacity: 1,
+                          filter: 'blur(0px) brightness(1)',
+                          textShadow: '0 0 0px transparent'
+                        }
+                      : {
+                          opacity: 0,
+                          filter: 'blur(8px) brightness(1.8)',
+                          textShadow: labelGlow
+                        }
+                }
+                transition={{
+                  duration: reducedMotion ? 0 : 0.48,
+                  ease: LIGHT_EASE
+                }}
+                style={{ color: labelColor }}
+              >
+                {item.label}
+              </motion.p>
+            );
+          })}
         </div>
       </div>
     </div>

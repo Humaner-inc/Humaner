@@ -23,16 +23,21 @@ function AuthLayoutChrome({
   return (
     <div
       className={cn(
-        'relative flex min-h-screen transition-colors duration-300',
+        'relative min-h-screen transition-colors duration-300',
         theme.pageBg
       )}
     >
-      <main className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 py-8 lg:w-1/2">
-        {showBackToMarketing ? <AuthBackToMarketing /> : null}
-        {children}
-      </main>
-      <div className="relative z-10 hidden lg:block lg:w-1/2">
-        <div className="absolute inset-0 overflow-hidden">
+      {showBackToMarketing ? <AuthBackToMarketing /> : null}
+      <div
+        className={cn(
+          'grid min-h-screen items-center justify-items-center px-6 py-8',
+          'lg:grid-cols-[minmax(1.5rem,1fr)_24rem_minmax(12rem,1fr)_auto_minmax(1.5rem,1fr)] lg:justify-items-stretch lg:px-0'
+        )}
+      >
+        <main className="relative z-10 w-full max-w-sm lg:col-start-2 lg:w-96 lg:max-w-none">
+          {children}
+        </main>
+        <div className="relative z-10 hidden lg:col-start-4 lg:block">
           <AuthHeroPanel />
         </div>
       </div>
