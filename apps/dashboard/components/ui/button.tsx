@@ -21,7 +21,7 @@ const cloudNeutralCtaClasses = cn(
 );
 
 const cloudUpgradeCtaClasses =
-  'border border-[#0A0D0D]/14 bg-[#fcf4ec] font-mono font-medium text-[#0A0D0D] shadow-sm transition-colors hover:border-transparent hover:bg-[#e1ccaf] hover:text-[#0A0D0D] dark:border-[#0A0D0D]/22 dark:bg-[#0A0D0D] dark:text-[#fcf4ec] dark:hover:border-transparent dark:hover:bg-[#e1ccaf] dark:hover:text-[#0A0D0D]';
+  'border border-[#0A0D0D]/14 bg-[#fcf4ec] font-mono font-medium text-[#0A0D0D] shadow-sm transition-colors hover:border-transparent hover:bg-[#e0e1df] hover:text-[#0A0D0D] dark:border-[#0A0D0D]/22 dark:bg-[#0A0D0D] dark:text-[#fcf4ec] dark:hover:border-transparent dark:hover:bg-[#e0e1df] dark:hover:text-[#f2f2f2]';
 
 const cloudOutlineClasses = cn(
   ctaSecondaryAdaptiveClassName,

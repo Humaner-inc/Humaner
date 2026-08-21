@@ -53,7 +53,7 @@ import {
 } from '@/schemas/auth/sign-up-schema';
 
 const pillButtonClassNameCloud =
-  'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e1ccaf]/40 sm:min-h-10 sm:text-xs';
+  'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
 
 const pillButtonClassNameOss =
   'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 sm:min-h-10';

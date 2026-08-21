@@ -111,7 +111,7 @@ Details: [`Docs/OPEN_SOURCING.md`](./Docs/OPEN_SOURCING.md) · [`SELFHOST.md`](.
 | Cream  | `#fcf4ec`                         | Warm light surface, dark-mode ink |
 | Black  | `#0A0D0D`                         | Primary dark surface              |
 | Greys  | `#eaeaea` · `#18181b` · `#1c1c1e` | Existing app greys                |
-| Accent | `#e1ccaf`                         | Links, emphasis, warm CTAs        |
+| Accent | `#e0e1df`                         | Links, emphasis, CTAs             |
 | Blue   | `#2252bc`                         | Docs, info, Classic plan          |
 | Orange | `#f85919`                         | Warnings                          |
 | Red    | `#aa1f18`                         | Deletion, unsolved                |

@@ -1,7 +1,6 @@
 import * as React from 'react';
-import Image from 'next/image';
+import { BrandMark } from '@humaner/shared/brand-mark';
 
-import { getLogo } from '@/lib/theme/brand';
 import { cn } from '@/lib/utils';
 
 export type HumanerLogoImageProps = {
@@ -10,35 +9,55 @@ export type HumanerLogoImageProps = {
   height: number;
   className?: string;
   priority?: boolean;
+  /** Force ink for a dark or light surface, ignoring html theme. */
+  tone?: 'light' | 'dark';
 };
 
-/** Black mark in light theme, white mark in dark — no CSS invert. */
+/** Compact icon — `icon_black.svg` on cream/light, `icon.svg` on dark. */
 export function HumanerLogoImage({
   alt = '',
   width,
   height,
   className,
-  priority = false
+  tone,
+  priority: _priority
 }: HumanerLogoImageProps): React.JSX.Element {
+  const style = { width, height };
+  const label = alt || undefined;
+
+  if (tone === 'dark') {
+    return (
+      <BrandMark
+        aria-label={label}
+        className={cn(className)}
+        style={style}
+      />
+    );
+  }
+
+  if (tone === 'light') {
+    return (
+      <BrandMark
+        invert
+        aria-label={label}
+        className={cn(className)}
+        style={style}
+      />
+    );
+  }
+
   return (
     <>
-      <Image
-        src={getLogo('light')}
-        alt={alt}
-        width={width}
-        height={height}
-        unoptimized
-        priority={priority}
+      <BrandMark
+        invert
+        aria-label={label}
         className={cn('dark:hidden', className)}
+        style={style}
       />
-      <Image
-        src={getLogo('dark')}
-        alt={alt}
-        width={width}
-        height={height}
-        unoptimized
-        priority={priority}
+      <BrandMark
+        aria-label={label}
         className={cn('hidden dark:block', className)}
+        style={style}
       />
     </>
   );

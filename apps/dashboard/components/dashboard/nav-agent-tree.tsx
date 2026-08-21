@@ -22,7 +22,7 @@ import {
   isAgentTabLocked
 } from '@/constants/agent-nav-items';
 import { agentPersonaRoute, Routes } from '@/constants/routes';
-import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
+import { resolveSidebarAgentAvatar } from '@/lib/agent-avatar';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
@@ -51,23 +51,29 @@ function AgentAvatarIcon({
   character: CharacterType;
   isPaused?: boolean;
 }): React.JSX.Element {
-  const avatarSrc = resolveAgentAvatarSrc(image, character);
+  const avatar = resolveSidebarAgentAvatar(image, character);
 
   return (
     <span
       className={cn(
-        'relative flex size-4 shrink-0 items-center justify-center overflow-hidden border border-border/60 bg-muted',
+        'relative flex size-4 shrink-0 items-center justify-center overflow-hidden border border-border/60',
         dashboardRadiusClassName,
-        isPaused && 'opacity-60 grayscale'
+        isPaused && 'opacity-60 grayscale',
+        avatar.kind === 'image' && 'bg-muted'
       )}
+      style={
+        avatar.kind === 'disk' ? { backgroundColor: avatar.color } : undefined
+      }
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={avatarSrc}
-        src={avatarSrc}
-        alt={name}
-        className="size-full object-cover"
-      />
+      {avatar.kind === 'image' ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={avatar.src}
+          src={avatar.src}
+          alt={name}
+          className="size-full object-cover"
+        />
+      ) : null}
     </span>
   );
 }

@@ -36,7 +36,7 @@ export function StatusTag({
       className={cn(
         'inline-flex items-center border px-2 py-0.5 font-info text-[10px] uppercase tracking-[0.08em]',
         active
-          ? 'border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_12%,transparent)] text-foreground'
+          ? 'border-[color-mix(in_srgb,var(--accent-color,#e0e1df)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent-color,#e0e1df)_12%,transparent)] text-foreground'
           : 'border-border/60 bg-muted/30 text-muted-foreground',
         className
       )}

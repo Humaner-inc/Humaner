@@ -2,43 +2,43 @@
 
 /** Neutrals aligned with dashboard palette (widget surfaces stay separate). */
 export const EMAIL_COLORS = {
-  foreground: "#0A0D0D",
-  background: "#ffffff",
-  border: "#eaeaea",
-  muted: "#18181b",
-  canvas: "#F2F2F2",
-  link: "#2252bc",
+  foreground: "#e0e1df",
+  background: "#0A0D0D",
+  border: "#1c1c1e",
+  muted: "#eaeaea",
+  canvas: "#0A0D0D",
+  link: "#e0e1df",
 } as const;
 
-export const EMAIL_BODY_CLASS = "m-auto bg-white px-2 font-sans";
+export const EMAIL_BODY_CLASS = "m-auto bg-[#0A0D0D] px-2 font-sans";
 
 export const EMAIL_CONTAINER_CLASS =
-  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] bg-white p-[20px]";
+  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#1c1c1e] bg-[#0A0D0D] p-[20px]";
 
 export const EMAIL_LOGO_SECTION_CLASS = "my-[24px] text-center";
 
 export const EMAIL_TITLE_CLASS =
-  "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#0A0D0D]";
+  "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#e0e1df]";
 
-export const EMAIL_TEXT_CLASS = "text-[14px] leading-[24px] text-[#0A0D0D]";
+export const EMAIL_TEXT_CLASS = "text-[14px] leading-[24px] text-[#e0e1df]";
 
-export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#18181b]";
+export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#eaeaea]";
 
 export const EMAIL_MUTED_CENTER_CLASS =
-  "text-center text-[14px] leading-[24px] text-[#18181b]";
+  "text-center text-[14px] leading-[24px] text-[#eaeaea]";
 
-export const EMAIL_LINK_CLASS = "text-[#2252bc] no-underline";
+export const EMAIL_LINK_CLASS = "text-[#e0e1df] underline";
 
 export const EMAIL_HR_CLASS =
-  "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";
+  "mx-0 my-[26px] w-full border border-solid border-[#1c1c1e]";
 
 export const EMAIL_BUTTON_PRIMARY_CLASS =
-  "rounded-none bg-[#0A0D0D] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
+  "rounded-none bg-[#e0e1df] px-5 py-3 text-center text-[12px] font-semibold text-[#0A0D0D] no-underline";
 
 export const EMAIL_BUTTON_SECTION_CLASS = "my-[32px] text-center";
 
 export const EMAIL_OTP_CLASS =
-  "m-0 text-[36px] font-bold tracking-[10px] text-[#0A0D0D]";
+  "m-0 text-[36px] font-bold tracking-[10px] text-[#e0e1df]";
 
 export const EMAIL_OTP_SECTION_CLASS = "my-[32px] text-center";
 
@@ -46,6 +46,6 @@ export const EMAIL_FOOTER_CONTAINER_CLASS =
   "mx-auto mb-[40px] max-w-[465px] px-[20px]";
 
 export const EMAIL_FOOTER_TEXT_CLASS =
-  "m-0 text-[12px] leading-[20px] text-[#18181b]";
+  "m-0 text-[12px] leading-[20px] text-[#eaeaea]";
 
-export const EMAIL_FOOTER_LINK_CLASS = "text-[#18181b] underline";
+export const EMAIL_FOOTER_LINK_CLASS = "text-[#eaeaea] underline";

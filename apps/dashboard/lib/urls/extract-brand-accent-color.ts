@@ -1,4 +1,4 @@
-export const HUMANER_DEFAULT_ACCENT = '#e1ccaf';
+export const HUMANER_DEFAULT_ACCENT = '#e0e1df';
 /** Ask Humaner in-app widget — not the product cream. */
 export const ASK_HUMANER_ACCENT = '#7b7b73';
 
@@ -6,7 +6,7 @@ export function getDefaultWidgetAccent(_oss?: boolean): string {
   return HUMANER_DEFAULT_ACCENT;
 }
 
-/** Product accent is always Humaner cream. */
+/** Product accent is always Humaner `#e0e1df`. */
 export function resolveWidgetAccentForDeployment(
   color: string,
   _oss?: boolean

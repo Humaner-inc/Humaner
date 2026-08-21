@@ -208,7 +208,7 @@ export async function DashboardSessionShell({
   const humanerOrganizationName =
     humanerAgentRecord?.organization?.name?.trim() || 'Humaner';
   // Ask Humaner home mark is always the Humaner brand — never logo.dev monogram.
-  const humanerOrganizationLogoUrl = brand.favicon;
+  const humanerOrganizationLogoUrl = brand.logo;
 
   const organization = userFromDb!.organization!;
   const industryVertical = organization.industry

@@ -27,6 +27,24 @@ export function resolveAgentAvatarSrc(
   return CHARACTER_META[character].image;
 }
 
+function isPersonaCircleAsset(src: string): boolean {
+  return Object.values(CHARACTER_META).some(
+    (meta) => src === meta.image || src.endsWith(meta.image)
+  );
+}
+
+/** Sidebar avatars: persona disks as full color squares, uploads as photos. */
+export function resolveSidebarAgentAvatar(
+  image: string | null | undefined,
+  character: CharacterType
+): { kind: 'disk'; color: string } | { kind: 'image'; src: string } {
+  const src = resolveAgentAvatarSrc(image, character);
+  if (isPersonaCircleAsset(src)) {
+    return { kind: 'disk', color: CHARACTER_META[character].disk };
+  }
+  return { kind: 'image', src };
+}
+
 /** Avatar URL safe to load from marketing site or widget embeds. */
 export function resolvePublicAgentAvatarUrl(
   image: string | null | undefined,

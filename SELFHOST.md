@@ -155,7 +155,7 @@ Only the Agent ID is needed to embed the widget:
 <script
   src="https://yourwebsite.com/widget.js"
   data-agent="YOUR_AGENT_PUBLIC_ID"
-  data-color="#e1ccaf"
+  data-color="#e0e1df"
   data-position="bottom-right"
   async
 ></script>

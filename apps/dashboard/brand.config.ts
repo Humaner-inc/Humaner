@@ -7,14 +7,14 @@ import type { BrandConfig } from '@/lib/theme/types';
  * Neutrals only:
  *   Light: #fcf4ec · #F2F2F2 · #eaeaea
  *   Dark:  #0A0D0D · #18181b · #1c1c1e
- * Accents (cream / charts / status) are not neutrals.
+ * Accents (charts / status) are not neutrals.
  */
 
 const humanerBrand: BrandConfig = {
   name: 'Humaner',
   shortName: 'Humaner',
-  logo: '/brand/brandmark-white.svg',
-  logoDark: '/brand/brandmark-dark.svg',
+  logo: '/icon.svg',
+  logoDark: '/icon.svg',
   favicon: '/favicon.svg',
   labels: {
     helpdesk: 'Helpdesk',
@@ -26,7 +26,9 @@ const humanerBrand: BrandConfig = {
     /* #0A0D0D */
     foreground: '180 13% 4.5%',
     card: '30 73% 95.7%',
-    primary: '35 45% 78%',
+    /* #e0e1df */
+    primary: '90 3% 88%',
+    /* #0A0D0D */
     primaryForeground: '180 13% 4.5%',
     /* #f2f2f2 */
     secondary: '0 0% 95%',
@@ -36,7 +38,7 @@ const humanerBrand: BrandConfig = {
     mutedForeground: '240 6% 10%',
     accent: '0 0% 95%',
     accentForeground: '180 13% 4.5%',
-    brand: '35 45% 78%',
+    brand: '90 3% 88%',
     brandForeground: '180 13% 4.5%',
     destructive: '3 75% 38%',
     destructiveForeground: '0 0% 100%',
@@ -46,12 +48,12 @@ const humanerBrand: BrandConfig = {
     ring: '240 6% 10%',
     sidebarBackground: '30 73% 95.7%',
     sidebarForeground: '180 13% 4.5%',
-    sidebarPrimary: '35 45% 78%',
+    sidebarPrimary: '90 3% 88%',
     sidebarActive: '180 13% 4.5%',
     sidebarActiveForeground: '30 73% 95.7%',
     sidebarBorder: '0 0% 92%',
     chart1: '180 13% 4.5%',
-    chart2: '35 45% 78%',
+    chart2: '90 3% 88%',
     chart3: '24 60% 55%',
     chart4: '43 74% 60%',
     chart5: '240 6% 10%'
@@ -63,8 +65,10 @@ const humanerBrand: BrandConfig = {
     foreground: '30 73% 95.7%',
     /* #18181b */
     card: '240 6% 10%',
-    primary: '35 45% 82%',
-    primaryForeground: '180 13% 4.5%',
+    /* #e0e1df */
+    primary: '90 3% 88%',
+    /* #f2f2f2 */
+    primaryForeground: '0 0% 95%',
     /* #1c1c1e */
     secondary: '240 4% 11%',
     secondaryForeground: '30 73% 95.7%',
@@ -73,8 +77,8 @@ const humanerBrand: BrandConfig = {
     mutedForeground: '0 0% 92%',
     accent: '240 4% 11%',
     accentForeground: '30 73% 95.7%',
-    brand: '35 45% 82%',
-    brandForeground: '180 13% 4.5%',
+    brand: '90 3% 88%',
+    brandForeground: '0 0% 95%',
     destructive: '3 75% 38%',
     destructiveForeground: '0 0% 100%',
     border: '240 4% 11%',
@@ -82,12 +86,12 @@ const humanerBrand: BrandConfig = {
     ring: '0 0% 92%',
     sidebarBackground: '180 13% 4.5%',
     sidebarForeground: '30 73% 95.7%',
-    sidebarPrimary: '35 45% 82%',
+    sidebarPrimary: '90 3% 88%',
     sidebarActive: '30 73% 95.7%',
     sidebarActiveForeground: '180 13% 4.5%',
     sidebarBorder: '240 4% 11%',
     chart1: '0 0% 95%',
-    chart2: '35 45% 82%',
+    chart2: '90 3% 88%',
     chart3: '24 55% 58%',
     chart4: '43 65% 62%',
     chart5: '0 0% 92%'

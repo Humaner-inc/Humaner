@@ -163,7 +163,7 @@ export function TrainingPreviewWidget({
                 <div
                   className={
                     message.role === 'user'
-                      ? 'rounded-2xl rounded-br-sm px-3.5 py-2 text-sm text-white'
+                      ? 'rounded-2xl rounded-br-sm px-3.5 py-2 text-sm text-[#0A0D0D] dark:text-[#f2f2f2]'
                       : 'rounded-2xl rounded-bl-sm bg-background px-3.5 py-2 text-sm shadow-sm ring-1 ring-border'
                   }
                   style={
@@ -174,7 +174,7 @@ export function TrainingPreviewWidget({
                 >
                   {message.status === 'typing' ? (
                     <TypingIndicator
-                      color={message.role === 'user' ? '#fff' : accentColor}
+                      color={message.role === 'user' ? '#0A0D0D' : accentColor}
                     />
                   ) : message.status === 'evaluating' ? (
                     <div className="space-y-2">

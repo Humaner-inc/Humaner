@@ -42,7 +42,15 @@ export const ctaSecondaryOnLightClassName = `${CTA_BASE} border border-[#0A0D0D]
 /** Outline CTA that inverts for dashboard light/dark shells. */
 export const ctaSecondaryAdaptiveClassName = `${ctaSecondaryOnLightClassName} dark:border-white/25 dark:bg-transparent dark:text-white/80 dark:hover:border-transparent dark:hover:bg-[#fcf4ec] dark:hover:text-[#0A0D0D]`;
 
-/** Accent deploy CTA — roadmap close, branch terminus. */
+/** Text on an accent-filled CTA (`#e0e1df`). */
+export const ACCENT_CTA_TEXT_LIGHT = "#0A0D0D";
+export const ACCENT_CTA_TEXT_DARK = "#f2f2f2";
+
+export function getAccentCtaTextColor(surface: "light" | "dark"): string {
+  return surface === "dark" ? ACCENT_CTA_TEXT_DARK : ACCENT_CTA_TEXT_LIGHT;
+}
+
+/** Accent deploy CTA — roadmap close, branch terminus (dark surfaces). */
 export const ctaAccentClassName = `${CTA_BASE} border border-accent/40 bg-accent px-6 py-3 text-sm text-[#0A0D0D] hover:bg-accent/90 hover:text-[#0A0D0D]`;
 
 /** Frame grey CTA — selective sleek fracture on dark or light sections. */
@@ -69,7 +77,7 @@ export function getCtaTryHumanerIconClassName(
 ): string {
   return surface === "dark"
     ? "flex size-4 shrink-0 items-center justify-center text-[#0A0D0D]"
-    : "flex size-4 shrink-0 items-center justify-center text-[#e1ccaf]";
+    : "flex size-4 shrink-0 items-center justify-center text-[#e0e1df]";
 }
 
 export const ctaTryHumanerIconClassName = getCtaTryHumanerIconClassName("dark");

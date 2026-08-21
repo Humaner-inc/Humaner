@@ -157,7 +157,7 @@ export function AgentAvatarUpload({
           'ring-1 ring-foreground/12 ring-offset-2 ring-offset-background',
           'transition-[box-shadow,ring-color,transform] duration-300 ease-out',
           !disabled &&
-            'group-hover/avatar:scale-[1.03] group-hover/avatar:ring-2 group-hover/avatar:ring-[#e1ccaf] group-hover/avatar:shadow-[0_0_0_4px_rgba(225,204,175,0.28)]'
+            'group-hover/avatar:scale-[1.03] group-hover/avatar:ring-2 group-hover/avatar:ring-[#e0e1df] group-hover/avatar:shadow-[0_0_0_4px_rgba(224, 225, 223,0.28)]'
         )}
       >
         <ImageDropzone

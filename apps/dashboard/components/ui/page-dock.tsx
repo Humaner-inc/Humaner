@@ -80,13 +80,13 @@ export function PageDockItem({
                       ? 'dark:border-white/12 border-border bg-secondary dark:bg-[#0A0D0D]/30'
                       : 'dark:border-white/8 dark:group-hover:border-white/12 border-border/70 bg-muted group-hover:border-border group-hover:bg-secondary dark:bg-[#0A0D0D]/25 dark:group-hover:bg-[#0A0D0D]/30'
                     : isActive
-                      ? 'dark:border-white/24 border-foreground/15 bg-muted/20 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(225_204_175_/_0.1)] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
+                      ? 'dark:border-white/24 border-foreground/15 bg-muted/20 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_0_24px_-12px_rgb(224_225_223_/_0.1)] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.2),0_0_32px_-12px_rgb(255_255_255_/_0.08)]'
                       : 'group-hover:border-foreground/12 dark:border-white/16 dark:group-hover:border-white/22 border-border/80 bg-muted group-hover:bg-secondary dark:bg-[#0A0D0D]/40 dark:group-hover:bg-[#0A0D0D]/50'
                 )
               : cn(
                   'relative',
                   isActive
-                    ? 'border-primary/30 bg-muted shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06),0_0_24px_-10px_rgb(225_204_175_/_0.35)]'
+                    ? 'border-primary/30 bg-muted shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06),0_0_24px_-10px_rgb(224_225_223_/_0.35)]'
                     : 'border-transparent bg-transparent group-hover:border-border/60 group-hover:bg-muted/40'
                 )
           )}
@@ -97,8 +97,8 @@ export function PageDockItem({
               className={cn(
                 'pointer-events-none absolute inset-0',
                 isGlass
-                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.1),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
-                  : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(225_204_175_/_0.18),transparent_68%)]'
+                  ? 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(224_225_223_/_0.1),transparent_65%)] dark:bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]'
+                  : 'bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(224_225_223_/_0.18),transparent_68%)]'
               )}
             />
           ) : null}

@@ -59,7 +59,7 @@ export function LogoutCard(): React.JSX.Element {
           )}
         >
           <ShieldCheck
-            className={cn('size-5', oss ? 'text-[#18181b]' : 'text-[#e1ccaf]')}
+            className={cn('size-5', oss ? 'text-[#18181b]' : 'text-[#e0e1df]')}
           />
         </div>
       </div>

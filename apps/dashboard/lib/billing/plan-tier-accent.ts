@@ -6,8 +6,8 @@ export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
   /** Cobalt — matches Humaner v1.0 */
   classic: '#2252bc',
   /** Accent — matches Humaner v2.0 */
-  frontier: '#e1ccaf',
-  humaner: '#e1ccaf'
+  frontier: '#e0e1df',
+  humaner: '#e0e1df'
 };
 
 export function getPlanTierAccent(tier: string): string {

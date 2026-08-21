@@ -16,7 +16,7 @@ export function MfaRecommendedBanner(): React.JSX.Element {
               dashboardRadiusClassName,
               'border border-orange-400/40 bg-orange-500/10'
             )
-          : 'border border-[#e1ccaf]/40 bg-[#e1ccaf]/10'
+          : 'border border-[#e0e1df]/40 bg-[#e0e1df]/10'
       )}
     >
       <ShieldCheck

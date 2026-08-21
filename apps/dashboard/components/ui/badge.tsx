@@ -10,7 +10,7 @@ const badgeVariants = cva(
       variant: {
         default: 'border-border/60 bg-muted/30 text-muted-foreground',
         accent:
-          'border-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_12%,transparent)] text-foreground',
+          'border-[color-mix(in_srgb,var(--accent-color,#e0e1df)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent-color,#e0e1df)_12%,transparent)] text-foreground',
         secondary: 'border-border/60 bg-muted/30 text-muted-foreground',
         destructive: 'border-destructive/40 bg-destructive/10 text-destructive',
         outline: 'border-border/60 text-foreground'

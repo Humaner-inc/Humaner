@@ -21,12 +21,12 @@ const Checkbox = React.forwardRef<CheckboxElement, CheckboxProps>(
         'hover:border-foreground/75',
         'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        'data-[state=checked]:border-[var(--accent-color,#e1ccaf)]',
-        'data-[state=checked]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_14%,transparent)]',
-        'data-[state=checked]:text-[var(--accent-color,#e1ccaf)]',
-        'data-[state=indeterminate]:border-[var(--accent-color,#e1ccaf)]',
-        'data-[state=indeterminate]:bg-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_14%,transparent)]',
-        'data-[state=indeterminate]:text-[var(--accent-color,#e1ccaf)]',
+        'data-[state=checked]:border-[var(--accent-color,#e0e1df)]',
+        'data-[state=checked]:bg-[color-mix(in_srgb,var(--accent-color,#e0e1df)_14%,transparent)]',
+        'data-[state=checked]:text-[var(--accent-color,#e0e1df)]',
+        'data-[state=indeterminate]:border-[var(--accent-color,#e0e1df)]',
+        'data-[state=indeterminate]:bg-[color-mix(in_srgb,var(--accent-color,#e0e1df)_14%,transparent)]',
+        'data-[state=indeterminate]:text-[var(--accent-color,#e0e1df)]',
         className
       )}
       {...props}

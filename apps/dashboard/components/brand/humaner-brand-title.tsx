@@ -1,13 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
+import { BrandMark } from '@humaner/shared/brand-mark';
 import { BrandSwap } from '@humaner/shared/brand-swap';
 import { BrandWordmark } from '@humaner/shared/brand-wordmark';
 
-import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import { AppInfo } from '@/constants/app-info';
-import { getLogo } from '@/lib/theme/brand';
 import { cn } from '@/lib/utils';
 
 export type HumanerBrandTitleProps = {
@@ -47,27 +45,37 @@ export function HumanerBrandTitle({
           </BrandWordmark>
         }
         next={
-          markTone ? (
-            <Image
-              src={getLogo(markTone)}
-              alt=""
-              width={40}
-              height={40}
-              unoptimized
+          markTone === 'dark' ? (
+            <BrandMark
               className={cn(
-                'pointer-events-none h-[1.9em] w-[1.9em] object-contain',
+                'pointer-events-none h-[1.9em] w-[1.9em]',
+                markClassName
+              )}
+            />
+          ) : markTone === 'light' ? (
+            <BrandMark
+              invert
+              className={cn(
+                'pointer-events-none h-[1.9em] w-[1.9em]',
                 markClassName
               )}
             />
           ) : (
-            <HumanerLogoImage
-              width={40}
-              height={40}
-              className={cn(
-                'pointer-events-none h-[1.9em] w-[1.9em] object-contain',
-                markClassName
-              )}
-            />
+            <>
+              <BrandMark
+                invert
+                className={cn(
+                  'pointer-events-none h-[1.9em] w-[1.9em] dark:hidden',
+                  markClassName
+                )}
+              />
+              <BrandMark
+                className={cn(
+                  'pointer-events-none hidden h-[1.9em] w-[1.9em] dark:block',
+                  markClassName
+                )}
+              />
+            </>
           )
         }
       />

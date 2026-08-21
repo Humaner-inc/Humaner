@@ -21,8 +21,8 @@ export function SkillzCubeLoader({
   className,
   size = 20,
   filled = false,
-  emptyClassName = 'text-[color-mix(in_srgb,var(--accent-color,#e1ccaf)_35%,transparent)]',
-  fillClassName = 'text-[var(--accent-color,#e1ccaf)]'
+  emptyClassName = 'text-[color-mix(in_srgb,var(--accent-color,#e0e1df)_35%,transparent)]',
+  fillClassName = 'text-[var(--accent-color,#e0e1df)]'
 }: {
   className?: string;
   size?: number;

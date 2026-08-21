@@ -9,7 +9,7 @@
     /*
      * Neutrals (light → dark among lights): #fcf4ec · #F2F2F2 · #eaeaea
      * Neutrals (dark → light among darks):  #0A0D0D · #18181b · #1c1c1e
-     * Accent cream #e1ccaf. Status: info #2252bc · warning #f85919 ·
+     * Accent #e0e1df. Status: info #2252bc · warning #f85919 ·
      * destructive #aa1f18 · success #226342.
      */
     /* #fcf4ec */
@@ -23,8 +23,8 @@
     --popover: 30 73% 95.7%;
     --popover-foreground: 180 13% 4.5%;
 
-    /* Accent cream — not a neutral */
-    --primary: 35 45% 78%;
+    /* Accent #e0e1df */
+    --primary: 90 3% 88%;
     --primary-foreground: 180 13% 4.5%;
 
     /* #F2F2F2 */
@@ -38,10 +38,10 @@
     --accent: 0 0% 95%;
     --accent-foreground: 180 13% 4.5%;
 
-    --brand: 35 45% 78%;
+    --brand: 90 3% 88%;
     --brand-foreground: 180 13% 4.5%;
 
-    --fracture: 35 45% 78%;
+    --fracture: 90 3% 88%;
     --fracture-foreground: 180 13% 4.5%;
 
     /* Selective CTA — #18181b on cream */
@@ -72,14 +72,14 @@
     --font-humaner-mono: var(--font-geist-mono);
 
     --chart-1: 180 13% 4.5%;
-    --chart-2: 35 45% 78%;
+    --chart-2: 90 3% 88%;
     --chart-3: 24 60% 55%;
     --chart-4: 43 74% 60%;
     --chart-5: 240 6% 10%;
 
     --sidebar-background: 30 73% 95.7%;
     --sidebar-foreground: 180 13% 4.5%;
-    --sidebar-primary: 35 45% 78%;
+    --sidebar-primary: 90 3% 88%;
     --sidebar-primary-foreground: 180 13% 4.5%;
     --sidebar-accent: 0 0% 95%;
     --sidebar-accent-foreground: 180 13% 4.5%;
@@ -102,8 +102,8 @@
     --popover: 240 6% 10%;
     --popover-foreground: 30 73% 95.7%;
 
-    --primary: 35 45% 82%;
-    --primary-foreground: 180 13% 4.5%;
+    --primary: 90 3% 88%;
+    --primary-foreground: 0 0% 95%;
 
     /* #1c1c1e */
     --secondary: 240 4% 11%;
@@ -116,11 +116,11 @@
     --accent: 240 4% 11%;
     --accent-foreground: 30 73% 95.7%;
 
-    --brand: 35 45% 82%;
-    --brand-foreground: 180 13% 4.5%;
+    --brand: 90 3% 88%;
+    --brand-foreground: 0 0% 95%;
 
-    --fracture: 35 45% 82%;
-    --fracture-foreground: 180 13% 4.5%;
+    --fracture: 90 3% 88%;
+    --fracture-foreground: 0 0% 95%;
 
     --frame: #1c1c1e;
     --frame-foreground: #fcf4ec;
@@ -140,15 +140,15 @@
     --ring: 0 0% 92%;
 
     --chart-1: 0 0% 95%;
-    --chart-2: 35 45% 82%;
+    --chart-2: 90 3% 88%;
     --chart-3: 24 55% 58%;
     --chart-4: 43 65% 62%;
     --chart-5: 0 0% 92%;
 
     --sidebar-background: 180 13% 4.5%;
     --sidebar-foreground: 30 73% 95.7%;
-    --sidebar-primary: 35 45% 82%;
-    --sidebar-primary-foreground: 180 13% 4.5%;
+    --sidebar-primary: 90 3% 88%;
+    --sidebar-primary-foreground: 0 0% 95%;
     --sidebar-accent: 240 6% 10%;
     --sidebar-accent-foreground: 30 73% 95.7%;
     --sidebar-active: 30 73% 95.7%;
@@ -176,7 +176,7 @@
   }
 
   ::selection {
-    background-color: rgb(225 204 175 / 0.35);
+    background-color: rgb(224 225 223 / 0.35);
     color: inherit;
   }
 
@@ -370,7 +370,7 @@ input[type='password'],
 
 @keyframes paste-char-highlight {
   0% {
-    background-color: rgb(225 204 175 / 0.28);
+    background-color: rgb(224 225 223 / 0.28);
   }
   100% {
     background-color: transparent;
@@ -416,8 +416,8 @@ input[type='password'],
     box-shadow: none;
   }
   45% {
-    border-color: rgb(225 204 175 / 0.55);
-    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.12);
+    border-color: rgb(224 225 223 / 0.55);
+    box-shadow: 0 0 0 3px rgb(224 225 223 / 0.12);
   }
 }
 
@@ -523,8 +523,8 @@ input[type='password'],
     box-shadow: none;
   }
   45% {
-    border-color: rgb(225 204 175 / 0.5);
-    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.1);
+    border-color: rgb(224 225 223 / 0.5);
+    box-shadow: 0 0 0 3px rgb(224 225 223 / 0.1);
   }
 }
 
@@ -545,8 +545,8 @@ input[type='password'],
     box-shadow: none;
   }
   45% {
-    border-color: rgb(225 204 175 / 0.55);
-    box-shadow: 0 0 0 3px rgb(225 204 175 / 0.12);
+    border-color: rgb(224 225 223 / 0.55);
+    box-shadow: 0 0 0 3px rgb(224 225 223 / 0.12);
   }
 }
 
@@ -566,7 +566,7 @@ input[type='password'],
   animation: onboarding-input-highlight 0.55s ease-out;
 }
 
-/* Self-Host Acme — zinc paste/char highlight (not Humaner cream #e1ccaf) */
+/* Self-Host Acme — zinc paste/char highlight (not Humaner accent #e0e1df) */
 .onboarding-root[data-onboarding-appearance='acme'] .highlighted-text-field {
   --highlighted-field-accent: #18181b;
   --highlighted-field-accent-strong: rgb(24 24 27 / 0.18);
@@ -690,7 +690,7 @@ input[type='password'],
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 45%,
-      rgb(225 204 175 / 0.035),
+      rgb(224 225 223 / 0.035),
       transparent 70%
     );
 }
@@ -712,7 +712,7 @@ input[type='password'],
   inset: 0;
   background:
     radial-gradient(circle at 15% 85%, rgb(232 168 152 / 0.04), transparent 28%),
-    radial-gradient(circle at 88% 22%, rgb(225 204 175 / 0.045), transparent 24%);
+    radial-gradient(circle at 88% 22%, rgb(224 225 223 / 0.045), transparent 24%);
   pointer-events: none;
 }
 
@@ -720,7 +720,7 @@ input[type='password'],
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 45%,
-      rgb(225 204 175 / 0.08),
+      rgb(224 225 223 / 0.08),
       transparent 70%
     );
 }
@@ -733,7 +733,7 @@ input[type='password'],
 .onboarding-root[data-onboarding-appearance='light'] .grain-ambient::after {
   background:
     radial-gradient(circle at 15% 85%, rgb(232 168 152 / 0.06), transparent 28%),
-    radial-gradient(circle at 88% 22%, rgb(225 204 175 / 0.05), transparent 24%);
+    radial-gradient(circle at 88% 22%, rgb(224 225 223 / 0.05), transparent 24%);
 }
 
 @layer utilities {
@@ -778,113 +778,7 @@ input[type='password'],
   inset: 0;
 }
 
-.hero-screen-logo__layer--warm,
-.hero-screen-logo__layer--cyan,
-.hero-screen-logo__scanlines {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.hero-screen-logo--glitch .hero-screen-logo__layer--base {
-  animation: hero-screen-logo-base 0.11s steps(2) infinite;
-}
-
-.hero-screen-logo--glitch .hero-screen-logo__layer--warm {
-  opacity: 0.72;
-  mix-blend-mode: multiply;
-  filter: sepia(1) saturate(4) hue-rotate(8deg) brightness(0.95);
-  animation: hero-screen-logo-warm 0.09s steps(3) infinite;
-}
-
-.hero-screen-logo--glitch .hero-screen-logo__layer--cyan {
-  opacity: 0.68;
-  mix-blend-mode: multiply;
-  filter: sepia(1) saturate(6) hue-rotate(145deg) brightness(0.95);
-  animation: hero-screen-logo-cyan 0.1s steps(3) infinite;
-}
-
-.hero-screen-logo--glitch .hero-screen-logo__scanlines {
-  opacity: 0.14;
-  background: repeating-linear-gradient(
-    0deg,
-    rgb(0 0 0 / 0.18) 0,
-    rgb(0 0 0 / 0.18) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  animation: hero-screen-scanline-flicker 0.13s steps(2) infinite;
-}
-
-@keyframes hero-screen-logo-base {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  25% {
-    transform: translate(-2px, 1px);
-  }
-  50% {
-    transform: translate(2px, -1px);
-  }
-  75% {
-    transform: translate(-1px, -1px);
-  }
-}
-
-@keyframes hero-screen-logo-warm {
-  0% {
-    transform: translate(-3px, 0);
-  }
-  33% {
-    transform: translate(-5px, 2px);
-  }
-  66% {
-    transform: translate(-2px, -1px);
-  }
-  100% {
-    transform: translate(-4px, 1px);
-  }
-}
-
-@keyframes hero-screen-logo-cyan {
-  0% {
-    transform: translate(3px, 0);
-  }
-  33% {
-    transform: translate(5px, -1px);
-  }
-  66% {
-    transform: translate(2px, 2px);
-  }
-  100% {
-    transform: translate(4px, 0);
-  }
-}
-
-@keyframes hero-screen-scanline-flicker {
-  0%,
-  100% {
-    opacity: 0.08;
-  }
-  50% {
-    opacity: 0.18;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .hero-screen-logo--glitch .hero-screen-logo__layer--base,
-  .hero-screen-logo--glitch .hero-screen-logo__layer--warm,
-  .hero-screen-logo--glitch .hero-screen-logo__layer--cyan,
-  .hero-screen-logo--glitch .hero-screen-logo__scanlines {
-    animation: none;
-  }
-
-  .hero-screen-logo--glitch .hero-screen-logo__layer--warm,
-  .hero-screen-logo--glitch .hero-screen-logo__layer--cyan,
-  .hero-screen-logo--glitch .hero-screen-logo__scanlines {
-    opacity: 0;
-  }
-
   .ask-cube-glitch {
     animation: none;
   }
@@ -931,7 +825,7 @@ input[type='password'],
     opacity: 0.82;
     transform: translate(-1px, 0);
     text-shadow:
-      1px 0 #e1ccaf,
+      1px 0 #e0e1df,
       -1px 0 #2252bc;
   }
   36% {
@@ -942,7 +836,7 @@ input[type='password'],
   54% {
     opacity: 0.9;
     transform: translate(0, 1px);
-    text-shadow: -1px 0 #e1ccaf;
+    text-shadow: -1px 0 #e0e1df;
   }
   72% {
     opacity: 1;

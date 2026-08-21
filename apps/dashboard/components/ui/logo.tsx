@@ -46,7 +46,7 @@ export function Logo({
       <HumanerBrandTitle
         name={name}
         markTone={onDark ? 'dark' : undefined}
-        wordmarkClassName="font-display text-lg font-normal tracking-tight text-foreground"
+        wordmarkClassName="font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
       />
     </div>
   );

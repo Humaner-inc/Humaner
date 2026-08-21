@@ -49,7 +49,7 @@ export function GlassFeatureIcon({
         )}
         style={{
           background:
-            'radial-gradient(circle, rgb(225 204 175 / 0.22), transparent 72%)'
+            'radial-gradient(circle, rgb(224 225 223 / 0.22), transparent 72%)'
         }}
       />
       <span
