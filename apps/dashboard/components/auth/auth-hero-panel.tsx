@@ -27,8 +27,7 @@ const TILE = {
 
 type FeatureGlyph = React.ComponentType<{
   className?: string;
-  size?: number | string;
-  weight?: 'fill' | 'duotone';
+  weight?: 'fill';
   'aria-hidden'?: boolean;
 }>;
 
@@ -38,7 +37,6 @@ type FeatureTile = {
   icon: FeatureGlyph;
   tile: 'gray' | 'cobalt' | 'green' | 'contrast';
   ink: string;
-  weight?: 'fill' | 'duotone';
 };
 
 const FEATURE_TILES: FeatureTile[] = [
@@ -110,8 +108,7 @@ const FEATURE_TILES: FeatureTile[] = [
     label: 'Intelligence',
     icon: AtomIcon,
     tile: 'green',
-    ink: TILE.cream,
-    weight: 'duotone'
+    ink: TILE.cream
   },
   {
     id: 'integrations',
@@ -258,9 +255,8 @@ function FeatureTileView({
       }}
     >
       <Icon
-        size={item.weight === 'duotone' ? 32 : undefined}
-        weight={item.weight ?? 'fill'}
-        className={item.weight === 'duotone' ? undefined : 'size-10 sm:size-12'}
+        weight="fill"
+        className="size-10 sm:size-12"
         aria-hidden
       />
     </div>
