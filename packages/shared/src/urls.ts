@@ -29,7 +29,7 @@ export const HUMANER_ICON_BLACK_PATH = "/icon_black.svg";
 /** Brandmark on dark chrome — emails + widget watermark. */
 export const HUMANER_BRANDMARK_PATH = "/brandmark-dark.svg";
 
-/** PNG raster of brandmark-dark (SVG is blocked by most email clients). */
+/** PNG raster of icon_black.svg (SVG is blocked by most email clients). */
 export const EMAIL_LOGO_PATH = "/humaner-email.png";
 
 /** X / Twitter mark for transactional email (same glyph as landing footer). */

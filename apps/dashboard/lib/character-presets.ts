@@ -69,6 +69,18 @@ export function getDefaultAgentName(character: CharacterType): string {
   return CHARACTER_META[character].personaName ?? '';
 }
 
+/** True when the name is still a built-in persona label (Astral / Taleb / Vidi). */
+export function isPresetAgentName(name: string): boolean {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return Object.values(CHARACTER_META).some(
+    (meta) => meta.personaName != null && meta.personaName === trimmed
+  );
+}
+
 export function formatPersonaToneCaption(meta: CharacterMeta): string {
   return meta.id === 'CUSTOM' ? meta.label : `${meta.label} tone`;
 }

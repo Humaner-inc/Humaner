@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { ArrowsClockwise } from '@phosphor-icons/react/dist/ssr/ArrowsClockwise';
+import { AtomIcon } from '@phosphor-icons/react/dist/ssr/Atom';
 import { BookOpen } from '@phosphor-icons/react/dist/ssr/BookOpen';
 import { Brain } from '@phosphor-icons/react/dist/ssr/Brain';
 import { Briefcase } from '@phosphor-icons/react/dist/ssr/Briefcase';
@@ -9,7 +10,6 @@ import { ChatDotsIcon } from '@phosphor-icons/react/dist/ssr/ChatDots';
 import { Code } from '@phosphor-icons/react/dist/ssr/Code';
 import { Headset } from '@phosphor-icons/react/dist/ssr/Headset';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
-import { Robot } from '@phosphor-icons/react/dist/ssr/Robot';
 import { ShieldCheck } from '@phosphor-icons/react/dist/ssr/ShieldCheck';
 import { TrayArrowDownIcon } from '@phosphor-icons/react/dist/ssr/TrayArrowDown';
 import { UsersThree } from '@phosphor-icons/react/dist/ssr/UsersThree';
@@ -27,7 +27,8 @@ const TILE = {
 
 type FeatureGlyph = React.ComponentType<{
   className?: string;
-  weight?: 'fill';
+  size?: number | string;
+  weight?: 'fill' | 'duotone';
   'aria-hidden'?: boolean;
 }>;
 
@@ -37,6 +38,7 @@ type FeatureTile = {
   icon: FeatureGlyph;
   tile: 'gray' | 'cobalt' | 'green' | 'contrast';
   ink: string;
+  weight?: 'fill' | 'duotone';
 };
 
 const FEATURE_TILES: FeatureTile[] = [
@@ -104,11 +106,12 @@ const FEATURE_TILES: FeatureTile[] = [
     ink: TILE.cream
   },
   {
-    id: 'agent',
-    label: 'Agent',
-    icon: Robot,
+    id: 'intelligence',
+    label: 'Intelligence',
+    icon: AtomIcon,
     tile: 'green',
-    ink: TILE.cream
+    ink: TILE.cream,
+    weight: 'duotone'
   },
   {
     id: 'integrations',
@@ -255,8 +258,9 @@ function FeatureTileView({
       }}
     >
       <Icon
-        weight="fill"
-        className="size-10 sm:size-12"
+        size={item.weight === 'duotone' ? 32 : undefined}
+        weight={item.weight ?? 'fill'}
+        className={item.weight === 'duotone' ? undefined : 'size-10 sm:size-12'}
         aria-hidden
       />
     </div>
