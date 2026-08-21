@@ -32,7 +32,7 @@ function AuthLayoutChrome({
         {children}
       </main>
       <div className="relative z-10 hidden lg:block lg:w-1/2">
-        <div className="absolute inset-4 overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 overflow-hidden">
           <AuthHeroPanel />
         </div>
       </div>

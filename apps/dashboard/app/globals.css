@@ -745,37 +745,80 @@ input[type='password'],
   }
 }
 
-/* Auth hero panel — cream plate + image fade into the page at the bottom */
-.auth-hero-background {
+/* Auth hero panel — icon wheel on the page background */
+.auth-hero-stage {
   position: absolute;
   inset: 0;
   z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  padding: 0 2.5rem;
   overflow: hidden;
   pointer-events: none;
-  background: #fcf4ec;
+}
+
+.auth-hero-wheel {
+  --auth-wheel-radius: 11.5rem;
+  --auth-wheel-dur: 700ms;
+  --auth-wheel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 22rem;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
   -webkit-mask-image: linear-gradient(
     to bottom,
-    #000 0%,
-    #000 42%,
-    rgb(0 0 0 / 0.88) 62%,
-    rgb(0 0 0 / 0.5) 78%,
-    rgb(0 0 0 / 0.16) 90%,
+    transparent 0%,
+    #000 18%,
+    #000 82%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
-    #000 0%,
-    #000 42%,
-    rgb(0 0 0 / 0.88) 62%,
-    rgb(0 0 0 / 0.5) 78%,
-    rgb(0 0 0 / 0.16) 90%,
+    transparent 0%,
+    #000 18%,
+    #000 82%,
     transparent 100%
   );
 }
 
-.auth-hero-background__image {
+.auth-hero-feature {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 12rem;
+  align-items: center;
+  line-height: 1;
+}
+
+.auth-hero-wheel__drum {
+  position: relative;
+  width: 6rem;
+  height: 6rem;
+  transform-style: preserve-3d;
+  transition: transform var(--auth-wheel-dur) var(--auth-wheel-ease);
+  will-change: transform;
+}
+
+.auth-hero-wheel__slot {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  opacity: 0.28;
+  transition: opacity var(--auth-wheel-dur) var(--auth-wheel-ease);
+}
+
+.auth-hero-wheel__slot.is-front {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -785,6 +828,11 @@ input[type='password'],
 
   .frontier-load-glitch {
     animation: none;
+  }
+
+  .auth-hero-wheel__drum,
+  .auth-hero-wheel__slot {
+    transition: none;
   }
 }
 

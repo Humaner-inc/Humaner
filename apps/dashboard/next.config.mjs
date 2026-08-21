@@ -45,6 +45,7 @@ const nextConfig = {
     optimizePackageImports: [
       'date-fns',
       'recharts',
+      '@phosphor-icons/react',
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',
       '@radix-ui/react-avatar',
