@@ -128,6 +128,10 @@ export function getGithubUrl(): string {
   return "https://github.com/Humaner-inc";
 }
 
+export function getIntoMarkdownGithubUrl(): string {
+  return "https://github.com/Humaner-inc/into-markdown";
+}
+
 export function getXUrl(): string {
   return "https://x.com/usehumaner";
 }
