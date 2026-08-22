@@ -23,6 +23,7 @@ export const VerifyEmailAddressEmail = ({
 }: VerifyEmailAddressEmailData) => (
   <EmailLayout
     preview={`Your ${AppInfo.APP_NAME} verification code: ${otp}`}
+    logoAlign="center"
     footerNote={`If you didn't create a ${AppInfo.APP_NAME} account, you can ignore this email.`}
   >
     <EmailTitle>Verify your email</EmailTitle>

@@ -10,17 +10,22 @@ export const EMAIL_COLORS = {
   link: "#2252bc",
 } as const;
 
-export const EMAIL_BODY_CLASS = "m-auto bg-white px-2 font-sans";
+export const EMAIL_BODY_CLASS =
+  "m-auto bg-[#ffffff] px-2 font-sans text-[#0A0D0D]";
 
 export const EMAIL_CONTAINER_CLASS =
-  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] bg-white p-[20px]";
+  "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] bg-[#ffffff] p-[20px]";
 
-/** Compact mark above body copy — left-aligned like Supabase transactional mail. */
-export const EMAIL_LOGO_SIZE = 48;
+/** Between the original 110px mark and the 48px cloud pass. */
+export const EMAIL_LOGO_SIZE = 80;
 
-export const EMAIL_LOGO_SECTION_CLASS = "mt-[24px] mb-[20px] text-left";
+export const EMAIL_LOGO_SECTION_CLASS = "my-[24px] text-center";
 
-export const EMAIL_LOGO_CLASS = "m-0 block";
+export const EMAIL_LOGO_SECTION_LEFT_CLASS = "my-[24px] text-left";
+
+export const EMAIL_LOGO_CLASS = "mx-auto block";
+
+export const EMAIL_LOGO_LEFT_CLASS = "m-0 block";
 
 export const EMAIL_TITLE_CLASS =
   "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#0A0D0D]";
