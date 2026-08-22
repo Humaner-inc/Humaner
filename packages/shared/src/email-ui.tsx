@@ -117,7 +117,6 @@ export function EmailLayout({
                 alt=""
                 width={EMAIL_LOGO_SIZE}
                 height={EMAIL_LOGO_SIZE}
-                align={logoCentered ? "center" : "left"}
                 className={
                   logoCentered ? EMAIL_LOGO_CLASS : EMAIL_LOGO_LEFT_CLASS
                 }
