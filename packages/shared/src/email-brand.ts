@@ -15,7 +15,12 @@ export const EMAIL_BODY_CLASS = "m-auto bg-white px-2 font-sans";
 export const EMAIL_CONTAINER_CLASS =
   "mx-auto my-[40px] max-w-[465px] rounded border border-solid border-[#eaeaea] bg-white p-[20px]";
 
-export const EMAIL_LOGO_SECTION_CLASS = "my-[24px] text-center";
+/** Compact mark above body copy — left-aligned like Supabase transactional mail. */
+export const EMAIL_LOGO_SIZE = 48;
+
+export const EMAIL_LOGO_SECTION_CLASS = "mt-[24px] mb-[20px] text-left";
+
+export const EMAIL_LOGO_CLASS = "m-0 block";
 
 export const EMAIL_TITLE_CLASS =
   "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#0A0D0D]";

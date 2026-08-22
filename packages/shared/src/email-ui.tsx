@@ -24,7 +24,9 @@ import {
   EMAIL_FOOTER_TEXT_CLASS,
   EMAIL_HR_CLASS,
   EMAIL_LINK_CLASS,
+  EMAIL_LOGO_CLASS,
   EMAIL_LOGO_SECTION_CLASS,
+  EMAIL_LOGO_SIZE,
   EMAIL_MUTED_CENTER_CLASS,
   EMAIL_MUTED_CLASS,
   EMAIL_OTP_CLASS,
@@ -80,9 +82,10 @@ export function EmailLayout({
               <Img
                 src={logoSrc}
                 alt=""
-                width="110"
-                height="110"
-                className="mx-auto"
+                width={EMAIL_LOGO_SIZE}
+                height={EMAIL_LOGO_SIZE}
+                className={EMAIL_LOGO_CLASS}
+                style={{ display: "block", margin: 0 }}
               />
             </Section>
             {children}
