@@ -3,6 +3,7 @@ import 'server-only';
 import { redirect } from 'next/navigation';
 
 import { queryKnowledgeGapCoversForAgent } from '@/data/knowledge/query-knowledge-gap-covers';
+import { isDemoAgentRole } from '@/lib/admin-demos/demo-agent-role';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -51,6 +52,16 @@ export async function getAgentKnowledgeGaps(
   );
 
   if (isLocalDemo()) {
+    const agent = await prisma.agent.findFirst({
+      where: {
+        id: agentId,
+        organizationId: session.user.organizationId
+      },
+      select: { role: true }
+    });
+    if (agent && isDemoAgentRole(agent.role)) {
+      return [];
+    }
     return filterCoveredContentGaps(
       getDemoPendingKnowledgeGaps().map((gap) => ({
         ...gap,

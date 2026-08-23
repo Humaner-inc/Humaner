@@ -53,6 +53,8 @@ export enum Routes {
   InboxTags = '/inbox/tags',
   Training = '/training',
   AdminTickets = '/admin/tickets',
+  AdminDemos = '/admin/demos',
+  DemoLanding = '/demo',
   Contacts = '/organization/overview',
   Settings = '/settings',
   Account = '/settings/account',
@@ -120,4 +122,9 @@ export function agentHistoryRoute(agentId: string): string {
 
 export function integrationChannelRoute(channelId: string): string {
   return `/integrations/${channelId}`;
+}
+
+/** Public brand-hero page with the real floating widget — not full-page chat. */
+export function demoLandingRoute(publicId: string): string {
+  return `${Routes.DemoLanding}/${encodeURIComponent(publicId)}`;
 }

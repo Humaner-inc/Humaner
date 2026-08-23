@@ -313,8 +313,8 @@ const nextConfig = {
         destination: '/dashboard/training'
       },
       {
-        source: '/admin/tickets',
-        destination: '/dashboard/admin/tickets'
+        source: '/admin/:path*',
+        destination: '/dashboard/admin/:path*'
       }
     ];
   },

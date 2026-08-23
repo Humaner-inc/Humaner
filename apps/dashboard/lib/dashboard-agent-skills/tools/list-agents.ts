@@ -5,6 +5,8 @@ import {
   agentPersonaRoute,
   Routes
 } from '@/constants/routes';
+import { excludeDemoAgentsUnlessAdmin } from '@/lib/admin-demos/demo-agent-list-where';
+import { isPlatformAdmin } from '@/lib/auth/workspace-access';
 import { prisma } from '@/lib/db/prisma';
 
 import type { DashboardAgentTool } from '../types';
@@ -22,7 +24,10 @@ export const listAgentsTool: DashboardAgentTool = {
   requiredPages: ['agents'],
   execute: async (_input, context) => {
     const agents = await prisma.agent.findMany({
-      where: { organizationId: context.organizationId },
+      where: {
+        organizationId: context.organizationId,
+        ...excludeDemoAgentsUnlessAdmin(isPlatformAdmin(context.profile))
+      },
       select: {
         id: true,
         name: true,

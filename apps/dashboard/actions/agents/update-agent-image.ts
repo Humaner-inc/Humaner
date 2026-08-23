@@ -5,6 +5,7 @@ import { revalidateTag } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
+import { assertCanMutateDemoAgent } from '@/lib/admin-demos/assert-can-mutate-demo-agent';
 import { prisma } from '@/lib/db/prisma';
 import { decodeBase64Image } from '@/lib/imaging/decode-base64-image';
 import { resizeImage } from '@/lib/imaging/resize-image';
@@ -24,11 +25,12 @@ export const updateAgentImage = pageActionClient('agents')
         id: parsedInput.id,
         organizationId: session.user.organizationId
       },
-      select: { id: true, publicId: true }
+      select: { id: true, publicId: true, role: true }
     });
     if (!agent) {
       throw new NotFoundError('Agent not found');
     }
+    await assertCanMutateDemoAgent(agent.role, session.user.id);
 
     let imageUrl: Maybe<string> = undefined;
 

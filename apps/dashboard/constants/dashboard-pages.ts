@@ -65,7 +65,7 @@ export type ResolvedPathAccess =
 export function resolvePathAccess(pathname: string): ResolvedPathAccess {
   const path = toPublicPathname(pathname);
 
-  if (path.startsWith(Routes.AdminTickets)) {
+  if (path.startsWith('/admin')) {
     return { type: 'platform-admin' };
   }
 

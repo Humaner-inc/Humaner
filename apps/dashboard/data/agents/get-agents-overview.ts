@@ -16,12 +16,14 @@ import {
   defaultRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
+import { excludeDemoAgentsUnlessAdmin } from '@/lib/admin-demos/demo-agent-list-where';
 import {
   computeAgentMetrics,
   summarizeSourceStatuses,
   type AgentMetrics
 } from '@/lib/agents/compute-agent-metrics';
 import { dedupedAuth } from '@/lib/auth';
+import { isAdmin } from '@/lib/auth/permissions';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { countConversationOutcomes } from '@/lib/conversations/conversation-outcome';
@@ -56,10 +58,15 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
     return redirect(getLoginRedirect());
   }
 
+  const includeDemos = await isAdmin(session.user.id);
+
   const overview = await cache(
     async () => {
       const agents = await prisma.agent.findMany({
-        where: { organizationId: session.user.organizationId },
+        where: {
+          organizationId: session.user.organizationId,
+          ...excludeDemoAgentsUnlessAdmin(includeDemos)
+        },
         select: {
           id: true,
           publicId: true,
@@ -146,7 +153,7 @@ export async function getAgentsOverview(): Promise<AgentOverviewItem[]> {
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Agents,
       session.user.organizationId,
-      'overview'
+      includeDemos ? 'overview-admin' : 'overview'
     ),
     {
       revalidate: defaultRevalidateTimeInSeconds,

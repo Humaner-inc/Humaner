@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   LockKeyholeIcon,
   MessageSquare,
+  Sparkles,
   StoreIcon,
   UserIcon
 } from '@humaner/shared/icons';
@@ -20,6 +21,12 @@ export const adminNavItems: NavItem[] = [
     title: 'Support tickets',
     href: Routes.AdminTickets,
     icon: MessageSquare,
+    adminOnly: true
+  },
+  {
+    title: 'Demo agents',
+    href: Routes.AdminDemos,
+    icon: Sparkles,
     adminOnly: true
   }
 ];

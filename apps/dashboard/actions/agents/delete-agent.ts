@@ -6,6 +6,7 @@ import { invalidateLangCacheForAgent } from '@/services/langcache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
+import { assertCanMutateDemoAgent } from '@/lib/admin-demos/assert-can-mutate-demo-agent';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
 import { invalidateAgentConfigCache } from '@/lib/redis/agent-config-cache';
@@ -21,11 +22,12 @@ export const deleteAgent = pageActionClient('agents')
         id: parsedInput.id,
         organizationId: session.user.organizationId
       },
-      select: { id: true, publicId: true, name: true }
+      select: { id: true, publicId: true, name: true, role: true }
     });
     if (!agent) {
       throw new NotFoundError('Agent not found');
     }
+    await assertCanMutateDemoAgent(agent.role, session.user.id);
 
     const conversations = await prisma.conversation.findMany({
       where: { agentId: agent.id },

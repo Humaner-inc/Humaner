@@ -16,7 +16,9 @@ import {
   dynamicListRevalidateTimeInSeconds,
   OrganizationCacheKey
 } from '@/data/caching';
+import { excludeDemoAgentsUnlessAdmin } from '@/lib/admin-demos/demo-agent-list-where';
 import { dedupedAuth } from '@/lib/auth';
+import { isAdmin } from '@/lib/auth/permissions';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
@@ -48,10 +50,15 @@ export async function getAgents(): Promise<AgentListItem[]> {
     return redirect(getLoginRedirect());
   }
 
+  const includeDemos = await isAdmin(session.user.id);
+
   return cache(
     async () => {
       return prisma.agent.findMany({
-        where: { organizationId: session.user.organizationId },
+        where: {
+          organizationId: session.user.organizationId,
+          ...excludeDemoAgentsUnlessAdmin(includeDemos)
+        },
         select: {
           id: true,
           publicId: true,
@@ -78,7 +85,7 @@ export async function getAgents(): Promise<AgentListItem[]> {
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Agents,
       session.user.organizationId,
-      'list'
+      includeDemos ? 'list-admin' : 'list'
     ),
     {
       revalidate: dynamicListRevalidateTimeInSeconds,

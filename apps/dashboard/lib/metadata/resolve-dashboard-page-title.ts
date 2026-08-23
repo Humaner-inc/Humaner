@@ -29,6 +29,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.InboxTags]: 'Tags',
   [Routes.Training]: 'Training',
   [Routes.AdminTickets]: 'Support tickets',
+  [Routes.AdminDemos]: 'Demo agents',
   [Routes.Settings]: 'Settings',
   [Routes.Profile]: 'Profile',
   [Routes.Security]: 'Security',

@@ -21,11 +21,7 @@ export const EMAIL_LOGO_SIZE = 80;
 
 export const EMAIL_LOGO_SECTION_CLASS = "my-[24px] text-center";
 
-export const EMAIL_LOGO_SECTION_LEFT_CLASS = "my-[24px] text-left";
-
 export const EMAIL_LOGO_CLASS = "mx-auto block";
-
-export const EMAIL_LOGO_LEFT_CLASS = "m-0 block";
 
 export const EMAIL_TITLE_CLASS =
   "mx-0 my-[30px] p-0 text-center text-[24px] font-normal text-[#0A0D0D]";

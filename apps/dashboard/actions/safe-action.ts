@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
 import { dedupedAuth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth/permissions';
 import {
   canAccessPageKey,
   getUserAccessContext
@@ -141,5 +142,11 @@ export const ownerActionClient = authActionClient.use(async ({ next, ctx }) => {
     ctx.session.user.id,
     ctx.session.user.organizationId
   );
+  return next({ ctx });
+});
+
+/** Humaner platform operators only (Role.ADMIN). */
+export const adminActionClient = authActionClient.use(async ({ next, ctx }) => {
+  await requireAdmin(ctx.session.user.id);
   return next({ ctx });
 });

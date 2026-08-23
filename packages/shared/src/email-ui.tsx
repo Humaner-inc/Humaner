@@ -26,9 +26,7 @@ import {
   EMAIL_HR_CLASS,
   EMAIL_LINK_CLASS,
   EMAIL_LOGO_CLASS,
-  EMAIL_LOGO_LEFT_CLASS,
   EMAIL_LOGO_SECTION_CLASS,
-  EMAIL_LOGO_SECTION_LEFT_CLASS,
   EMAIL_LOGO_SIZE,
   EMAIL_MUTED_CENTER_CLASS,
   EMAIL_MUTED_CLASS,
@@ -54,16 +52,9 @@ const EMAIL_FOOTER_LINKS = [
   { label: "X", href: getXUrl },
 ] as const;
 
-export type EmailLogoAlign = "left" | "center";
-
 export type EmailLayoutProps = {
   preview: string;
   logoSrc?: string;
-  /**
-   * Center the mark on OTP / CTA-first mail. Letter-style mail
-   * (welcome) keeps it left-aligned with the body.
-   */
-  logoAlign?: EmailLogoAlign;
   /** Optional note shown in the footer zone above the unsubscribe line. */
   footerNote?: React.ReactNode;
   /**
@@ -77,13 +68,10 @@ export type EmailLayoutProps = {
 export function EmailLayout({
   preview,
   logoSrc = getEmailLogoUrl(),
-  logoAlign = "left",
   footerNote,
   showUnsubscribe = false,
   children,
 }: EmailLayoutProps): React.JSX.Element {
-  const logoCentered = logoAlign === "center";
-
   return (
     <Html style={{ backgroundColor: EMAIL_COLORS.background }}>
       <Head>
@@ -104,27 +92,14 @@ export function EmailLayout({
             className={EMAIL_CONTAINER_CLASS}
             style={{ backgroundColor: EMAIL_COLORS.background }}
           >
-            <Section
-              align={logoCentered ? "center" : "left"}
-              className={
-                logoCentered
-                  ? EMAIL_LOGO_SECTION_CLASS
-                  : EMAIL_LOGO_SECTION_LEFT_CLASS
-              }
-            >
+            <Section align="center" className={EMAIL_LOGO_SECTION_CLASS}>
               <Img
                 src={logoSrc}
                 alt=""
                 width={EMAIL_LOGO_SIZE}
                 height={EMAIL_LOGO_SIZE}
-                className={
-                  logoCentered ? EMAIL_LOGO_CLASS : EMAIL_LOGO_LEFT_CLASS
-                }
-                style={
-                  logoCentered
-                    ? { display: "block", margin: "0 auto" }
-                    : { display: "block", margin: 0 }
-                }
+                className={EMAIL_LOGO_CLASS}
+                style={{ display: "block", margin: "0 auto" }}
               />
             </Section>
             {children}
