@@ -93,7 +93,7 @@ function AgentTreeNode({
   const { open, onOpenChange } = useSidebarNavDrawer(
     SIDEBAR_DRAWER_IDS.agent(agent.id)
   );
-  const tabs = getAgentNavTabs();
+  const tabs = getAgentNavTabs(orgTier);
   const capabilityContext = { frontierBetaEnabled };
   const lockedCount = tabs.filter((tab) =>
     isAgentTabLocked(tab, orgTier, capabilityContext)

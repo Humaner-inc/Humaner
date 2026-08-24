@@ -78,8 +78,8 @@ export function getDashboardNavSessionUrl(): string {
   return `${getAppUrl()}/api/public/nav-session`;
 }
 
-export function getPricingUrl(): string {
-  return `${getLandingUrl()}/pricing`;
+export function getOssUrl(): string {
+  return `${getLandingUrl()}/oss`;
 }
 
 export function getBookDemoUrl(): string {
@@ -110,6 +110,10 @@ export function getFreeToolsUrl(): string {
   return `${getLandingUrl()}/free-tools`;
 }
 
+export function getPricingUrl(): string {
+  return `${getLandingUrl()}/pricing`;
+}
+
 export function getDocsUrl(): string {
   return process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.humaner.io";
 }
@@ -126,6 +130,11 @@ export function getIntoMarkdownUrl(): string {
 
 export function getGithubUrl(): string {
   return "https://github.com/Humaner-inc";
+}
+
+/** Public Self-Host kit — pricing and onboarding Self-host CTAs go here. */
+export function getHumanerGithubRepoUrl(): string {
+  return "https://github.com/Humaner-inc/humaner";
 }
 
 export function getIntoMarkdownGithubUrl(): string {

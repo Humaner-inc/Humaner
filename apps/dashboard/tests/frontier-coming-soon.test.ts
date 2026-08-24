@@ -1,28 +1,107 @@
 import {
   CLASSIC_FRONTIER_BETA_CAPABILITIES,
+  formatOveragePerMessage,
+  formatPlanAgents,
+  formatPlanIncludedMessages,
   FRONTIER_PLAN_COMING_SOON,
+  getEffectivePlan,
+  getHumanerPricingCardFeatures,
   getPlanCapabilities,
   getPlanForTier,
   isClassicFrontierBetaActive,
   isFrontierPlanPurchasable,
-  PLAN_CAPABILITIES
+  isOperatorOwnedQuotaPlan,
+  PAID_CLOUD_TRIAL_DAYS,
+  PLAN_CAPABILITIES,
+  PRICING_PLANS
 } from '@humaner/shared/plans';
+import { PRICING_FEATURE_CATEGORIES } from '@humaner/shared/pricing-feature-categories';
+import { CLASSIC_VOLUME_STEPS } from '@humaner/shared/pricing-volume';
 import { describe, expect, it } from 'vitest';
 
-describe('Frontier Coming Soon switch', () => {
-  it('matches isFrontierPlanPurchasable to the compile-time flag', () => {
+describe('Public catalog — Self-Host, Custom, Humaner', () => {
+  it('keeps Frontier off the public ladder while Humaner is the hosted plan', () => {
     expect(isFrontierPlanPurchasable()).toBe(!FRONTIER_PLAN_COMING_SOON);
+    expect(getPlanForTier('byo').name).toBe('Custom');
+    expect(getPlanForTier('byo').priceMonthly).toBe(30);
+    expect(getPlanForTier('byo').members).toBe(2);
+    expect(getPlanForTier('byo').mailboxAliases).toBe(1);
+    expect(getPlanForTier('classic').name).toBe('Humaner');
+    expect(getPlanForTier('classic').priceMonthly).toBe(70);
+    expect(getPlanForTier('classic').members).toBe(3);
+    expect(getPlanForTier('classic').mailboxAliases).toBe(3);
+    expect(getPlanForTier('classic').includedMessages).toBe(1_000);
+    expect(CLASSIC_VOLUME_STEPS).toEqual([1_000, 3_000, 10_000]);
+    expect(getPlanForTier('classic').overagePerMessage).toBe(0.03);
+    expect(PAID_CLOUD_TRIAL_DAYS).toBe(7);
+    expect(PRICING_PLANS.map((plan) => plan.name)).toEqual([
+      'Self-Host',
+      'Humaner',
+      'Custom'
+    ]);
+    expect(getEffectivePlan('classic', 10_000).members).toBe(5);
+    expect(getEffectivePlan('classic', 10_000).mailboxAliases).toBe(5);
+    expect(getEffectivePlan('classic', 10_000).priceMonthly).toBe(400);
   });
 
-  it('keeps the paid Classic matrix (no watermark, no Agent Desk)', () => {
-    expect(PLAN_CAPABILITIES.classic.agentDesk).toBe(false);
-    expect(PLAN_CAPABILITIES.classic.liveChat).toBe(false);
-    expect(PLAN_CAPABILITIES.classic.autoTraining).toBe(false);
-    expect(PLAN_CAPABILITIES.classic.memory).toBe('session');
-    expect(PLAN_CAPABILITIES.classic.removeWatermark).toBe(false);
-    expect(PLAN_CAPABILITIES.classic.apiAccess).toBe(false);
-    expect(getPlanForTier('classic').agents).toBe(3);
-    expect(getPlanForTier('classic').members).toBe(2);
+  it('gives Humaner the hosted matrix and Custom API access', () => {
+    expect(PLAN_CAPABILITIES.classic.agentDesk).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.liveChat).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.apiAccess).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.copilot).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.autoTraining).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.hostedAgent).toBe(true);
+    expect(PLAN_CAPABILITIES.classic.memory).toBe('cross-session');
+    expect(PLAN_CAPABILITIES.byo.apiAccess).toBe(true);
+    expect(PLAN_CAPABILITIES.byo.agentDesk).toBe(true);
+    expect(PLAN_CAPABILITIES.byo.hostedAgent).toBe(false);
+    expect(PLAN_CAPABILITIES.byo.liveChat).toBe(false);
+    expect(PLAN_CAPABILITIES.byo.copilot).toBe(false);
+    expect(formatOveragePerMessage(0.03)).toBe('$0.03');
+  });
+
+  it('lists full Humaner pricing card features without a delta header pattern', () => {
+    const labels = getHumanerPricingCardFeatures().map(
+      (feature) => feature.label
+    );
+    expect(labels).toContain('Hybrid RAG');
+    expect(labels).toContain('Humaner Agents');
+    expect(labels).toContain('Live chat');
+    expect(labels).not.toContain('Everything in Custom');
+  });
+
+  it('hides Custom agents and usage like Self-Host and names Helpdesk', () => {
+    const byo = getPlanForTier('byo');
+    const selfHost = PRICING_PLANS[0]!;
+    expect(formatPlanAgents(selfHost)).toBe('-');
+    expect(formatPlanAgents(byo)).toBe('-');
+    expect(formatPlanIncludedMessages(selfHost)).toBe('-');
+    expect(formatPlanIncludedMessages(byo)).toBe('-');
+    expect(isOperatorOwnedQuotaPlan(byo)).toBe(true);
+    expect(byo.features.some((feature) => feature.label === 'Helpdesk')).toBe(
+      true
+    );
+    expect(
+      PRICING_FEATURE_CATEGORIES.some((category) =>
+        category.rows.some(
+          (row) => row.label === 'Desks' && row.values.byo === 'Helpdesk'
+        )
+      )
+    ).toBe(true);
+    expect(
+      PRICING_FEATURE_CATEGORIES.some((category) =>
+        category.rows.some(
+          (row) => row.label === 'Async solving' && row.values.byo === 'API'
+        )
+      )
+    ).toBe(true);
+    expect(
+      PRICING_FEATURE_CATEGORIES.some((category) =>
+        category.rows.some(
+          (row) => row.label === 'Widget embed' && row.values.byo === false
+        )
+      )
+    ).toBe(true);
   });
 
   it('does not overlay Classic with beta features unless Coming Soon is on', () => {
@@ -38,8 +117,6 @@ describe('Frontier Coming Soon switch', () => {
       expect(isClassicFrontierBetaActive(false)).toBe(false);
       expect(optedIn).toEqual(CLASSIC_FRONTIER_BETA_CAPABILITIES);
       expect(optedOut).toEqual(PLAN_CAPABILITIES.classic);
-      expect(optedIn.removeWatermark).toBe(false);
-      expect(optedIn.apiAccess).toBe(false);
     } else {
       expect(isClassicFrontierBetaActive(true)).toBe(false);
       expect(optedIn).toEqual(PLAN_CAPABILITIES.classic);
@@ -48,18 +125,5 @@ describe('Frontier Coming Soon switch', () => {
 
     expect(getPlanCapabilities('frontier').agentDesk).toBe(true);
     expect(getPlanCapabilities('frontier').memory).toBe('cross-session');
-  });
-
-  it('does not treat Frontier Beta as the Frontier plan', () => {
-    expect(CLASSIC_FRONTIER_BETA_CAPABILITIES).not.toEqual(
-      PLAN_CAPABILITIES.frontier
-    );
-    expect(CLASSIC_FRONTIER_BETA_CAPABILITIES.removeWatermark).toBe(false);
-    expect(CLASSIC_FRONTIER_BETA_CAPABILITIES.apiAccess).toBe(false);
-    expect(CLASSIC_FRONTIER_BETA_CAPABILITIES.contentGaps).toBe(false);
-    expect(CLASSIC_FRONTIER_BETA_CAPABILITIES.liveData).toBe(false);
-    expect(PLAN_CAPABILITIES.frontier.removeWatermark).toBe(true);
-    expect(PLAN_CAPABILITIES.frontier.apiAccess).toBe(true);
-    expect(PLAN_CAPABILITIES.frontier.contentGaps).toBe(true);
   });
 });

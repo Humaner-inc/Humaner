@@ -62,7 +62,7 @@ export function hasReachedMemberLimit(
   plan: PlanDefinition,
   bypassLimits: boolean
 ): boolean {
-  if (bypassLimits) {
+  if (bypassLimits || plan.members >= UNLIMITED_MEMBERS) {
     return false;
   }
 

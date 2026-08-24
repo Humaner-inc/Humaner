@@ -18,6 +18,7 @@ export type DashboardTopNavProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   planName: string;
+  copilotEnabled?: boolean;
   industryLabel: string | null;
   audienceLabel: string | null;
   className?: string;
@@ -27,6 +28,7 @@ export function DashboardTopNav({
   profile,
   workspaces,
   planName,
+  copilotEnabled = false,
   industryLabel,
   audienceLabel,
   className
@@ -75,7 +77,7 @@ export function DashboardTopNav({
         className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
       />
       <div className="flex h-7 items-center gap-1.5">
-        {!isOssDeployment() ? <AskHumanerTrigger /> : null}
+        {!isOssDeployment() && copilotEnabled ? <AskHumanerTrigger /> : null}
         <NavUser
           profile={profile}
           workspaces={workspaces}

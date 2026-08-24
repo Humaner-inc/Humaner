@@ -46,7 +46,8 @@ export function getDemoAnalyticsOverview(): AnalyticsOverview {
       unansweredCount: 9,
       totalMessages,
       messagesUsed: 820,
-      includedMessages: 2000
+      includedMessages: 2000,
+      operatorOwnedQuota: false
     },
     volumeByDay,
     knowledgeGaps: []

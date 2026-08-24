@@ -1,7 +1,11 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
-import { getEffectivePlan, getPlanCapabilities } from '@humaner/shared/plans';
+import {
+  getEffectivePlan,
+  getPlanCapabilities,
+  isOperatorOwnedQuotaPlan
+} from '@humaner/shared/plans';
 import type { MessageRole } from '@prisma/client';
 import { format, startOfDay, subDays } from 'date-fns';
 
@@ -45,6 +49,7 @@ export type AnalyticsOverview = {
     totalMessages: number;
     messagesUsed: number;
     includedMessages: number;
+    operatorOwnedQuota?: boolean;
   };
   volumeByDay: AnalyticsVolumePoint[];
   knowledgeGaps: AnalyticsKnowledgeGap[];
@@ -270,7 +275,8 @@ export async function getAnalyticsOverview(options?: {
       unansweredCount,
       totalMessages,
       messagesUsed,
-      includedMessages: plan.includedMessages
+      includedMessages: plan.includedMessages,
+      operatorOwnedQuota: isOperatorOwnedQuotaPlan(plan)
     },
     volumeByDay: buildVolumeByDay(volumeMessageCounts, volumeConversations),
     knowledgeGaps

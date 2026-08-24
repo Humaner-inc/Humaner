@@ -5,6 +5,7 @@ import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
 import {
   FRONTIER_PLAN_COMING_SOON,
+  getPlanCapabilities,
   getPlanForTier
 } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
@@ -128,7 +129,8 @@ export async function DashboardSessionShell({
   const emptyMessageUsage: SidebarMessageUsageDto = {
     messagesUsed: 0,
     includedMessages: 0,
-    tier: userFromDb!.organization!.tier ?? 'free'
+    tier: userFromDb!.organization!.tier ?? 'free',
+    operatorOwnedQuota: false
   };
   const humanerAgentPublicId = getHumanerAgentPublicId();
 
@@ -219,6 +221,9 @@ export async function DashboardSessionShell({
       ? organization.verticalTopics
       : (industryVertical?.commonTopics ?? [])
   );
+  const copilotEnabled = getPlanCapabilities(organization.tier, {
+    frontierBetaEnabled: organization.frontierBetaEnabled
+  }).copilot;
 
   const dashboardShell = (
     <>
@@ -247,6 +252,7 @@ export async function DashboardSessionShell({
           profile={profile}
           workspaces={workspaces}
           planName={getPlanForTier(userFromDb!.organization!.tier).name}
+          copilotEnabled={copilotEnabled}
           industryLabel={
             userFromDb!.organization!.industry
               ? getIndustry(userFromDb!.organization!.industry).label
@@ -291,7 +297,9 @@ export async function DashboardSessionShell({
                 teamMembers={notificationTeamMembers}
                 currentUserId={notificationCurrentUserId}
               >
-                {!isOssDeployment() && humanerAgentPublicId ? (
+                {!isOssDeployment() &&
+                copilotEnabled &&
+                humanerAgentPublicId ? (
                   <HumanerChatProvider
                     agentPublicId={humanerAgentPublicId}
                     agentAvatarUrl={humanerAgentAvatarUrl}

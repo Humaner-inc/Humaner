@@ -69,12 +69,16 @@ export function SidebarMessageUsage({
       : 0
   );
   const isFreePlan = usage.tier === 'free';
+  const operatorOwned = Boolean(usage.operatorOwnedQuota);
   const showUpgradeCta =
     !isIconRail &&
+    !operatorOwned &&
     usagePercent >= USAGE_UPGRADE_THRESHOLD_PERCENT &&
     usage.tier !== 'humaner';
 
-  const usageLabel = `${usage.messagesUsed.toLocaleString()} / ${usage.includedMessages.toLocaleString()}`;
+  const usageLabel = operatorOwned
+    ? `${usage.messagesUsed.toLocaleString()} replies`
+    : `${usage.messagesUsed.toLocaleString()} / ${usage.includedMessages.toLocaleString()}`;
 
   return (
     <div
@@ -119,9 +123,11 @@ export function SidebarMessageUsage({
         <div className="overflow-hidden px-0.5">
           <span className="block text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
             {usage.messagesUsed.toLocaleString()}
-            <span className="text-muted-foreground/70">
-              /{usage.includedMessages.toLocaleString()}
-            </span>
+            {operatorOwned ? null : (
+              <span className="text-muted-foreground/70">
+                /{usage.includedMessages.toLocaleString()}
+              </span>
+            )}
           </span>
         </div>
       </div>
@@ -144,10 +150,12 @@ export function SidebarMessageUsage({
             {usageLabel}
           </span>
         </div>
-        <SidebarUsageProgress
-          expanded={!isIconRail}
-          value={usagePercent}
-        />
+        {operatorOwned ? null : (
+          <SidebarUsageProgress
+            expanded={!isIconRail}
+            value={usagePercent}
+          />
+        )}
       </div>
     </div>
   );

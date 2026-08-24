@@ -27,7 +27,7 @@ export const createApiKey = ownerActionClient
         session.user.organizationId
       );
       throw new PreConditionError(
-        `REST API access is not available on the ${planName} plan. Upgrade to Frontier to create API keys.`
+        `REST API access is not available on the ${planName} plan. Upgrade to Custom or Humaner to create API keys.`
       );
     }
 

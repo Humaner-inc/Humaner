@@ -1,6 +1,12 @@
 import * as React from 'react';
 import Link from 'next/link';
-import { getEffectivePlan, normalizePlanTier } from '@humaner/shared/plans';
+import {
+  formatPlanIncludedMessages,
+  getEffectivePlan,
+  isOperatorOwnedQuotaPlan,
+  normalizePlanTier,
+  OPERATOR_OWNED_QUOTA_LABEL
+} from '@humaner/shared/plans';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
@@ -82,20 +88,26 @@ export function DashboardOverviewStrip({
             ) : (
               <>
                 <HintLabel
-                  hint={`${plan.name} plan · ${plan.humanerModel.tagline}`}
+                  hint={`${plan.name} plan · ${plan.tagline}`}
                   className="leading-none font-medium"
                 >
                   <span style={{ color: tierAccent }}>{plan.name}</span>
                 </HintLabel>
-                <span
-                  aria-hidden
-                  className="inline-flex size-[1em] items-center justify-center leading-none text-border"
-                >
-                  ·
-                </span>
-                <span className="tabular-nums leading-none">
-                  {plan.includedMessages.toLocaleString()} msg/mo
-                </span>
+                {isOperatorOwnedQuotaPlan(plan) &&
+                formatPlanIncludedMessages(plan) ===
+                  OPERATOR_OWNED_QUOTA_LABEL ? null : (
+                  <>
+                    <span
+                      aria-hidden
+                      className="inline-flex size-[1em] items-center justify-center leading-none text-border"
+                    >
+                      ·
+                    </span>
+                    <span className="tabular-nums leading-none">
+                      {plan.includedMessages.toLocaleString()} msg/mo
+                    </span>
+                  </>
+                )}
               </>
             )}
             {industryLabel ? (

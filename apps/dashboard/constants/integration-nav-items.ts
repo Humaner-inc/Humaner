@@ -4,6 +4,7 @@ import { getPlanCapabilities } from '@humaner/shared/plans';
 import { integrationChannelRoute, Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import {
+  HOSTED_EMBED_CHANNEL_IDS,
   INTEGRATION_CHANNELS,
   INTEGRATION_DOCK_ORDER,
   type IntegrationChannel
@@ -19,6 +20,9 @@ export type IntegrationNavTab = {
 };
 
 const CHANNEL_CAPABILITY_GATE: Record<string, keyof PlanCapabilities> = {
+  widget: 'hostedAgent',
+  react: 'hostedAgent',
+  'hosted-link': 'hostedAgent',
   'rest-api': 'apiAccess'
 };
 
@@ -48,6 +52,22 @@ export const INTEGRATION_NAV_TABS: IntegrationNavTab[] =
       channel
     };
   });
+
+/** Hide Native-only embeds on BYO; keep locked API as an upgrade row. */
+export function getVisibleIntegrationNavTabs(
+  orgTier: string
+): IntegrationNavTab[] {
+  return INTEGRATION_NAV_TABS.filter((tab) => {
+    if (!HOSTED_EMBED_CHANNEL_IDS.has(tab.id)) {
+      return true;
+    }
+    return !isIntegrationLocked(tab.id, orgTier);
+  });
+}
+
+export function getDefaultIntegrationChannelId(orgTier: string): string {
+  return getVisibleIntegrationNavTabs(orgTier)[0]?.id ?? 'rest-api';
+}
 
 export function getActiveIntegrationChannelId(pathname: string): string | null {
   const publicPath = toPublicPathname(pathname);

@@ -35,8 +35,8 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
 
   return (
     <ConnectImapForm
-      aliasLimit={overview.mailboxAliasLimit}
-      aliasCount={overview.aliasCount}
+      inboxLimit={overview.mailboxAliasLimit}
+      connectionCount={overview.connectionCount}
       connectedProviderIds={connectedProviderIds}
       connections={connections}
     />

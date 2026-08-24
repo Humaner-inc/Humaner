@@ -59,7 +59,8 @@ export const connectImap = ownerActionClient
       where: { id: organizationId },
       select: {
         tier: true,
-        _count: { select: { mailAliases: true } }
+        includedMessages: true,
+        _count: { select: { mailboxConnections: true } }
       }
     });
 
@@ -67,10 +68,13 @@ export const connectImap = ownerActionClient
       throw new PreConditionError('Organization not found');
     }
 
-    const aliasLimit = getMailboxAliasLimit(organization.tier);
-    if (aliasLimit <= 0) {
+    const inboxLimit = getMailboxAliasLimit(
+      organization.tier,
+      organization.includedMessages
+    );
+    if (inboxLimit <= 0) {
       throw new PreConditionError(
-        'Collaborative mailbox requires Classic or higher'
+        'Collaborative mailbox requires Custom or Humaner'
       );
     }
 
@@ -102,10 +106,10 @@ export const connectImap = ownerActionClient
       );
     }
 
-    const remaining = aliasLimit - organization._count.mailAliases;
-    if (uniqueAliases.length > remaining) {
+    const remaining = inboxLimit - organization._count.mailboxConnections;
+    if (remaining <= 0) {
       throw new ValidationError(
-        `This plan allows ${aliasLimit} alias${aliasLimit === 1 ? '' : 'es'}. You can add ${Math.max(0, remaining)} more.`
+        `This plan allows ${inboxLimit} connected mailbox${inboxLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
       );
     }
 
@@ -163,13 +167,13 @@ export const connectImap = ownerActionClient
     try {
       connection = await prisma.$transaction(
         async (tx) => {
-          const currentAliasCount = await tx.mailAlias.count({
+          const currentConnectionCount = await tx.mailboxConnection.count({
             where: { organizationId }
           });
 
-          if (currentAliasCount + uniqueAliases.length > aliasLimit) {
+          if (currentConnectionCount >= inboxLimit) {
             throw new ValidationError(
-              `This plan allows ${aliasLimit} alias${aliasLimit === 1 ? '' : 'es'}.`
+              `This plan allows ${inboxLimit} connected mailbox${inboxLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
             );
           }
 

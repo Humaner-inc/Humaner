@@ -59,7 +59,7 @@ const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
     label: 'Runbooks',
     icon: FileTextIcon,
     href: (agentId) => agentRunbooksRoute(agentId),
-    requiredCapability: 'agentDesk'
+    requiredCapability: 'runbooks'
   },
   {
     id: 'escalation',
@@ -84,15 +84,21 @@ const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
 /** @deprecated Prefer getAgentNavTabs() */
 export const AGENT_NAV_TABS: AgentNavTab[] = CLOUD_AGENT_NAV_TABS;
 
-const OSS_HIDDEN_AGENT_TABS = new Set<AgentNavTabId>(['knowledge', 'runbooks']);
+const OSS_HIDDEN_AGENT_TABS = new Set<AgentNavTabId>(['runbooks']);
 
-export function getAgentNavTabs(): AgentNavTab[] {
+export function getAgentNavTabs(orgTier?: string): AgentNavTab[] {
+  let tabs = CLOUD_AGENT_NAV_TABS;
   if (isOssDeployment()) {
-    return CLOUD_AGENT_NAV_TABS.filter(
+    tabs = CLOUD_AGENT_NAV_TABS.filter(
       (tab) => !OSS_HIDDEN_AGENT_TABS.has(tab.id)
     );
+  } else if (orgTier) {
+    const capabilities = getPlanCapabilities(orgTier);
+    if (!capabilities.hostedAgent) {
+      tabs = tabs.filter((tab) => tab.id !== 'history');
+    }
   }
-  return CLOUD_AGENT_NAV_TABS;
+  return tabs;
 }
 
 export function getActiveAgentTab(pathname: string): AgentNavTabId | null {

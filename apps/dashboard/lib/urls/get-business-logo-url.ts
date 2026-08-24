@@ -9,6 +9,7 @@ const RELIABLE_SAME_ORIGIN_PREFIXES = [
   '/api/website-logo',
   '/api/agent-images/',
   '/api/agent-home-banners/',
+  '/api/agent-demo-backgrounds/',
   '/api/user-images/',
   '/api/contact-images/',
   '/personas/'

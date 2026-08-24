@@ -85,6 +85,11 @@ export function formatPersonaToneCaption(meta: CharacterMeta): string {
   return meta.id === 'CUSTOM' ? meta.label : `${meta.label} tone`;
 }
 
+/** Card / summary label — Casual, Corporate, Efficient, Custom. */
+export function formatPersonaToneName(meta: CharacterMeta): string {
+  return meta.id === 'CUSTOM' ? 'Custom' : meta.label;
+}
+
 /** Onboarding and other flows outside /dashboard — presets only, no Custom. */
 export const STANDARD_CHARACTER_LIST: CharacterMeta[] = [
   CHARACTER_META.CASUAL,

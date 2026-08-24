@@ -57,8 +57,9 @@ export default async function InboxAliasesPage(): Promise<React.JSX.Element> {
         <div>
           <h1 className="page-title">Aliases</h1>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
-            {overview.aliasCount} of {overview.mailboxAliasLimit} sending
-            addresses · grouped by mailbox
+            {overview.connectionCount} of {overview.mailboxAliasLimit} mailbox
+            {overview.mailboxAliasLimit === 1 ? '' : 'es'} connected · aliases
+            on a mailbox are free
           </p>
         </div>
         <Link

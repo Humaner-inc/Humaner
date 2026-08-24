@@ -92,9 +92,11 @@ OpenAI is a **separate, optional** key. It powers knowledge embeddings and reran
 
 Without `OPENAI_API_KEY` the agent still answers — knowledge retrieval falls back to keyword-only search, which is less accurate on paraphrased questions.
 
-### 6. Knowledge base (optional)
+### 6. Knowledge base — hybrid RAG
 
-Drop markdown files into `data/knowledge/`:
+Add sources in **Agents → Knowledge** (URLs, PDFs, text). Retrieval uses pgvector hybrid search when `OPENAI_API_KEY` is set, then Postgres keyword search, then markdown files.
+
+You can also drop markdown into `data/knowledge/`:
 
 ```bash
 mkdir -p data/knowledge
@@ -134,7 +136,7 @@ Then sign in at `/auth/login`.
 2. **Website** — your company URL
 3. **Business** — name, industry, company size (no docs URL crawl)
 4. **Invite team** — skip if solo
-5. **Agent prompt** — required Custom-style system prompt for your agent behavior . Industry skills + `data/knowledge/` are appended at reply time; they do not replace your prompt.
+5. **Agent prompt** — required Custom-style system prompt for your agent behavior. Industry skills + hybrid RAG (dashboard sources and `data/knowledge/`) are appended at reply time; they do not replace your prompt.
 6. **Launch** — accept operator responsibilities (GDPR compliance and everything data related is on your own)
 
 ### 10. Create agent → copy Agent ID
@@ -243,16 +245,16 @@ Open http://localhost:3001 → follow steps 8–12.
 
 ## What you configure
 
-| Setting             | Where                                                     |
-| ------------------- | --------------------------------------------------------- |
-| Brand / colors      | `apps/dashboard/brand.config.ts` (Humaner)                |
-| LLM API key         | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                   |
-| Email delivery      | `EMAIL_*` in `.env.local`                                 |
-| Agent system prompt | Onboarding → Agent prompt, or Dashboard → Agent → Persona |
-| Industry behavior   | Agent onboarding (`@humaner/customer-support-skills`)     |
-| Knowledge           | `data/knowledge/*.md`                                     |
-| Support email       | Helpdesk settings (async follow-up)                       |
-| Team                | Organization → Members / invitations                      |
+| Setting             | Where                                                       |
+| ------------------- | ----------------------------------------------------------- |
+| Brand / colors      | `apps/dashboard/brand.config.ts` (Humaner)                  |
+| LLM API key         | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                     |
+| Email delivery      | `EMAIL_*` in `.env.local`                                   |
+| Agent system prompt | Onboarding → Agent prompt, or Dashboard → Agent → Persona   |
+| Industry behavior   | Agent onboarding (`@humaner/customer-support-skills`)       |
+| Knowledge           | Dashboard → Agent → Knowledge, and/or `data/knowledge/*.md` |
+| Support email       | Helpdesk settings (async follow-up)                         |
+| Team                | Organization → Members / invitations                        |
 
 ## Handoff and Helpdesk
 
@@ -307,7 +309,7 @@ Report vulnerabilities to dev@humaner.io. Do not file public issues for exploita
 2. Sign up → verify → complete **OSS onboarding** (no Polar popup)
 3. Custom agent prompt saved and visible in agent settings
 4. Nav shows Helpdesk only (no Inbox / Agent Desk / Loops)
-5. Ask about content in `data/knowledge/` → grounded answer
+5. Add a knowledge source (or `data/knowledge/`) → grounded answer
 6. Force handoff (ask for a human) → ticket in Helpdesk
 7. Widget loads from your origin with agent ID
 8. Invite a teammate → member appears under Organization

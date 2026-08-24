@@ -1,6 +1,7 @@
 const APP_IMAGE_PREFIXES = [
   '/api/agent-images/',
   '/api/agent-home-banners/',
+  '/api/agent-demo-backgrounds/',
   '/api/user-images/',
   '/api/contact-images/'
 ] as const;

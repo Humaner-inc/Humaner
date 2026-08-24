@@ -68,18 +68,18 @@ function normalizeEmail(value: string): string {
 }
 
 export function ConnectImapForm({
-  aliasLimit,
-  aliasCount,
+  inboxLimit,
+  connectionCount,
   connectedProviderIds = [],
   connections = []
 }: {
-  aliasLimit: number;
-  aliasCount: number;
+  inboxLimit: number;
+  connectionCount: number;
   connectedProviderIds?: string[];
   connections?: ConnectedMailboxItem[];
 }): React.JSX.Element {
   const router = useRouter();
-  const remaining = Math.max(0, aliasLimit - aliasCount);
+  const remainingInboxes = Math.max(0, inboxLimit - connectionCount);
   const [step, setStep] = React.useState<ConnectStep>('credentials');
   const [providerId, setProviderId] = React.useState<string | null>(null);
   const [mobileShowDetail, setMobileShowDetail] = React.useState(false);
@@ -263,13 +263,6 @@ export function ConnectImapForm({
         return current.filter((item) => item !== address);
       }
 
-      if (current.length >= remaining) {
-        toast.error(
-          `You can add up to ${remaining} more alias${remaining === 1 ? '' : 'es'} on your plan.`
-        );
-        return current;
-      }
-
       return [...current, address];
     });
   };
@@ -298,12 +291,6 @@ export function ConnectImapForm({
 
     setSelectedAliases((current) => {
       if (current.includes(normalized)) return current;
-      if (current.length >= remaining) {
-        toast.error(
-          `You can add up to ${remaining} more alias${remaining === 1 ? '' : 'es'} on your plan.`
-        );
-        return current;
-      }
       return [...current, normalized];
     });
     setManualAlias('');
@@ -393,8 +380,8 @@ export function ConnectImapForm({
             </p>
           ) : (
             <p className="truncate text-xs text-muted-foreground">
-              Sign in with your mailbox credentials · up to {remaining} more
-              alias{remaining === 1 ? '' : 'es'}
+              Sign in with your mailbox credentials · {remainingInboxes} mailbox
+              slot{remainingInboxes === 1 ? '' : 's'} left
             </p>
           )}
         </div>
@@ -606,8 +593,9 @@ export function ConnectImapForm({
                 uses within your inbox.
               </p>
               <p className="font-mono text-xs text-muted-foreground">
-                {selectedAliases.length} of {remaining} alias slot
-                {remaining === 1 ? '' : 's'} selected
+                {selectedAliases.length} alias
+                {selectedAliases.length === 1 ? '' : 'es'} selected · aliases
+                are free redirects
               </p>
             </div>
 
@@ -695,7 +683,7 @@ export function ConnectImapForm({
               </Button>
               <Button
                 type="submit"
-                disabled={isDiscovering || remaining <= 0}
+                disabled={isDiscovering || remainingInboxes <= 0}
                 className="font-mono"
               >
                 {isDiscovering ? (
@@ -735,7 +723,7 @@ export function ConnectImapForm({
       icon={<MailIcon strokeWidth={1.25} />}
       title="Connect mailbox"
       description="Simply sign in using your provider. Inbox is optional, connect when you want shared support and automation inside Humaner."
-      example={`You can add up to ${remaining} more alias${remaining === 1 ? '' : 'es'} on your plan.`}
+      example={`You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`}
       className="h-full min-h-0 border-0 bg-transparent"
     >
       <Button

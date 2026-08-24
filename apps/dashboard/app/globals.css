@@ -949,6 +949,18 @@ input[type='password'],
   transform: scale(var(--brand-swap-start-scale));
 }
 
+.self-host-cta:is(:hover, :focus-visible) .self-host-cta-swap .brand-swap-layer[data-layer='a'] {
+  opacity: 0;
+  filter: blur(var(--brand-swap-blur));
+  transform: scale(var(--brand-swap-start-scale));
+}
+
+.self-host-cta:is(:hover, :focus-visible) .self-host-cta-swap .brand-swap-layer[data-layer='b'] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-swap .brand-swap-layer {
     transition: none !important;
