@@ -25,6 +25,9 @@ module.exports = {
         info: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
         fellix: ['var(--font-geist-sans)', 'system-ui', 'sans-serif']
       },
+      transitionTimingFunction: {
+        'humaner-out': 'cubic-bezier(0.22, 1, 0.36, 1)'
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

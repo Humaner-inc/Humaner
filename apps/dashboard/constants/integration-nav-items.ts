@@ -1,12 +1,12 @@
 import type { PlanCapabilities } from '@humaner/shared/plans';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 
+import { isCustomAgentWorkspace } from '@/constants/agent-nav-items';
 import { integrationChannelRoute, Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   HOSTED_EMBED_CHANNEL_IDS,
   INTEGRATION_CHANNELS,
-  INTEGRATION_DOCK_ORDER,
   type IntegrationChannel
 } from '@/lib/integrations';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
@@ -23,8 +23,16 @@ const CHANNEL_CAPABILITY_GATE: Record<string, keyof PlanCapabilities> = {
   widget: 'hostedAgent',
   react: 'hostedAgent',
   'hosted-link': 'hostedAgent',
-  'rest-api': 'apiAccess'
+  'rest-api': 'apiAccess',
+  'env-example': 'apiAccess'
 };
+
+/** Custom workspaces use Environment instead of Integrations in the sidebar. */
+export function getIntegrationsSidebarLabel(orgTier: string): string {
+  return isCustomAgentWorkspace(orgTier) ? 'Environment' : 'Integrations';
+}
+
+const CUSTOM_ENVIRONMENT_CHANNEL_IDS = ['rest-api', 'env-example'] as const;
 
 export function isIntegrationLocked(
   channelId: string,
@@ -40,24 +48,28 @@ export function isIntegrationLocked(
 }
 
 export const INTEGRATION_NAV_TABS: IntegrationNavTab[] =
-  INTEGRATION_DOCK_ORDER.map((id) => {
-    const channel = INTEGRATION_CHANNELS.find((item) => item.id === id);
-    if (!channel) {
-      throw new Error(`Unknown integration channel: ${id}`);
-    }
-    return {
-      id: channel.id,
-      label: channel.name,
-      href: integrationChannelRoute(channel.id),
-      channel
-    };
-  });
+  INTEGRATION_CHANNELS.map((channel) => ({
+    id: channel.id,
+    label: channel.name,
+    href: integrationChannelRoute(channel.id),
+    channel
+  }));
 
 /** Hide Native-only embeds on BYO; keep locked API as an upgrade row. */
 export function getVisibleIntegrationNavTabs(
   orgTier: string
 ): IntegrationNavTab[] {
+  if (isCustomAgentWorkspace(orgTier)) {
+    return INTEGRATION_NAV_TABS.filter((tab) =>
+      (CUSTOM_ENVIRONMENT_CHANNEL_IDS as readonly string[]).includes(tab.id)
+    );
+  }
+
   return INTEGRATION_NAV_TABS.filter((tab) => {
+    // Env.example is Custom-only — hosted plans use widget/API embed paths instead.
+    if (tab.id === 'env-example') {
+      return false;
+    }
     if (!HOSTED_EMBED_CHANNEL_IDS.has(tab.id)) {
       return true;
     }
@@ -66,6 +78,9 @@ export function getVisibleIntegrationNavTabs(
 }
 
 export function getDefaultIntegrationChannelId(orgTier: string): string {
+  if (isCustomAgentWorkspace(orgTier)) {
+    return 'rest-api';
+  }
   return getVisibleIntegrationNavTabs(orgTier)[0]?.id ?? 'rest-api';
 }
 

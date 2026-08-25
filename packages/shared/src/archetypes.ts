@@ -29,7 +29,7 @@ export function personaSquareFillStyle(color: string): {
 
 export type ArchetypeDefinition = {
   id: PersonalityTone;
-  /** Persona name — Astral, Taleb, Vidi, Custom. */
+  /** Persona name — Astral, Taleb, Vidi, Unique. */
   personaName: string | null;
   /** Tone label — Casual, Corporate, Efficient, Zero preset. */
   name: string;
@@ -104,7 +104,7 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
   },
   {
     id: "custom",
-    personaName: "Custom",
+    personaName: "Unique",
     name: "Zero preset",
     tagline: "Your brand, your rules.",
     description:
@@ -115,12 +115,12 @@ export const ARCHETYPES: ArchetypeDefinition[] = [
     agentMessage:
       "Happy to help. Head to Settings → Account → Reset Password — you'll be back in within a minute. Ping me if anything looks off.",
     agentStyle: "corporate",
-    imageSrc: "/personas/Custom.png",
-    gradientSrc: "/personas/Custom.png",
+    imageSrc: "/personas/Unique.png",
+    gradientSrc: "/personas/Unique.png",
   },
 ];
 
-/** Built-in presets (excludes Custom / zero preset). */
+/** Built-in presets (excludes Unique / zero preset). */
 export const PRESET_ARCHETYPES = ARCHETYPES.filter(
   (archetype) => archetype.id !== "custom",
 );

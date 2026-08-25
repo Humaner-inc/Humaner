@@ -74,7 +74,7 @@ function isOssBlockedPath(pathname: string): boolean {
   });
 }
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
   if (pathname === '/favicon.ico') {

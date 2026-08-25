@@ -1,6 +1,7 @@
 import { AppInfo } from '@/constants/app-info';
 import { agentOverviewRoute, Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { INTEGRATION_CHANNELS } from '@/lib/integrations';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 const EXACT_TITLES: Record<string, string> = {
@@ -92,7 +93,9 @@ export function resolveDashboardPageTitle(pathname: string): string {
 
   const integrationMatch = publicPath.match(/^\/integrations\/([^/]+)$/);
   if (integrationMatch) {
-    return 'Integration';
+    const channelId = integrationMatch[1];
+    const channel = INTEGRATION_CHANNELS.find((item) => item.id === channelId);
+    return channel?.name ?? 'Integration';
   }
 
   if (publicPath.startsWith('/inbox/threads/')) {

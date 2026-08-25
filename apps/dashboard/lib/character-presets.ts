@@ -55,10 +55,10 @@ export const CHARACTER_META: Record<CharacterType, CharacterMeta> = {
   },
   CUSTOM: {
     id: 'CUSTOM',
-    personaName: 'Custom',
+    personaName: 'Unique',
     label: 'Zero preset',
     tagline: 'Your own voice. Write the character prompt from scratch.',
-    image: '/personas/Custom.png',
+    image: '/personas/Unique.png',
     disk: PERSONA_DISK.custom,
     example:
       'Define how your agent speaks: tone, style, and boundaries, in your own words.'
@@ -85,12 +85,12 @@ export function formatPersonaToneCaption(meta: CharacterMeta): string {
   return meta.id === 'CUSTOM' ? meta.label : `${meta.label} tone`;
 }
 
-/** Card / summary label — Casual, Corporate, Efficient, Custom. */
+/** Card / summary label — Casual, Corporate, Efficient, Unique. */
 export function formatPersonaToneName(meta: CharacterMeta): string {
-  return meta.id === 'CUSTOM' ? 'Custom' : meta.label;
+  return meta.id === 'CUSTOM' ? 'Unique' : meta.label;
 }
 
-/** Onboarding and other flows outside /dashboard — presets only, no Custom. */
+/** Onboarding and other flows outside /dashboard — presets only, no Unique. */
 export const STANDARD_CHARACTER_LIST: CharacterMeta[] = [
   CHARACTER_META.CASUAL,
   CHARACTER_META.CORPORATE,
