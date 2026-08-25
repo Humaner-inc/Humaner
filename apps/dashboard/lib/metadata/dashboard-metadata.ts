@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import {
   agentAnalyticsRoute,
+  agentConfigurationRoute,
   agentEscalationRoute,
   agentHistoryRoute,
   agentKnowledgeRoute,
@@ -31,6 +32,7 @@ export function createDashboardPageMetadata(
 export function createAgentTabMetadata(
   agentId: string,
   tab:
+    | 'configuration'
     | 'persona'
     | 'knowledge'
     | 'runbooks'
@@ -40,6 +42,7 @@ export function createAgentTabMetadata(
   title: string
 ): Metadata {
   const pathByTab = {
+    configuration: agentConfigurationRoute(agentId),
     persona: agentPersonaRoute(agentId),
     knowledge: agentKnowledgeRoute(agentId),
     runbooks: agentRunbooksRoute(agentId),

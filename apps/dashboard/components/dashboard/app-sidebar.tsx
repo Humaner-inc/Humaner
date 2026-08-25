@@ -7,6 +7,7 @@ import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
+import { SidebarTrialBanner } from '@/components/dashboard/sidebar-trial-banner';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -21,11 +22,13 @@ import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
+import type { SidebarTrialStatusDto } from '@/types/dtos/sidebar-trial-status-dto';
 
 export type AppSidebarProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   messageUsage: SidebarMessageUsageDto;
+  trialStatus?: SidebarTrialStatusDto | null;
   agents: SidebarAgent[];
   orgTier: string;
   frontierBetaEnabled?: boolean;
@@ -38,6 +41,7 @@ export function AppSidebar({
   profile,
   workspaces,
   messageUsage,
+  trialStatus = null,
   agents,
   orgTier,
   frontierBetaEnabled = true,
@@ -94,6 +98,9 @@ export function AppSidebar({
             usage={messageUsage}
             className="pt-2"
           />
+        ) : null}
+        {!oss && trialStatus ? (
+          <SidebarTrialBanner trial={trialStatus} />
         ) : null}
         <SidebarFooter className="min-w-0 p-2">
           <WorkspaceSwitcher

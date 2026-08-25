@@ -75,6 +75,11 @@ export enum Routes {
   InvitationLogOutToAccept = '/invitations/log-out-to-accept',
 
   Onboarding = '/onboarding',
+  /**
+   * Custom-tier setup guide. Shown once when onboarding completes, and reachable
+   * afterwards from the agent Configuration tab.
+   */
+  OnboardingInitializing = '/onboarding/initializing',
   /** Authenticated account with no workspace membership. */
   NoWorkspace = '/workspace'
 }
@@ -90,6 +95,14 @@ export function agentPersonalityRoute(agentId: string): string {
 
 export function agentOverviewRoute(agentId: string): string {
   return agentPersonaRoute(agentId);
+}
+
+/**
+ * Custom-tier landing: agent identity, endpoints, keys, and guardrails. Cloud
+ * splits the same ground across Persona.
+ */
+export function agentConfigurationRoute(agentId: string): string {
+  return `/agents/${agentId}/configuration`;
 }
 
 export function agentKnowledgeRoute(agentId: string): string {

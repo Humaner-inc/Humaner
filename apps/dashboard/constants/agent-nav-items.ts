@@ -5,6 +5,7 @@ import {
   ClockIcon,
   FileTextIcon,
   ShieldIcon,
+  SlidersHorizontal,
   UserIcon
 } from '@humaner/shared/icons';
 import type {
@@ -15,6 +16,7 @@ import { getPlanCapabilities } from '@humaner/shared/plans';
 
 import {
   agentAnalyticsRoute,
+  agentConfigurationRoute,
   agentEscalationRoute,
   agentHistoryRoute,
   agentKnowledgeRoute,
@@ -26,6 +28,7 @@ import { isOssDeployment } from '@/lib/deployment-mode';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type AgentNavTabId =
+  | 'configuration'
   | 'persona'
   | 'knowledge'
   | 'runbooks'
@@ -41,64 +44,118 @@ export type AgentNavTab = {
   requiredCapability?: keyof PlanCapabilities;
 };
 
+const CONFIGURATION_TAB: AgentNavTab = {
+  id: 'configuration',
+  label: 'Configuration',
+  icon: SlidersHorizontal,
+  href: (agentId) => agentConfigurationRoute(agentId)
+};
+
+const PERSONA_TAB: AgentNavTab = {
+  id: 'persona',
+  label: 'Persona',
+  icon: UserIcon,
+  href: (agentId) => agentPersonaRoute(agentId)
+};
+
+const KNOWLEDGE_TAB: AgentNavTab = {
+  id: 'knowledge',
+  label: 'Knowledge',
+  icon: BookOpenIcon,
+  href: (agentId) => agentKnowledgeRoute(agentId)
+};
+
+const RUNBOOKS_TAB: AgentNavTab = {
+  id: 'runbooks',
+  label: 'Runbooks',
+  icon: FileTextIcon,
+  href: (agentId) => agentRunbooksRoute(agentId),
+  requiredCapability: 'runbooks'
+};
+
+const ESCALATION_TAB: AgentNavTab = {
+  id: 'escalation',
+  label: 'Escalation',
+  icon: ShieldIcon,
+  href: (agentId) => agentEscalationRoute(agentId)
+};
+
+const ANALYTICS_TAB: AgentNavTab = {
+  id: 'analytics',
+  label: 'Analytics',
+  icon: BarChart3Icon,
+  href: (agentId) => agentAnalyticsRoute(agentId)
+};
+
+const HISTORY_TAB: AgentNavTab = {
+  id: 'history',
+  label: 'History',
+  icon: ClockIcon,
+  href: (agentId) => agentHistoryRoute(agentId)
+};
+
+/** Humaner runs the agent, so the workspace is about shaping how it behaves. */
 const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
-  {
-    id: 'persona',
-    label: 'Persona',
-    icon: UserIcon,
-    href: (agentId) => agentPersonaRoute(agentId)
-  },
-  {
-    id: 'knowledge',
-    label: 'Knowledge',
-    icon: BookOpenIcon,
-    href: (agentId) => agentKnowledgeRoute(agentId)
-  },
-  {
-    id: 'runbooks',
-    label: 'Runbooks',
-    icon: FileTextIcon,
-    href: (agentId) => agentRunbooksRoute(agentId),
-    requiredCapability: 'runbooks'
-  },
-  {
-    id: 'escalation',
-    label: 'Escalation',
-    icon: ShieldIcon,
-    href: (agentId) => agentEscalationRoute(agentId)
-  },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: BarChart3Icon,
-    href: (agentId) => agentAnalyticsRoute(agentId)
-  },
-  {
-    id: 'history',
-    label: 'History',
-    icon: ClockIcon,
-    href: (agentId) => agentHistoryRoute(agentId)
-  }
+  PERSONA_TAB,
+  KNOWLEDGE_TAB,
+  RUNBOOKS_TAB,
+  ESCALATION_TAB,
+  ANALYTICS_TAB,
+  HISTORY_TAB
+];
+
+/**
+ * Custom runs the customer's own agent, so there is no hosted persona to edit
+ * and no hosted transcripts to browse. Configuration carries identity,
+ * endpoints, and guardrails; Analytics carries the Intelligence request log.
+ */
+const CUSTOM_AGENT_NAV_TABS: AgentNavTab[] = [
+  CONFIGURATION_TAB,
+  KNOWLEDGE_TAB,
+  RUNBOOKS_TAB,
+  ESCALATION_TAB,
+  ANALYTICS_TAB
+];
+
+/** Self-hosted builds ship without the runbooks engine. */
+const OSS_AGENT_NAV_TABS: AgentNavTab[] = [
+  PERSONA_TAB,
+  KNOWLEDGE_TAB,
+  ESCALATION_TAB,
+  ANALYTICS_TAB,
+  HISTORY_TAB
 ];
 
 /** @deprecated Prefer getAgentNavTabs() */
 export const AGENT_NAV_TABS: AgentNavTab[] = CLOUD_AGENT_NAV_TABS;
 
-const OSS_HIDDEN_AGENT_TABS = new Set<AgentNavTabId>(['runbooks']);
+const ALL_AGENT_TAB_IDS = new Set<AgentNavTabId>([
+  ...CLOUD_AGENT_NAV_TABS.map((tab) => tab.id),
+  ...CUSTOM_AGENT_NAV_TABS.map((tab) => tab.id)
+]);
+
+export function isCustomAgentWorkspace(orgTier?: string): boolean {
+  if (isOssDeployment() || !orgTier) return false;
+  return !getPlanCapabilities(orgTier).hostedAgent;
+}
 
 export function getAgentNavTabs(orgTier?: string): AgentNavTab[] {
-  let tabs = CLOUD_AGENT_NAV_TABS;
   if (isOssDeployment()) {
-    tabs = CLOUD_AGENT_NAV_TABS.filter(
-      (tab) => !OSS_HIDDEN_AGENT_TABS.has(tab.id)
-    );
-  } else if (orgTier) {
-    const capabilities = getPlanCapabilities(orgTier);
-    if (!capabilities.hostedAgent) {
-      tabs = tabs.filter((tab) => tab.id !== 'history');
-    }
+    return OSS_AGENT_NAV_TABS;
   }
-  return tabs;
+  return isCustomAgentWorkspace(orgTier)
+    ? CUSTOM_AGENT_NAV_TABS
+    : CLOUD_AGENT_NAV_TABS;
+}
+
+/** Where the sidebar agent row points, and where bare /agents/[id] lands. */
+export function getDefaultAgentTabRoute(
+  agentId: string,
+  orgTier?: string
+): string {
+  return isCustomAgentWorkspace(orgTier)
+    ? agentConfigurationRoute(agentId)
+    : agentPersonaRoute(agentId);
 }
 
 export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
@@ -121,7 +178,7 @@ export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
     return 'persona';
   }
 
-  if (CLOUD_AGENT_NAV_TABS.some((tab) => tab.id === segment)) {
+  if (ALL_AGENT_TAB_IDS.has(segment as AgentNavTabId)) {
     return segment as AgentNavTabId;
   }
 

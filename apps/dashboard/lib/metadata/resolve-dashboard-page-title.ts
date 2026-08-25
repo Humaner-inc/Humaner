@@ -41,6 +41,7 @@ const EXACT_TITLES: Record<string, string> = {
 };
 
 const AGENT_TAB_TITLES: Record<string, string> = {
+  configuration: 'Configuration',
   persona: 'Persona',
   personality: 'Persona',
   knowledge: 'Knowledge',

@@ -7,6 +7,7 @@ import type { IndustryType } from '@prisma/client';
 import type { SystemPromptAgent } from '@/lib/build-system-prompt';
 import { TtlMap } from '@/lib/cache/ttl-map';
 import { prisma } from '@/lib/db/prisma';
+import { resolveEffectiveForbiddenTopics } from '@/lib/industry-guardrails';
 import { cacheDelete, cacheGet, cacheSet } from '@/lib/redis/upstash';
 
 const CACHE_PREFIX = 'agent:chat:';
@@ -49,6 +50,7 @@ type AgentChatRow = {
   openerStyle: SystemPromptAgent['openerStyle'];
   allowTypos: boolean;
   forbiddenTopics: string[];
+  guardrailsEnabled: boolean;
   fallbackMessage: string;
   isPaused: boolean;
   allowedDomains: string[];
@@ -70,6 +72,7 @@ const agentSelect = {
   openerStyle: true,
   allowTypos: true,
   forbiddenTopics: true,
+  guardrailsEnabled: true,
   fallbackMessage: true,
   isPaused: true,
   allowedDomains: true,
@@ -116,7 +119,7 @@ function toCachedChatAgent(row: AgentChatRow): CachedChatAgent {
     openerStyle: row.openerStyle,
     allowTypos: row.allowTypos,
     typoExceptions: persona.typoExceptions,
-    forbiddenTopics: row.forbiddenTopics,
+    forbiddenTopics: resolveEffectiveForbiddenTopics(row),
     fallbackMessage: row.fallbackMessage,
     isPaused: row.isPaused,
     allowedDomains: row.allowedDomains,

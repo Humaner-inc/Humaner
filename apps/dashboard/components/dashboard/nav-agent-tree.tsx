@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
+import { CodeIcon } from '@humaner/shared/icons';
 import type { CharacterType } from '@prisma/client';
 
 import {
@@ -19,12 +20,20 @@ import { SidebarGroup } from '@/components/ui/sidebar';
 import {
   getActiveAgentTab,
   getAgentNavTabs,
-  isAgentTabLocked
+  getDefaultAgentTabRoute,
+  isAgentTabLocked,
+  isCustomAgentWorkspace
 } from '@/constants/agent-nav-items';
-import { agentPersonaRoute, Routes } from '@/constants/routes';
+import { Routes } from '@/constants/routes';
 import { resolveSidebarAgentAvatar } from '@/lib/agent-avatar';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
+
+/**
+ * Custom brings its own agent, so the sidebar shows the implementation rather
+ * than a Humaner persona name.
+ */
+const CUSTOM_AGENT_LABEL = 'Your agent';
 
 export type SidebarAgent = {
   id: string;
@@ -78,6 +87,24 @@ function AgentAvatarIcon({
   );
 }
 
+function CustomAgentIcon({
+  isPaused
+}: {
+  isPaused?: boolean;
+}): React.JSX.Element {
+  return (
+    <span
+      className={cn(
+        'flex size-4 shrink-0 items-center justify-center border border-border/60 bg-muted/40',
+        dashboardRadiusClassName,
+        isPaused && 'opacity-60 grayscale'
+      )}
+    >
+      <CodeIcon className="size-2.5 text-muted-foreground" />
+    </span>
+  );
+}
+
 function AgentTreeNode({
   agent,
   orgTier,
@@ -93,30 +120,36 @@ function AgentTreeNode({
   const { open, onOpenChange } = useSidebarNavDrawer(
     SIDEBAR_DRAWER_IDS.agent(agent.id)
   );
+  const custom = isCustomAgentWorkspace(orgTier);
   const tabs = getAgentNavTabs(orgTier);
   const capabilityContext = { frontierBetaEnabled };
   const lockedCount = tabs.filter((tab) =>
     isAgentTabLocked(tab, orgTier, capabilityContext)
   ).length;
   const showUpgradeBanner = shouldShowSidebarUpgradeBanner(lockedCount);
+  const label = custom ? CUSTOM_AGENT_LABEL : agent.name;
 
   return (
     <div>
       <SidebarNavParent
         leading={
-          <AgentAvatarIcon
-            name={agent.name}
-            image={agent.image}
-            character={agent.character}
-            isPaused={agent.isPaused}
-          />
+          custom ? (
+            <CustomAgentIcon isPaused={agent.isPaused} />
+          ) : (
+            <AgentAvatarIcon
+              name={agent.name}
+              image={agent.image}
+              character={agent.character}
+              isPaused={agent.isPaused}
+            />
+          )
         }
-        label={agent.name}
+        label={label}
         active={inAgent}
         expanded={open}
         onToggle={() => onOpenChange(!open)}
-        href={agentPersonaRoute(agent.id)}
-        tooltip={agent.name}
+        href={getDefaultAgentTabRoute(agent.id, orgTier)}
+        tooltip={label}
       />
       <SidebarNavChildren expanded={open}>
         {showUpgradeBanner ? (

@@ -9,11 +9,13 @@ import { SidebarOverlayBackdrop } from '@/components/dashboard/sidebar-overlay-b
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
+import type { SidebarTrialStatusDto } from '@/types/dtos/sidebar-trial-status-dto';
 
 export type SidebarRendererProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   messageUsage: SidebarMessageUsageDto;
+  trialStatus?: SidebarTrialStatusDto | null;
   agents: SidebarAgent[];
   orgTier: string;
   frontierBetaEnabled?: boolean;
@@ -26,6 +28,7 @@ export function SidebarRenderer({
   profile,
   workspaces,
   messageUsage,
+  trialStatus = null,
   agents,
   orgTier,
   frontierBetaEnabled = true,
@@ -39,6 +42,7 @@ export function SidebarRenderer({
         profile={profile}
         workspaces={workspaces}
         messageUsage={messageUsage}
+        trialStatus={trialStatus}
         agents={agents}
         orgTier={orgTier}
         frontierBetaEnabled={frontierBetaEnabled}
