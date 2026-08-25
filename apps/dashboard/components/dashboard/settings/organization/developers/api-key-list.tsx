@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { formatApiKeyAccessLabel } from '@/lib/auth/api-key-scopes';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 import type { ApiKeyDto } from '@/types/dtos/api-key-dto';
@@ -146,6 +147,15 @@ function ApiKeyListItem({
             {apiKey.description}
           </span>
           <ApiKeyStatusMark status={status} />
+          <Badge
+            variant="outline"
+            className={cn(
+              'border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground',
+              dashboardRadiusClassName
+            )}
+          >
+            {formatApiKeyAccessLabel(apiKey.scopes)}
+          </Badge>
         </div>
         <p
           suppressHydrationWarning

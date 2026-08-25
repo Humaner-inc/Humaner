@@ -86,6 +86,18 @@ const SIZE_CLASS_MAP: Record<string, number> = {
   "w-5": 20,
 };
 
+export function resolveIconSize(
+  className?: string,
+  size?: number,
+  width?: number,
+  height?: number,
+  defaultSize = 16,
+): number {
+  return (
+    size ?? width ?? height ?? parseSizeFromClassName(className) ?? defaultSize
+  );
+}
+
 function parseSizeFromClassName(className?: string): number | undefined {
   if (!className) {
     return undefined;
@@ -133,12 +145,13 @@ export function createAnimatedIcon(
       const innerRef = useRef<AnimatedIconHandle>(null);
       const wrapperRef = useRef<HTMLSpanElement>(null);
       const frameRef = useRef(0);
-      const resolvedSize =
-        size ??
-        width ??
-        height ??
-        parseSizeFromClassName(className) ??
-        defaultSize;
+      const resolvedSize = resolveIconSize(
+        className,
+        size,
+        width,
+        height,
+        defaultSize,
+      );
 
       const start = useCallback(() => {
         cancelAnimationFrame(frameRef.current);
@@ -207,7 +220,6 @@ export function createAnimatedIcon(
       return (
         <Icon
           {...props}
-          ref={innerRef}
           className={cn(
             "inline-flex shrink-0 items-center justify-center text-current",
             className,

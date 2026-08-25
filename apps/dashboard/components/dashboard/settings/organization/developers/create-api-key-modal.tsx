@@ -7,6 +7,7 @@ import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { createApiKey } from '@/actions/api-keys/create-api-key';
+import { ApiKeyAccessPicker } from '@/components/dashboard/settings/organization/developers/api-key-access-picker';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -46,10 +47,7 @@ import { useEnhancedModal } from '@/hooks/use-enhanced-modal';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { cn } from '@/lib/utils';
-import {
-  createApiKeySchema,
-  type CreateApiKeySchema
-} from '@/schemas/api-keys/create-api-key-schema';
+import { createApiKeySchema } from '@/schemas/api-keys/create-api-key-schema';
 
 export type CreateApiKeyModalProps = NiceModalHocProps;
 
@@ -63,20 +61,36 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
       defaultValues: {
         description: '',
         neverExpires: true,
-        expiresAt: addYears(startOfDay(new Date()), 1)
+        expiresAt: addYears(startOfDay(new Date()), 1),
+        access: 'full',
+        scopes: []
       }
     });
     const title = 'Create API key';
     const description = 'Create a new API key by filling out the form below.';
     const neverExpires = methods.watch('neverExpires');
+    const access = methods.watch('access');
+    const scopes = methods.watch('scopes');
     const canSubmit =
       !methods.formState.isSubmitting &&
       (!methods.formState.isSubmitted || methods.formState.isDirty);
-    const onSubmit: SubmitHandler<CreateApiKeySchema> = async (values) => {
+    const onSubmit: SubmitHandler<{
+      description: string;
+      neverExpires: boolean;
+      access?: 'full' | 'scoped';
+      scopes?: ('intelligence' | 'helpdesk')[];
+      expiresAt?: Date;
+    }> = async (values) => {
       if (!canSubmit) {
         return;
       }
-      const result = await createApiKey(values);
+      const result = await createApiKey({
+        description: values.description,
+        neverExpires: values.neverExpires,
+        expiresAt: values.expiresAt,
+        access: values.access ?? 'full',
+        scopes: values.scopes ?? []
+      });
       if (
         result &&
         !result.serverError &&
@@ -109,6 +123,33 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={methods.control}
+          name="scopes"
+          render={() => (
+            <FormItem className="flex w-full flex-col">
+              <ApiKeyAccessPicker
+                access={access ?? 'full'}
+                scopes={scopes ?? []}
+                disabled={methods.formState.isSubmitting}
+                mutedClassName="text-muted-foreground"
+                onAccessChange={(next) => {
+                  methods.setValue('access', next, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+                onScopesChange={(next) => {
+                  methods.setValue('scopes', next, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -217,7 +258,7 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
         {mdUp ? (
           <Dialog open={modal.visible}>
             <DialogContent
-              className="max-w-sm"
+              className="max-w-md"
               onClose={modal.handleClose}
               onAnimationEndCapture={modal.handleAnimationEndCapture}
             >

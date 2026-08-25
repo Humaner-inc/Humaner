@@ -33,7 +33,7 @@ describe('Public catalog — Self-Host, Custom, Humaner', () => {
     expect(getPlanForTier('classic').includedMessages).toBe(1_000);
     expect(CLASSIC_VOLUME_STEPS).toEqual([1_000, 3_000, 10_000]);
     expect(getPlanForTier('classic').overagePerMessage).toBe(0.03);
-    expect(PAID_CLOUD_TRIAL_DAYS).toBe(7);
+    expect(PAID_CLOUD_TRIAL_DAYS).toBe(3);
     expect(PRICING_PLANS.map((plan) => plan.name)).toEqual([
       'Self-Host',
       'Humaner',

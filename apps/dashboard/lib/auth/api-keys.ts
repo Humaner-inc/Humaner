@@ -1,15 +1,42 @@
+import 'server-only';
+
 import { createHash, randomBytes } from 'crypto';
 import { isBefore } from 'date-fns';
 
+import {
+  API_KEY_LEGACY_LENGTH,
+  API_KEY_LEGACY_PREFIX,
+  API_KEY_LENGTH,
+  API_KEY_PREFIX,
+  API_KEY_RANDOM_SIZE
+} from '@/lib/auth/api-key-constants';
 import { prisma } from '@/lib/db/prisma';
 import { isString } from '@/lib/validation/is-string';
 
-export const API_KEY_PREFIX = 'api_';
-export const API_KEY_RANDOM_SIZE = 16;
-export const API_KEY_LENGTH = API_KEY_RANDOM_SIZE * 2 + API_KEY_PREFIX.length;
+export {
+  API_KEY_LEGACY_LENGTH,
+  API_KEY_LEGACY_PREFIX,
+  API_KEY_LENGTH,
+  API_KEY_PREFIX,
+  API_KEY_RANDOM_SIZE,
+  API_KEY_SNIPPET_PLACEHOLDER
+} from '@/lib/auth/api-key-constants';
 
 export function generateApiKey(): string {
   return `${API_KEY_PREFIX}${randomBytes(API_KEY_RANDOM_SIZE).toString('hex')}`;
+}
+
+export function isApiKeyFormat(token: string): boolean {
+  if (!isString(token)) {
+    return false;
+  }
+  if (token.startsWith(API_KEY_PREFIX)) {
+    return token.length === API_KEY_LENGTH;
+  }
+  if (token.startsWith(API_KEY_LEGACY_PREFIX)) {
+    return token.length === API_KEY_LEGACY_LENGTH;
+  }
+  return false;
 }
 
 export function hashApiKey(apiKey: string): string {
@@ -25,6 +52,7 @@ type SuccessResult = {
   success: true;
   id: string;
   organizationId: string;
+  scopes: string[];
 };
 
 export async function verifyApiKey(token: string) {
@@ -34,11 +62,7 @@ export async function verifyApiKey(token: string) {
       errorMessage: 'Missing API key'
     } as ErrorResult;
   }
-  if (
-    !isString(token) ||
-    !token.startsWith(API_KEY_PREFIX) ||
-    token.length !== API_KEY_LENGTH
-  ) {
+  if (!isApiKeyFormat(token)) {
     return {
       success: false,
       errorMessage: 'Malformed API key'
@@ -49,7 +73,8 @@ export async function verifyApiKey(token: string) {
     select: {
       id: true,
       expiresAt: true,
-      organizationId: true
+      organizationId: true,
+      scopes: true
     }
   });
   if (!apiKey) {
@@ -75,6 +100,7 @@ export async function verifyApiKey(token: string) {
   return {
     success: true,
     id: apiKey.id,
-    organizationId: apiKey.organizationId
+    organizationId: apiKey.organizationId,
+    scopes: apiKey.scopes
   } as SuccessResult;
 }

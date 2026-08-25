@@ -111,7 +111,15 @@ export {
   bindIconHoverToParent,
   createAnimatedIcon,
   ICON_HOVER_PARENT_SELECTOR,
+  resolveIconSize,
 } from "./icon-utils";
+export {
+  BotIconStatic,
+  PlugIconStatic,
+  createStaticLucideIcon,
+  type StaticLucideIcon,
+  type StaticLucideIconProps,
+} from "./static-icons";
 
 export const ActivityIcon = createAnimatedIcon(ActivityIconSource);
 export const AlertCircleIcon = createAnimatedIcon(BadgeAlertIcon);

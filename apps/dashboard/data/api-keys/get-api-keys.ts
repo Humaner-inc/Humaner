@@ -28,6 +28,7 @@ export async function getApiKeys(): Promise<ApiKeyDto[]> {
         select: {
           id: true,
           description: true,
+          scopes: true,
           lastUsedAt: true,
           expiresAt: true
         },
@@ -39,6 +40,7 @@ export async function getApiKeys(): Promise<ApiKeyDto[]> {
       const response: ApiKeyDto[] = apiKeys.map((apiKey) => ({
         id: apiKey.id,
         description: apiKey.description,
+        scopes: apiKey.scopes,
         lastUsedAt: apiKey.lastUsedAt ?? undefined,
         expiresAt: apiKey.expiresAt ?? undefined
       }));

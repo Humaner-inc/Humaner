@@ -736,12 +736,59 @@ input[type='password'],
     radial-gradient(circle at 88% 22%, rgb(224 225 223 / 0.05), transparent 24%);
 }
 
+@keyframes onboarding-product-border-fill {
+  0% {
+    border-top-color: var(--product-border-idle);
+    border-right-color: var(--product-border-idle);
+    border-bottom-color: var(--product-border-idle);
+    border-left-color: var(--product-border-idle);
+  }
+
+  8% {
+    border-top-color: var(--product-accent);
+    border-right-color: var(--product-border-idle);
+    border-bottom-color: var(--product-border-idle);
+    border-left-color: var(--product-border-idle);
+  }
+
+  33% {
+    border-top-color: var(--product-accent);
+    border-right-color: var(--product-accent);
+    border-bottom-color: var(--product-border-idle);
+    border-left-color: var(--product-border-idle);
+  }
+
+  66% {
+    border-top-color: var(--product-accent);
+    border-right-color: var(--product-accent);
+    border-bottom-color: var(--product-accent);
+    border-left-color: var(--product-border-idle);
+  }
+
+  100% {
+    border-top-color: var(--product-accent);
+    border-right-color: var(--product-accent);
+    border-bottom-color: var(--product-accent);
+    border-left-color: var(--product-accent);
+  }
+}
+
 @layer utilities {
   .animate-onboarding-glow {
     animation: onboarding-glow 20s ease-in-out infinite;
   }
   .animate-onboarding-pan {
     animation: onboarding-glow 20s ease-in-out infinite;
+  }
+  .animate-onboarding-product-border-fill {
+    animation: onboarding-product-border-fill 280ms cubic-bezier(0.22, 1, 0.36, 1)
+      forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-onboarding-product-border-fill {
+      animation: none;
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import { startOfDay } from 'date-fns';
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
+import { normalizeApiKeyScopes } from '@/lib/auth/api-key-scopes';
 import { generateApiKey, hashApiKey } from '@/lib/auth/api-keys';
 import {
   getOrganizationCapabilities,
@@ -19,10 +20,17 @@ export const createApiKey = ownerActionClient
   .metadata({ actionName: 'createApiKey' })
   .schema(createApiKeySchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
-    const capabilities = await getOrganizationCapabilities(
-      session.user.organizationId
-    );
-    if (!capabilities.apiAccess) {
+    const [capabilities, organization] = await Promise.all([
+      getOrganizationCapabilities(session.user.organizationId),
+      prisma.organization.findUnique({
+        where: { id: session.user.organizationId },
+        select: { completedOnboarding: true }
+      })
+    ]);
+    // Cloud Custom onboarding creates a key before Polar, while the org is
+    // still on Free. The key cannot call the API until the trial is active.
+    const onboardingAllowsApiKey = organization?.completedOnboarding === false;
+    if (!capabilities.apiAccess && !onboardingAllowsApiKey) {
       const planName = await getOrganizationPlanName(
         session.user.organizationId
       );
@@ -32,10 +40,15 @@ export const createApiKey = ownerActionClient
     }
 
     const apiKey = generateApiKey();
+    const scopes = normalizeApiKeyScopes({
+      access: parsedInput.access,
+      scopes: parsedInput.scopes
+    });
     const created = await prisma.apiKey.create({
       data: {
         description: parsedInput.description,
         hashedKey: hashApiKey(apiKey),
+        scopes,
         expiresAt: parsedInput.neverExpires
           ? null
           : startOfDay(parsedInput.expiresAt ?? new Date()),
@@ -44,6 +57,7 @@ export const createApiKey = ownerActionClient
       select: {
         id: true,
         description: true,
+        scopes: true,
         expiresAt: true
       }
     });
@@ -57,6 +71,7 @@ export const createApiKey = ownerActionClient
       resourceId: created.id,
       after: {
         description: created.description,
+        scopes: created.scopes,
         expiresAt: created.expiresAt?.toISOString() ?? null
       }
     });
