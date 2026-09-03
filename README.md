@@ -23,11 +23,15 @@ This repository do not include Humaner Intelligence, Agent Desk, loops, live cha
 
 ## Features
 
-**Starter agent**: Your Custom system prompt, Industry Skills, markdown knowledge (`data/knowledge/`) and your LLM API.
+**Starter agent**: Your agent config with Humaner skills and Hybrid RAG. (`data/knowledge/`).
 
 **Helpdesk**: Async tickets, urgency, assignees | Handoffs from agents land in a ticket dashboard for your team.
 
 **Organization & team**: Multi-workspace orgs, members, and RBAC under the Humaner product brand.
+
+**Visitor identify**: First name, email, company on the widget | stored on your DB.
+
+**Configuration**: Identity, endpoints and guardrails for your support.
 
 ---
 
@@ -37,7 +41,7 @@ This repository do not include Humaner Intelligence, Agent Desk, loops, live cha
 
 **React SDK**: Drop-in `<HumanerChat />` with the same auth model as the widget.
 
-**REST API**: SSE chat stream and agent metadata for custom clients.
+**REST API**: SSE chat stream, session history, handoff ticket, visitor identify | same public routes as Cloud, Self-Host handlers only.
 
 ## Get started
 
@@ -86,22 +90,27 @@ Open [http://localhost:3001](http://localhost:3001) · set `NEXT_PUBLIC_DEPLOYME
 ```
 apps/
   dashboard/      → Self-Host app (port 3001)
-  documentation/  → docs (OSS pages)
 packages/
   react/          → @humaner/react
   shared/         → plans, URLs, shared types
 ```
 
-## Self-Host vs Humaner Cloud
+Questions → [docs.humaner.io](https://docs.humaner.io) (hosted, not in this repo).
 
-| Self-Host (this repo)                                   | Humaner Cloud                                       |
-| ------------------------------------------------------- | --------------------------------------------------- |
-| Self-Host dashboard (`NEXT_PUBLIC_DEPLOYMENT_MODE=oss`) | Hosted `app.humaner.io`                             |
-| Unique prompt · Industry Skills · markdown KB · BYO LLM | Inboxes · Cross-Session memory · Auto-training loop |
-| Helpdesk, org/team, Widget / React / API                | Agent Desk · Runbooks · Live Chat handle            |
-| No Polar / plan gates                                   | Polar billing · quotas · paid personas              |
+## Self-Host vs Custom vs Native
 
-Details: [`Docs/OPEN_SOURCING.md`](./Docs/OPEN_SOURCING.md) · [`SELFHOST.md`](./SELFHOST.md)
+|                           | Self-Host (your own support)                          | Custom (Humaner infra)                        | Native (Humaner agents)                                 |
+| ------------------------- | ----------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
+| Who runs the agent        | You · BYO LLM                                         | Your stack · Humaner API                      | Humaner · `app.humaner.io`                              |
+| Agent layer               | Unique prompt · Industry Skills · markdown Hybrid RAG | Full Intelligence over `/api/v1/intelligence` | Hosted Intelligence · Personas · memory · auto-training |
+| Desk                      | Human Helpdesk (tickets + handoff)                    | Agent Desk + Human Desk + runbooks + loops    | Same + Live Chat handle + Inboxes                       |
+| Widget / React / chat API | Yes · Self-Host handlers                              | Yes · managed Custom layer                    | Yes · Native pipeline                                   |
+| Visitor identify          | CRM-lite on your Postgres                             | Identity merge + memory                       | Cross-session recognition                               |
+| Billing                   | None                                                  | Polar · Custom plan                           | Polar · Humaner / Frontier                              |
+
+Self-Host doesn't integrates Custom API, Humaner Intelligence or inboxes.
+
+Details: [`SELFHOST.md`](./SELFHOST.md)
 
 ## Brand tokens
 

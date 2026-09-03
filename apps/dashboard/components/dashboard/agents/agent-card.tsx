@@ -28,11 +28,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  agentAnalyticsRoute,
-  agentKnowledgeRoute,
-  agentPersonaRoute
-} from '@/constants/routes';
+import { getDefaultAgentTabRoute } from '@/constants/agent-nav-items';
+import { agentAnalyticsRoute, agentKnowledgeRoute } from '@/constants/routes';
 import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
@@ -284,9 +281,9 @@ export function AgentCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={agentPersonaRoute(agent.id)}>
+              <Link href={getDefaultAgentTabRoute(agent.id)}>
                 <PencilIcon className="mr-2 size-4" />
-                Edit persona
+                {oss ? 'Edit configuration' : 'Edit persona'}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -337,7 +334,7 @@ export function AgentCard({
           >
             {linkToWorkspace ? (
               <Link
-                href={agentPersonaRoute(agent.id)}
+                href={getDefaultAgentTabRoute(agent.id)}
                 className="hover:underline"
               >
                 {agent.name}

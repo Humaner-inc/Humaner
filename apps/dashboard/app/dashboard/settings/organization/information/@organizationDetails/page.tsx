@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { redirect } from 'next/navigation';
-import { getVerticalConfig } from '@/services/training/verticals';
 
 import { OrganizationVerticalTopics } from '@/components/dashboard/home/organization-vertical-topics';
 import { DataImprovementConsentCard } from '@/components/dashboard/settings/organization/information/data-improvement-consent-card';
@@ -14,7 +13,10 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { resolveSelectedVerticalTopics } from '@/lib/organization/vertical-topics';
+import {
+  getVerticalCommonTopics,
+  resolveSelectedVerticalTopics
+} from '@/lib/organization/vertical-topics';
 
 export default async function OrganizationDetailsPage(): Promise<React.JSX.Element> {
   const session = await dedupedAuth();
@@ -36,14 +38,11 @@ export default async function OrganizationDetailsPage(): Promise<React.JSX.Eleme
   ]);
 
   const industry = organization?.industry ?? null;
-  const vertical = industry ? getVerticalConfig(industry) : null;
-  const selectedTopics =
-    industry && vertical
-      ? resolveSelectedVerticalTopics(
-          organization?.verticalTopics,
-          vertical.commonTopics
-        )
-      : [];
+  const commonTopics = industry ? getVerticalCommonTopics(industry) : [];
+  const hasVertical = Boolean(industry && commonTopics.length > 0);
+  const selectedTopics = hasVertical
+    ? resolveSelectedVerticalTopics(organization?.verticalTopics, commonTopics)
+    : [];
 
   return (
     <>
@@ -58,7 +57,7 @@ export default async function OrganizationDetailsPage(): Promise<React.JSX.Eleme
         />
       </AnnotatedSection>
 
-      {industry && vertical ? (
+      {hasVertical && industry ? (
         <>
           <Separator />
           <AnnotatedSection
@@ -67,7 +66,7 @@ export default async function OrganizationDetailsPage(): Promise<React.JSX.Eleme
           >
             <OrganizationVerticalTopics
               industry={industry}
-              commonTopics={vertical.commonTopics}
+              commonTopics={commonTopics}
               selectedTopics={selectedTopics}
             />
           </AnnotatedSection>

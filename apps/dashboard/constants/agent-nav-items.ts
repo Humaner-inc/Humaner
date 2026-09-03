@@ -117,9 +117,12 @@ const CUSTOM_AGENT_NAV_TABS: AgentNavTab[] = [
   ANALYTICS_TAB
 ];
 
-/** Self-hosted builds ship without the runbooks engine. */
+/**
+ * Self-Host ships without hosted Persona (Intelligence) or the runbooks
+ * engine. Configuration carries identity, endpoints, and guardrails.
+ */
 const OSS_AGENT_NAV_TABS: AgentNavTab[] = [
-  PERSONA_TAB,
+  CONFIGURATION_TAB,
   KNOWLEDGE_TAB,
   ESCALATION_TAB,
   ANALYTICS_TAB,
@@ -153,9 +156,10 @@ export function getDefaultAgentTabRoute(
   agentId: string,
   orgTier?: string
 ): string {
-  return isCustomAgentWorkspace(orgTier)
-    ? agentConfigurationRoute(agentId)
-    : agentPersonaRoute(agentId);
+  if (isOssDeployment() || isCustomAgentWorkspace(orgTier)) {
+    return agentConfigurationRoute(agentId);
+  }
+  return agentPersonaRoute(agentId);
 }
 
 export function getActiveAgentTab(pathname: string): AgentNavTabId | null {

@@ -1,0 +1,4 @@
+packages:
+  - 'apps/dashboard'
+  - 'apps/into-markdown'
+  - 'packages/*'
