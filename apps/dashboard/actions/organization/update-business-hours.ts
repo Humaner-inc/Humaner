@@ -16,7 +16,6 @@ export const updateBusinessHours = ownerActionClient
       where: { id: session.user.organizationId },
       select: {
         name: true,
-        polarCustomerId: true,
         businessHours: {
           select: {
             id: true,

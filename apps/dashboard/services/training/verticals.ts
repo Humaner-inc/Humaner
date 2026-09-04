@@ -11,7 +11,7 @@ import type {
   Verbosity
 } from '@prisma/client';
 
-import type { SystemPromptAgent } from '@/lib/build-system-prompt';
+import type { SystemPromptAgent } from '@/lib/agent-persona-types';
 
 // Vertical Configuration for Agent Training / Prompts.Runtime catalog shape > keep in sync with skills `dist/runtime.d.ts`.
 

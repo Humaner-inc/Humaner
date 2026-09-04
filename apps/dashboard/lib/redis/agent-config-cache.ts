@@ -4,7 +4,7 @@ import { getVerticalPersonaPreset } from '@/services/training/verticals';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 import type { IndustryType } from '@prisma/client';
 
-import type { SystemPromptAgent } from '@/lib/build-system-prompt';
+import type { SystemPromptAgent } from '@/lib/agent-persona-types';
 import { TtlMap } from '@/lib/cache/ttl-map';
 import { prisma } from '@/lib/db/prisma';
 import { resolveEffectiveForbiddenTopics } from '@/lib/industry-guardrails';

@@ -23,12 +23,16 @@ export const adminNavItems: NavItem[] = [
     icon: MessageSquare,
     adminOnly: true
   },
-  {
-    title: 'Demo agents',
-    href: Routes.AdminDemos,
-    icon: Sparkles,
-    adminOnly: true
-  }
+  ...(!isOssDeployment()
+    ? [
+        {
+          title: 'Demo agents',
+          href: Routes.AdminDemos,
+          icon: Sparkles,
+          adminOnly: true
+        } satisfies NavItem
+      ]
+    : [])
 ];
 
 export const accountNavItems: NavItem[] = [

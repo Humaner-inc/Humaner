@@ -29,8 +29,8 @@ import {
   authPageTitleClassName,
   authPrimaryButtonClassName
 } from '@/components/auth/auth-form-styles';
+import { useAuthTheme } from '@/components/auth/auth-theme-context';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
-import { useOnboardingTheme } from '@/components/onboarding/onboarding-theme-context';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -90,7 +90,7 @@ export function SignUpCard({
   const intent = methods.watch('intent') ?? 'business_owner';
   const emailLocked = Boolean(invitationEmail);
   const inverted = intent === 'team_member';
-  const { setAppearance } = useOnboardingTheme();
+  const { setAppearance } = useAuthTheme();
 
   React.useLayoutEffect(() => {
     setAppearance(inverted ? 'light' : 'dark');

@@ -20,6 +20,7 @@ import { hashPassword } from '@/lib/auth/password';
 import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { createHash } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 import { signUpSchema } from '@/schemas/auth/sign-up-schema';
@@ -100,7 +101,7 @@ export const signUp = actionClient
         email: parsedInput.email,
         password: parsedInput.password,
         redirect: true,
-        redirectTo: Routes.Onboarding
+        redirectTo: isOssDeployment() ? Routes.Home : Routes.Onboarding
       });
     }
 

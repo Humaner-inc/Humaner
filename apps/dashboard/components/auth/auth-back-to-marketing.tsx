@@ -4,7 +4,7 @@ import * as React from 'react';
 import { ArrowLeftIcon } from '@humaner/shared/icons';
 import { getLandingUrl } from '@humaner/shared/urls';
 
-import { useOptionalOnboardingTheme } from '@/components/onboarding/onboarding-theme-context';
+import { useOptionalAuthTheme } from '@/components/auth/auth-theme-context';
 import { AppInfo } from '@/constants/app-info';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  */
 export function AuthBackToMarketing(): React.JSX.Element {
   const oss = isOssDeployment();
-  const isInverted = useOptionalOnboardingTheme()?.isInverted ?? false;
+  const isInverted = useOptionalAuthTheme()?.isInverted ?? false;
 
   return (
     <a

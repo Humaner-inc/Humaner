@@ -5,9 +5,9 @@ import * as React from 'react';
 import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
 import { AuthHeroPanel } from '@/components/auth/auth-hero-panel';
 import {
-  OnboardingThemeProvider,
-  useOnboardingThemeClasses
-} from '@/components/onboarding/onboarding-theme-context';
+  AuthThemeProvider,
+  useAuthThemeClasses
+} from '@/components/auth/auth-theme-context';
 import { cn } from '@/lib/utils';
 
 export type AuthLayoutFrameProps = React.PropsWithChildren<{
@@ -18,7 +18,7 @@ function AuthLayoutChrome({
   children,
   showBackToMarketing = false
 }: AuthLayoutFrameProps): React.JSX.Element {
-  const theme = useOnboardingThemeClasses();
+  const theme = useAuthThemeClasses();
 
   return (
     <div
@@ -50,10 +50,10 @@ export function AuthLayoutFrame({
   showBackToMarketing = false
 }: AuthLayoutFrameProps): React.JSX.Element {
   return (
-    <OnboardingThemeProvider className="min-h-screen">
+    <AuthThemeProvider className="min-h-screen">
       <AuthLayoutChrome showBackToMarketing={showBackToMarketing}>
         {children}
       </AuthLayoutChrome>
-    </OnboardingThemeProvider>
+    </AuthThemeProvider>
   );
 }

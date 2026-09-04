@@ -95,7 +95,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       select: {
         tier: true,
         includedMessages: true,
-        polarCustomerId: true,
         humanDeskEnabled: true
       }
     }),
@@ -300,20 +299,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
           createdAt: now.toISOString()
         });
       }
-    }
-
-    if (tier !== 'free' && !organization.polarCustomerId) {
-      items.push({
-        id: 'billing-missing-customer',
-        kind: 'billing',
-        title: 'Billing setup',
-        emphasis: 'incomplete',
-        description:
-          'Your workspace is on a paid plan but billing is not fully connected. Review billing to avoid interruptions.',
-        href: Routes.Billing,
-        severity: 'warning',
-        createdAt: now.toISOString()
-      });
     }
   }
 

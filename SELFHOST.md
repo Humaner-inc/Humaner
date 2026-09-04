@@ -114,11 +114,13 @@ pnpm --filter @humaner/dashboard dev
 
 Open http://localhost:3001.
 
+Historical migrations may still `ADD` unused Polar billing columns (`Organization.polarCustomerId`, `User.polarCustomerId`). The Self-Host Prisma schema does not declare them, so the generated client ignores those columns if they exist. Do not drop them from a shared Cloud database.
+
 ### 8. Sign up and verify
 
 1. Navigate to `/auth/sign-up` → Create your account
 2. Enter the 6-digit OTP from email (or terminal — see step 4)
-3. You land on onboarding
+3. You land on Home (Self-Host skips the Cloud onboarding wizard)
 
 **Skip the OTP entirely?** Mark verified in the DB:
 
@@ -245,16 +247,17 @@ Open http://localhost:3001 → follow steps 8–12.
 
 ## What you configure
 
-| Setting             | Where                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| Brand / colors      | `apps/dashboard/brand.config.ts` (Humaner)                  |
-| LLM API key         | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                     |
-| Email delivery      | `EMAIL_*` in `.env.local`                                   |
-| Agent system prompt | Onboarding → Agent prompt, or Dashboard → Agent → Persona   |
-| Industry behavior   | Agent onboarding (`@humaner/customer-support-skills`)       |
-| Knowledge           | Dashboard → Agent → Knowledge, and/or `data/knowledge/*.md` |
-| Support email       | Helpdesk settings (async follow-up)                         |
-| Team                | Organization → Members / invitations                        |
+| Setting              | Where                                                       |
+| -------------------- | ----------------------------------------------------------- |
+| Brand / colors       | `apps/dashboard/brand.config.ts` (Humaner)                  |
+| LLM API key          | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                     |
+| Email delivery       | `EMAIL_*` in `.env.local`                                   |
+| Agent system prompt  | Onboarding → Agent prompt, or Dashboard → Agent → Persona   |
+| Industry behavior    | Agent onboarding (`@humaner/customer-support-skills`)       |
+| Knowledge            | Dashboard → Agent → Knowledge, and/or `data/knowledge/*.md` |
+| Support email        | Helpdesk settings (async follow-up)                         |
+| Ticket email replies | Helpdesk settings → connect IMAP/SMTP mailbox               |
+| Team                 | Organization → Members / invitations                        |
 
 ## Handoff and Helpdesk
 
@@ -276,6 +279,8 @@ SSE final event when escalating:
 ```
 
 Headless path: `POST /api/v1/handoff/ticket` with Agent ID + summary + urgency (Bearer API key). Urgency values: `low` | `medium` | `high` | `critical`.
+
+To reply to ticket customers by email from Humaner, connect your mail provider in **Helpdesk → Settings**. IMAP/SMTP credentials are stored encrypted (`AUTH_SECRET`). Self-Host does not include the Cloud Inbox product (shared mailbox UI, IMAP idle sync) — only outbound ticket replies from the connected address.
 
 ## Google / GitHub OAuth (optional)
 
@@ -306,13 +311,12 @@ Report vulnerabilities to dev@humaner.io. Do not file public issues for exploita
 ## Verification checklist
 
 1. DB migrated + email (or console OTP) working
-2. Sign up → verify → complete **OSS onboarding** (no Polar popup)
+2. Sign up → verify or create a local user.
 3. Custom agent prompt saved and visible in agent settings
-4. Nav shows Helpdesk only (no Inbox / Agent Desk / Loops)
-5. Add a knowledge source (or `data/knowledge/`) → grounded answer
-6. Force handoff (ask for a human) → ticket in Helpdesk
-7. Widget loads from your origin with agent ID
-8. Invite a teammate → member appears under Organization
+4. Add your knowledge source (or `data/knowledge/`)
+5. Enable handoff (ask for a human) → ticket in Helpdesk
+6. Widget loads from your origin with agent ID
+7. Invite a teammate → member appears under Organization
 
 ## Packages
 

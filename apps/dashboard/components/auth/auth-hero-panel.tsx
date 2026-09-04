@@ -15,7 +15,7 @@ import { TrayArrowDownIcon } from '@phosphor-icons/react/dist/ssr/TrayArrowDown'
 import { UsersThree } from '@phosphor-icons/react/dist/ssr/UsersThree';
 import { motion, useReducedMotion } from 'motion/react';
 
-import { useOnboardingTheme } from '@/components/onboarding/onboarding-theme-context';
+import { useAuthTheme } from '@/components/auth/auth-theme-context';
 
 const TILE = {
   gray: '#e0e1df',
@@ -135,7 +135,7 @@ const LIGHT_EASE = [0.22, 1, 0.36, 1] as const;
 /** Support-layer tiles plus product features, rotating one-by-one like a wheel. */
 export function AuthHeroPanel(): React.JSX.Element {
   const reducedMotion = useReducedMotion();
-  const { isInverted } = useOnboardingTheme();
+  const { isInverted } = useAuthTheme();
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {

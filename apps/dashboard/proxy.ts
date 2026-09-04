@@ -70,6 +70,18 @@ function isOssBlockedPath(pathname: string): boolean {
     if (path === '/inbox' || path.startsWith('/inbox/')) {
       return true;
     }
+    if (path === '/onboarding' || path.startsWith('/onboarding/')) {
+      return true;
+    }
+    if (path === '/knowledge' || path.startsWith('/knowledge/')) {
+      return true;
+    }
+    if (path === '/admin/demos' || path.startsWith('/admin/demos/')) {
+      return true;
+    }
+    if (/^\/agents\/[^/]+\/(persona|knowledge|runbooks)(\/|$)/.test(path)) {
+      return true;
+    }
     return false;
   });
 }
@@ -157,6 +169,8 @@ export const config = {
     '/knowledge',
     '/human-desk/:path*',
     '/training',
+    '/onboarding',
+    '/onboarding/:path*',
     '/admin/:path*',
     '/workspace',
     '/dashboard/:path*',

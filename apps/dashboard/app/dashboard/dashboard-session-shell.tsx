@@ -91,26 +91,43 @@ export async function DashboardSessionShell({
     }
   });
 
+  const oss = isOssDeployment();
+
   if (!checkSession(session)) {
-    if (!userFromDb?.completedOnboarding) {
+    if (!oss && !userFromDb?.completedOnboarding) {
       return redirect(Routes.Onboarding);
     }
     return redirect(Routes.NoWorkspace);
   }
 
-  // Owners must finish workspace setup. Teammates only need their own
-  // onboarding — they should not be trapped in the business-owner wizard.
+  // Cloud: owners finish the paid wizard; teammates finish member onboarding.
+  // Self-Host has no onboarding export — mark flags complete and continue.
   const isWorkspaceOwner = userFromDb!.workspaceRole === WorkspaceRole.OWNER;
   if (
     !userFromDb!.completedOnboarding ||
     (isWorkspaceOwner && !userFromDb!.organization!.completedOnboarding)
   ) {
-    return redirect(Routes.Onboarding);
+    if (oss) {
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: session.user.id },
+          data: { completedOnboarding: true }
+        }),
+        ...(userFromDb!.organization
+          ? [
+              prisma.organization.update({
+                where: { id: session.user.organizationId },
+                data: { completedOnboarding: true }
+              })
+            ]
+          : [])
+      ]);
+    } else {
+      return redirect(Routes.Onboarding);
+    }
   }
 
   await requirePathAccessFromHeaders();
-
-  const oss = isOssDeployment();
   const canDesk = canAccessPageKey(
     {
       role: userFromDb!.role,
@@ -299,7 +316,7 @@ export async function DashboardSessionShell({
           <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
         ) : null}
         <SidebarProvider>
-          <OrgRealtimeBridge enabled={!isOssDeployment()} />
+          <OrgRealtimeBridge />
           <ComposeMailProvider inboxes={mailInboxes}>
             <DashboardDockProvider>
               <DockNotificationsProvider

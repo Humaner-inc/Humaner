@@ -396,12 +396,12 @@ input[type='password'],
   transition: background-color 99999s ease-out 0s;
 }
 
-.onboarding-root[data-onboarding-appearance='light'] .auth-input:-webkit-autofill,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light']) .auth-input:-webkit-autofill,
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .auth-input:-webkit-autofill:hover,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .auth-input:-webkit-autofill:focus,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .auth-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   box-shadow: 0 0 0 1000px #fcf4ec inset !important;
@@ -449,13 +449,13 @@ input[type='password'],
   caret-color: #0A0D0D;
 }
 
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-input:-webkit-autofill,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-input:-webkit-autofill:hover,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-input:-webkit-autofill:focus,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
@@ -463,16 +463,16 @@ input[type='password'],
   caret-color: #fcf4ec;
 }
 
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:hover,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:focus,
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
@@ -483,13 +483,13 @@ input[type='password'],
 }
 
 /* Self-Host Acme — zinc autofill (no cream fracture fill) */
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-input:-webkit-autofill,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-input:-webkit-autofill:hover,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-input:-webkit-autofill:focus,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
   box-shadow: 0 0 0 1000px #ffffff inset !important;
@@ -497,16 +497,16 @@ input[type='password'],
   caret-color: #0A0D0D;
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:hover,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:focus,
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field
   .onboarding-highlighted-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
@@ -528,12 +528,12 @@ input[type='password'],
   }
 }
 
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-input--highlight {
   animation: onboarding-input-highlight-inverted 0.55s ease-out;
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-input--highlight {
   animation: onboarding-input-highlight-acme 0.55s ease-out;
 }
@@ -567,43 +567,43 @@ input[type='password'],
 }
 
 /* Self-Host Acme — zinc paste/char highlight (not Humaner accent #e0e1df) */
-.onboarding-root[data-onboarding-appearance='acme'] .highlighted-text-field {
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) .highlighted-text-field {
   --highlighted-field-accent: #18181b;
   --highlighted-field-accent-strong: rgb(24 24 27 / 0.18);
   --highlighted-field-accent-soft: rgb(24 24 27 / 0.08);
   --highlighted-field-accent-selection: rgb(24 24 27 / 0.18);
 }
 
-.onboarding-root[data-onboarding-appearance='acme'] ::selection,
-.onboarding-root[data-onboarding-appearance='acme'] *::selection {
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) ::selection,
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) *::selection {
   background-color: rgb(24 24 27 / 0.18);
   color: #0A0D0D;
 }
 
-.onboarding-root[data-onboarding-appearance='acme'] ::-moz-selection,
-.onboarding-root[data-onboarding-appearance='acme'] *::-moz-selection {
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) ::-moz-selection,
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) *::-moz-selection {
   background-color: rgb(24 24 27 / 0.18);
   color: #0A0D0D;
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field__char--highlight {
   border-radius: 0.25rem;
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field[data-tone='light']
   .highlighted-text-field__overlay {
   color: #0A0D0D;
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field[data-tone='light']
   .highlighted-text-field__placeholder {
   color: rgb(113 113 122);
 }
 
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .highlighted-text-field[data-tone='light']
   .highlighted-text-field__input {
   caret-color: #0A0D0D;
@@ -625,19 +625,19 @@ input[type='password'],
 .onboarding-scroll::-webkit-scrollbar-thumb:hover {
   background: rgb(7 6 7 / 0.2);
 }
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-scroll::-webkit-scrollbar-thumb {
   background: rgb(255 255 255 / 0.12);
 }
-.onboarding-root[data-onboarding-appearance='light']
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
   .onboarding-scroll::-webkit-scrollbar-thumb:hover {
   background: rgb(255 255 255 / 0.2);
 }
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-scroll::-webkit-scrollbar-thumb {
   background: rgb(161 161 170 / 0.45);
 }
-.onboarding-root[data-onboarding-appearance='acme']
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme'])
   .onboarding-scroll::-webkit-scrollbar-thumb:hover {
   background: rgb(113 113 122 / 0.55);
 }
@@ -645,7 +645,7 @@ input[type='password'],
   scrollbar-width: thin;
   scrollbar-color: rgb(7 6 7 / 0.12) transparent;
 }
-.onboarding-root[data-onboarding-appearance='acme'] .onboarding-scroll {
+:is(.onboarding-root[data-onboarding-appearance='acme'], .auth-root[data-auth-appearance='acme']) .onboarding-scroll {
   scrollbar-color: rgb(161 161 170 / 0.45) transparent;
 }
 
@@ -716,7 +716,7 @@ input[type='password'],
   pointer-events: none;
 }
 
-.onboarding-root[data-onboarding-appearance='light'] .grain-ambient {
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light']) .grain-ambient {
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 45%,
@@ -725,12 +725,12 @@ input[type='password'],
     );
 }
 
-.onboarding-root[data-onboarding-appearance='light'] .grain-ambient::before {
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light']) .grain-ambient::before {
   opacity: 0.14;
   mix-blend-mode: multiply;
 }
 
-.onboarding-root[data-onboarding-appearance='light'] .grain-ambient::after {
+:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light']) .grain-ambient::after {
   background:
     radial-gradient(circle at 15% 85%, rgb(232 168 152 / 0.06), transparent 28%),
     radial-gradient(circle at 88% 22%, rgb(224 225 223 / 0.05), transparent 24%);

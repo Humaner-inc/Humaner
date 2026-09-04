@@ -1,0 +1,1635 @@
+// Self-Host Prisma schema (josh renames this onto schema.prisma).
+// Polar billing columns are Cloud-only and live in the private schema.prisma.
+
+generator client {
+  provider = "prisma-client-js"
+  // Generate beside the app so TypeScript always picks up the schema on disk,
+  // not a stale copy inside the pnpm store.
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---- Enumerations ---- //
+
+enum ActionType {
+  CREATE @map("create")
+  UPDATE @map("update")
+  DELETE @map("delete")
+}
+
+enum ActorType {
+  SYSTEM @map("system")
+  MEMBER @map("member")
+  API    @map("api")
+}
+
+/// Actor for organization audit logs (Layer 12). Distinct from ContactActivity ActorType.
+enum AuditActorType {
+  USER   @map("user")
+  SYSTEM @map("system")
+}
+
+enum ContactRecord {
+  PERSON  @map("person")
+  COMPANY @map("company")
+}
+
+enum ContactStage {
+  LEAD           @map("lead")
+  QUALIFIED      @map("qualified")
+  OPPORTUNITY    @map("opportunity")
+  PROPOSAL       @map("proposal")
+  IN_NEGOTIATION @map("inNegotiation")
+  LOST           @map("lost")
+  WON            @map("won")
+}
+
+enum ContactTaskStatus {
+  OPEN      @map("open")
+  COMPLETED @map("completed")
+}
+
+enum DayOfWeek {
+  SUNDAY    @map("sunday")
+  MONDAY    @map("monday")
+  TUESDAY   @map("tuesday")
+  WEDNESDAY @map("wednesday")
+  THURSDAY  @map("thursday")
+  FRIDAY    @map("friday")
+  SATURDAY  @map("saturday")
+}
+
+enum FeedbackCategory {
+  SUGGESTION @map("suggestion")
+  PROBLEM    @map("problem")
+  QUESTION   @map("question")
+}
+
+enum SupportTicketStatus {
+  OPEN        @map("open")
+  IN_PROGRESS @map("inProgress")
+  RESOLVED    @map("resolved")
+  CLOSED      @map("closed")
+}
+
+enum WorkspaceJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InvitationStatus {
+  PENDING  @map("pending")
+  ACCEPTED @map("accepted")
+  REVOKED  @map("revoked")
+}
+
+enum Role {
+  MEMBER @map("member")
+  ADMIN  @map("admin")
+}
+
+enum WorkspaceRole {
+  OWNER    @map("owner")
+  TEAMMATE @map("teammate")
+}
+
+enum WebhookTrigger {
+  CONTACT_CREATED @map("contactCreated")
+  CONTACT_UPDATED @map("contactUpdated")
+  CONTACT_DELETED @map("contactDeleted")
+}
+
+// ---- Models ---- //
+
+model Account {
+  id                String   @id(map: "PK_Account") @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "IX_Account_userId")
+}
+
+model ApiKey {
+  id             String       @id(map: "PK_ApiKey") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  description    String       @db.VarChar(70)
+  hashedKey      String       @unique()
+  /// Empty = full access (legacy keys). Otherwise `intelligence` and/or `helpdesk`.
+  scopes         String[]     @default([])
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId], map: "IX_ApiKey_organizationId")
+}
+
+model AuthenticatorApp {
+  id            String   @id(map: "PK_AuthenticatorApp") @default(uuid()) @db.Uuid
+  userId        String   @unique @db.Uuid
+  accountName   String   @db.VarChar(255)
+  issuer        String   @db.VarChar(255)
+  secret        String   @db.VarChar(255)
+  recoveryCodes String   @db.VarChar(1024)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId], map: "IX_AuthenticatorApp_userId")
+}
+
+model ChangeEmailRequest {
+  id        String   @id(map: "PK_ChangeEmailRequest") @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  email     String
+  expires   DateTime
+  valid     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId], map: "IX_ChangeEmailRequest_userId")
+}
+
+model Contact {
+  id             String             @id(map: "PK_Contact") @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  record         ContactRecord      @default(PERSON)
+  image          String?            @db.VarChar(2048)
+  name           String             @db.VarChar(255)
+  email          String?            @db.VarChar(255)
+  address        String?            @db.VarChar(255)
+  phone          String?            @db.VarChar(32)
+  stage          ContactStage       @default(LEAD)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  activities     ContactActivity[]
+  comments       ContactComment[]
+  notes          ContactNote[]
+  pageVisits     ContactPageVisit[]
+  tags           ContactTag[]
+  favorites      Favorite[]
+  tasks          ContactTask[]
+
+  @@index([organizationId], map: "IX_Contact_organizationId")
+}
+
+model ContactActivity {
+  id         String     @id(map: "PK_ContactActivity") @default(uuid()) @db.Uuid
+  contactId  String     @db.Uuid
+  actionType ActionType
+  actorId    String     @db.VarChar(255)
+  actorType  ActorType
+  metadata   Json?
+  occurredAt DateTime   @default(now())
+  contact    Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([contactId], map: "IX_ContactActivity_contactId")
+  @@index([occurredAt], map: "IX_ContactActivity_occurredAt")
+}
+
+model ContactComment {
+  id        String   @id(map: "PK_ContactComment") @default(uuid()) @db.Uuid
+  contactId String   @db.Uuid
+  userId    String   @db.Uuid
+  text      String   @db.VarChar(2000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([contactId], map: "IX_ContactComment_contactId")
+  @@index([userId], map: "IX_ContactComment_userId")
+}
+
+model ContactImage {
+  id          String  @id(map: "PK_ContactImage") @default(uuid()) @db.Uuid
+  contactId   String  @db.Uuid
+  data        Bytes?
+  contentType String? @db.VarChar(255)
+  hash        String? @db.VarChar(64)
+
+  @@index([contactId], map: "IX_ContactImage_contactId")
+}
+
+model ContactNote {
+  id        String   @id(map: "PK_ContactNote") @default(uuid()) @db.Uuid
+  contactId String   @db.Uuid
+  userId    String   @db.Uuid
+  text      String?  @db.VarChar(8000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([contactId], map: "IX_ContactNote_contactId")
+  @@index([userId], map: "IX_ContactNote_userId")
+}
+
+model ContactPageVisit {
+  id        String   @id(map: "PK_ContactPageVisit") @default(uuid()) @db.Uuid
+  contactId String   @db.Uuid
+  userId    String?  @db.Uuid
+  timestamp DateTime @default(now())
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([contactId], map: "IX_ContactPageVisit_contactId")
+  @@index([userId], map: "IX_ContactPageVisit_userId")
+}
+
+model ContactTag {
+  id       String    @id(map: "PK_ContactTag") @default(uuid()) @db.Uuid
+  text     String    @unique @db.VarChar(128)
+  contacts Contact[]
+}
+
+model ContactTask {
+  id          String            @id(map: "PK_ContactTask") @default(uuid()) @db.Uuid
+  contactId   String            @db.Uuid
+  title       String            @db.VarChar(255)
+  description String?           @db.VarChar(8000)
+  status      ContactTaskStatus @default(OPEN)
+  dueDate     DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  contact     Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([contactId], map: "IX_ContactTask_contactId")
+}
+
+model Favorite {
+  id        String  @id(map: "PK_Favorite") @default(uuid()) @db.Uuid
+  userId    String  @db.Uuid
+  contactId String  @db.Uuid
+  order     Int     @default(0)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId], map: "IX_Favorite_userId")
+  @@index([contactId], map: "IX_Favorite_contactId")
+}
+
+model Feedback {
+  id             String           @id(map: "PK_Feedback") @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String?          @db.Uuid
+  category       FeedbackCategory @default(SUGGESTION)
+  message        String           @db.VarChar(4000)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([organizationId], map: "IX_Feedback_organizationId")
+  @@index([userId], map: "IX_Feedback_userId")
+}
+
+model Invitation {
+  id             String           @id(map: "PK_Invitation") @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  token          String           @default(uuid()) @db.Uuid
+  email          String           @db.VarChar(255)
+  role           Role             @default(MEMBER)
+  allowedPages   String[]         @default([])
+  status         InvitationStatus @default(PENDING)
+  lastSentAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId], map: "IX_Invitation_organizationId")
+  @@index([token], map: "IX_Invitation_token")
+}
+
+model Notification {
+  id        String    @id(map: "PK_Notification") @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  subject   String?   @db.VarChar(128)
+  content   String    @db.VarChar(8000)
+  link      String?   @db.VarChar(2000)
+  seenAt    DateTime?
+  dismissed Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId], map: "IX_Notification_userId")
+}
+
+model Organization {
+  id                         String                   @id(map: "PK_Organization") @default(uuid()) @db.Uuid
+  name                       String                   @db.VarChar(255)
+  address                    String?                  @db.VarChar(255)
+  phone                      String?                  @db.VarChar(32)
+  email                      String?                  @db.VarChar(255)
+  website                    String?                  @db.VarChar(2000)
+  logoUrl                    String?                  @db.VarChar(2000)
+  linkedInProfile            String?                  @db.VarChar(2000)
+  instagramProfile           String?                  @db.VarChar(2000)
+  youTubeChannel             String?                  @db.VarChar(2000)
+  xProfile                   String?                  @db.VarChar(2000)
+  tikTokProfile              String?                  @db.VarChar(2000)
+  facebookPage               String?                  @db.VarChar(2000)
+  industry                   IndustryType?
+  targetAudience             TargetAudience?
+  companySize                CompanySize?
+  docsUrl                    String?                  @db.VarChar(2000)
+  /// Selected vertical common-topics describing the org (Workspace → Persona).
+  /// Seeded from the vertical catalog at onboarding / industry change.
+  verticalTopics             String[]                 @default([])
+  onboardingIntegrations     String[]                 @default([])
+  completedOnboarding        Boolean                  @default(false)
+  /// Denormalized mirror of the owning account's plan (`owner.tier`). The
+  /// account (owner User) is the single source of truth — see `ownerId`.
+  /// Kept in sync so every existing read of `organization.tier` continues to
+  /// resolve correctly without a join.
+  tier                       String                   @default("free") @db.VarChar(32)
+  /// Denormalized mirror of `owner.includedMessages` (selected message bundle).
+  includedMessages           Int                      @default(50)
+  /// The workspace's owner (account manager). All workspaces sharing the same
+  /// `ownerId` share one plan — see `User.tier`.
+  ownerId                    String?                  @db.Uuid
+  tosAcceptedAt              DateTime?
+  /// Required acceptance of the Data Processing Agreement at workspace launch.
+  dpaAcceptedAt              DateTime?
+  /// Opt-in for optional product-improvement uses of workspace data (null = not yet prompted).
+  /// Covers anonymised Skills / Runbooks / knowledge-gap patterns only — not model fine-tuning.
+  /// Distinct from the DPA (processor terms), which is required and recorded in dpaAcceptedAt.
+  dataImprovementConsent     Boolean?
+  dataImprovementConsentAt   DateTime?
+  dataImprovementConsentById String?                  @db.Uuid
+  /// Separate opt-in for contributing anonymised patterns to Humaner model fine-tuning.
+  /// Default false. Distinct purpose from dataImprovementConsent (GDPR purpose limitation).
+  modelTrainingConsent       Boolean                  @default(false)
+  modelTrainingConsentAt     DateTime?
+  modelTrainingConsentById   String?                  @db.Uuid
+  humanDeskEnabled           Boolean                  @default(false)
+  liveChatEnabled            Boolean                  @default(false)
+  liveChatTimeoutMinutes     Int                      @default(20)
+  liveChatTimeoutMessage     String?                  @db.VarChar(2000)
+  /// When true, Human Desk can send email replies from noreply@humaner.io with org branding.
+  /// Default false — agents reply from their own email (connected inbox or mailbox).
+  noreplyEmailRepliesEnabled Boolean                  @default(false)
+  /// Classic opt-in for Frontier runtime features while paid Frontier is Coming Soon.
+  /// Mirrored from the owning account (`User.frontierBetaEnabled`).
+  frontierBetaEnabled        Boolean                  @default(false)
+  /// Agent Loops mode: auto-send solutions or queue for human approval.
+  agentLoopMode              AgentLoopMode            @default(APPROVAL)
+  supportEmail               String?                  @db.VarChar(255)
+  accentColor                String?                  @db.VarChar(7)
+  /// Ordered ticket-creation form fields for the widget handoff popup.
+  /// JSON array of `{ key, label }` — name/email are always present and locked.
+  ticketFormFields           Json?
+  agents                     Agent[]
+  agentIntegrations          AgentIntegration[]
+  apiKeys                    ApiKey[]
+  businessHours              WorkHours[]
+  contacts                   Contact[]
+  escalationPolicies         EscalationPolicy[]
+  feedback                   Feedback[]
+  handoffTickets             HandoffTicket[]
+  invitations                Invitation[]
+  mailboxConnections         MailboxConnection[]
+  mailAliases                MailAlias[]
+  mailThreads                MailThread[]
+  mailTags                   MailTag[]
+  memberships                OrganizationMembership[]
+  joinRequests               WorkspaceJoinRequest[]
+  resolutionClusters         ResolutionCluster[]
+  runbooks                   Runbook[]
+  teamMemberProfiles         TeamMemberProfile[]
+  users                      User[]
+  visitorMetadata            VisitorMetadata[]
+  webhooks                   Webhook[]
+  owner                      User?                    @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([ownerId], map: "IX_Organization_ownerId")
+}
+
+/// Immutable append-only security audit trail (Layer 12).
+/// No FK to Organization — records must survive workspace deletion for the
+/// 2-year retention window. Application and DB triggers forbid UPDATE/DELETE
+/// except for the retention purge cron (via `app.allow_audit_purge`).
+model AuditLog {
+  id             String         @id(map: "PK_AuditLog") @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  eventType      String         @db.VarChar(64)
+  actorType      AuditActorType @default(USER)
+  actorId        String?        @db.VarChar(255)
+  actorEmail     String?        @db.VarChar(255)
+  ipAddress      String?        @db.VarChar(64)
+  resourceType   String?        @db.VarChar(64)
+  resourceId     String?        @db.VarChar(255)
+  beforeState    Json?
+  afterState     Json?
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)], map: "IX_AuditLog_organizationId_createdAt")
+  @@index([organizationId, eventType], map: "IX_AuditLog_organizationId_eventType")
+}
+
+model ResetPasswordRequest {
+  id        String   @id(map: "PK_ResetPasswordRequest") @default(uuid()) @db.Uuid
+  email     String
+  expires   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email], map: "IX_ResetPasswordRequest_email")
+}
+
+model Session {
+  id           String   @id(map: "PK_Session") @default(uuid()) @db.Uuid
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId], map: "IX_Session_userId")
+}
+
+model User {
+  id                           String                   @id(map: "PK_User") @default(uuid()) @db.Uuid
+  organizationId               String?                  @db.Uuid
+  image                        String?                  @db.VarChar(2048)
+  name                         String                   @db.VarChar(64)
+  email                        String?                  @unique
+  emailVerified                DateTime?
+  password                     String?                  @db.VarChar(60)
+  lastLogin                    DateTime?
+  role                         Role                     @default(MEMBER)
+  workspaceRole                WorkspaceRole            @default(TEAMMATE)
+  allowedPages                 String[]                 @default([])
+  phone                        String?                  @db.VarChar(32)
+  locale                       String                   @default("en-US") @db.VarChar(8)
+  completedOnboarding          Boolean                  @default(false)
+  enabledContactsNotifications Boolean                  @default(false)
+  enabledInboxNotifications    Boolean                  @default(false)
+  enabledWeeklySummary         Boolean                  @default(false)
+  enabledNewsletter            Boolean                  @default(false)
+  enabledProductUpdates        Boolean                  @default(false)
+  /// Desk + mail activity prefs: channels (in-app/email) and filters (urgency/tags).
+  notificationPreferences      Json?
+  inboxConnectPromptPending    Boolean                  @default(false)
+  /// Classic opt-in for Frontier runtime features while paid Frontier is Coming Soon.
+  /// Mirrored onto owned organizations.
+  frontierBetaEnabled          Boolean                  @default(false)
+  /// The account's plan. Every workspace (Organization) this user owns
+  /// mirrors this value — see `Organization.tier`.
+  tier                         String                   @default("free") @db.VarChar(32)
+  /// Selected message bundle allowance for the account.
+  /// Mirrored onto owned organizations.
+  includedMessages             Int                      @default(50)
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+  accounts                     Account[]
+  authenticatorApp             AuthenticatorApp?
+  changeEmailRequests          ChangeEmailRequest[]
+  comments                     ContactComment[]
+  favorites                    Favorite[]
+  feedback                     Feedback[]
+  notes                        ContactNote[]
+  notifications                Notification[]
+  /// Active workspace pointer only — membership is `OrganizationMembership`.
+  /// SetNull so deleting a workspace detaches multi-workspace users instead of
+  /// deleting their account (and their access to other orgs).
+  organization                 Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  ownedOrganizations           Organization[]           @relation("OrganizationOwner")
+  organizationMemberships      OrganizationMembership[]
+  workspaceJoinRequests        WorkspaceJoinRequest[]
+  pageVisits                   ContactPageVisit[]
+  sessions                     Session[]
+  supportTickets               SupportTicket[]
+  supportTicketMessages        SupportTicketMessage[]
+  assignedHandoffTickets       HandoffTicket[]
+  assignedMailThreads          MailThread[]
+  mailAliasMemberships         MailAliasMember[]
+  mailThreadNotes              MailThreadNote[]
+  teamMemberProfile            TeamMemberProfile?
+
+  @@index([organizationId], map: "IX_User_organizationId")
+}
+
+model OrganizationMembership {
+  id             String        @id(map: "PK_OrganizationMembership") @default(uuid()) @db.Uuid
+  userId         String        @db.Uuid
+  organizationId String        @db.Uuid
+  workspaceRole  WorkspaceRole @default(OWNER)
+  allowedPages   String[]      @default([])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, organizationId], map: "UQ_OrganizationMembership_user_org")
+  @@index([userId], map: "IX_OrganizationMembership_userId")
+  @@index([organizationId], map: "IX_OrganizationMembership_organizationId")
+}
+
+/// Team-member signup without an invite: request access by workspace ID.
+model WorkspaceJoinRequest {
+  id             String                      @id(map: "PK_WorkspaceJoinRequest") @default(uuid()) @db.Uuid
+  userId         String                      @db.Uuid
+  organizationId String                      @db.Uuid
+  status         WorkspaceJoinRequestStatus  @default(PENDING)
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  user           User                        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization   Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, organizationId], map: "UQ_WorkspaceJoinRequest_user_org")
+  @@index([organizationId, status], map: "IX_WorkspaceJoinRequest_organizationId_status")
+  @@index([userId], map: "IX_WorkspaceJoinRequest_userId")
+}
+
+model UserImage {
+  id          String  @id(map: "PK_UserImage") @default(uuid()) @db.Uuid
+  userId      String  @db.Uuid
+  data        Bytes?
+  contentType String? @db.VarChar(255)
+  hash        String? @db.VarChar(64)
+
+  @@index([userId], map: "IX_UserImage_userId")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Webhook {
+  id             String           @id(map: "PK_Webhook") @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  url            String           @db.VarChar(2000)
+  triggers       WebhookTrigger[]
+  secret         String?          @db.VarChar(1024)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId], map: "IX_Webhook_organizationId")
+}
+
+model WorkHours {
+  id             String         @id(map: "PK_WorkHours") @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  dayOfWeek      DayOfWeek      @default(SUNDAY)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  timeSlots      WorkTimeSlot[]
+
+  @@index([organizationId], map: "IX_WorkHours_organizationId")
+}
+
+model WorkTimeSlot {
+  id          String    @id(map: "PK_WorkTimeSlot") @default(uuid()) @db.Uuid
+  workHoursId String    @db.Uuid
+  start       DateTime  @db.Time(0)
+  end         DateTime  @db.Time(0)
+  workHours   WorkHours @relation(fields: [workHoursId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([workHoursId], map: "IX_WorkTimeSlot_workHoursId")
+}
+
+// ---- Humaner domain ---- //
+
+enum CharacterType {
+  CASUAL    @map("casual")
+  CORPORATE @map("corporate")
+  EFFICIENT @map("efficient")
+  CUSTOM    @map("custom")
+}
+
+enum Verbosity {
+  CONCISE  @map("concise")
+  BALANCED @map("balanced")
+  DETAILED @map("detailed")
+}
+
+enum Formality {
+  RELAXED  @map("relaxed")
+  STANDARD @map("standard")
+  ELEVATED @map("elevated")
+}
+
+enum EmojiMode {
+  NONE       @map("none")
+  SUBTLE     @map("subtle")
+  EXPRESSIVE @map("expressive")
+}
+
+enum OpenerStyle {
+  DIRECT    @map("direct")
+  WARM      @map("warm")
+  MIRRORING @map("mirroring")
+}
+
+enum IndustryType {
+  ECOMMERCE @map("ecommerce")
+  EDUCATION @map("education")
+  FITNESS   @map("fitness")
+  TRAVEL    @map("travel")
+}
+
+enum TargetAudience {
+  B2C @map("b2c")
+  B2B @map("b2b")
+}
+
+enum CompanySize {
+  SOLO       @map("solo")
+  SMALL      @map("small")
+  MEDIUM     @map("medium")
+  LARGE      @map("large")
+  ENTERPRISE @map("enterprise")
+}
+
+enum UseCaseType {
+  SUPPORT @map("support")
+  SALES   @map("sales")
+}
+
+enum SourceType {
+  URL     @map("url")
+  SITEMAP @map("sitemap")
+  PDF     @map("pdf")
+  TEXT    @map("text")
+  API     @map("api")
+}
+
+enum SyncStatus {
+  PENDING    @map("pending")
+  QUEUED     @map("queued")
+  EXTRACTING @map("extracting")
+  PROCESSING @map("processing")
+  INDEXING   @map("indexing")
+  READY      @map("ready")
+  FAILED     @map("failed")
+}
+
+enum KnowledgeRescanInterval {
+  NEVER   @map("never")
+  WEEKLY  @map("weekly")
+  MONTHLY @map("monthly")
+}
+
+enum MessageRole {
+  USER      @map("user")
+  ASSISTANT @map("assistant")
+  HUMAN     @map("human")
+}
+
+enum DraftStatus {
+  PENDING_REVIEW @map("pendingReview")
+  APPROVED       @map("approved")
+  REJECTED       @map("rejected")
+}
+
+enum WidgetPosition {
+  BOTTOM_RIGHT  @map("bottomRight")
+  BOTTOM_LEFT   @map("bottomLeft")
+  BOTTOM_CENTER @map("bottomCenter")
+}
+
+enum WidgetBubbleIcon {
+  CHAT      @map("chat")
+  CHAT_DOTS @map("chatDots")
+  CHAT_AI   @map("chatAi")
+  LIVECHAT  @map("livechat")
+}
+
+enum WidgetSendIcon {
+  LOCATION_ARROW @map("locationArrow")
+  ARROW_CIRCLE   @map("arrowCircle")
+  CHEVRON_RIGHT  @map("chevronRight")
+  ARROW_SQUARE   @map("arrowSquare")
+}
+
+// Light/dark glass chrome for launcher and send (accent colors the glyph only).
+enum WidgetIconTheme {
+  DARK  @map("dark")
+  LIGHT @map("light")
+}
+
+model Agent {
+  id                      String                  @id(map: "PK_Agent") @default(uuid()) @db.Uuid
+  organizationId          String                  @db.Uuid
+  organization            Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  name                    String                  @db.VarChar(255)
+  role                    String                  @db.VarChar(255)
+  character               CharacterType           @default(CASUAL)
+  customCharacterPrompt   String?                 @db.Text
+  industry                IndustryType            @default(ECOMMERCE)
+  useCase                 UseCaseType             @default(SUPPORT)
+  verbosity               Verbosity               @default(BALANCED)
+  formality               Formality               @default(STANDARD)
+  emojiMode               EmojiMode               @default(NONE)
+  openerStyle             OpenerStyle             @default(DIRECT)
+  allowTypos              Boolean                 @default(false)
+  forbiddenTopics         String[]                @default([])
+  /// Master switch for industry guardrails. Off keeps forbiddenTopics selections but stops enforcing them.
+  guardrailsEnabled       Boolean                 @default(true)
+  fallbackMessage         String                  @default("To be honest I cannot help you on that, but I can open a ticket with a team member if you want to?") @db.VarChar(2000)
+  greetingMessage         String?                 @db.VarChar(500)
+  image                   String?                 @db.VarChar(2048)
+  showRole                Boolean                 @default(true)
+  allowedDomains          String[]                @default([])
+  widgetColor             String                  @default("#e0e1df") @db.VarChar(32)
+  widgetPosition          WidgetPosition          @default(BOTTOM_RIGHT)
+  widgetBubbleIcon        WidgetBubbleIcon        @default(CHAT)
+  widgetSendIcon          WidgetSendIcon          @default(LOCATION_ARROW)
+  widgetTheme             WidgetIconTheme         @default(DARK)
+  widgetDictationEnabled         Boolean                 @default(false)
+  widgetConversationHomeEnabled  Boolean                 @default(false)
+  widgetHelpEnabled              Boolean                 @default(true)
+  widgetHelpIconsAnimated        Boolean                 @default(true)
+  widgetProactiveEnabled         Boolean                 @default(false)
+  widgetProactiveMessage         String?                 @db.VarChar(280)
+  widgetProactiveDelaySeconds    Int                     @default(8)
+  widgetHomeBannerUrl            String?                 @db.VarChar(2048)
+  demoBackgroundUrl              String?                 @db.VarChar(2048)
+  widgetBookmarks                Json                    @default("[]")
+  widgetRadius                   Json                    @default("{\"widget\":26,\"popup\":16,\"input\":18,\"messages\":16}") // messages kept for back-compat; not exposed in UI
+  voiceEnabled            Boolean                 @default(false)
+  voiceId                 String?                 @db.VarChar(255)
+  publicId                String                  @unique @default(cuid()) @db.VarChar(255)
+  healthScore             Float?
+  lastTrainedAt           DateTime?
+  autoTrainEnabled        Boolean                 @default(true)
+  knowledgeRescanInterval KnowledgeRescanInterval @default(NEVER)
+  knowledgeLastRescanAt   DateTime?
+  agentDeskEnabled        Boolean                 @default(false)
+  isPaused                Boolean                 @default(false)
+  trainingTopics          String[]                @default([])
+  knowledgeSources        KnowledgeSource[]
+  conversations           Conversation[]
+  drafts                  KnowledgeSourceDraft[]
+  chunks                  Chunk[]
+  evalRuns                AgentEvalRun[]
+  knowledgeGaps           KnowledgeGap[]
+  knowledgeGapClusters    KnowledgeGapCluster[]
+  messageEmbeddings       MessageEmbedding[]
+  integrations            AgentIntegration[]
+  handoffTickets          HandoffTicket[]
+  proactiveMessages       WidgetProactiveMessage[]
+  runbooks                Runbook[]
+  escalationPolicies      EscalationPolicy[]
+  intelligenceRequests    IntelligenceRequestLog[]
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  @@index([organizationId], map: "IX_Agent_organizationId")
+  @@index([organizationId, createdAt(sort: Desc)], map: "IX_Agent_organizationId_createdAt")
+  @@index([publicId], map: "IX_Agent_publicId")
+}
+
+/// One row per Intelligence REST call. Powers the Custom implementation log —
+/// hosted chat traffic is already visible through Conversation/Message.
+model IntelligenceRequestLog {
+  id             String   @id(map: "PK_IntelligenceRequestLog") @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  agentId        String   @db.Uuid
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  /// Resolved catalog tool, e.g. search_knowledge or create_ticket.
+  tool           String   @db.VarChar(64)
+  /// REST path the caller hit, e.g. /api/v1/intelligence/retrieve.
+  path           String   @db.VarChar(255)
+  status         Int
+  durationMs     Int
+  /// Key that made the call. Null when the request failed before authorization.
+  apiKeyId       String?  @db.Uuid
+  errorMessage   String?  @db.VarChar(500)
+  createdAt      DateTime @default(now())
+
+  @@index([agentId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_agentId_createdAt")
+  @@index([organizationId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_organizationId_createdAt")
+}
+
+model WidgetProactiveMessage {
+  id          String    @id(map: "PK_WidgetProactiveMessage") @default(uuid()) @db.Uuid
+  agentId     String    @db.Uuid
+  agent       Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  visitorId   String    @db.VarChar(255)
+  message     String    @db.VarChar(500)
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+
+  @@index([agentId, visitorId, deliveredAt], map: "IX_WidgetProactiveMessage_pending")
+  @@index([expiresAt], map: "IX_WidgetProactiveMessage_expiresAt")
+}
+
+model AgentImage {
+  id          String  @id(map: "PK_AgentImage") @default(uuid()) @db.Uuid
+  agentId     String  @db.Uuid
+  data        Bytes?
+  contentType String? @db.VarChar(255)
+  hash        String? @db.VarChar(64)
+
+  @@index([agentId], map: "IX_AgentImage_agentId")
+}
+
+model AgentWidgetHomeBanner {
+  id          String  @id(map: "PK_AgentWidgetHomeBanner") @default(uuid()) @db.Uuid
+  agentId     String  @db.Uuid
+  data        Bytes?
+  contentType String? @db.VarChar(255)
+  hash        String? @db.VarChar(64)
+
+  @@index([agentId], map: "IX_AgentWidgetHomeBanner_agentId")
+}
+
+model AgentDemoBackground {
+  id          String  @id(map: "PK_AgentDemoBackground") @default(uuid()) @db.Uuid
+  agentId     String  @db.Uuid
+  data        Bytes?
+  contentType String? @db.VarChar(255)
+  hash        String? @db.VarChar(64)
+
+  @@index([agentId], map: "IX_AgentDemoBackground_agentId")
+}
+
+model AgentIntegration {
+  id             String       @id(map: "PK_AgentIntegration") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  channelId      String       @db.VarChar(64)
+  agentId        String       @db.Uuid
+  agent          Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, channelId], map: "UQ_AgentIntegration_org_channel")
+  @@index([agentId], map: "IX_AgentIntegration_agentId")
+}
+
+model KnowledgeSource {
+  id             String     @id(map: "PK_KnowledgeSource") @default(uuid()) @db.Uuid
+  agentId        String     @db.Uuid
+  agent          Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  type           SourceType
+  url            String?    @db.VarChar(2048)
+  title          String     @db.VarChar(255)
+  status         SyncStatus @default(PENDING)
+  contentHash    String?    @db.VarChar(128)
+  chunkerVersion String?    @db.VarChar(32)
+  embeddingModel String?    @db.VarChar(64)
+  storagePath    String?    @db.VarChar(2048)
+  pageCount      Int?
+  lastSyncedAt   DateTime?
+  errorMessage   String?    @db.VarChar(2000)
+  chunks         Chunk[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([agentId], map: "IX_KnowledgeSource_agentId")
+}
+
+model Chunk {
+  id         String          @id(map: "PK_Chunk") @default(uuid()) @db.Uuid
+  sourceId   String          @db.Uuid
+  source     KnowledgeSource @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agentId    String          @db.Uuid
+  agent      Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  content    String          @db.Text
+  heading    String?         @db.VarChar(512)
+  tokenCount Int
+  pageUrl    String?         @db.VarChar(2048)
+  chunkIndex Int
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([sourceId], map: "IX_Chunk_sourceId")
+  @@index([agentId], map: "IX_Chunk_agentId")
+}
+
+model Conversation {
+  id             String          @id(map: "PK_Conversation") @default(uuid()) @db.Uuid
+  agentId        String          @db.Uuid
+  agent          Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  visitorId      String          @db.VarChar(255)
+  sessionId      String?         @db.VarChar(255)
+  resolved       Boolean         @default(false)
+  messages       Message[]
+  handoffTickets HandoffTicket[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([agentId], map: "IX_Conversation_agentId")
+  @@index([agentId, updatedAt(sort: Desc)], map: "IX_Conversation_agentId_updatedAt")
+  @@index([visitorId], map: "IX_Conversation_visitorId")
+  @@index([agentId, visitorId, sessionId], map: "IX_Conversation_agent_visitor_session")
+}
+
+model Message {
+  id             String            @id(map: "PK_Message") @default(uuid()) @db.Uuid
+  conversationId String            @db.Uuid
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role           MessageRole
+  content        String            @db.Text
+  inputTokens    Int?
+  outputTokens   Int?
+  unanswered     Boolean           @default(false)
+  failureReason  String?           @db.VarChar(2000)
+  isVoice        Boolean           @default(false)
+  attachments    Json?
+  embeddingCache MessageEmbedding?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([conversationId], map: "IX_Message_conversationId")
+  @@index([role, createdAt(sort: Desc)], map: "IX_Message_role_createdAt")
+}
+
+/// 30-day rolling cache of user-message vectors for content-gap clustering.
+/// `embedding` is pgvector — Prisma cannot map it, so it is read/written with raw SQL.
+/// One-off questions stay hash-only until they repeat or meaning-match inside the window.
+model MessageEmbedding {
+  messageId   String                       @id(map: "PK_MessageEmbedding") @db.Uuid
+  message     Message                      @relation(fields: [messageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agentId     String                       @db.Uuid
+  agent       Agent                        @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contentHash String                       @db.VarChar(64)
+  embedding   Unsupported("vector(1536)")?
+  createdAt   DateTime                     @default(now())
+
+  @@index([agentId, contentHash, createdAt], map: "IX_MessageEmbedding_agent_hash_createdAt")
+  @@index([agentId, createdAt], map: "IX_MessageEmbedding_agent_createdAt")
+  @@index([createdAt], map: "IX_MessageEmbedding_createdAt")
+}
+
+enum HandoffTicketStatus {
+  OPEN        @map("open")
+  IN_PROGRESS @map("inProgress")
+  RESOLVED    @map("resolved")
+  CLOSED      @map("closed")
+}
+
+enum HandoffTicketUrgency {
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
+enum HandoffTicketSource {
+  WIDGET @map("widget")
+  API    @map("api")
+  EMAIL  @map("email")
+}
+
+enum HandoffRoutedTo {
+  AI    @map("ai")
+  HUMAN @map("human")
+}
+
+enum AgentLoopMode {
+  AUTO_SOLVE @map("autoSolve")
+  APPROVAL   @map("approval")
+}
+
+enum LoopStatus {
+  SOLVING     @map("solving")
+  DRAFT_READY @map("draftReady")
+  APPROVED    @map("approved")
+  REJECTED    @map("rejected")
+  FAILED      @map("failed")
+}
+
+/// A handoff ticket: routed to Agent Desk or Human Desk after the chat agent
+/// could not resolve. Created with an AI summary plus transcript.
+model HandoffTicket {
+  id                 String               @id(map: "PK_HandoffTicket") @default(uuid()) @db.Uuid
+  organizationId     String               @db.Uuid
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agentId            String               @db.Uuid
+  agent              Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  conversationId     String?              @db.Uuid
+  conversation       Conversation?        @relation(fields: [conversationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  /// Org-scoped human-readable reference (e.g. #00042). Unique per organization.
+  ticketNumber       Int
+  visitorId          String?              @db.VarChar(255)
+  visitorEmail       String?              @db.VarChar(255)
+  visitorFirstName   String?              @db.VarChar(128)
+  visitorLastName    String?              @db.VarChar(128)
+  visitorCompany     String?              @db.VarChar(255)
+  visitorLeftAt      DateTime?
+  subject            String               @db.VarChar(255)
+  summary            String               @db.Text
+  whySummary         String?              @db.Text
+  howSummary         String?              @db.Text
+  transcript         String               @db.Text
+  note               String?              @db.Text
+  source             HandoffTicketSource  @default(WIDGET)
+  status             HandoffTicketStatus  @default(OPEN)
+  urgency            HandoffTicketUrgency @default(MEDIUM)
+  assigneeId         String?              @db.Uuid
+  assignee           User?                @relation(fields: [assigneeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  assignedAt         DateTime?
+  routedTo           HandoffRoutedTo?
+  clusterId          String?              @db.Uuid
+  cluster            ResolutionCluster?   @relation(fields: [clusterId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  runbookId          String?              @db.Uuid
+  runbook            Runbook?             @relation(fields: [runbookId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  resolvedAt         DateTime?
+  /// "human" or "ai" — matches HandoffRoutedTo.
+  resolvedBy         String?              @db.VarChar(8)
+  /// Display name of the resolver (team member name or "Agent Desk").
+  resolvedByName     String?              @db.VarChar(255)
+  resolutionPattern  String?              @db.VarChar(255)
+  issueType          String?              @db.VarChar(128)
+  resolutionSolution String?              @db.Text
+  /// Agent Loops run state for tickets routed to Agent Desk.
+  loopStatus         LoopStatus?
+  /// Draft solution produced by an Agent Loop (awaiting approval or sent).
+  draftSolution      String?              @db.Text
+  loopSolvedAt       DateTime?
+  loopError          String?              @db.VarChar(512)
+  liveChatTimedOut   Boolean              @default(false)
+  clusterEntries     ClusterEntry[]
+  mailThreads        MailThread[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([organizationId, ticketNumber], map: "UQ_HandoffTicket_organizationId_ticketNumber")
+  @@index([organizationId], map: "IX_HandoffTicket_organizationId")
+  @@index([agentId], map: "IX_HandoffTicket_agentId")
+  @@index([status], map: "IX_HandoffTicket_status")
+  @@index([assigneeId], map: "IX_HandoffTicket_assigneeId")
+  @@index([routedTo], map: "IX_HandoffTicket_routedTo")
+  @@index([organizationId, status, updatedAt], map: "IX_HandoffTicket_org_status_updated")
+  @@index([organizationId, status, createdAt(sort: Desc)], map: "IX_HandoffTicket_org_status_createdAt")
+  @@index([organizationId, loopStatus], map: "IX_HandoffTicket_org_loopStatus")
+}
+
+// ---- Collaborative Inbox (optional mailbox) ---- //
+
+enum MailProvider {
+  GMAIL     @map("gmail")
+  MICROSOFT @map("microsoft")
+  IMAP      @map("imap")
+}
+
+enum MailConnectionStatus {
+  ACTIVE       @map("active")
+  NEEDS_REAUTH @map("needsReauth")
+  DISCONNECTED @map("disconnected")
+  ERROR        @map("error")
+}
+
+enum MailThreadStatus {
+  OPEN     @map("open")
+  PENDING  @map("pending")
+  RESOLVED @map("resolved")
+  SNOOZED  @map("snoozed")
+}
+
+enum MailMessageDirection {
+  INBOUND  @map("inbound")
+  OUTBOUND @map("outbound")
+}
+
+/// Org-level mail host connection (IMAP or OAuth). Optional — orgs can skip Inbox entirely.
+model MailboxConnection {
+  id                String               @id(map: "PK_MailboxConnection") @default(uuid()) @db.Uuid
+  organizationId    String               @db.Uuid
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  provider          MailProvider
+  /// Curated preset id from `MAIL_PROVIDERS` (e.g. zoho, fastmail). Null for legacy rows.
+  providerPresetId  String?              @db.VarChar(64)
+  email             String               @db.VarChar(255)
+  status            MailConnectionStatus @default(ACTIVE)
+  externalAccountId String?              @db.VarChar(255)
+  /// Encrypted OAuth access token (Gmail / Microsoft).
+  accessToken       String?              @db.Text
+  /// Encrypted OAuth refresh token.
+  refreshToken      String?              @db.Text
+  scopes            String?              @db.Text
+  tokenExpiresAt    DateTime?
+  /// Encrypted IMAP host / credentials (provider = IMAP).
+  imapHost          String?              @db.Text
+  imapPort          Int?
+  imapUser          String?              @db.Text
+  imapPassword      String?              @db.Text
+  imapTls           Boolean              @default(true)
+  /// Encrypted SMTP host / credentials for outbound.
+  smtpHost          String?              @db.Text
+  smtpPort          Int?
+  smtpUser          String?              @db.Text
+  smtpPassword      String?              @db.Text
+  smtpTls           Boolean              @default(true)
+  lastSyncedAt      DateTime?
+  lastError         String?              @db.VarChar(2000)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  aliases           MailAlias[]
+
+  @@unique([organizationId, email], map: "UQ_MailboxConnection_org_email")
+  @@index([organizationId], map: "IX_MailboxConnection_organizationId")
+  @@index([organizationId, provider], map: "IX_MailboxConnection_org_provider")
+}
+
+/// Support address handled in Humaner. Redirect aliases are free; connected mailboxes count toward plan inbox allotment.
+model MailAlias {
+  id             String            @id(map: "PK_MailAlias") @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  connectionId   String            @db.Uuid
+  connection     MailboxConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address        String            @db.VarChar(255)
+  displayName    String?           @db.VarChar(255)
+  enabled        Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  members        MailAliasMember[]
+  threads        MailThread[]
+  tags           MailTag[]
+
+  @@unique([organizationId, address], map: "UQ_MailAlias_org_address")
+  @@index([connectionId], map: "IX_MailAlias_connectionId")
+  @@index([organizationId], map: "IX_MailAlias_organizationId")
+}
+
+model MailAliasMember {
+  id        String    @id(map: "PK_MailAliasMember") @default(uuid()) @db.Uuid
+  aliasId   String    @db.Uuid
+  alias     MailAlias @relation(fields: [aliasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([aliasId, userId], map: "UQ_MailAliasMember_alias_user")
+  @@index([userId], map: "IX_MailAliasMember_userId")
+}
+
+model MailThread {
+  id               String           @id(map: "PK_MailThread") @default(uuid()) @db.Uuid
+  organizationId   String           @db.Uuid
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  aliasId          String           @db.Uuid
+  alias            MailAlias        @relation(fields: [aliasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  providerThreadId String           @db.VarChar(512)
+  subject          String           @db.VarChar(998)
+  status           MailThreadStatus @default(OPEN)
+  isUnread         Boolean          @default(true)
+  archivedAt       DateTime?
+  assigneeId       String?          @db.Uuid
+  assignee         User?            @relation(fields: [assigneeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  handoffTicketId  String?          @db.Uuid
+  handoffTicket    HandoffTicket?   @relation(fields: [handoffTicketId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  lastMessageAt    DateTime         @default(now())
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  messages         MailMessage[]
+  notes            MailThreadNote[]
+  tags             MailThreadTag[]
+
+  @@unique([aliasId, providerThreadId], map: "UQ_MailThread_alias_providerThread")
+  @@index([organizationId, status, lastMessageAt], map: "IX_MailThread_org_status_last")
+  @@index([organizationId, isUnread, archivedAt], map: "IX_MailThread_org_unread_archived")
+  @@index([assigneeId], map: "IX_MailThread_assigneeId")
+  @@index([handoffTicketId], map: "IX_MailThread_handoffTicketId")
+}
+
+/// Org-defined colored labels for collaborative mail threads.
+/// `aliasId` null = available on all aliases; set = scoped to one inbox.
+model MailTag {
+  id             String          @id(map: "PK_MailTag") @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  /// Null = on all aliases; otherwise only that inbox.
+  aliasId        String?         @db.Uuid
+  alias          MailAlias?      @relation(fields: [aliasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  name           String          @db.VarChar(64)
+  /// Hex color (#RRGGBB) used for the unread/read circle on thread rows.
+  color          String          @db.VarChar(7)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  threads        MailThreadTag[]
+
+  @@index([organizationId], map: "IX_MailTag_organizationId")
+  @@index([organizationId, aliasId], map: "IX_MailTag_organizationId_aliasId")
+}
+
+model MailThreadTag {
+  id        String     @id(map: "PK_MailThreadTag") @default(uuid()) @db.Uuid
+  threadId  String     @db.Uuid
+  thread    MailThread @relation(fields: [threadId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tagId     String     @db.Uuid
+  tag       MailTag    @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([threadId, tagId], map: "UQ_MailThreadTag_thread_tag")
+  @@index([tagId], map: "IX_MailThreadTag_tagId")
+}
+
+model MailMessage {
+  id                String               @id(map: "PK_MailMessage") @default(uuid()) @db.Uuid
+  threadId          String               @db.Uuid
+  thread            MailThread           @relation(fields: [threadId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  providerMessageId String               @db.VarChar(512)
+  direction         MailMessageDirection
+  fromAddress       String               @db.VarChar(255)
+  toAddresses       String[]
+  ccAddresses       String[]             @default([])
+  bodyText          String?              @db.Text
+  bodyHtml          String?              @db.Text
+  sentAt            DateTime
+  createdAt         DateTime             @default(now())
+
+  @@unique([threadId, providerMessageId], map: "UQ_MailMessage_thread_providerMessage")
+  @@index([threadId, sentAt], map: "IX_MailMessage_thread_sentAt")
+}
+
+/// Internal-only collaboration note — never sent to the customer.
+model MailThreadNote {
+  id        String     @id(map: "PK_MailThreadNote") @default(uuid()) @db.Uuid
+  threadId  String     @db.Uuid
+  thread    MailThread @relation(fields: [threadId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  authorId  String     @db.Uuid
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  body      String     @db.Text
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([threadId], map: "IX_MailThreadNote_threadId")
+  @@index([authorId], map: "IX_MailThreadNote_authorId")
+}
+
+model KnowledgeSourceDraft {
+  id               String      @id(map: "PK_KnowledgeSourceDraft") @default(uuid()) @db.Uuid
+  agentId          String      @db.Uuid
+  agent            Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  title            String      @db.VarChar(255)
+  content          String      @db.Text
+  sourceMessageIds String[]
+  status           DraftStatus @default(PENDING_REVIEW)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([agentId], map: "IX_KnowledgeSourceDraft_agentId")
+}
+
+// ---- Agent Training & Intelligence ---- //
+
+enum PlatformChunkSource {
+  SYNTHETIC    @map("synthetic")
+  CURATED_REAL @map("curatedReal")
+}
+
+enum EvalRunType {
+  MANUAL           @map("manual")
+  AUTO_NEW_SOURCE  @map("autoNewSource")
+  AUTO_CONFIG      @map("autoConfig")
+  AUTO_WEEKLY      @map("autoWeekly")
+  PLATFORM         @map("platform")
+  VERTICAL_RELEASE @map("verticalRelease")
+}
+
+enum QuestionCategory {
+  COMMON     @map("common")
+  EDGE       @map("edge")
+  TRAP       @map("trap")
+  ESCALATION @map("escalation")
+}
+
+enum KnowledgeGapStatus {
+  PENDING   @map("pending")
+  RESOLVED  @map("resolved")
+  DISMISSED @map("dismissed")
+}
+
+enum PlatformGapStatus {
+  PENDING  @map("pending")
+  IN_EVAL  @map("inEval")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
+model PlatformChunk {
+  id           String              @id(map: "PK_PlatformChunk") @default(cuid())
+  industry     IndustryType
+  question     String              @db.Text
+  content      String              @db.Text
+  tokenCount   Int
+  source       PlatformChunkSource @default(SYNTHETIC)
+  qualityScore Float
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([industry], map: "IX_PlatformChunk_industry")
+}
+
+model VerticalRelease {
+  id             String       @id(map: "PK_VerticalRelease") @default(cuid())
+  industry       IndustryType
+  version        String
+  certified      Boolean      @default(false)
+  certificate    Json
+  personaPreset  Json
+  intentTaxonomy Json
+  routingConfig  Json
+  chunkCount     Int          @default(0)
+  promotedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([industry, version], map: "UQ_VerticalRelease_industry_version")
+  @@index([industry], map: "IX_VerticalRelease_industry")
+}
+
+model AgentEvalRun {
+  id                 String        @id(map: "PK_AgentEvalRun") @default(uuid()) @db.Uuid
+  agentId            String?       @db.Uuid
+  industry           IndustryType?
+  totalQuestions     Int
+  passed             Int
+  accuracyAvg        Float
+  personaAvg         Float
+  helpfulnessAvg     Float
+  hallucinationCount Int
+  runType            EvalRunType   @default(MANUAL)
+  createdAt          DateTime      @default(now())
+
+  agent   Agent?       @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  results EvalResult[]
+
+  @@index([agentId], map: "IX_AgentEvalRun_agentId")
+  @@index([industry], map: "IX_AgentEvalRun_industry")
+}
+
+model EvalResult {
+  id            String            @id(map: "PK_EvalResult") @default(uuid()) @db.Uuid
+  runId         String            @db.Uuid
+  question      String            @db.Text
+  questionType  QuestionCategory?
+  response      String            @db.Text
+  accuracy      Float
+  persona       Float
+  helpfulness   Float
+  hallucination Float
+  passed        Boolean
+  notes         String?           @db.Text
+  createdAt     DateTime          @default(now())
+
+  run AgentEvalRun @relation(fields: [runId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([runId], map: "IX_EvalResult_runId")
+}
+
+model KnowledgeGap {
+  id              String             @id(map: "PK_KnowledgeGap") @default(uuid()) @db.Uuid
+  agentId         String             @db.Uuid
+  question        String             @db.Text
+  evalRunId       String?            @db.Uuid
+  suggestedAnswer String?            @db.Text
+  status          KnowledgeGapStatus @default(PENDING)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([agentId], map: "IX_KnowledgeGap_agentId")
+  @@index([status], map: "IX_KnowledgeGap_status")
+  @@index([agentId, status, createdAt(sort: Desc)], map: "IX_KnowledgeGap_agentId_status_createdAt")
+}
+
+/// Semantic clusters of similar user questions (Phase 3 — HDBSCAN on MessageEmbedding).
+model KnowledgeGapCluster {
+  id                String   @id(map: "PK_KnowledgeGapCluster") @default(uuid()) @db.Uuid
+  agentId           String   @db.Uuid
+  agent             Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  canonicalQuestion String   @db.Text
+  frequency         Int
+  messageIds        String[] @default([])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([agentId], map: "IX_KnowledgeGapCluster_agentId")
+}
+
+model PlatformGapCandidate {
+  id             String            @id(map: "PK_PlatformGapCandidate") @default(cuid())
+  industry       IndustryType
+  question       String            @db.Text
+  /// Normalised fingerprint used for k-anonymity grouping (never stores org IDs).
+  questionKey    String?           @db.VarChar(512)
+  frequency      Int               @default(1)
+  /// Distinct consenting orgs that contributed — count only, never IDs.
+  orgSampleSize  Int               @default(0)
+  status         PlatformGapStatus @default(PENDING)
+  requiresReview Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([industry, questionKey], map: "UQ_PlatformGapCandidate_industry_questionKey")
+  @@index([industry], map: "IX_PlatformGapCandidate_industry")
+  @@index([status], map: "IX_PlatformGapCandidate_status")
+}
+
+/// Anonymised Human Desk resolution motions for runbook reinforcement.
+/// No orgId, visitorId, or transcript content — Recital 26 anonymised artifact.
+model RunbookSignal {
+  id                 String       @id(map: "PK_RunbookSignal") @default(uuid()) @db.Uuid
+  vertical           IndustryType
+  escalationReason   String       @db.VarChar(128)
+  resolutionMotion   String[]     @default([])
+  turnCount          Int          @default(0)
+  firstReplyResolved Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+
+  @@index([vertical, escalationReason], map: "IX_RunbookSignal_vertical_reason")
+  @@index([createdAt], map: "IX_RunbookSignal_createdAt")
+}
+
+/// Aggregate skill / gap failure statistics across consenting orgs (no org IDs).
+model SkillPerformanceScore {
+  id            String       @id(map: "PK_SkillPerformanceScore") @default(uuid()) @db.Uuid
+  vertical      IndustryType
+  failureKey    String       @db.VarChar(255)
+  failureCount  Int          @default(0)
+  orgSampleSize Int          @default(0)
+  windowStart   DateTime
+  windowEnd     DateTime
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([vertical, failureKey, windowStart], map: "UQ_SkillPerformanceScore_window")
+  @@index([vertical], map: "IX_SkillPerformanceScore_vertical")
+}
+
+model SupportTicket {
+  id             String                 @id(map: "PK_SupportTicket") @default(uuid()) @db.Uuid
+  userId         String                 @db.Uuid
+  title          String                 @db.VarChar(255)
+  body           String                 @db.VarChar(8000)
+  contextTab     String                 @db.VarChar(128)
+  contextFeature String?                @db.VarChar(255)
+  screenshotPath String                 @db.VarChar(2048)
+  status         SupportTicketStatus    @default(OPEN)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages       SupportTicketMessage[]
+
+  @@index([userId], map: "IX_SupportTicket_userId")
+  @@index([status], map: "IX_SupportTicket_status")
+}
+
+model SupportTicketMessage {
+  id        String        @id(map: "PK_SupportTicketMessage") @default(uuid()) @db.Uuid
+  ticketId  String        @db.Uuid
+  userId    String        @db.Uuid
+  body      String        @db.VarChar(8000)
+  isStaff   Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId], map: "IX_SupportTicketMessage_ticketId")
+}
+
+model VisitorMetadata {
+  id             String       @id(map: "PK_VisitorMetadata") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  visitorId      String       @db.VarChar(255)
+  firstName      String?      @db.VarChar(128)
+  lastName       String?      @db.VarChar(128)
+  email          String?      @db.VarChar(255)
+  company        String?      @db.VarChar(255)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, visitorId], map: "UQ_VisitorMetadata_org_visitor")
+  @@index([organizationId], map: "IX_VisitorMetadata_organizationId")
+}
+
+// ---- Desk Intelligence Framework ---- //
+
+enum EscalationMode {
+  LIVE           @map("live")
+  PRIORITY       @map("priority")
+  STANDARD       @map("standard")
+  SELF_RESOLVING @map("selfResolving")
+}
+
+model TeamMemberProfile {
+  id             String       @id(map: "PK_TeamMemberProfile") @default(uuid()) @db.Uuid
+  userId         String       @unique @db.Uuid
+  organizationId String       @db.Uuid
+  role           String       @db.VarChar(128)
+  knowledgeAreas String[]     @default([])
+  maxConcurrent  Int          @default(5)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId], map: "IX_TeamMemberProfile_organizationId")
+}
+
+enum RunbookReviewStatus {
+  PENDING_REVIEW @map("pendingReview")
+  APPROVED       @map("approved")
+}
+
+model Runbook {
+  id              String              @id(map: "PK_Runbook") @default(uuid()) @db.Uuid
+  organizationId  String              @db.Uuid
+  agentId         String              @db.Uuid
+  title           String              @db.VarChar(255)
+  description     String?             @db.Text
+  steps           Json                @default("[]")
+  triggerTopics   String[]            @default([])
+  sourceTicketId  String?             @db.Uuid
+  isAutoGenerated Boolean             @default(false)
+  reviewStatus    RunbookReviewStatus @default(APPROVED)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agent           Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  handoffTickets  HandoffTicket[]
+
+  @@index([organizationId], map: "IX_Runbook_organizationId")
+  @@index([agentId], map: "IX_Runbook_agentId")
+}
+
+model EscalationPolicy {
+  id                    String               @id(map: "PK_EscalationPolicy") @default(uuid()) @db.Uuid
+  organizationId        String               @db.Uuid
+  agentId               String               @db.Uuid
+  name                  String               @db.VarChar(255)
+  urgencyLevel          HandoffTicketUrgency
+  mode                  EscalationMode       @default(STANDARD)
+  slaMinutes            Int?
+  routeToKnowledgeAreas String[]             @default([])
+  isDefault             Boolean              @default(false)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  organization          Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agent                 Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId], map: "IX_EscalationPolicy_organizationId")
+  @@index([agentId], map: "IX_EscalationPolicy_agentId")
+}
+
+model ResolutionCluster {
+  id               String          @id(map: "PK_ResolutionCluster") @default(uuid()) @db.Uuid
+  organizationId   String          @db.Uuid
+  title            String          @db.VarChar(255)
+  pattern          String          @db.VarChar(255)
+  issueType        String          @default("general") @db.VarChar(128)
+  description      String?         @db.Text
+  topicEmbedding   String?         @db.Text
+  templateResponse String          @db.Text
+  ticketCount      Int             @default(0)
+  successRate      Float           @default(0)
+  lastUpdatedAt    DateTime        @default(now())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  entries          ClusterEntry[]
+  handoffTickets   HandoffTicket[]
+
+  @@index([organizationId], map: "IX_ResolutionCluster_organizationId")
+}
+
+model ClusterEntry {
+  id            String            @id(map: "PK_ClusterEntry") @default(uuid()) @db.Uuid
+  clusterId     String            @db.Uuid
+  ticketId      String            @db.Uuid
+  resolution    String            @db.Text
+  wasSuccessful Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  cluster       ResolutionCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ticket        HandoffTicket     @relation(fields: [ticketId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([clusterId], map: "IX_ClusterEntry_clusterId")
+  @@index([ticketId], map: "IX_ClusterEntry_ticketId")
+}
