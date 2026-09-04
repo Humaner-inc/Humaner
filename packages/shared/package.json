@@ -1,0 +1,66 @@
+{
+  "name": "@humaner/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./plans": "./src/plans.ts",
+    "./llm": "./src/llm.ts",
+    "./urls": "./src/urls.ts",
+    "./visitor-id": "./src/visitor-id.ts",
+    "./icons": "./src/icons.tsx",
+    "./brand-wordmark": "./src/brand-wordmark.tsx",
+    "./brand-swap": "./src/brand-swap.tsx",
+    "./self-host-cta-label": "./src/self-host-cta-label.tsx",
+    "./brand-mark": "./src/brand-mark.tsx",
+    "./cta": "./src/cta.ts",
+    "./company": "./src/company.ts",
+    "./support": "./src/support.ts",
+    "./email-ui": "./src/email-ui.tsx",
+    "./email-brand": "./src/email-brand.ts",
+    "./typography": "./src/typography.ts",
+    "./product-positioning": "./src/product-positioning.ts",
+    "./json-ld": "./src/json-ld.ts",
+    "./widget-icons": "./src/widget-icons.tsx",
+    "./widget-bookmarks": "./src/widget-bookmarks.ts",
+    "./widget-bookmark-icon": "./src/widget-bookmark-icon.tsx",
+    "./widget-proactive": "./src/widget-proactive.ts",
+    "./widget-radius": "./src/widget-radius.ts",
+    "./widget-surface": "./src/widget-surface.ts",
+    "./widget-message-time": "./src/widget-message-time.ts",
+    "./widget-suggested-topics": "./src/widget-suggested-topics.ts",
+    "./use-live-chat-poll": "./src/use-live-chat-poll.ts",
+    "./live-chat-handoff": "./src/live-chat-handoff.ts",
+    "./conversation-handoff-banner": "./src/conversation-handoff-banner.tsx",
+    "./visitor-home-tickets": "./src/visitor-home-tickets.tsx",
+    "./team-member-joined-divider": "./src/team-member-joined-divider.tsx",
+    "./gradient-pillar-icon": "./src/gradient-pillar-icon.tsx",
+    "./archetypes": "./src/archetypes.ts",
+    "./mask-sensitive-value": "./src/mask-sensitive-value.ts",
+    "./chat-attachments": "./src/chat-attachments.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.26",
+    "@react-email/tailwind": "1.0.0",
+    "lucide-animated": "^1.0.4",
+    "lucide-react": "^1.24.0",
+    "react-icons": "^5.7.0"
+  },
+  "peerDependencies": {
+    "motion": ">=11.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.8.6",
+    "@types/react": "^19.2.0",
+    "motion": "^12.41.0",
+    "react": "19.2.7",
+    "typescript": "5.6.3"
+  }
+}
