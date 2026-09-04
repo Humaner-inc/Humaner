@@ -1,0 +1,10 @@
+# Public repo is a josh projection. Do not open PRs here — they rewrite
+# public main and the next mirror push cannot fast-forward. Bump deps in
+# the private monorepo; josh will project the lockfile.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0
