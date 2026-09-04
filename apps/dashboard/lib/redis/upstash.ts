@@ -6,8 +6,8 @@ import 'server-only';
  * Cloud uses Upstash Redis so that many serverless instances share one cache,
  * lock namespace, and rate-limit counter. Self-Host runs as a single long-lived
  * Node process (`next start`), so the correct backing store is process memory —
- * no external service, no `@upstash/redis` dependency. The exported surface is
- * identical to the Cloud module; josh renames this file onto `upstash.ts`.
+ * no external Redis service. The exported surface is identical to the Cloud
+ * module; josh renames this file onto `upstash.ts`.
  *
  * Trade-off: state is per-process. Running multiple replicas behind a load
  * balancer means each replica keeps its own cache/counters. That is fine for the
