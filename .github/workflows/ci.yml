@@ -1,3 +1,6 @@
+# Public CI twin. Kept outside .github/workflows so a private push does not start
+# two "CI" runs that share concurrency and cancel each other. Josh renames this
+# onto .github/workflows/ci.yml in the public tree.
 name: CI
 
 on:

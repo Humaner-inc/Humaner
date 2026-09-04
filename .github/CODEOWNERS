@@ -1,0 +1,4 @@
+# Default owner for the public Self-Host repository.
+# The private monorepo keeps its own CODEOWNERS; josh renames this file onto
+# .github/CODEOWNERS so the public tree does not enumerate private paths.
+* @thatsevplus

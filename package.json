@@ -1,0 +1,67 @@
+{
+  "name": "humaner",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:dashboard": "turbo dev --filter=@humaner/dashboard",
+    "dev:into-markdown": "turbo dev --filter=@humaner/into-markdown",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "db:generate": "pnpm --filter @humaner/dashboard db:generate",
+    "db:assert": "pnpm --filter @humaner/dashboard db:assert",
+    "db:migrate": "pnpm --filter @humaner/dashboard db:migrate",
+    "db:deploy": "pnpm --filter @humaner/dashboard db:deploy",
+    "db:push": "pnpm --filter @humaner/dashboard db:push",
+    "db:studio": "pnpm --filter @humaner/dashboard db:studio",
+    "format:write": "prettier --write \"**/*.{ts,tsx,md,mdx,json}\" --cache",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,mdx,json}\" --cache",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "3.3.3",
+    "turbo": "^2.5.4",
+    "typescript": "5.6.3"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": "20.x"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "react-is": "19.2.7",
+      "next": "16.3.1",
+      "nodemailer": "9.0.1",
+      "js-yaml": "4.3.1",
+      "gray-matter>js-yaml": "3.15.1",
+      "postcss": "8.5.18",
+      "nanoid": "3.3.18",
+      "tmp": "0.2.7",
+      "linkify-it": "5.0.2",
+      "ip-address": "10.3.1",
+      "cheerio>undici": "7.29.0",
+      "shadcn>undici": "7.29.0",
+      "@dotenvx/dotenvx>undici": "7.29.0",
+      "deepmerge-ts": "8.0.1",
+      "socket.io-parser": "4.2.7",
+      "svgo": "3.3.4",
+      "fast-uri": "3.1.6",
+      "browserslist": "4.28.8",
+      "sharp": "0.35.3",
+      "glob@10": "10.5.0",
+      "brace-expansion@1": "1.1.18",
+      "brace-expansion@2": "2.1.4",
+      "brace-expansion@5": "5.0.9"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md,mdx,json}": "prettier --write --cache"
+  }
+}
