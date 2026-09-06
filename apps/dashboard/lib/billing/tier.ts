@@ -46,5 +46,8 @@ export function normalizeTier(value: string): Tier {
 }
 
 export function toPlanTier(tier: Tier): PlanTier {
-  return tier as PlanTier;
+  if (tier === Tier.Frontier) {
+    return 'classic';
+  }
+  return tier;
 }
