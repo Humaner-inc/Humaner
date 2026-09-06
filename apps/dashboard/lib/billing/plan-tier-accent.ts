@@ -4,12 +4,10 @@ import type { PlanTier } from '@humaner/shared/plans';
 export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
   /** Self-host */
   free: '#7b7b73',
-  /** BYO — Humaner orange */
+  /** Custom — Humaner orange */
   byo: '#f85919',
-  /** Native — cobalt */
+  /** Humaner — cobalt */
   classic: '#2252bc',
-  /** Native volume steps */
-  frontier: '#2252bc',
   humaner: '#f85919'
 };
 

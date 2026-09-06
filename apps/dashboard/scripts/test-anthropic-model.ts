@@ -24,8 +24,8 @@ async function testModel(model: string) {
 }
 
 async function main() {
-  await testModel('claude-sonnet-4-20250514');
-  await testModel('claude-sonnet-4-6');
+  await testModel('claude-sonnet-4-5');
+  await testModel('claude-sonnet-5');
 }
 
 main();

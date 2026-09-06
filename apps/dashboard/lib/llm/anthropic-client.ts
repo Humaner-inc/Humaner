@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { LLM_MODELS } from '@humaner/shared/plans';
 
 /** Canonical model used for all deployed agents (widget + API). */
-export const DEFAULT_CHAT_MODEL = LLM_MODELS.SONNET_46.id;
+export const DEFAULT_CHAT_MODEL = LLM_MODELS.SONNET_5.id;
 
 export function getAnthropicApiKey(): string | undefined {
   return (

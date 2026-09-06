@@ -1,49 +1,14 @@
 /**
  * Self-Host (OSS) twin of `plans.ts`.
  *
- * Cloud prices, Polar product keys, volume quotes, and Frontier checkout stay
- * private. The public kit only exposes the Self-Host capability matrix and the
- * types the dashboard still imports. josh renames this onto `plans.ts`.
+ * Cloud prices, Polar product keys, and volume quotes stay private. The public
+ * kit only exposes the Self-Host capability matrix and the types the dashboard
+ * still imports. josh renames this onto `plans.ts`.
  */
 
-export type PlanTier = "free" | "byo" | "classic" | "frontier" | "humaner";
+export type PlanTier = "free" | "byo" | "classic" | "humaner";
 
-export type LlmModelId =
-  | "claude-sonnet-4-6"
-  | "claude-sonnet-4-5"
-  | "claude-haiku-4-5-20251001";
-
-export type HumanerModelVersion = "v1.0" | "v2.0" | "v3.0";
-
-export type HumanerModelDefinition = {
-  version: HumanerModelVersion;
-  label: string;
-  tagline: string;
-};
-
-export const HUMANER_MODELS: Record<
-  HumanerModelVersion,
-  HumanerModelDefinition
-> = {
-  "v1.0": {
-    version: "v1.0",
-    label: "Humaner v1.0",
-    tagline:
-      "Fast replies from your knowledge with semantic dedup and session memory.",
-  },
-  "v2.0": {
-    version: "v2.0",
-    label: "Humaner v2.0",
-    tagline:
-      "Cross-session memory for identified visitors, with session context and knowledge-backed replies.",
-  },
-  "v3.0": {
-    version: "v3.0",
-    label: "Humaner v3.0",
-    tagline:
-      "Full learning loop with live data, voice, and enterprise controls.",
-  },
-};
+export type LlmModelId = "claude-sonnet-5" | "claude-sonnet-4-5";
 
 export type PlanFeature = {
   label: string;
@@ -53,7 +18,7 @@ export type PlanFeature = {
 
 export type MemoryMode = "none" | "session" | "cross-session";
 
-export type PersonalityAccess = "corporate-only" | "custom-only" | "all";
+export type PersonalityAccess = "none" | "custom-only" | "all";
 
 export type PlanCapabilities = {
   langCache: boolean;
@@ -91,8 +56,12 @@ export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
   hostedAgent: true,
 };
 
-/** Dashboard shell still reads this; Self-Host never shows the Cloud prompt. */
-export const FRONTIER_PLAN_COMING_SOON = false;
+/** Cloud Custom is not sold in Self-Host. */
+export const CUSTOM_PLAN_COMING_SOON = false;
+
+export function isPlanComingSoon(_tier: string): boolean {
+  return false;
+}
 
 export type PlanCapabilityContext = {
   frontierBetaEnabled?: boolean | null;
@@ -117,7 +86,6 @@ export type PlanDefinition = {
   mailboxAliases: number;
   model: LlmModelId;
   modelLabel: string;
-  humanerModel: HumanerModelDefinition;
   maxContextTokens: number;
   maxHistoryTurns: number;
   features: PlanFeature[];
@@ -126,28 +94,28 @@ export type PlanDefinition = {
 
 export const UNLIMITED_AGENTS = 999;
 
+const SONNET_5 = {
+  id: "claude-sonnet-5" as const,
+  label: "Sonnet 5",
+  description: "Accurate, brand-aware responses with full knowledge backing",
+};
+
+const SONNET_45 = {
+  id: "claude-sonnet-4-5" as const,
+  label: "Sonnet 4.5",
+  description: "Reliable fallback model",
+};
+
 export const LLM_MODELS = {
-  SONNET_46: {
-    id: "claude-sonnet-4-6" as const,
-    label: "Sonnet 4.6",
-    description: "Accurate, brand-aware responses with full knowledge backing",
-  },
-  SONNET_45: {
-    id: "claude-sonnet-4-5" as const,
-    label: "Sonnet 4.5",
-    description: "Reliable fallback model",
-  },
-  HAIKU_45: {
-    id: "claude-haiku-4-5-20251001" as const,
-    label: "Haiku 4.5",
-    description: "Fast last-resort fallback",
-  },
+  SONNET_5,
+  SONNET_45,
+  /** @deprecated Use SONNET_5 */
+  SONNET_46: SONNET_5,
+  /** @deprecated Use SONNET_45 */
+  HAIKU_45: SONNET_45,
 } as const;
 
-export const LLM_FALLBACK_CHAIN: LlmModelId[] = [
-  LLM_MODELS.SONNET_45.id,
-  LLM_MODELS.HAIKU_45.id,
-];
+export const LLM_FALLBACK_CHAIN: LlmModelId[] = [LLM_MODELS.SONNET_45.id];
 
 export const LLM_MODEL_FALLBACK_ID = LLM_MODELS.SONNET_45.id;
 
@@ -163,9 +131,8 @@ export const SELF_HOST_PLAN: PlanDefinition = {
   agents: UNLIMITED_AGENTS,
   members: UNLIMITED_AGENTS,
   mailboxAliases: 0,
-  model: LLM_MODELS.SONNET_46.id,
+  model: LLM_MODELS.SONNET_5.id,
   modelLabel: "Your model",
-  humanerModel: HUMANER_MODELS["v1.0"],
   maxContextTokens: 16_384,
   maxHistoryTurns: 12,
   features: [
@@ -226,7 +193,8 @@ export function normalizePlanTier(tier: string): PlanTier {
   if (
     normalized === "refined" ||
     normalized === "grow" ||
-    normalized === "native"
+    normalized === "native" ||
+    normalized === "frontier"
   ) {
     return "classic";
   }
@@ -234,7 +202,6 @@ export function normalizePlanTier(tier: string): PlanTier {
     normalized === "free" ||
     normalized === "byo" ||
     normalized === "classic" ||
-    normalized === "frontier" ||
     normalized === "humaner"
   ) {
     return normalized;

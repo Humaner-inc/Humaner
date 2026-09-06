@@ -3,11 +3,7 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
-import {
-  FRONTIER_PLAN_COMING_SOON,
-  getPlanCapabilities,
-  getPlanForTier
-} from '@humaner/shared/plans';
+import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
@@ -23,7 +19,6 @@ import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-conne
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
-import { FrontierBetaPromptGate } from '@/components/onboarding/frontier-beta-prompt-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
@@ -195,21 +190,12 @@ export async function DashboardSessionShell({
   const showDataImprovementPrompt =
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.organization!.dataImprovementConsent === null;
-  const showFrontierBetaPrompt =
-    FRONTIER_PLAN_COMING_SOON &&
-    !showDataImprovementPrompt &&
-    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
-    userFromDb!.inboxConnectPromptPending &&
-    userFromDb!.organization!.tier === 'classic' &&
-    !userFromDb!.frontierBetaEnabled &&
-    !userFromDb!.organization!.frontierBetaEnabled;
   // Custom gets the integration setup guide after onboarding instead; an inbox
   // dialog on top of it would land before they have an agent talking to us.
   const inboxPromptEligible = getPlanCapabilities(
     userFromDb!.organization!.tier
   ).hostedAgent;
   const showInboxConnectPrompt =
-    !FRONTIER_PLAN_COMING_SOON &&
     !showDataImprovementPrompt &&
     inboxPromptEligible &&
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
@@ -308,9 +294,6 @@ export async function DashboardSessionShell({
             privacyPolicyUrl={getPrivacyUrl()}
             showPrompt={showDataImprovementPrompt}
           />
-        ) : null}
-        {!isOssDeployment() ? (
-          <FrontierBetaPromptGate showPrompt={showFrontierBetaPrompt} />
         ) : null}
         {!isOssDeployment() ? (
           <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />

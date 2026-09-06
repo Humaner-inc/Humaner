@@ -104,15 +104,15 @@ export const DASHBOARD_CHARACTER_LIST: CharacterMeta[] =
 export function getSelectableCharacters(
   access: PersonalityAccess
 ): CharacterMeta[] {
-  if (access === 'all') {
-    return DASHBOARD_CHARACTER_LIST;
+  if (access === 'none') {
+    return [];
   }
 
   if (access === 'custom-only') {
     return [CHARACTER_META.CUSTOM];
   }
 
-  return [CHARACTER_META.CORPORATE];
+  return DASHBOARD_CHARACTER_LIST;
 }
 
 type Option<T extends string> = {
