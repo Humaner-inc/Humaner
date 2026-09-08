@@ -77,7 +77,8 @@ export const actionClient = createSafeActionClient({
       (e.name === 'ValidationError' ||
         e.name === 'PreConditionError' ||
         e.name === 'ForbiddenError' ||
-        e.name === 'NotFoundError')
+        e.name === 'NotFoundError' ||
+        e.name === 'GatewayError')
     ) {
       return e.message;
     }
