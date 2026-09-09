@@ -33,6 +33,8 @@ export const getSidebarMessageUsage = cache(
     return {
       messagesUsed: 0,
       includedMessages: 0,
+      creditsUsedCents: 0,
+      creditsIncludedCents: 0,
       tier: normalizeTier(organization?.tier ?? 'free'),
       operatorOwnedQuota: false
     };

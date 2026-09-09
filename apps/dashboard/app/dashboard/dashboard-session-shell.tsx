@@ -24,7 +24,6 @@ import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
-import { getSidebarTrialStatus } from '@/data/billing/get-sidebar-trial-status';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import {
   getMailInboxes,
@@ -142,6 +141,8 @@ export async function DashboardSessionShell({
   const emptyMessageUsage: SidebarMessageUsageDto = {
     messagesUsed: 0,
     includedMessages: 0,
+    creditsUsedCents: 0,
+    creditsIncludedCents: 0,
     tier: userFromDb!.organization!.tier ?? 'free',
     operatorOwnedQuota: false
   };
@@ -152,7 +153,6 @@ export async function DashboardSessionShell({
     agents,
     workspaces,
     messageUsage,
-    trialStatus,
     notificationsResult,
     inboxUnreadCount,
     handoffOpenCounts,
@@ -163,7 +163,6 @@ export async function DashboardSessionShell({
     getAgents(),
     getWorkspaceSwitcherData(),
     oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
-    oss ? Promise.resolve(null) : getSidebarTrialStatus(),
     getDashboardNotifications(),
     oss || !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
     canDesk
@@ -243,7 +242,6 @@ export async function DashboardSessionShell({
         profile={profile}
         workspaces={workspaces}
         messageUsage={messageUsage}
-        trialStatus={trialStatus}
         orgTier={userFromDb!.organization!.tier ?? 'free'}
         frontierBetaEnabled={userFromDb!.organization!.frontierBetaEnabled}
         inboxUnreadCount={inboxUnreadCount}

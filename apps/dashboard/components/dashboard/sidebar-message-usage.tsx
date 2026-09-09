@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { formatCreditUsd } from '@humaner/shared/credits';
 
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -64,8 +65,8 @@ export function SidebarMessageUsage({
   const isIconRail = !isMobile && state === 'collapsed';
   const usagePercent = Math.min(
     100,
-    usage.includedMessages > 0
-      ? Math.round((usage.messagesUsed / usage.includedMessages) * 100)
+    usage.creditsIncludedCents > 0
+      ? Math.round((usage.creditsUsedCents / usage.creditsIncludedCents) * 100)
       : 0
   );
   const isFreePlan = usage.tier === 'free';
@@ -78,12 +79,12 @@ export function SidebarMessageUsage({
 
   const usageLabel = operatorOwned
     ? `${usage.messagesUsed.toLocaleString()} replies`
-    : `${usage.messagesUsed.toLocaleString()} / ${usage.includedMessages.toLocaleString()}`;
+    : `${formatCreditUsd(usage.creditsUsedCents)} / ${formatCreditUsd(usage.creditsIncludedCents)}`;
 
   return (
     <div
       className={cn('min-w-0 px-2 pb-2', className)}
-      title={isIconRail ? `Messages this month: ${usageLabel}` : undefined}
+      title={isIconRail ? `Credits used: ${usageLabel}` : undefined}
     >
       <div
         className={cn(
@@ -105,7 +106,7 @@ export function SidebarMessageUsage({
             className="mb-2 h-8 w-full min-w-0"
           >
             <Link href={Routes.Billing}>
-              {isFreePlan ? 'Upgrade plan' : 'Upgrade for more messages'}
+              {isFreePlan ? 'Upgrade plan' : 'Add credits'}
             </Link>
           </Button>
         </div>
@@ -122,10 +123,12 @@ export function SidebarMessageUsage({
       >
         <div className="overflow-hidden px-0.5">
           <span className="block text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
-            {usage.messagesUsed.toLocaleString()}
+            {operatorOwned
+              ? usage.messagesUsed.toLocaleString()
+              : formatCreditUsd(usage.creditsUsedCents)}
             {operatorOwned ? null : (
               <span className="text-muted-foreground/70">
-                /{usage.includedMessages.toLocaleString()}
+                /{formatCreditUsd(usage.creditsIncludedCents)}
               </span>
             )}
           </span>
@@ -143,9 +146,7 @@ export function SidebarMessageUsage({
         aria-hidden={isIconRail}
       >
         <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-          <span className="truncate text-muted-foreground">
-            Messages this month
-          </span>
+          <span className="truncate text-muted-foreground">Credits used</span>
           <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
             {usageLabel}
           </span>

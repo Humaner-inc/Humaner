@@ -103,9 +103,7 @@ export function DashboardOverviewStrip({
                     >
                       ·
                     </span>
-                    <span className="tabular-nums leading-none">
-                      {plan.includedMessages.toLocaleString()} msg/mo
-                    </span>
+                    <span className="tabular-nums leading-none">Credits</span>
                   </>
                 )}
               </>
