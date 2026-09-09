@@ -35,6 +35,8 @@ export const getSidebarMessageUsage = cache(
       includedMessages: 0,
       creditsUsedCents: 0,
       creditsIncludedCents: 0,
+      creditsRemainingCents: 0,
+      billingModel: 'subscription',
       tier: normalizeTier(organization?.tier ?? 'free'),
       operatorOwnedQuota: false
     };

@@ -47,6 +47,8 @@ export function getDemoAnalyticsOverview(): AnalyticsOverview {
       totalMessages,
       messagesUsed: 820,
       includedMessages: 2000,
+      creditsUsedCents: 5740,
+      creditsRemainingCents: 14260,
       operatorOwnedQuota: false
     },
     volumeByDay,

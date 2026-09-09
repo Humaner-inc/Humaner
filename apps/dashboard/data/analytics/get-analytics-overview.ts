@@ -2,6 +2,10 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 import {
+  creditsFromReplies,
+  isCreditsBillingModel
+} from '@humaner/shared/credits';
+import {
   getEffectivePlan,
   getPlanCapabilities,
   isOperatorOwnedQuotaPlan
@@ -49,6 +53,8 @@ export type AnalyticsOverview = {
     totalMessages: number;
     messagesUsed: number;
     includedMessages: number;
+    creditsUsedCents: number;
+    creditsRemainingCents: number;
     operatorOwnedQuota?: boolean;
   };
   volumeByDay: AnalyticsVolumePoint[];
@@ -136,7 +142,12 @@ export async function getAnalyticsOverview(options?: {
 
   const organization = await prisma.organization.findFirst({
     where: { id: organizationId },
-    select: { tier: true, includedMessages: true }
+    select: {
+      tier: true,
+      includedMessages: true,
+      billingModel: true,
+      creditBalanceCents: true
+    }
   });
   const tier = normalizeTier(organization?.tier ?? 'free');
   const plan = getEffectivePlan(tier, organization?.includedMessages);
@@ -276,6 +287,14 @@ export async function getAnalyticsOverview(options?: {
       totalMessages,
       messagesUsed,
       includedMessages: plan.includedMessages,
+      creditsUsedCents: creditsFromReplies(messagesUsed),
+      creditsRemainingCents: isCreditsBillingModel(organization?.billingModel)
+        ? (organization?.creditBalanceCents ?? 0)
+        : Math.max(
+            creditsFromReplies(plan.includedMessages) -
+              creditsFromReplies(messagesUsed),
+            0
+          ),
       operatorOwnedQuota: isOperatorOwnedQuotaPlan(plan)
     },
     volumeByDay: buildVolumeByDay(volumeMessageCounts, volumeConversations),

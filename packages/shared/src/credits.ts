@@ -94,6 +94,14 @@ export const CREDIT_PACKS_USD = [20, 50, 150] as const;
 
 export const MIN_CUSTOM_RECHARGE_USD = 20;
 
+export const AUTO_RELOAD_THRESHOLD_USD = [5, 10, 20] as const;
+export const DEFAULT_AUTO_RELOAD_THRESHOLD_USD = 5;
+export const DEFAULT_AUTO_RELOAD_THRESHOLD_CENTS =
+  DEFAULT_AUTO_RELOAD_THRESHOLD_USD * 100;
+export const DEFAULT_AUTO_RELOAD_AMOUNT_USD = 20;
+export const DEFAULT_AUTO_RELOAD_AMOUNT_CENTS =
+  DEFAULT_AUTO_RELOAD_AMOUNT_USD * 100;
+
 /** Polar one-time products for prepaid packs — not subscriptions, no trial. */
 export const POLAR_CREDIT_PACK_ENV_KEYS = {
   20: "POLAR_PRODUCT_CREDITS_20_ID",
@@ -123,4 +131,48 @@ export function creditsFromReplies(replies: number): number {
 
 export function formatCreditUsd(cents: number): string {
   return `$${(Math.max(0, cents) / 100).toFixed(2)}`;
+}
+
+/** Prepaid wallet. Polar volume subscribers stay on `subscription`. */
+export const BILLING_MODEL_CREDITS = "credits" as const;
+export const BILLING_MODEL_SUBSCRIPTION = "subscription" as const;
+
+export type BillingModel =
+  | typeof BILLING_MODEL_CREDITS
+  | typeof BILLING_MODEL_SUBSCRIPTION;
+
+export function isCreditsBillingModel(
+  value: string | null | undefined,
+): boolean {
+  return value === BILLING_MODEL_CREDITS;
+}
+
+export type StarterCreditGrantDecision =
+  | "grant"
+  | "already_granted"
+  | "keep_subscription";
+
+/**
+ * $20 starter is owner-only, once, and only for a new Humaner (classic) pick.
+ * Existing Polar volume / Custom subscribers stay on `subscription`.
+ */
+export function decideStarterCreditGrant(account: {
+  tier: string;
+  billingModel?: string | null;
+  starterCreditGrantedAt?: Date | string | null;
+}): StarterCreditGrantDecision {
+  if (account.starterCreditGrantedAt) {
+    return "already_granted";
+  }
+
+  const model = account.billingModel ?? BILLING_MODEL_SUBSCRIPTION;
+  if (model === BILLING_MODEL_CREDITS) {
+    return "grant";
+  }
+
+  if (account.tier.toLowerCase() !== "free") {
+    return "keep_subscription";
+  }
+
+  return "grant";
 }

@@ -15,6 +15,7 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
+import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
 import { getInboxHomeOverview } from '@/data/inbox/get-inbox-home-overview';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
@@ -66,7 +67,8 @@ async function HomePageContent(): Promise<React.JSX.Element> {
     liveAgentCount,
     deskOverview,
     members,
-    inboxOverview
+    inboxOverview,
+    creditUsage
   ] = await Promise.all([
     getProfile(),
     session?.user?.id
@@ -92,7 +94,10 @@ async function HomePageContent(): Promise<React.JSX.Element> {
       : Promise.resolve(0),
     getDeskIssuesOverview(),
     getOrganizationMembers(),
-    oss ? Promise.resolve(null) : getInboxHomeOverview()
+    oss ? Promise.resolve(null) : getInboxHomeOverview(),
+    session?.user?.organizationId && !oss
+      ? getSidebarMessageUsage()
+      : Promise.resolve(null)
   ]);
 
   const plan = getEffectivePlan(
@@ -123,6 +128,8 @@ async function HomePageContent(): Promise<React.JSX.Element> {
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}
           includedMessages={organization?.includedMessages}
+          creditsUsedCents={creditUsage?.creditsUsedCents}
+          creditsRemainingCents={creditUsage?.creditsRemainingCents}
           canAccessBilling={!oss && canAccessPathname(profile, Routes.Billing)}
           selfHostMode={oss}
         />

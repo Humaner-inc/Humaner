@@ -143,6 +143,8 @@ export async function DashboardSessionShell({
     includedMessages: 0,
     creditsUsedCents: 0,
     creditsIncludedCents: 0,
+    creditsRemainingCents: 0,
+    billingModel: 'subscription',
     tier: userFromDb!.organization!.tier ?? 'free',
     operatorOwnedQuota: false
   };

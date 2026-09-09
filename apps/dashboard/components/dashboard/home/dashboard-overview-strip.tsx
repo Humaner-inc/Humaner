@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Link from 'next/link';
+import { formatCreditUsd } from '@humaner/shared/credits';
 import {
   formatPlanIncludedMessages,
   getEffectivePlan,
@@ -26,6 +27,8 @@ export type DashboardOverviewStripProps = {
   targetAudience: TargetAudience | null;
   tier: string;
   includedMessages?: number;
+  creditsUsedCents?: number;
+  creditsRemainingCents?: number;
   /** Owners / platform admins only — teammates must not see Billing CTAs. */
   canAccessBilling?: boolean;
   /** Self-Host kit — no Polar plan / Upgrade CTA. */
@@ -41,6 +44,8 @@ export function DashboardOverviewStrip({
   targetAudience,
   tier,
   includedMessages,
+  creditsUsedCents,
+  creditsRemainingCents,
   canAccessBilling = false,
   selfHostMode = false,
   className
@@ -103,7 +108,11 @@ export function DashboardOverviewStrip({
                     >
                       ·
                     </span>
-                    <span className="tabular-nums leading-none">Credits</span>
+                    <span className="tabular-nums leading-none">
+                      {creditsUsedCents != null && creditsRemainingCents != null
+                        ? `${formatCreditUsd(creditsUsedCents)} used · ${formatCreditUsd(creditsRemainingCents)} left`
+                        : 'Credits'}
+                    </span>
                   </>
                 )}
               </>

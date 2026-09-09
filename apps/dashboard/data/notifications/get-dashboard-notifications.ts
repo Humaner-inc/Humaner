@@ -1,6 +1,11 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
+import {
+  creditsFromReplies,
+  formatCreditUsd,
+  isCreditsBillingModel
+} from '@humaner/shared/credits';
 import { getEffectivePlan } from '@humaner/shared/plans';
 import { addDays, formatDistanceToNow } from 'date-fns';
 
@@ -95,6 +100,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       select: {
         tier: true,
         includedMessages: true,
+        billingModel: true,
+        creditBalanceCents: true,
         humanDeskEnabled: true
       }
     }),
@@ -225,19 +232,35 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   ]);
 
   if (!oss) {
-    const messageQuotaExhausted =
-      plan.overagePerMessage === null &&
-      plan.includedMessages > 0 &&
-      messagesUsed >= plan.includedMessages;
+    const creditsUsedCents = creditsFromReplies(messagesUsed);
+    const creditsRemainingCents = isCreditsBillingModel(
+      organization.billingModel
+    )
+      ? organization.creditBalanceCents
+      : Math.max(
+          creditsFromReplies(plan.includedMessages) - creditsUsedCents,
+          0
+        );
+    const creditsPool = creditsUsedCents + creditsRemainingCents;
+    const messageQuotaExhausted = isCreditsBillingModel(
+      organization.billingModel
+    )
+      ? creditsRemainingCents <= 0
+      : plan.overagePerMessage === null &&
+        plan.includedMessages > 0 &&
+        messagesUsed >= plan.includedMessages;
 
     if (!bypassLimits) {
       const usagePercent =
-        plan.includedMessages > 0
-          ? Math.round((messagesUsed / plan.includedMessages) * 100)
+        creditsPool > 0
+          ? Math.round((creditsUsedCents / creditsPool) * 100)
           : 0;
 
       if (messageQuotaExhausted || usagePercent >= 100) {
-        if (tier === 'free') {
+        if (
+          tier === 'free' &&
+          !isCreditsBillingModel(organization.billingModel)
+        ) {
           items.push({
             id: 'billing-free-quota',
             kind: 'billing',
@@ -251,11 +274,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
           });
         } else {
           items.push({
-            id: 'plan-messages-critical',
+            id: 'plan-credits-critical',
             kind: 'billing',
-            title: 'Message limit reached',
-            emphasis: `${usagePercent}% used`,
-            description: `${plan.name} includes ${plan.includedMessages.toLocaleString()} messages/mo. Upgrade or wait for the next billing period.`,
+            title: 'Credits used up',
+            emphasis: formatCreditUsd(0),
+            description: `${formatCreditUsd(creditsUsedCents)} used this period. Add credits to keep agents responding.`,
             href: Routes.Billing,
             severity: 'critical',
             createdAt: now.toISOString()
@@ -263,11 +286,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         }
       } else if (usagePercent >= 80) {
         items.push({
-          id: 'plan-messages-warning',
+          id: 'plan-credits-warning',
           kind: 'billing',
-          title: 'Approaching message limit',
-          emphasis: `${usagePercent}% used`,
-          description: `${messagesUsed.toLocaleString()} of ${plan.includedMessages.toLocaleString()} included messages used this period.`,
+          title: 'Credits running low',
+          emphasis: `${formatCreditUsd(creditsRemainingCents)} left`,
+          description: `${formatCreditUsd(creditsUsedCents)} used this period. Add credits or turn on auto-reload.`,
           href: Routes.Billing,
           severity: 'warning',
           createdAt: now.toISOString()

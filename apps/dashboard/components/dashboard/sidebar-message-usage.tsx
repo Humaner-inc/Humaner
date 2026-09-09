@@ -79,7 +79,7 @@ export function SidebarMessageUsage({
 
   const usageLabel = operatorOwned
     ? `${usage.messagesUsed.toLocaleString()} replies`
-    : `${formatCreditUsd(usage.creditsUsedCents)} / ${formatCreditUsd(usage.creditsIncludedCents)}`;
+    : `${formatCreditUsd(usage.creditsUsedCents)} used · ${formatCreditUsd(usage.creditsRemainingCents)} left`;
 
   return (
     <div
@@ -128,7 +128,7 @@ export function SidebarMessageUsage({
               : formatCreditUsd(usage.creditsUsedCents)}
             {operatorOwned ? null : (
               <span className="text-muted-foreground/70">
-                /{formatCreditUsd(usage.creditsIncludedCents)}
+                /{formatCreditUsd(usage.creditsRemainingCents)}
               </span>
             )}
           </span>
