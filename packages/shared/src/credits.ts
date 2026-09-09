@@ -92,7 +92,7 @@ export function starterCashCost(utilization: number): number {
 
 export const CREDIT_PACKS_USD = [20, 50, 150] as const;
 
-export const MIN_CUSTOM_RECHARGE_USD = 20;
+export const MIN_CUSTOM_RECHARGE_USD = 10;
 
 export const AUTO_RELOAD_THRESHOLD_USD = [5, 10, 20] as const;
 export const DEFAULT_AUTO_RELOAD_THRESHOLD_USD = 5;
@@ -109,7 +109,7 @@ export const POLAR_CREDIT_PACK_ENV_KEYS = {
   150: "POLAR_PRODUCT_CREDITS_150_ID",
 } as const;
 
-/** One-time product used with Polar ad-hoc / custom checkout amounts (min $20). */
+/** One-time product used with Polar ad-hoc / custom checkout amounts (min $10). */
 export const POLAR_CREDIT_CUSTOM_ENV_KEY = "POLAR_PRODUCT_CREDITS_CUSTOM_ID";
 
 /** Recurring Polar add-ons billed monthly. */
