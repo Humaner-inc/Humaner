@@ -2,7 +2,6 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 import {
-  creditsFromReplies,
   formatCreditUsd,
   isCreditsBillingModel
 } from '@humaner/shared/credits';
@@ -14,6 +13,7 @@ import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { creditUsageForAccount } from '@/lib/billing/credit-usage';
 import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
@@ -102,7 +102,10 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         includedMessages: true,
         billingModel: true,
         creditBalanceCents: true,
-        humanDeskEnabled: true
+        humanDeskEnabled: true,
+        owner: {
+          select: { billingModel: true, creditBalanceCents: true }
+        }
       }
     }),
     oss
@@ -232,29 +235,20 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   ]);
 
   if (!oss) {
-    const creditsUsedCents = creditsFromReplies(messagesUsed);
-    const creditsRemainingCents = isCreditsBillingModel(
-      organization.billingModel
-    )
-      ? organization.creditBalanceCents
-      : Math.max(
-          creditsFromReplies(plan.includedMessages) - creditsUsedCents,
-          0
-        );
-    const creditsPool = creditsUsedCents + creditsRemainingCents;
+    const credits = creditUsageForAccount(organization, {
+      messagesUsed,
+      includedMessages: plan.includedMessages
+    });
+    const creditsUsedCents = credits.usedCents;
+    const creditsRemainingCents = credits.remainingCents;
     const messageQuotaExhausted = isCreditsBillingModel(
-      organization.billingModel
+      organization.owner?.billingModel ?? organization.billingModel
     )
-      ? creditsRemainingCents <= 0
-      : plan.overagePerMessage === null &&
-        plan.includedMessages > 0 &&
-        messagesUsed >= plan.includedMessages;
+      ? credits.exhausted
+      : plan.overagePerMessage === null && credits.exhausted;
 
     if (!bypassLimits) {
-      const usagePercent =
-        creditsPool > 0
-          ? Math.round((creditsUsedCents / creditsPool) * 100)
-          : 0;
+      const usagePercent = credits.usagePercent;
 
       if (messageQuotaExhausted || usagePercent >= 100) {
         if (

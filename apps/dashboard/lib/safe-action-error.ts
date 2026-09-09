@@ -33,13 +33,35 @@ function flattenValidationErrors(
   return undefined;
 }
 
+const REACT_DIGEST_ERROR =
+  /minified React error|#441|Server Components render/i;
+
+export function isReactDigestError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return REACT_DIGEST_ERROR.test(error.message);
+}
+
+export function getCaughtActionErrorMessage(
+  error: unknown,
+  fallback: string
+): string {
+  if (isReactDigestError(error)) {
+    return fallback;
+  }
+  return error instanceof Error && error.message.trim()
+    ? error.message
+    : fallback;
+}
+
 export function getSafeActionErrorMessage(
   result: SafeActionResultLike | undefined | null,
   fallback: string
 ): string {
   const serverError = result?.serverError?.trim();
   if (serverError) {
-    return serverError;
+    return REACT_DIGEST_ERROR.test(serverError) ? fallback : serverError;
   }
 
   return flattenValidationErrors(result?.validationErrors) ?? fallback;

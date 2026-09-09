@@ -226,7 +226,7 @@ export function TrainAgentPanel({
               <span className="font-medium text-foreground">
                 {questionCount}
               </span>{' '}
-              of your message quota instead.
+              of your credits instead.
             </>
           ) : overageForSelection > 0 ? (
             <>
@@ -235,7 +235,7 @@ export function TrainAgentPanel({
               <span className="font-medium text-foreground">
                 {overageForSelection}
               </span>{' '}
-              will be deducted from your {modelInfo.planName} message plan.
+              will be deducted from your credits.
             </>
           ) : (
             <>

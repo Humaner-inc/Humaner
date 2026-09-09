@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { STARTER_CREDIT_USD } from '@humaner/shared/credits';
 import { MailIcon } from '@humaner/shared/icons';
+import { SealCheckIcon } from '@phosphor-icons/react/dist/ssr/SealCheck';
 import { toast } from 'sonner';
 
 import { dismissInboxConnectPrompt } from '@/actions/inbox/dismiss-inbox-connect-prompt';
@@ -56,16 +57,21 @@ export function InboxConnectPromptGate({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          {isCredits ? (
-            <p className="mb-2 font-mono text-2xl tabular-nums tracking-tight">
-              ${STARTER_CREDIT_USD}
-            </p>
-          ) : (
+          {isCredits ? null : (
             <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
               <MailIcon className="size-5 text-muted-foreground" />
             </div>
           )}
-          <DialogTitle>
+          <DialogTitle
+            className={isCredits ? 'flex items-center gap-2.5' : undefined}
+          >
+            {isCredits ? (
+              <SealCheckIcon
+                size={32}
+                weight="fill"
+                aria-hidden
+              />
+            ) : null}
             {isCredits ? 'Credits Granted' : 'Connect your Inboxes?'}
           </DialogTitle>
           <DialogDescription>

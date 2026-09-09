@@ -2,10 +2,6 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 import {
-  creditsFromReplies,
-  isCreditsBillingModel
-} from '@humaner/shared/credits';
-import {
   getEffectivePlan,
   getPlanCapabilities,
   isOperatorOwnedQuotaPlan
@@ -17,6 +13,7 @@ import { queryKnowledgeGapCoversForOrganization } from '@/data/knowledge/query-k
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
+import { creditUsageForAccount } from '@/lib/billing/credit-usage';
 import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { normalizeTier } from '@/lib/billing/tier';
 import {
@@ -146,7 +143,10 @@ export async function getAnalyticsOverview(options?: {
       tier: true,
       includedMessages: true,
       billingModel: true,
-      creditBalanceCents: true
+      creditBalanceCents: true,
+      owner: {
+        select: { billingModel: true, creditBalanceCents: true }
+      }
     }
   });
   const tier = normalizeTier(organization?.tier ?? 'free');
@@ -276,6 +276,10 @@ export async function getAnalyticsOverview(options?: {
     (total, gap) => total + gap.count,
     0
   );
+  const credits = creditUsageForAccount(organization ?? {}, {
+    messagesUsed,
+    includedMessages: plan.includedMessages
+  });
 
   return {
     summary: {
@@ -287,14 +291,8 @@ export async function getAnalyticsOverview(options?: {
       totalMessages,
       messagesUsed,
       includedMessages: plan.includedMessages,
-      creditsUsedCents: creditsFromReplies(messagesUsed),
-      creditsRemainingCents: isCreditsBillingModel(organization?.billingModel)
-        ? (organization?.creditBalanceCents ?? 0)
-        : Math.max(
-            creditsFromReplies(plan.includedMessages) -
-              creditsFromReplies(messagesUsed),
-            0
-          ),
+      creditsUsedCents: credits.usedCents,
+      creditsRemainingCents: credits.remainingCents,
       operatorOwnedQuota: isOperatorOwnedQuotaPlan(plan)
     },
     volumeByDay: buildVolumeByDay(volumeMessageCounts, volumeConversations),

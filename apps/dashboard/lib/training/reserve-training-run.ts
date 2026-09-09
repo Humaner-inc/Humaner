@@ -1,5 +1,10 @@
 import 'server-only';
 
+import {
+  formatCreditUsd,
+  isCreditsBillingModel,
+  MESSAGE_RATE_CENTS
+} from '@humaner/shared/credits';
 import { getPlanForTier } from '@humaner/shared/plans';
 
 import {
@@ -9,6 +14,7 @@ import {
 import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { getTrainingMessagesUsedThisMonth } from '@/lib/billing/training-usage';
+import { prisma } from '@/lib/db/prisma';
 import { acquireLock } from '@/lib/redis/upstash';
 
 /** Generous enough for the longest batch; the TTL only bounds a crashed run. */
@@ -21,7 +27,8 @@ export type TrainingRunReservation =
 /**
  * Admit one training run for an account.
  *
- * Training questions are billed against the same monthly message quota, and
+ * Training questions are billed against the credits wallet (or monthly
+ * allotment on Polar volume), and
  * the check is a read followed by a long-running write. Two runs started at
  * once would both read the same usage and both pass, so runs are serialized
  * per account — the lock makes the check and the spend atomic with respect to
@@ -61,10 +68,34 @@ export async function reserveTrainingRun(input: {
   const freeRemaining = Math.max(0, plan.freeTrainingMessages - trainingUsed);
   const overageForThisRun = Math.max(0, input.questionCount - freeRemaining);
 
-  // Hard-cap tiers (no paid overage) cannot dip into a quota that's already
-  // exhausted — everyone else deducts overage from the regular message plan.
+  const organization = await prisma.organization.findFirst({
+    where: { id: input.organizationId },
+    select: {
+      billingModel: true,
+      owner: { select: { billingModel: true, creditBalanceCents: true } }
+    }
+  });
+  const billingModel =
+    organization?.owner?.billingModel ?? organization?.billingModel;
+  const walletCents = organization?.owner?.creditBalanceCents ?? 0;
+
   if (
     overageForThisRun > 0 &&
+    isCreditsBillingModel(billingModel) &&
+    walletCents < overageForThisRun * MESSAGE_RATE_CENTS
+  ) {
+    await release();
+    return {
+      allowed: false,
+      reason: `This run needs ${formatCreditUsd(overageForThisRun * MESSAGE_RATE_CENTS)} in credits beyond the free training allowance. ${formatCreditUsd(walletCents)} left in the wallet.`
+    };
+  }
+
+  // Hard-cap tiers (no paid overage) cannot dip into a quota that's already
+  // exhausted — Polar volume deducts overage from the regular message plan.
+  if (
+    overageForThisRun > 0 &&
+    !isCreditsBillingModel(billingModel) &&
     plan.overagePerMessage === null &&
     messagesUsed + overageForThisRun > plan.includedMessages
   ) {

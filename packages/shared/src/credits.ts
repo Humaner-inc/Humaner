@@ -133,6 +133,53 @@ export function formatCreditUsd(cents: number): string {
   return `$${(Math.max(0, cents) / 100).toFixed(2)}`;
 }
 
+export type CreditUsageSnapshot = {
+  usedCents: number;
+  remainingCents: number;
+  includedCents: number;
+  exhausted: boolean;
+  usagePercent: number;
+};
+
+/**
+ * One pipeline: monthly reply count → cents at $0.07, then remaining.
+ * Credits wallets use the owner balance. Polar volume keeps the monthly allotment.
+ */
+export function resolveCreditUsage(input: {
+  billingModel?: string | null;
+  creditBalanceCents?: number | null;
+  messagesUsed: number;
+  includedMessages: number;
+}): CreditUsageSnapshot {
+  const usedCents = creditsFromReplies(input.messagesUsed);
+
+  if (isCreditsBillingModel(input.billingModel)) {
+    const remainingCents = Math.max(0, input.creditBalanceCents ?? 0);
+    const includedCents = remainingCents + usedCents;
+    const usagePercent =
+      includedCents > 0 ? Math.round((usedCents / includedCents) * 100) : 0;
+    return {
+      usedCents,
+      remainingCents,
+      includedCents,
+      exhausted: remainingCents < MESSAGE_RATE_CENTS,
+      usagePercent: Math.min(100, usagePercent),
+    };
+  }
+
+  const includedCents = creditsFromReplies(input.includedMessages);
+  const remainingCents = Math.max(0, includedCents - usedCents);
+  const usagePercent =
+    includedCents > 0 ? Math.round((usedCents / includedCents) * 100) : 0;
+  return {
+    usedCents,
+    remainingCents,
+    includedCents,
+    exhausted: includedCents > 0 && usedCents >= includedCents,
+    usagePercent: Math.min(100, usagePercent),
+  };
+}
+
 /** Prepaid wallet. Polar volume subscribers stay on `subscription`. */
 export const BILLING_MODEL_CREDITS = "credits" as const;
 export const BILLING_MODEL_SUBSCRIPTION = "subscription" as const;

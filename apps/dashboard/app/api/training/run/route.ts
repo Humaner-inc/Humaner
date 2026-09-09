@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
+import { debitTrainingOverageCredits } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
 import { reserveTrainingRun } from '@/lib/training/reserve-training-run';
 import type { TrainingProgressEvent } from '@/lib/training/training-progress';
@@ -106,6 +107,11 @@ export async function POST(request: Request): Promise<Response> {
           parsed.data.questionCount,
           tier,
           send
+        );
+        await debitTrainingOverageCredits(
+          organizationId,
+          parsed.data.questionCount,
+          tier
         );
 
         revalidatePath(Routes.Training);

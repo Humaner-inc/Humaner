@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { debitTrainingOverageCredits } from '@/lib/billing/training-usage';
 import { prisma } from '@/lib/db/prisma';
 import { reserveTrainingRun } from '@/lib/training/reserve-training-run';
 import {
@@ -67,6 +68,11 @@ export const runAgentTraining = pageActionClient('agents')
     try {
       const result = await runAgentEval(
         parsedInput.agentId,
+        parsedInput.questionCount,
+        tier
+      );
+      await debitTrainingOverageCredits(
+        organizationId,
         parsedInput.questionCount,
         tier
       );
