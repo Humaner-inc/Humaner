@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
+import { isCreditsBillingModel } from '@humaner/shared/credits';
 import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
@@ -73,6 +74,7 @@ export async function DashboardSessionShell({
           targetAudience: true,
           industry: true,
           tier: true,
+          billingModel: true,
           frontierBetaEnabled: true,
           accentColor: true,
           name: true,
@@ -196,13 +198,18 @@ export async function DashboardSessionShell({
   const inboxPromptEligible = getPlanCapabilities(
     userFromDb!.organization!.tier
   ).hostedAgent;
+  const creditsGrantedPending =
+    isCreditsBillingModel(userFromDb!.organization!.billingModel) &&
+    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    userFromDb!.inboxConnectPromptPending;
   const showInboxConnectPrompt =
     !showDataImprovementPrompt &&
-    inboxPromptEligible &&
-    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
-    userFromDb!.inboxConnectPromptPending &&
-    getPlanForTier(userFromDb!.organization!.tier).mailboxAliases > 0 &&
-    userFromDb!.organization!._count.mailboxConnections === 0;
+    (creditsGrantedPending ||
+      (inboxPromptEligible &&
+        userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+        userFromDb!.inboxConnectPromptPending &&
+        getPlanForTier(userFromDb!.organization!.tier).mailboxAliases > 0 &&
+        userFromDb!.organization!._count.mailboxConnections === 0));
 
   const dashboardVisitorId = buildDashboardVisitorId(session.user.id);
   const displayName = profile.name.trim();
@@ -296,7 +303,10 @@ export async function DashboardSessionShell({
           />
         ) : null}
         {!isOssDeployment() ? (
-          <InboxConnectPromptGate showPrompt={showInboxConnectPrompt} />
+          <InboxConnectPromptGate
+            showPrompt={showInboxConnectPrompt}
+            variant={creditsGrantedPending ? 'credits' : 'inbox'}
+          />
         ) : null}
         <SidebarProvider>
           <OrgRealtimeBridge />

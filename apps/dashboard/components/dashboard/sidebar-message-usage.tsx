@@ -7,31 +7,112 @@ import { formatCreditUsd } from '@humaner/shared/credits';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
+import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
 import { cn } from '@/lib/utils';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 const USAGE_UPGRADE_THRESHOLD_PERCENT = 90;
 const SIDEBAR_TRANSITION_CLASS = 'duration-200 ease-linear';
+const CREDITS_BAR_MS = 700;
+const CREDITS_BAR_BLUE = PLAN_TIER_ACCENT.classic;
 
-function SidebarUsageProgress({
-  expanded,
-  value
-}: {
-  expanded: boolean;
-  value: number;
-}): React.JSX.Element {
-  const [fillPercent, setFillPercent] = React.useState(expanded ? value : 0);
+function easeOutCubic(t: number): number {
+  return 1 - (1 - t) ** 3;
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false);
 
   React.useEffect(() => {
-    if (!expanded) {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = (): void => setReduced(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  return reduced;
+}
+
+function useSyncedCreditsMeter(input: {
+  play: boolean;
+  remainingCents: number;
+  usedCents: number;
+  usagePercent: number;
+}): { fillPercent: number; remainingCents: number } {
+  const reducedMotion = usePrefersReducedMotion();
+  const poolCents = input.remainingCents + input.usedCents;
+  const hasPlayedRef = React.useRef(false);
+  const [fillPercent, setFillPercent] = React.useState(0);
+  const [remainingCents, setRemainingCents] = React.useState(poolCents);
+
+  React.useEffect(() => {
+    if (!input.play) {
+      hasPlayedRef.current = false;
       setFillPercent(0);
+      setRemainingCents(poolCents);
       return;
     }
 
-    const frame = requestAnimationFrame(() => setFillPercent(value));
-    return () => cancelAnimationFrame(frame);
-  }, [expanded, value]);
+    if (reducedMotion) {
+      hasPlayedRef.current = true;
+      setFillPercent(input.usagePercent);
+      setRemainingCents(input.remainingCents);
+      return;
+    }
 
+    const startFill = hasPlayedRef.current ? fillPercent : 0;
+    const startRemaining = hasPlayedRef.current ? remainingCents : poolCents;
+    const endFill = input.usagePercent;
+    const endRemaining = input.remainingCents;
+    hasPlayedRef.current = true;
+
+    if (input.usedCents <= 0 && startFill === 0) {
+      setFillPercent(0);
+      setRemainingCents(input.remainingCents);
+      return;
+    }
+
+    const startedAt = performance.now();
+    let frame = 0;
+
+    const tick = (now: number): void => {
+      const progress = Math.min(1, (now - startedAt) / CREDITS_BAR_MS);
+      const eased = easeOutCubic(progress);
+      setFillPercent(startFill + (endFill - startFill) * eased);
+      setRemainingCents(
+        Math.round(startRemaining + (endRemaining - startRemaining) * eased)
+      );
+      if (progress < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+    // Intentionally omit displayed values so later ticks don't restart the tween.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- animate from last painted values
+  }, [
+    input.play,
+    input.remainingCents,
+    input.usagePercent,
+    input.usedCents,
+    poolCents,
+    reducedMotion
+  ]);
+
+  return { fillPercent, remainingCents };
+}
+
+function SidebarUsageProgress({
+  expanded,
+  value,
+  fillPercent
+}: {
+  expanded: boolean;
+  value: number;
+  fillPercent: number;
+}): React.JSX.Element {
   return (
     <div
       className="relative h-1.5 w-full min-w-0 overflow-hidden rounded-full bg-muted"
@@ -42,11 +123,11 @@ function SidebarUsageProgress({
       aria-hidden={!expanded}
     >
       <div
-        className={cn(
-          'absolute inset-y-0 left-0 rounded-full bg-primary will-change-[width]',
-          `transition-[width] ${SIDEBAR_TRANSITION_CLASS}`
-        )}
-        style={{ width: `${fillPercent}%` }}
+        className="absolute inset-y-0 left-0 rounded-full will-change-[width]"
+        style={{
+          width: `${fillPercent}%`,
+          backgroundColor: CREDITS_BAR_BLUE
+        }}
       />
     </div>
   );
@@ -76,15 +157,18 @@ export function SidebarMessageUsage({
     !operatorOwned &&
     usagePercent >= USAGE_UPGRADE_THRESHOLD_PERCENT &&
     usage.tier !== 'humaner';
-
-  const usageLabel = operatorOwned
-    ? `${usage.messagesUsed.toLocaleString()} replies`
-    : `${formatCreditUsd(usage.creditsUsedCents)} used · ${formatCreditUsd(usage.creditsRemainingCents)} left`;
+  const meter = useSyncedCreditsMeter({
+    play: !isIconRail && !operatorOwned,
+    remainingCents: usage.creditsRemainingCents,
+    usedCents: usage.creditsUsedCents,
+    usagePercent
+  });
+  const remainingLabel = `${formatCreditUsd(meter.remainingCents)} remaining`;
 
   return (
     <div
       className={cn('min-w-0 px-2 pb-2', className)}
-      title={isIconRail ? `Credits used: ${usageLabel}` : undefined}
+      title={isIconRail ? remainingLabel : undefined}
     >
       <div
         className={cn(
@@ -125,12 +209,7 @@ export function SidebarMessageUsage({
           <span className="block text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
             {operatorOwned
               ? usage.messagesUsed.toLocaleString()
-              : formatCreditUsd(usage.creditsUsedCents)}
-            {operatorOwned ? null : (
-              <span className="text-muted-foreground/70">
-                /{formatCreditUsd(usage.creditsRemainingCents)}
-              </span>
-            )}
+              : formatCreditUsd(usage.creditsRemainingCents)}
           </span>
         </div>
       </div>
@@ -146,15 +225,18 @@ export function SidebarMessageUsage({
         aria-hidden={isIconRail}
       >
         <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-          <span className="truncate text-muted-foreground">Credits used</span>
+          <span className="truncate text-muted-foreground">Credits</span>
           <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
-            {usageLabel}
+            {operatorOwned
+              ? `${usage.messagesUsed.toLocaleString()} replies`
+              : remainingLabel}
           </span>
         </div>
         {operatorOwned ? null : (
           <SidebarUsageProgress
             expanded={!isIconRail}
             value={usagePercent}
+            fillPercent={meter.fillPercent}
           />
         )}
       </div>

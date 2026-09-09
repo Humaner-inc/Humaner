@@ -109,8 +109,8 @@ export function DashboardOverviewStrip({
                       ·
                     </span>
                     <span className="tabular-nums leading-none">
-                      {creditsUsedCents != null && creditsRemainingCents != null
-                        ? `${formatCreditUsd(creditsUsedCents)} used · ${formatCreditUsd(creditsRemainingCents)} left`
+                      {creditsRemainingCents != null
+                        ? `${formatCreditUsd(creditsRemainingCents)} remaining`
                         : 'Credits'}
                     </span>
                   </>
