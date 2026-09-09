@@ -547,8 +547,22 @@ model User {
   mailAliasMemberships         MailAliasMember[]
   mailThreadNotes              MailThreadNote[]
   teamMemberProfile            TeamMemberProfile?
+  polarCreditGrants            PolarCreditGrant[]
 
   @@index([organizationId], map: "IX_User_organizationId")
+}
+
+/// Cloud Polar refill ledger. Unused on Self-Host.
+model PolarCreditGrant {
+  id           String   @id(map: "PK_PolarCreditGrant") @default(uuid()) @db.Uuid
+  polarOrderId String   @unique(map: "UQ_PolarCreditGrant_polarOrderId") @db.VarChar(255)
+  ownerId      String   @db.Uuid
+  cents        Int
+  productId    String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([ownerId], map: "IX_PolarCreditGrant_ownerId")
 }
 
 model OrganizationMembership {

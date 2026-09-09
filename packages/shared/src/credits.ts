@@ -112,6 +112,232 @@ export const POLAR_CREDIT_PACK_ENV_KEYS = {
 /** One-time product used with Polar ad-hoc / custom checkout amounts (min $10). */
 export const POLAR_CREDIT_CUSTOM_ENV_KEY = "POLAR_PRODUCT_CREDITS_CUSTOM_ID";
 
+export const MIN_POLAR_CREDIT_GRANT_CENTS = MIN_CUSTOM_RECHARGE_USD * 100;
+export const MAX_POLAR_CREDIT_GRANT_CENTS = 1_000_000;
+
+export function polarCreditProductEnvKeys(): string[] {
+  return [
+    ...Object.values(POLAR_CREDIT_PACK_ENV_KEYS),
+    POLAR_CREDIT_CUSTOM_ENV_KEY,
+  ];
+}
+
+export function polarCreditProductIdsFromEnv(
+  env: Record<string, string | undefined>,
+): string[] {
+  const ids: string[] = [];
+  for (const key of polarCreditProductEnvKeys()) {
+    const value = env[key]?.trim();
+    if (value) {
+      ids.push(value);
+    }
+  }
+  return ids;
+}
+
+export type PolarCreditOrderInput = {
+  id?: string | null;
+  customerId?: string | null;
+  productId?: string | null;
+  productIds?: Array<string | null | undefined>;
+  amount?: number | null;
+  netAmount?: number | null;
+  billingReason?: string | null;
+  subscriptionId?: string | null;
+};
+
+export type PolarCreditGrantDecision =
+  | {
+      ok: true;
+      orderId: string;
+      customerId: string;
+      productId: string;
+      cents: number;
+    }
+  | { ok: false; reason: string };
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function readString(
+  record: Record<string, unknown>,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function readNumber(
+  record: Record<string, unknown>,
+  ...keys: string[]
+): number | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === "string" && value.trim()) {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+  }
+  return null;
+}
+
+function productIdsFromPolarOrder(order: Record<string, unknown>): string[] {
+  const ids: string[] = [];
+  const direct = readString(order, "productId", "product_id");
+  if (direct) {
+    ids.push(direct);
+  }
+
+  const product = asRecord(order.product);
+  const nested = readString(product, "id");
+  if (nested) {
+    ids.push(nested);
+  }
+
+  const products = order.products;
+  if (Array.isArray(products)) {
+    for (const item of products) {
+      if (typeof item === "string" && item.trim()) {
+        ids.push(item.trim());
+        continue;
+      }
+      const id = readString(asRecord(item), "id", "productId", "product_id");
+      if (id) {
+        ids.push(id);
+      }
+    }
+  }
+
+  const items = order.items;
+  if (Array.isArray(items)) {
+    for (const item of items) {
+      const record = asRecord(item);
+      const id = readString(record, "productId", "product_id");
+      if (id) {
+        ids.push(id);
+        continue;
+      }
+      const nested = readString(asRecord(record.product), "id");
+      if (nested) {
+        ids.push(nested);
+      }
+    }
+  }
+
+  return [...new Set(ids)];
+}
+
+/** Normalize Polar webhook camelCase / snake_case order payloads. */
+export function polarOrderToCreditInput(order: unknown): PolarCreditOrderInput {
+  const record = asRecord(order);
+  const productIds = productIdsFromPolarOrder(record);
+  return {
+    id: readString(record, "id"),
+    customerId: readString(record, "customerId", "customer_id"),
+    productId: productIds[0] ?? null,
+    productIds,
+    amount: readNumber(record, "amount"),
+    netAmount: readNumber(record, "netAmount", "net_amount"),
+    billingReason: readString(record, "billingReason", "billing_reason"),
+    subscriptionId: readString(record, "subscriptionId", "subscription_id"),
+  };
+}
+
+function firstProductId(order: PolarCreditOrderInput): string | null {
+  if (order.productId && order.productId.trim()) {
+    return order.productId.trim();
+  }
+  for (const id of order.productIds ?? []) {
+    if (typeof id === "string" && id.trim()) {
+      return id.trim();
+    }
+  }
+  return null;
+}
+
+function paidCentsFromOrder(order: PolarCreditOrderInput): number {
+  const amount = Number(order.amount);
+  if (Number.isFinite(amount) && amount > 0) {
+    return Math.trunc(amount);
+  }
+  const net = Number(order.netAmount);
+  if (Number.isFinite(net) && net > 0) {
+    return Math.trunc(net);
+  }
+  return 0;
+}
+
+/**
+ * Wallet credits come only from a verified Polar credit-product purchase.
+ * Subscription renewals, add-ons, and unknown products never grant.
+ */
+export function resolvePolarCreditGrant(
+  order: PolarCreditOrderInput,
+  creditProductIds: readonly string[],
+): PolarCreditGrantDecision {
+  const orderId = order.id?.trim();
+  if (!orderId) {
+    return { ok: false, reason: "missing_order_id" };
+  }
+
+  const customerId = order.customerId?.trim();
+  if (!customerId) {
+    return { ok: false, reason: "missing_customer_id" };
+  }
+
+  const billingReason = (order.billingReason ?? "").toLowerCase();
+  if (billingReason.startsWith("subscription")) {
+    return { ok: false, reason: "subscription_order" };
+  }
+
+  const productIds = [
+    ...new Set(
+      [order.productId, ...(order.productIds ?? [])]
+        .filter(
+          (id): id is string => typeof id === "string" && Boolean(id.trim()),
+        )
+        .map((id) => id.trim()),
+    ),
+  ];
+  const productId = firstProductId(order) ?? productIds[0] ?? null;
+  if (!productId) {
+    return { ok: false, reason: "missing_product_id" };
+  }
+
+  const allowed = new Set(
+    creditProductIds.filter((id) => typeof id === "string" && id.trim()),
+  );
+  if (allowed.size === 0) {
+    return { ok: false, reason: "no_credit_products_configured" };
+  }
+  if (!productIds.every((id) => allowed.has(id))) {
+    return { ok: false, reason: "not_credit_product" };
+  }
+
+  const cents = paidCentsFromOrder(order);
+  if (cents < MIN_POLAR_CREDIT_GRANT_CENTS) {
+    return { ok: false, reason: "amount_below_minimum" };
+  }
+  if (cents > MAX_POLAR_CREDIT_GRANT_CENTS) {
+    return { ok: false, reason: "amount_above_maximum" };
+  }
+
+  return { ok: true, orderId, customerId, productId, cents };
+}
+
 /** Recurring Polar add-ons billed monthly. */
 export const POLAR_ADDON_ENV_KEYS = {
   seatMonth: "POLAR_PRODUCT_ADDON_SEAT_MONTH_ID",
