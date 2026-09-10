@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { Routes } from '@/constants/routes';
 import { canAccessPathname } from '@/lib/auth/workspace-access';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type PageAccessGateProps = {
@@ -21,7 +21,7 @@ export function PageAccessGate({
 
   React.useEffect(() => {
     if (!canAccessPathname(profile, pathname)) {
-      router.replace(Routes.Home);
+      router.replace(getSignedInHomePath());
     }
   }, [pathname, profile, router]);
 

@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { adminProfileItems } from '@/constants/nav-items';
 import { Routes } from '@/constants/routes';
 import { isPlatformAdmin, isWorkspaceOwner } from '@/lib/auth/workspace-access';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
@@ -79,6 +80,7 @@ export function NavUser({
   const router = useRouter();
   const canManageWorkspaces =
     isWorkspaceOwner(profile) || isPlatformAdmin(profile);
+  const showAdminTools = isPlatformAdmin(profile);
   const activeWorkspace =
     workspaces.find((workspace) => workspace.isActive) ?? workspaces[0];
 
@@ -240,10 +242,19 @@ export function NavUser({
           />
           {canManageWorkspaces ? (
             <MenuRow
-              label="Workspace Settings"
-              href={Routes.OrganizationInformation}
+              label="Inbox Settings"
+              href={Routes.InboxSettings}
             />
           ) : null}
+          {showAdminTools
+            ? adminProfileItems.map((item) => (
+                <MenuRow
+                  key={item.href}
+                  label={item.title}
+                  href={item.href}
+                />
+              ))
+            : null}
         </div>
 
         {canManageWorkspaces && workspaces.length > 0 ? (

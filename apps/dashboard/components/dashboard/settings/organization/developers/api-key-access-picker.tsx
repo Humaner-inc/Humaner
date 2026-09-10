@@ -24,8 +24,7 @@ const ACCESS_OPTIONS = [
   {
     id: 'full' as const,
     label: 'Full access',
-    description:
-      'Intelligence and Helpdesk — everything this workspace can do.',
+    description: 'Mailbox, calendar, Intelligence, and Helpdesk.',
     Icon: KeyRoundIcon
   },
   {

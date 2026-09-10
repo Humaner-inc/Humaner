@@ -11,6 +11,10 @@ import {
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
 import {
+  hasGmailConnectPrompt,
+  markGmailConnectPrompt
+} from '@/lib/auth/gmail-connect-prompt';
+import {
   clearSessionCookies,
   writeSessionCookie
 } from '@/lib/auth/reassert-session-cookie';
@@ -134,6 +138,12 @@ export const callbacks = {
   },
   async jwt({ token, trigger, account, user }) {
     if ((trigger === 'signIn' || trigger === 'signUp') && account) {
+      if (
+        trigger === 'signUp' &&
+        account.provider === OAuthIdentityProvider.Google
+      ) {
+        await markGmailConnectPrompt();
+      }
       token.accessToken = account.access_token;
 
       if (user?.id) {
@@ -225,7 +235,11 @@ export const callbacks = {
       return new URL(mfa, baseUrl).toString();
     }
 
-    const safe = getSafeAuthCallbackUrl(url, Routes.Home);
+    if (await hasGmailConnectPrompt()) {
+      return new URL(Routes.OnboardingConnectGmail, baseUrl).toString();
+    }
+
+    const safe = getSafeAuthCallbackUrl(url);
     return new URL(safe, baseUrl).toString();
   }
 } satisfies NextAuthConfig['callbacks'];

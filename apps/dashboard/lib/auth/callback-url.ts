@@ -1,4 +1,6 @@
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 
 const AUTH_CALLBACK_BLOCKLIST = new Set<string>([
   Routes.Auth,
@@ -141,9 +143,16 @@ const LEGACY_DEFAULT_LANDING = new Set<string>([
   Routes.Profile
 ]);
 
+const CLOUD_RETIRED_LANDING = new Set<string>([
+  Routes.Home,
+  Routes.Dashboard,
+  Routes.Contacts,
+  '/organization/overview'
+]);
+
 export function getSafeAuthCallbackUrl(
   callbackUrl: string | undefined,
-  fallback: string = Routes.Home
+  fallback: string = getSignedInHomePath()
 ): string {
   const relative = toSafeRelativeCallbackPath(callbackUrl);
   if (!relative) {
@@ -152,6 +161,10 @@ export function getSafeAuthCallbackUrl(
 
   const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
   if (LEGACY_DEFAULT_LANDING.has(pathname)) {
+    return fallback;
+  }
+
+  if (!isOssDeployment() && CLOUD_RETIRED_LANDING.has(pathname)) {
     return fallback;
   }
 

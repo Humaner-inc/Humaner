@@ -49,6 +49,13 @@ export function canAccessPage(
     return true;
   }
 
+  if (
+    (pageKey === 'tasks' || pageKey === 'calendar') &&
+    profile.allowedPages.includes('inbox')
+  ) {
+    return true;
+  }
+
   return false;
 }
 

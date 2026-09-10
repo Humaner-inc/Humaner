@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { Suspense } from 'react';
 
 import { ConnectImapForm } from '@/components/dashboard/inbox/connect-imap-form';
+import { GmailConnectToast } from '@/components/dashboard/inbox/gmail-connect-toast';
 import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
@@ -34,11 +36,16 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
   ]);
 
   return (
-    <ConnectImapForm
-      inboxLimit={overview.mailboxAliasLimit}
-      connectionCount={overview.connectionCount}
-      connectedProviderIds={connectedProviderIds}
-      connections={connections}
-    />
+    <>
+      <Suspense fallback={null}>
+        <GmailConnectToast />
+      </Suspense>
+      <ConnectImapForm
+        inboxLimit={overview.mailboxAliasLimit}
+        connectionCount={overview.connectionCount}
+        connectedProviderIds={connectedProviderIds}
+        connections={connections}
+      />
+    </>
   );
 }

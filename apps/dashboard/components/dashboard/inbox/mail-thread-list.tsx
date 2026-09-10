@@ -55,6 +55,7 @@ import type {
   MailThreadDetail as MailThreadDetailDto,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
+import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
@@ -572,9 +573,12 @@ export function MailThreadList({
     },
     assignSelected: (assigneeId) => {
       const memberName =
-        assigneeId == null
-          ? null
-          : (members.find((member) => member.id === assigneeId)?.name ?? null);
+        assigneeId === COMPANION_ASSIGNEE
+          ? 'Companion'
+          : assigneeId == null
+            ? null
+            : (members.find((member) => member.id === assigneeId)?.name ??
+              null);
       patchThreads(selectedList, { assigneeName: memberName });
       toast.success(`Assigned ${selectedList.length}`);
       runBulkAssign({ threadIds: selectedList, assigneeId });
@@ -617,10 +621,12 @@ export function MailThreadList({
         }}
         onAssign={(assigneeId) => {
           const memberName =
-            assigneeId == null
-              ? null
-              : (members.find((member) => member.id === assigneeId)?.name ??
-                null);
+            assigneeId === COMPANION_ASSIGNEE
+              ? 'Companion'
+              : assigneeId == null
+                ? null
+                : (members.find((member) => member.id === assigneeId)?.name ??
+                  null);
           patchThreads([thread.id], { assigneeName: memberName });
           toast.success('Assigned');
           runRowAssign({ threadId: thread.id, assigneeId });
@@ -948,6 +954,11 @@ function MailBulkActionBar({
           <DropdownMenuItem onSelect={() => selection.assignSelected(null)}>
             Unassigned
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => selection.assignSelected(COMPANION_ASSIGNEE)}
+          >
+            Companion
+          </DropdownMenuItem>
           {selection.members.map((member) => (
             <DropdownMenuItem
               key={member.id}
@@ -1235,6 +1246,11 @@ function MailThreadRow({
                 <DropdownMenuSubContent>
                   <DropdownMenuItem onSelect={() => onAssign(null)}>
                     Unassigned
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => onAssign(COMPANION_ASSIGNEE)}
+                  >
+                    Companion
                   </DropdownMenuItem>
                   {members.map((member) => (
                     <DropdownMenuItem

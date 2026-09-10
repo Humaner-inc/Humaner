@@ -106,7 +106,7 @@ export const updateOrganizationDetails = ownerActionClient
     );
 
     if (websiteChanged) {
-      revalidatePath(Routes.OrganizationInformation);
+      revalidatePath(Routes.OrganizationWorkspace);
       revalidatePath(Routes.Home);
     }
 

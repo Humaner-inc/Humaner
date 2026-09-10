@@ -136,17 +136,30 @@ const nextConfig = {
     ];
   },
   async redirects() {
+    const signedInHome = isSelfHostBuild
+      ? '/organization/overview'
+      : '/inbox/all';
+
     return [
       {
         source: '/',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: false
       },
       {
         source: '/organization',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: false
       },
+      ...(!isSelfHostBuild
+        ? [
+            {
+              source: '/organization/overview',
+              destination: '/inbox/all',
+              permanent: false
+            }
+          ]
+        : []),
       {
         source: '/auth',
         destination: '/auth/login',
@@ -193,6 +206,26 @@ const nextConfig = {
         permanent: false
       },
       {
+        source: '/tasks',
+        destination: '/organization/tasks',
+        permanent: false
+      },
+      {
+        source: '/tasks/:path*',
+        destination: '/organization/tasks/:path*',
+        permanent: false
+      },
+      {
+        source: '/resources',
+        destination: '/organization/resources',
+        permanent: false
+      },
+      {
+        source: '/settings/organization/information',
+        destination: '/organization/workspace',
+        permanent: false
+      },
+      {
         source: '/dashboard/home/workspace',
         destination: '/organization/workspace',
         permanent: true
@@ -204,22 +237,22 @@ const nextConfig = {
       },
       {
         source: '/dashboard/home',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: true
       },
       {
         source: '/dashboard/contacts',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: false
       },
       {
         source: '/dashboard/contacts/:path*',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: false
       },
       {
         source: '/dashboard',
-        destination: '/organization/overview',
+        destination: signedInHome,
         permanent: true
       },
       {
@@ -249,6 +282,30 @@ const nextConfig = {
         destination: '/dashboard/home/workspace'
       },
       {
+        source: '/organization/tasks',
+        destination: '/dashboard/tasks'
+      },
+      {
+        source: '/organization/tasks/:path*',
+        destination: '/dashboard/tasks/:path*'
+      },
+      {
+        source: '/organization/resources',
+        destination: '/dashboard/resources'
+      },
+      {
+        source: '/organization/resources/:path*',
+        destination: '/dashboard/resources/:path*'
+      },
+      {
+        source: '/resources',
+        destination: '/dashboard/resources'
+      },
+      {
+        source: '/resources/:path*',
+        destination: '/dashboard/resources/:path*'
+      },
+      {
         source: '/agents',
         destination: '/dashboard/agents'
       },
@@ -271,6 +328,22 @@ const nextConfig = {
       {
         source: '/inbox/:path*',
         destination: '/dashboard/inbox/:path*'
+      },
+      {
+        source: '/tasks',
+        destination: '/dashboard/tasks'
+      },
+      {
+        source: '/tasks/:path*',
+        destination: '/dashboard/tasks/:path*'
+      },
+      {
+        source: '/calendar',
+        destination: '/dashboard/calendar'
+      },
+      {
+        source: '/calendar/:path*',
+        destination: '/dashboard/calendar/:path*'
       },
       {
         source: '/integrations',

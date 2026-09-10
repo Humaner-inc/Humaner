@@ -217,6 +217,7 @@ export type SidebarNavChildProps = {
   disabled?: boolean;
   badge?: React.ReactNode;
   tabIndex?: number;
+  leading?: React.ReactNode;
   /** Hover-revealed quick action (e.g. compose +). */
   quickAction?: {
     label: string;
@@ -233,6 +234,7 @@ export function SidebarNavChild({
   disabled = false,
   badge,
   tabIndex,
+  leading,
   quickAction
 }: SidebarNavChildProps): React.JSX.Element {
   return (
@@ -250,6 +252,7 @@ export function SidebarNavChild({
           quickAction && 'pr-8'
         )}
       >
+        {leading}
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {badge}
       </Link>
@@ -288,6 +291,49 @@ export function SidebarNavChild({
           </Link>
         ) : null
       ) : null}
+    </div>
+  );
+}
+
+export type SidebarNavSectionProps = {
+  label: string;
+  children: React.ReactNode;
+  railHref?: string;
+  leading?: React.ReactNode;
+  railActive?: boolean;
+};
+
+/** Always-visible section label with sub-pages. Not a navigable parent. */
+export function SidebarNavSection({
+  label,
+  children,
+  railHref,
+  leading,
+  railActive = false
+}: SidebarNavSectionProps): React.JSX.Element {
+  const isIconRail = useSidebarIconRail();
+
+  if (isIconRail) {
+    if (!railHref) {
+      return <></>;
+    }
+    return (
+      <SidebarNavLink
+        href={railHref}
+        label={label}
+        active={railActive}
+        leading={leading}
+        mainNavHighlight
+      />
+    );
+  }
+
+  return (
+    <div>
+      <p className="px-3 pb-1 font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/35">
+        {label}
+      </p>
+      <div className="space-y-0.5">{children}</div>
     </div>
   );
 }
@@ -344,6 +390,7 @@ export type SidebarNavLinkProps = {
   external?: boolean;
   disabled?: boolean;
   mainNavHighlight?: boolean;
+  badge?: React.ReactNode;
 };
 
 export function SidebarNavLink({
@@ -354,7 +401,8 @@ export function SidebarNavLink({
   active = false,
   external = false,
   disabled = false,
-  mainNavHighlight = false
+  mainNavHighlight = false,
+  badge
 }: SidebarNavLinkProps): React.JSX.Element {
   const isIconRail = useSidebarIconRail();
   const mainNavProps = mainNavHighlight
@@ -379,6 +427,7 @@ export function SidebarNavLink({
       {leading ??
         (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
       {!isIconRail ? <span className="flex-1 truncate">{label}</span> : null}
+      {!isIconRail ? badge : null}
     </Link>
   );
 }

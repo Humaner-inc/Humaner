@@ -406,6 +406,7 @@ async function persistMessages(
   let imported = 0;
 
   for (const message of messages) {
+    let importedInboundThreadId: string | null = null;
     await prisma.$transaction(async (tx) => {
       const isInbound = message.direction === MailMessageDirection.INBOUND;
 
@@ -456,6 +457,9 @@ async function persistMessages(
             sentAt: message.sentAt
           }
         });
+        if (isInbound) {
+          importedInboundThreadId = thread.id;
+        }
 
         const newerThanThread = message.sentAt > thread.lastMessageAt;
         await tx.mailThread.update({
@@ -492,6 +496,26 @@ async function persistMessages(
       }
     });
     imported += 1;
+    if (importedInboundThreadId) {
+      const { applyCompanionAliasPolicyOnInbound } = await import(
+        '@/lib/inbox/mail-assignee'
+      );
+      await applyCompanionAliasPolicyOnInbound({
+        organizationId: connection.organizationId,
+        threadId: importedInboundThreadId,
+        aliasId: message.aliasId
+      });
+      const { scheduleMailCalendarIngest } = await import(
+        '@/services/calendar/ingest-mail-for-calendar'
+      );
+      scheduleMailCalendarIngest({
+        organizationId: connection.organizationId,
+        threadId: importedInboundThreadId,
+        subject: message.subject,
+        bodyText: message.bodyText,
+        bodyHtml: message.bodyHtml
+      });
+    }
   }
 
   return imported;

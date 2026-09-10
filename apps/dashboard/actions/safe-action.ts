@@ -138,6 +138,19 @@ export function pageActionClient(pageKey: DashboardPageKey) {
   });
 }
 
+export function pageActionClientAny(...pageKeys: DashboardPageKey[]) {
+  return authActionClient.use(async ({ next, ctx }) => {
+    const context = await getUserAccessContext(ctx.session.user.id);
+    const allowed = pageKeys.some(
+      (pageKey) => context && canAccessPageKey(context, pageKey)
+    );
+    if (!allowed) {
+      throw new ForbiddenError('You do not have access to this area');
+    }
+    return next({ ctx });
+  });
+}
+
 export const ownerActionClient = authActionClient.use(async ({ next, ctx }) => {
   await requireWorkspaceOwner(
     ctx.session.user.id,

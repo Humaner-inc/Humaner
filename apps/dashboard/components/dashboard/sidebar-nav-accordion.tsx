@@ -6,10 +6,16 @@ import { usePathname } from 'next/navigation';
 import { isDeskPath } from '@/constants/desk-nav-items';
 import { isInboxPath } from '@/constants/inbox-nav-items';
 import { isIntegrationsPath } from '@/constants/integration-nav-items';
+import {
+  isPerInboxMailboxPath,
+  isWorkspaceDrawerPath
+} from '@/constants/mailbox-nav-items';
+import { isOssDeployment } from '@/lib/deployment-mode';
 
 export const SIDEBAR_DRAWER_IDS = {
   integrations: 'integrations',
   inbox: 'inbox',
+  workspace: 'workspace',
   desk: 'desk',
   agent: (agentId: string) => `agent:${agentId}`
 } as const;
@@ -27,7 +33,14 @@ export function getActiveSidebarDrawerId(
   agents: { id: string }[]
 ): string | null {
   if (isIntegrationsPath(pathname)) return SIDEBAR_DRAWER_IDS.integrations;
-  if (isInboxPath(pathname)) return SIDEBAR_DRAWER_IDS.inbox;
+  if (isOssDeployment()) {
+    if (isInboxPath(pathname)) return SIDEBAR_DRAWER_IDS.inbox;
+  } else if (isPerInboxMailboxPath(pathname)) {
+    return SIDEBAR_DRAWER_IDS.inbox;
+  }
+  if (!isOssDeployment() && isWorkspaceDrawerPath(pathname)) {
+    return SIDEBAR_DRAWER_IDS.workspace;
+  }
   if (isDeskPath(pathname)) return SIDEBAR_DRAWER_IDS.desk;
 
   const agent = agents.find((item) =>

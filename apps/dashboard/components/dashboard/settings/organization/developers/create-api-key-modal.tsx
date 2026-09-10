@@ -47,7 +47,10 @@ import { useEnhancedModal } from '@/hooks/use-enhanced-modal';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { cn } from '@/lib/utils';
-import { createApiKeySchema } from '@/schemas/api-keys/create-api-key-schema';
+import {
+  createApiKeySchema,
+  type CreateApiKeySchema
+} from '@/schemas/api-keys/create-api-key-schema';
 
 export type CreateApiKeyModalProps = NiceModalHocProps;
 
@@ -74,13 +77,7 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
     const canSubmit =
       !methods.formState.isSubmitting &&
       (!methods.formState.isSubmitted || methods.formState.isDirty);
-    const onSubmit: SubmitHandler<{
-      description: string;
-      neverExpires: boolean;
-      access?: 'full' | 'scoped';
-      scopes?: ('intelligence' | 'helpdesk')[];
-      expiresAt?: Date;
-    }> = async (values) => {
+    const onSubmit: SubmitHandler<CreateApiKeySchema> = async (values) => {
       if (!canSubmit) {
         return;
       }

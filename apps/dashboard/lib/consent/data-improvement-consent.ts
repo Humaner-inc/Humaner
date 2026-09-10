@@ -31,9 +31,9 @@ export async function organizationAllowsModelTraining(
 /**
  * Plan + consent gates for training pipelines.
  *
- * Org-scoped Desk features (runbooks, content gaps, resolution loops /
- * auto-training) require plan capability only — they serve the customer's own
- * agents under the DPA and do not need "Help improve Humaner" consent.
+ * Org-scoped features (Resources that train Companion, content gaps) require
+ * plan capability only — they serve the customer's own workspace under the DPA
+ * and do not need "Help improve Humaner" consent.
  *
  * {@link canContributePlatformPatterns} is the optional product-improvement
  * opt-in (anonymised patterns for Humaner platform / model enhancement).

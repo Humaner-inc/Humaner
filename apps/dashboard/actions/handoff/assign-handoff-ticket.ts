@@ -2,14 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { pageActionClient } from '@/actions/safe-action';
+import { pageActionClientAny } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 import { assignHandoffTicketSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const assignHandoffTicket = pageActionClient('desk')
+export const assignHandoffTicket = pageActionClientAny('desk', 'tasks')
   .metadata({ actionName: 'assignHandoffTicket' })
   .schema(assignHandoffTicketSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -82,4 +82,5 @@ export const assignHandoffTicket = pageActionClient('desk')
     revalidatePath(Routes.DeskHuman);
     revalidatePath(Routes.Home);
     revalidatePath(Routes.HumanDesk);
+    revalidatePath(Routes.Tasks);
   });

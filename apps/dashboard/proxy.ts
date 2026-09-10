@@ -70,6 +70,23 @@ function isOssBlockedPath(pathname: string): boolean {
     if (path === '/inbox' || path.startsWith('/inbox/')) {
       return true;
     }
+    if (path === '/tasks' || path.startsWith('/tasks/')) {
+      return true;
+    }
+    if (path === '/calendar' || path.startsWith('/calendar/')) {
+      return true;
+    }
+    if (path === '/resources' || path.startsWith('/resources/')) {
+      return true;
+    }
+    if (
+      path === '/organization/tasks' ||
+      path.startsWith('/organization/tasks/') ||
+      path === '/organization/resources' ||
+      path.startsWith('/organization/resources/')
+    ) {
+      return true;
+    }
     if (path === '/onboarding' || path.startsWith('/onboarding/')) {
       return true;
     }
@@ -162,6 +179,12 @@ export const config = {
     '/agents/:path*',
     '/desk/:path*',
     '/inbox/:path*',
+    '/tasks',
+    '/tasks/:path*',
+    '/calendar',
+    '/calendar/:path*',
+    '/resources',
+    '/resources/:path*',
     '/integrations/:path*',
     '/settings/:path*',
     '/history',

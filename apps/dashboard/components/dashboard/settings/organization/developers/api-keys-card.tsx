@@ -49,6 +49,11 @@ export function ApiKeysCard({
           <EmptyText className="p-6">No API key found.</EmptyText>
         )}
       </CardContent>
+      <p className="px-6 pt-4 font-mono text-xs text-muted-foreground">
+        Point Cursor or Claude Code at POST /api/mcp with this key. Mail and
+        calendar tools use the same handlers as POST /api/v1/mail and
+        /api/v1/calendar.
+      </p>
       <Separator />
       <CardFooter className="flex w-full justify-end pt-6">
         <Button

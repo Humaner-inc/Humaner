@@ -66,7 +66,6 @@ export async function deleteOrganizationData(
     select: {
       id: true,
       ownerId: true,
-      contacts: { select: { id: true } },
       users: { select: { id: true } }
     }
   });
@@ -76,8 +75,6 @@ export async function deleteOrganizationData(
   }
 
   await purgeOrganizationVisitorMemory(organizationId);
-
-  const contactIds = organization.contacts.map((contact) => contact.id);
 
   await reassignActiveWorkspacePointers(
     organizationId,
@@ -106,12 +103,7 @@ export async function deleteOrganizationData(
     captureIp: false
   });
 
-  await prisma.$transaction([
-    prisma.contactImage.deleteMany({
-      where: { contactId: { in: contactIds } }
-    }),
-    prisma.organization.delete({
-      where: { id: organizationId }
-    })
-  ]);
+  await prisma.organization.delete({
+    where: { id: organizationId }
+  });
 }

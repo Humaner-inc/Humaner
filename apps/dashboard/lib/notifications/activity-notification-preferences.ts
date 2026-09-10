@@ -13,7 +13,7 @@ export const DEFAULT_ACTIVITY_NOTIFICATION_PREFERENCES: ActivityNotificationsDto
       urgencies: [...DESK_URGENCIES]
     },
     mail: {
-      inApp: false,
+      inApp: true,
       email: false,
       tagIds: []
     }

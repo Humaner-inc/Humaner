@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { syncGmailMailboxes } from '@/services/inbox/sync-gmail-mailboxes';
 import { syncImapMailboxes } from '@/services/inbox/sync-imap-mailboxes';
 import { z } from 'zod';
 
@@ -41,11 +42,19 @@ export const syncInboxNow = pageActionClient('inbox')
       throw new RateLimitExceededError();
     }
 
-    const result = await syncImapMailboxes({
-      organizationId,
-      actorId: session.user.id,
-      actorName: session.user.name
-    });
+    const [imap, gmail] = await Promise.all([
+      syncImapMailboxes({
+        organizationId,
+        actorId: session.user.id,
+        actorName: session.user.name
+      }),
+      syncGmailMailboxes({ organizationId })
+    ]);
+    const result = {
+      connections: imap.connections + gmail.connections,
+      messages: imap.messages + gmail.messages,
+      errors: imap.errors + gmail.errors
+    };
 
     revalidatePath(Routes.InboxAll);
     revalidatePath(Routes.InboxAssigned);

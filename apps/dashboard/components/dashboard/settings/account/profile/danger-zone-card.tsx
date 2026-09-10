@@ -33,8 +33,8 @@ export function DangerZoneCard({
             variant="outline"
             size="default"
           >
-            <Link href={Routes.OrganizationInformation}>
-              Go to organization settings
+            <Link href={Routes.OrganizationWorkspace}>
+              Go to workspace settings
             </Link>
           </Button>
         }

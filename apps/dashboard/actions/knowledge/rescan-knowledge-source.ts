@@ -4,14 +4,17 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { after } from 'next/server';
 import { rescanKnowledgeSource } from '@/services/knowledge/process-knowledge-source';
 
-import { pageActionClient } from '@/actions/safe-action';
-import { agentKnowledgeRoute } from '@/constants/routes';
+import { pageActionClientAny } from '@/actions/safe-action';
+import { agentKnowledgeRoute, Routes } from '@/constants/routes';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { rescanKnowledgeSourceSchema } from '@/schemas/knowledge/rescan-knowledge-source-schema';
 
-export const rescanKnowledgeSourceAction = pageActionClient('agents')
+export const rescanKnowledgeSourceAction = pageActionClientAny(
+  'agents',
+  'inbox'
+)
   .metadata({ actionName: 'rescanKnowledgeSource' })
   .schema(rescanKnowledgeSourceSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -44,6 +47,7 @@ export const rescanKnowledgeSourceAction = pageActionClient('agents')
       'max'
     );
     revalidatePath(agentKnowledgeRoute(source.agentId));
+    revalidatePath(Routes.Resources);
 
     return { queued: true };
   });

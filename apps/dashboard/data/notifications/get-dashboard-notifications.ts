@@ -27,10 +27,10 @@ import {
 } from '@/lib/inbox/mail-alias-scope';
 import {
   parseActivityNotificationPreferences,
-  shouldNotifyDeskInApp
+  shouldNotifyDeskInApp,
+  shouldNotifyMailInApp
 } from '@/lib/notifications/activity-notification-preferences';
 import { getDemoDashboardNotifications } from '@/lib/notifications/demo-dashboard-notifications';
-import { reportBugTabLabel } from '@/lib/report-bug-context-options';
 import type {
   DashboardNotification,
   DashboardNotificationsSnapshot
@@ -89,7 +89,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     agentCount,
     memberCount,
     handoffTickets,
-    supportTickets,
     expiringApiKeys,
     teamMembers,
     currentUser,
@@ -132,24 +131,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       orderBy: { createdAt: 'desc' },
       take: 32
     }),
-    oss
-      ? Promise.resolve([])
-      : prisma.supportTicket.findMany({
-          where: {
-            userId,
-            status: { in: ['OPEN', 'IN_PROGRESS'] }
-          },
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            contextTab: true,
-            contextFeature: true,
-            updatedAt: true
-          },
-          orderBy: { updatedAt: 'desc' },
-          take: GROUP_LIMIT
-        }),
     prisma.apiKey.findMany({
       where: {
         organizationId,
@@ -203,7 +184,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   const tier = normalizeTier(organization.tier);
   const plan = getEffectivePlan(tier, organization.includedMessages);
 
-  const [messagesUsed, urgentMail] = await Promise.all([
+  const [messagesUsed, inboxMail, assignedMail] = await Promise.all([
     oss
       ? Promise.resolve(0)
       : getMessagesUsedThisMonth(session.user.organizationId, tier),
@@ -215,8 +196,32 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             isUnread: true,
             archivedAt: null,
             status: { in: ['OPEN', 'PENDING'] },
-            aliasId: aliasIdFilter(mailScope),
-            handoffTicket: { urgency: 'HIGH' }
+            aliasId: aliasIdFilter(mailScope)
+          },
+          select: {
+            id: true,
+            subject: true,
+            lastMessageAt: true,
+            tags: { select: { tagId: true } },
+            messages: {
+              where: { direction: 'INBOUND' },
+              orderBy: { sentAt: 'desc' },
+              take: 1,
+              select: { fromAddress: true }
+            }
+          },
+          orderBy: { lastMessageAt: 'desc' },
+          take: GROUP_LIMIT
+        }),
+    oss || !mailScope
+      ? Promise.resolve([])
+      : prisma.mailThread.findMany({
+          where: {
+            organizationId,
+            assigneeId: userId,
+            archivedAt: null,
+            status: { in: ['OPEN', 'PENDING'] },
+            aliasId: aliasIdFilter(mailScope)
           },
           select: {
             id: true,
@@ -323,7 +328,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
   let taskCount = 0;
   let loopCount = 0;
 
-  for (const ticket of handoffTickets) {
+  for (const ticket of oss ? handoffTickets : []) {
     const ref = formatTicketRef(ticket.ticketNumber);
     const loopStatus = ticket.loopStatus;
     const isLoopActionable =
@@ -396,35 +401,39 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     });
   }
 
-  for (const ticket of supportTickets) {
-    const areaLabel = reportBugTabLabel(ticket.contextTab);
-    const featureSuffix = ticket.contextFeature
-      ? ` · ${ticket.contextFeature}`
-      : '';
-
-    items.push({
-      id: `workspace-ticket-${ticket.id}`,
-      kind: 'ticket',
-      title: ticket.title,
-      emphasis: areaLabel,
-      description: `Bug report in ${areaLabel}${featureSuffix}`,
-      href: Routes.HumanDesk,
-      severity: ticket.status === 'OPEN' ? 'warning' : 'info',
-      createdAt: ticket.updatedAt.toISOString(),
-      action: 'open_support_tickets'
-    });
-  }
-
-  for (const thread of urgentMail) {
+  for (const thread of inboxMail) {
+    const tagMatch =
+      activityPrefs.mail.tagIds.length === 0
+        ? shouldNotifyMailInApp(activityPrefs, null)
+        : thread.tags.some((tag) =>
+            shouldNotifyMailInApp(activityPrefs, tag.tagId)
+          );
+    if (!tagMatch) {
+      continue;
+    }
     const from = thread.messages[0]?.fromAddress;
     items.push({
       id: `mail-${thread.id}`,
       kind: 'mail',
-      title: from ? `${thread.subject} from` : thread.subject,
+      title: thread.subject || '(no subject)',
       emphasis: from,
-      description: thread.subject,
+      description: from ? `Unread from ${from}` : 'Unread',
       href: inboxThreadRoute(thread.id),
-      severity: 'critical',
+      severity: 'info',
+      createdAt: thread.lastMessageAt.toISOString()
+    });
+  }
+
+  for (const thread of assignedMail) {
+    const from = thread.messages[0]?.fromAddress;
+    items.push({
+      id: `assigned-mail-${thread.id}`,
+      kind: 'task',
+      title: thread.subject || '(no subject)',
+      emphasis: from,
+      description: 'Assigned to you',
+      href: inboxThreadRoute(thread.id),
+      severity: 'warning',
       createdAt: thread.lastMessageAt.toISOString()
     });
   }

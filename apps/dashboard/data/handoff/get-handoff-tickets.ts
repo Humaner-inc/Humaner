@@ -48,13 +48,15 @@ export type HandoffDeskData = {
   businessHours: WorkHoursDto[];
 };
 
-export async function getHandoffDeskData(): Promise<HandoffDeskData> {
+export async function getHandoffDeskData(
+  pageKey: 'desk' | 'tasks' = 'desk'
+): Promise<HandoffDeskData> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
     return redirect(getLoginRedirect());
   }
 
-  await requireDashboardPageOrRedirect('desk');
+  await requireDashboardPageOrRedirect(pageKey);
 
   const organizationId = session.user.organizationId;
 

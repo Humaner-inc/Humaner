@@ -117,6 +117,7 @@ function SidebarUsageProgress({
     <div
       className="relative h-1.5 w-full min-w-0 overflow-hidden rounded-full bg-muted"
       role="progressbar"
+      aria-label="Companion fuel"
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={100}
@@ -163,7 +164,7 @@ export function SidebarMessageUsage({
     usedCents: usage.creditsUsedCents,
     usagePercent
   });
-  const remainingLabel = `${formatCreditUsd(meter.remainingCents)} remaining`;
+  const remainingLabel = `${formatCreditUsd(meter.remainingCents)} fuel remaining`;
 
   return (
     <div
@@ -190,7 +191,7 @@ export function SidebarMessageUsage({
             className="mb-2 h-8 w-full min-w-0"
           >
             <Link href={Routes.Billing}>
-              {isFreePlan ? 'Upgrade plan' : 'Add credits'}
+              {isFreePlan ? 'Upgrade plan' : 'Add fuel'}
             </Link>
           </Button>
         </div>
@@ -225,7 +226,7 @@ export function SidebarMessageUsage({
         aria-hidden={isIconRail}
       >
         <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-          <span className="truncate text-muted-foreground">Credits</span>
+          <span className="truncate text-muted-foreground">Companion</span>
           <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
             {operatorOwned
               ? `${usage.messagesUsed.toLocaleString()} replies`

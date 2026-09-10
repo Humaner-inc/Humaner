@@ -76,7 +76,17 @@ function createPrismaClient(): PrismaClient {
   return client;
 }
 
-export const prisma = global.prisma || createPrismaClient();
+function isStalePrismaClient(client: PrismaClient | undefined): boolean {
+  return Boolean(
+    client &&
+      typeof (client as { calendarEvent?: unknown }).calendarEvent ===
+        'undefined'
+  );
+}
+
+export const prisma = isStalePrismaClient(global.prisma)
+  ? createPrismaClient()
+  : (global.prisma ?? createPrismaClient());
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;

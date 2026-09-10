@@ -43,6 +43,7 @@ export type OrganizationDetailsCardProps = CardProps & {
   targetAudience?: TargetAudience | null;
   /** Workspace page: hide header. Settings: logo block with description. */
   brandHeader?: 'logo' | 'none';
+  readOnly?: boolean;
 };
 
 export function OrganizationDetailsCard({
@@ -50,6 +51,7 @@ export function OrganizationDetailsCard({
   industry = null,
   targetAudience = null,
   brandHeader = 'logo',
+  readOnly = false,
   ...props
 }: OrganizationDetailsCardProps): React.JSX.Element {
   const router = useRouter();
@@ -64,7 +66,7 @@ export function OrganizationDetailsCard({
       website: details.website ?? ''
     }
   });
-  const canSubmit = !methods.formState.isSubmitting;
+  const canSubmit = !readOnly && !methods.formState.isSubmitting;
   const watchedName = methods.watch('name');
   const watchedWebsite = methods.watch('website');
   const copyToClipboard = useCopyToClipboard();
@@ -150,7 +152,7 @@ export function OrganizationDetailsCard({
                       maxLength={255}
                       required
                       autoComplete="organization"
-                      disabled={methods.formState.isSubmitting}
+                      disabled={readOnly || methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -202,7 +204,7 @@ export function OrganizationDetailsCard({
                       type="text"
                       maxLength={255}
                       autoComplete="street-address"
-                      disabled={methods.formState.isSubmitting}
+                      disabled={readOnly || methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -221,7 +223,7 @@ export function OrganizationDetailsCard({
                       type="tel"
                       maxLength={32}
                       autoComplete="tel"
-                      disabled={methods.formState.isSubmitting}
+                      disabled={readOnly || methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -240,7 +242,7 @@ export function OrganizationDetailsCard({
                       type="email"
                       maxLength={255}
                       autoComplete="email"
-                      disabled={methods.formState.isSubmitting}
+                      disabled={readOnly || methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -260,7 +262,7 @@ export function OrganizationDetailsCard({
                       maxLength={2000}
                       autoComplete="url"
                       placeholder="https://yourcompany.com"
-                      disabled={methods.formState.isSubmitting}
+                      disabled={readOnly || methods.formState.isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -270,19 +272,23 @@ export function OrganizationDetailsCard({
             />
           </form>
         </CardContent>
-        <Separator />
-        <CardFooter className="flex w-full justify-end pt-6">
-          <Button
-            type="button"
-            variant="default"
-            size="default"
-            disabled={!canSubmit}
-            loading={methods.formState.isSubmitting}
-            onClick={methods.handleSubmit(onSubmit)}
-          >
-            Save
-          </Button>
-        </CardFooter>
+        {readOnly ? null : (
+          <>
+            <Separator />
+            <CardFooter className="flex w-full justify-end pt-6">
+              <Button
+                type="button"
+                variant="default"
+                size="default"
+                disabled={!canSubmit}
+                loading={methods.formState.isSubmitting}
+                onClick={methods.handleSubmit(onSubmit)}
+              >
+                Save
+              </Button>
+            </CardFooter>
+          </>
+        )}
       </Card>
     </FormProvider>
   );

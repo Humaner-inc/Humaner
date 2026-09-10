@@ -120,6 +120,8 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
         <Button
           type="button"
           variant="outline"
+          size="sm"
+          className="h-8 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
           onClick={modal.handleClose}
           disabled={isSubmitting}
         >
@@ -127,11 +129,13 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
         </Button>
         <Button
           type="button"
+          size="sm"
+          className="h-8 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
           disabled={isSubmitting}
           loading={isSubmitting}
           onClick={methods.handleSubmit(onSubmit)}
         >
-          Create workspace
+          Create
         </Button>
       </>
     );

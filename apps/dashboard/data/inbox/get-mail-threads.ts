@@ -8,6 +8,7 @@ import {
   aliasIdFilter,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
+import { mailAssigneeLabel } from '@/lib/inbox/mail-assignee';
 import {
   getMailProviderById,
   MAIL_PROVIDERS
@@ -28,6 +29,7 @@ export type MailThreadListItem = {
   status: string;
   aliasAddress: string;
   aliasId: string;
+  assigneeKind: string;
   assigneeName: string | null;
   lastMessageAt: string;
   fromAddress: string | null;
@@ -48,7 +50,18 @@ export type MailThreadDetail = {
   lastMessageAt: string;
   isUnread: boolean;
   archivedAt: string | null;
+  assigneeKind: string;
   assigneeId: string | null;
+  handoffTicketId: string | null;
+  handoffTicketNumber: number | null;
+  sharedNoteDraft: string | null;
+  notes: Array<{
+    id: string;
+    body: string;
+    authorId: string;
+    authorName: string;
+    createdAt: string;
+  }>;
   tag: MailTagItem | null;
   sendAliases: MailSendAlias[];
   messages: Array<{
@@ -286,6 +299,7 @@ export async function getMailThreads(options?: {
       isUnread: true,
       lastMessageAt: true,
       alias: { select: { id: true, address: true } },
+      assigneeKind: true,
       assignee: { select: { name: true } },
       _count: { select: { messages: true } },
       tags: {
@@ -330,7 +344,11 @@ export async function getMailThreads(options?: {
       status: thread.status,
       aliasAddress: thread.alias.address,
       aliasId: thread.alias.id,
-      assigneeName: thread.assignee?.name ?? null,
+      assigneeKind: thread.assigneeKind,
+      assigneeName: mailAssigneeLabel({
+        assigneeKind: thread.assigneeKind,
+        assigneeName: thread.assignee?.name ?? null
+      }),
       lastMessageAt: lastActivityAt.toISOString(),
       fromAddress: from.email,
       fromName: from.name,
@@ -391,9 +409,24 @@ export async function getMailThread(
       status: true,
       isUnread: true,
       archivedAt: true,
+      assigneeKind: true,
       assigneeId: true,
+      handoffTicketId: true,
+      handoffTicket: { select: { ticketNumber: true } },
+      sharedNoteDraft: true,
       lastMessageAt: true,
       alias: { select: { id: true, address: true, connectionId: true } },
+      notes: {
+        orderBy: { createdAt: 'asc' },
+        take: 100,
+        select: {
+          id: true,
+          body: true,
+          authorId: true,
+          createdAt: true,
+          author: { select: { name: true } }
+        }
+      },
       tags: {
         take: 1,
         orderBy: { createdAt: 'asc' },
@@ -445,7 +478,18 @@ export async function getMailThread(
     lastMessageAt: thread.lastMessageAt.toISOString(),
     isUnread: Boolean(thread.isUnread && awaitingReply),
     archivedAt: thread.archivedAt?.toISOString() ?? null,
+    assigneeKind: thread.assigneeKind,
     assigneeId: thread.assigneeId,
+    handoffTicketId: thread.handoffTicketId,
+    handoffTicketNumber: thread.handoffTicket?.ticketNumber ?? null,
+    sharedNoteDraft: thread.sharedNoteDraft,
+    notes: thread.notes.map((note) => ({
+      id: note.id,
+      body: note.body,
+      authorId: note.authorId,
+      authorName: note.author.name,
+      createdAt: note.createdAt.toISOString()
+    })),
     tag: thread.tags[0]?.tag ?? null,
     sendAliases,
     messages: thread.messages.map((message) => ({

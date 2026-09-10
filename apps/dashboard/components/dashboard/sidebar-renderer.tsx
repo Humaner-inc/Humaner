@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { SidebarEdgeToggle } from '@/components/dashboard/sidebar-edge-toggle';
 import { SidebarOverlayBackdrop } from '@/components/dashboard/sidebar-overlay-backdrop';
+import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
@@ -20,6 +21,8 @@ export type SidebarRendererProps = {
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
+  mailInboxes?: MailInboxOption[];
+  companionHref?: string | null;
 };
 
 export function SidebarRenderer({
@@ -31,7 +34,9 @@ export function SidebarRenderer({
   frontierBetaEnabled = true,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
-  agentDeskOpenCount = 0
+  agentDeskOpenCount = 0,
+  mailInboxes = [],
+  companionHref
 }: SidebarRendererProps): React.JSX.Element {
   return (
     <>
@@ -45,6 +50,8 @@ export function SidebarRenderer({
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCount}
         agentDeskOpenCount={agentDeskOpenCount}
+        mailInboxes={mailInboxes}
+        companionHref={companionHref}
       />
       <SidebarOverlayBackdrop />
       <SidebarEdgeToggle />

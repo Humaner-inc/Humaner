@@ -2,8 +2,6 @@ import { AppInfo } from '@/constants/app-info';
 
 export enum UserCacheKey {
   OnboardingData,
-  Favorites,
-  ContactIsInFavorites,
   Profile,
   PersonalDetails,
   Preferences,
@@ -15,14 +13,6 @@ export enum UserCacheKey {
 }
 
 export enum OrganizationCacheKey {
-  LeadGenerationData,
-  Contacts,
-  ContactTags,
-  Contact,
-  ContactPageVisits,
-  ContactTimelineEvents,
-  ContactNotes,
-  ContactTasks,
   OrganizationDetails,
   BusinessHours,
   SocialMedia,
@@ -115,5 +105,5 @@ export class Caching {
 
 export const defaultRevalidateTimeInSeconds = AppInfo.PRODUCTION ? 3600 : 120;
 
-/** Paginated or frequently updated lists (contacts table, etc.). */
+/** Paginated or frequently updated lists. */
 export const dynamicListRevalidateTimeInSeconds = AppInfo.PRODUCTION ? 30 : 15;

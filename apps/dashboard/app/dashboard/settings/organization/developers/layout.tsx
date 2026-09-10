@@ -1,7 +1,28 @@
-import { redirect } from 'next/navigation';
+import * as React from 'react';
+import { type Metadata } from 'next';
 
-import { Routes } from '@/constants/routes';
+import { AnnotatedLayout } from '@/components/ui/annotated';
+import { Separator } from '@/components/ui/separator';
+import { createTitle } from '@/lib/utils';
 
-export default function DevelopersLayout(): never {
-  redirect(Routes.Developers);
+export const metadata: Metadata = {
+  title: createTitle('MCP')
+};
+
+export type DevelopersLayoutProps = {
+  apiKeys: React.ReactNode;
+  webhooks: React.ReactNode;
+};
+
+export default function DevelopersLayout({
+  apiKeys,
+  webhooks
+}: DevelopersLayoutProps): React.JSX.Element {
+  return (
+    <AnnotatedLayout className="py-0">
+      {apiKeys}
+      <Separator />
+      {webhooks}
+    </AnnotatedLayout>
+  );
 }

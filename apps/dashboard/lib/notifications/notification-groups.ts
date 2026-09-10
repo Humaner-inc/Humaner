@@ -14,23 +14,23 @@ export type NotificationGroupConfig = {
 
 export const NOTIFICATION_GROUPS: NotificationGroupConfig[] = [
   {
+    kind: 'mail',
+    noun: 'unread mail',
+    nounPlural: 'unread mails',
+    context: 'in the inbox',
+    cloudOnly: true
+  },
+  {
+    kind: 'task',
+    noun: 'assigned thread',
+    nounPlural: 'assigned threads',
+    context: ''
+  },
+  {
     kind: 'ticket',
     noun: 'ticket',
     nounPlural: 'tickets',
     context: 'open'
-  },
-  {
-    kind: 'task',
-    noun: 'task',
-    nounPlural: 'tasks',
-    context: 'assigned'
-  },
-  {
-    kind: 'mail',
-    noun: 'urgent mail',
-    nounPlural: 'urgent mails',
-    context: '',
-    cloudOnly: true
   },
   {
     kind: 'api_key',

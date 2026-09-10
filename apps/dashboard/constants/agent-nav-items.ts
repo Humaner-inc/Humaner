@@ -3,7 +3,6 @@ import {
   BarChart3Icon,
   BookOpenIcon,
   ClockIcon,
-  FileTextIcon,
   ShieldIcon,
   SlidersHorizontal,
   UserIcon
@@ -21,7 +20,6 @@ import {
   agentHistoryRoute,
   agentKnowledgeRoute,
   agentPersonaRoute,
-  agentRunbooksRoute,
   Routes
 } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
@@ -31,7 +29,6 @@ export type AgentNavTabId =
   | 'configuration'
   | 'persona'
   | 'knowledge'
-  | 'runbooks'
   | 'escalation'
   | 'analytics'
   | 'history';
@@ -65,14 +62,6 @@ const KNOWLEDGE_TAB: AgentNavTab = {
   href: (agentId) => agentKnowledgeRoute(agentId)
 };
 
-const RUNBOOKS_TAB: AgentNavTab = {
-  id: 'runbooks',
-  label: 'Runbooks',
-  icon: FileTextIcon,
-  href: (agentId) => agentRunbooksRoute(agentId),
-  requiredCapability: 'runbooks'
-};
-
 const ESCALATION_TAB: AgentNavTab = {
   id: 'escalation',
   label: 'Escalation',
@@ -98,7 +87,6 @@ const HISTORY_TAB: AgentNavTab = {
 const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
   PERSONA_TAB,
   KNOWLEDGE_TAB,
-  RUNBOOKS_TAB,
   ESCALATION_TAB,
   ANALYTICS_TAB,
   HISTORY_TAB
@@ -112,7 +100,6 @@ const CLOUD_AGENT_NAV_TABS: AgentNavTab[] = [
 const CUSTOM_AGENT_NAV_TABS: AgentNavTab[] = [
   CONFIGURATION_TAB,
   KNOWLEDGE_TAB,
-  RUNBOOKS_TAB,
   ESCALATION_TAB,
   ANALYTICS_TAB
 ];

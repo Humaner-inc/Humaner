@@ -8,7 +8,7 @@ export default function ApiKeysLayout({
   return (
     <AnnotatedSection
       title="API keys"
-      description="These keys allow other apps to control resources of your organization. Be careful!"
+      description="Scoped keys for REST and MCP. Point Cursor or Claude Code at POST /api/mcp."
       docLink="#"
     >
       {children}

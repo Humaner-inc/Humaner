@@ -25,7 +25,7 @@ export function DockNotificationsView(): React.JSX.Element {
           compact
           icon={<BellIcon strokeWidth={1.25} />}
           title="You're all caught up"
-          description="Nothing needs your attention right now."
+          description="No new mail or assigned threads."
         />
       </div>
     );

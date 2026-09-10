@@ -3,6 +3,7 @@ import { InvitationStatus } from '@prisma/client';
 import type { NextAuthConfig, User } from 'next-auth';
 
 import { AuthCookies } from '@/lib/auth/cookies';
+import { markGmailConnectPrompt } from '@/lib/auth/gmail-connect-prompt';
 import {
   acceptInvitationForExistingUser,
   createOrganizationAndConnectUser
@@ -188,6 +189,15 @@ export const events = {
         }
         if (account?.provider === OAuthIdentityProvider.Google) {
           await verifyEmail(user.email);
+          if (signupIntent !== 'team_member') {
+            await Promise.all([
+              markGmailConnectPrompt(),
+              prisma.user.update({
+                where: { id: user.id },
+                data: { inboxConnectPromptPending: true }
+              })
+            ]);
+          }
           if (user.name) {
             await sendWelcomeEmail({
               name: user.name,

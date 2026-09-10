@@ -17,6 +17,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 import { AppInfo } from '@/constants/app-info';
+import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -32,6 +33,8 @@ export type AppSidebarProps = {
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
+  mailInboxes?: MailInboxOption[];
+  companionHref?: string | null;
 };
 
 export function AppSidebar({
@@ -43,7 +46,9 @@ export function AppSidebar({
   frontierBetaEnabled = true,
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
-  agentDeskOpenCount = 0
+  agentDeskOpenCount = 0,
+  mailInboxes = [],
+  companionHref
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
@@ -85,6 +90,8 @@ export function AppSidebar({
             inboxUnreadCount={inboxUnreadCount}
             handoffOpenCount={handoffOpenCount}
             agentDeskOpenCount={agentDeskOpenCount}
+            mailInboxes={mailInboxes}
+            companionHref={companionHref}
           />
         </ScrollArea>
       </SidebarContent>

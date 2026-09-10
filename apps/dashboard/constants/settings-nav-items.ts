@@ -3,7 +3,6 @@ import {
   BellIcon,
   CreditCardIcon,
   LockKeyholeIcon,
-  SettingsIcon,
   UserIcon,
   UsersIcon
 } from '@humaner/shared/icons';
@@ -17,7 +16,7 @@ export type AccountSettingsNavTabId =
   | 'notifications'
   | 'billing';
 
-export type WorkspaceSettingsNavTabId = 'workspace' | 'members';
+export type WorkspaceSettingsNavTabId = 'members';
 
 export type SettingsNavTabId =
   | AccountSettingsNavTabId
@@ -64,13 +63,6 @@ export const ACCOUNT_SETTINGS_NAV_TABS: SettingsNavTab[] = [
 ];
 
 export const WORKSPACE_SETTINGS_NAV_TABS: SettingsNavTab[] = [
-  {
-    id: 'workspace',
-    label: 'Workspace',
-    icon: SettingsIcon,
-    href: Routes.OrganizationInformation,
-    ownerOnly: true
-  },
   {
     id: 'members',
     label: 'Team Members',

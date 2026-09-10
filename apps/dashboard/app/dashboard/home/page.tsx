@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { formatAgents, getEffectivePlan } from '@humaner/shared/plans';
 
@@ -236,6 +237,10 @@ async function HomePageContent(): Promise<React.JSX.Element> {
 }
 
 export default function HomePage(): React.JSX.Element {
+  if (!isOssDeployment()) {
+    redirect(Routes.InboxAll);
+  }
+
   return (
     <React.Suspense fallback={<HomePageFallback />}>
       <HomePageContent />

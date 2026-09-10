@@ -8,11 +8,11 @@ import { Role, WorkspaceRole } from '@prisma/client';
 
 import { resolvePathAccess } from '@/constants/dashboard-pages';
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
-import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import { ForbiddenError } from '@/lib/validation/exceptions';
 
 export type UserAccessContext = {
@@ -131,7 +131,7 @@ export async function requirePathAccess(pathname: string): Promise<void> {
   }
 
   if (!canAccessPathWithContext(context, pathname)) {
-    redirect(Routes.Home);
+    redirect(getSignedInHomePath());
   }
 }
 
@@ -155,7 +155,7 @@ export async function requireDashboardPageOrRedirect(
   }
 
   if (!(await userCanAccessDashboardPage(session.user.id, pageKey))) {
-    redirect(Routes.Home);
+    redirect(getSignedInHomePath());
   }
 }
 
@@ -168,7 +168,7 @@ export async function requireAnyDashboardPageOrRedirect(
   }
 
   if (!(await userCanAccessAnyDashboardPage(session.user.id, pageKeys))) {
-    redirect(Routes.Home);
+    redirect(getSignedInHomePath());
   }
 }
 

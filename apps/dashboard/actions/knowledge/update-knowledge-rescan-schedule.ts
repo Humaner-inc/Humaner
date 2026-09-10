@@ -2,13 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { pageActionClient } from '@/actions/safe-action';
-import { agentKnowledgeRoute } from '@/constants/routes';
+import { pageActionClientAny } from '@/actions/safe-action';
+import { agentKnowledgeRoute, Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateKnowledgeRescanScheduleSchema } from '@/schemas/knowledge/update-knowledge-rescan-schedule-schema';
 
-export const updateKnowledgeRescanSchedule = pageActionClient('agents')
+export const updateKnowledgeRescanSchedule = pageActionClientAny(
+  'agents',
+  'inbox'
+)
   .metadata({ actionName: 'updateKnowledgeRescanSchedule' })
   .schema(updateKnowledgeRescanScheduleSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -35,4 +38,5 @@ export const updateKnowledgeRescanSchedule = pageActionClient('agents')
     });
 
     revalidatePath(agentKnowledgeRoute(agent.id));
+    revalidatePath(Routes.Resources);
   });

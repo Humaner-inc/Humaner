@@ -37,7 +37,7 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
   {
     id: 'aliases',
     label: 'Aliases',
-    href: Routes.InboxAliases
+    href: Routes.InboxSettings
   },
   {
     id: 'providers',
@@ -54,7 +54,12 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
 export function getActiveInboxTab(pathname: string): InboxNavTabId | null {
   if (pathname.startsWith(Routes.InboxAssigned)) return 'assigned';
   if (pathname.startsWith(Routes.InboxArchive)) return 'archive';
-  if (pathname.startsWith(Routes.InboxAliases)) return 'aliases';
+  if (
+    pathname.startsWith(Routes.InboxAliases) ||
+    pathname.startsWith(Routes.InboxSettings)
+  ) {
+    return 'aliases';
+  }
   if (pathname.startsWith(Routes.InboxProviders)) return 'providers';
   if (pathname.startsWith(Routes.InboxTags)) return 'tags';
   if (

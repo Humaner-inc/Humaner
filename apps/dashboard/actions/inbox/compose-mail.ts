@@ -1,13 +1,18 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { MailMessageDirection, MailThreadStatus } from '@prisma/client';
+import {
+  MailMessageDirection,
+  MailProvider,
+  MailThreadStatus
+} from '@prisma/client';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { resolveMailAliasScope } from '@/lib/inbox/mail-alias-scope';
+import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { rateLimit } from '@/lib/network/rate-limit';
@@ -79,6 +84,8 @@ export const composeMail = pageActionClient('inbox')
         address: true,
         connection: {
           select: {
+            id: true,
+            provider: true,
             email: true,
             imapHost: true,
             imapPort: true,
@@ -99,6 +106,71 @@ export const composeMail = pageActionClient('inbox')
     }
 
     const connection = alias.connection;
+    const fromAddress = normalizeAddress(alias.address);
+    const toAddress = normalizeAddress(parsedInput.to);
+
+    if (connection.provider === MailProvider.GMAIL) {
+      let messageId: string;
+      let providerThreadId: string;
+      try {
+        const sent = await sendMailboxMail({
+          provider: MailProvider.GMAIL,
+          connectionId: connection.id,
+          from: fromAddress,
+          to: [toAddress],
+          subject: parsedInput.subject,
+          text: parsedInput.body
+        });
+        messageId = sent.messageId;
+        providerThreadId = (sent.threadId ?? `outbound-${messageId}`).slice(
+          0,
+          512
+        );
+      } catch (error) {
+        const detail =
+          error instanceof Error && error.message
+            ? error.message
+            : 'Reconnect Gmail and try again.';
+        throw new ValidationError(`Could not send this email. ${detail}`);
+      }
+
+      const sentAt = new Date();
+      const thread = await prisma.mailThread.create({
+        data: {
+          organizationId,
+          aliasId: alias.id,
+          providerThreadId,
+          subject: parsedInput.subject,
+          status: MailThreadStatus.OPEN,
+          isUnread: false,
+          lastMessageAt: sentAt,
+          assigneeKind: 'HUMAN',
+          assigneeId: session.user.id,
+          messages: {
+            create: {
+              providerMessageId: messageId,
+              direction: MailMessageDirection.OUTBOUND,
+              fromAddress,
+              toAddresses: [toAddress],
+              bodyText: parsedInput.body,
+              sentAt
+            }
+          }
+        },
+        select: { id: true }
+      });
+
+      revalidatePath(Routes.InboxAll);
+      revalidatePath(Routes.InboxAssigned);
+      revalidatePath(inboxThreadRoute(thread.id));
+
+      return {
+        threadId: thread.id,
+        messageId,
+        href: inboxThreadRoute(thread.id)
+      };
+    }
+
     const smtpHost = decryptSensitiveField(connection.smtpHost);
     const smtpUser = decryptSensitiveField(connection.smtpUser);
     const smtpPassword = decryptSensitiveField(connection.smtpPassword);
@@ -123,9 +195,6 @@ export const composeMail = pageActionClient('inbox')
       smtpHost,
       smtpPort: connection.smtpPort
     });
-
-    const fromAddress = normalizeAddress(alias.address);
-    const toAddress = normalizeAddress(parsedInput.to);
 
     let messageId: string;
     try {
@@ -170,6 +239,7 @@ export const composeMail = pageActionClient('inbox')
         status: MailThreadStatus.OPEN,
         isUnread: false,
         lastMessageAt: sentAt,
+        assigneeKind: 'HUMAN',
         assigneeId: session.user.id,
         messages: {
           create: {

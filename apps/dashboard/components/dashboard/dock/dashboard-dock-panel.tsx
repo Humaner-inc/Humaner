@@ -1,23 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import {
-  ArrowLeftIcon,
-  InfoIcon,
-  MailIcon,
-  MessageCircleIcon,
-  TriangleAlertIcon,
-  XIcon
-} from '@humaner/shared/icons';
+import { InfoIcon, MailIcon, XIcon } from '@humaner/shared/icons';
 
-import { AskHumanerPanel } from '@/components/dashboard/ask-humaner/ask-humaner-panel';
 import {
   useDashboardDock,
   type DockMode
 } from '@/components/dashboard/dock/dashboard-dock-context';
-import { DockFeedbackForm } from '@/components/dashboard/dock/dock-feedback-form';
 import { DockNotificationsView } from '@/components/dashboard/dock/dock-notifications-view';
-import { DockReportBugForm } from '@/components/dashboard/dock/dock-report-bug-form';
 import { Button } from '@/components/ui/button';
 import { GlassFeatureIcon } from '@/components/ui/glass-feature-icon';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
@@ -28,23 +18,17 @@ import { cn } from '@/lib/utils';
 const oss = isOssDeployment();
 
 const DOCK_TITLES: Record<NonNullable<DockMode>, string> = {
-  ask: '/ask humaner',
+  ask: '/companion',
   help: 'Need help?',
-  notifications: 'Notifications',
-  'report-bug': 'Report a bug',
-  feedback: 'Feedback'
-};
-
-const BACK_MODES: Partial<
-  Record<NonNullable<DockMode>, NonNullable<DockMode>>
-> = {
-  'report-bug': 'help',
-  feedback: 'help'
+  notifications: oss ? 'Notifications' : 'Mail',
+  'report-bug': 'Need help?',
+  feedback: 'Need help?'
 };
 
 export function DashboardDockPanel(): React.JSX.Element {
-  const { activeMode, closeDock, openDock } = useDashboardDock();
-  const isOpen = activeMode !== null;
+  const { activeMode, closeDock } = useDashboardDock();
+  const panelMode = activeMode === 'ask' ? null : activeMode;
+  const isOpen = panelMode !== null;
 
   return (
     <div
@@ -55,45 +39,27 @@ export function DashboardDockPanel(): React.JSX.Element {
           : 'w-0 border-l-0'
       )}
     >
-      {activeMode ? (
+      {panelMode ? (
         <div className="flex h-full w-96 max-lg:w-full flex-col bg-background">
-          {activeMode === 'ask' ? (
-            <AskHumanerPanel className="h-full min-h-0" />
-          ) : (
-            <>
-              <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
-                {BACK_MODES[activeMode] ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                    onClick={() => openDock(BACK_MODES[activeMode]!)}
-                    aria-label="Back"
-                  >
-                    <ArrowLeftIcon className="size-4" />
-                  </Button>
-                ) : null}
-                <span className="flex-1 truncate font-mono text-xs tracking-tight">
-                  {DOCK_TITLES[activeMode]}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                  onClick={closeDock}
-                  aria-label="Close panel"
-                >
-                  <XIcon className="size-4" />
-                </Button>
-              </div>
+          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
+            <span className="flex-1 truncate font-mono text-xs tracking-tight">
+              {DOCK_TITLES[panelMode]}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={closeDock}
+              aria-label="Close panel"
+            >
+              <XIcon className="size-4" />
+            </Button>
+          </div>
 
-              <div className="min-h-0 flex-1 overflow-hidden">
-                <DockContent mode={activeMode} />
-              </div>
-            </>
-          )}
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <DockContent mode={panelMode} />
+          </div>
         </div>
       ) : null}
     </div>
@@ -106,28 +72,24 @@ function DockContent({
   mode: Exclude<NonNullable<DockMode>, 'ask'>;
 }): React.JSX.Element {
   switch (mode) {
-    case 'help':
-      return <DockHelpView />;
     case 'notifications':
       return <DockNotificationsView />;
+    case 'help':
     case 'report-bug':
-      return <DockReportBugForm />;
     case 'feedback':
-      return <DockFeedbackForm />;
+      return <DockHelpView />;
   }
 }
 
 function DockHelpView(): React.JSX.Element {
-  const { openDock } = useDashboardDock();
-
   return (
     <div className="p-4 space-y-2">
       <p className="mb-4 text-xs text-muted-foreground">
         {oss ? (
-          <>Contact your operator or share feedback about this workspace.</>
+          <>Contact your operator about this workspace.</>
         ) : (
           <>
-            Reach the team, report a bug or give feedback.
+            Reach the team by email.
             <br />
             Human team only behind the scenes.
           </>
@@ -142,20 +104,6 @@ function DockHelpView(): React.JSX.Element {
             oss ? 'Support' : 'Humaner support'
           );
         }}
-      />
-      {!oss ? (
-        <HelpItem
-          icon={TriangleAlertIcon}
-          label="Report a bug"
-          description="Open a support ticket"
-          onClick={() => openDock('report-bug')}
-        />
-      ) : null}
-      <HelpItem
-        icon={MessageCircleIcon}
-        label="Give feedback"
-        description="Share ideas or questions"
-        onClick={() => openDock('feedback')}
       />
     </div>
   );

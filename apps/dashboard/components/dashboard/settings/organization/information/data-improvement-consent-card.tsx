@@ -154,7 +154,7 @@ export function DataImprovementConsentCard({
               <PipelineStep
                 icon={Layers}
                 title="Anonymised patterns"
-                description={`${AppInfo.APP_NAME} uses industries patterns to improve agents.`}
+                description={`${AppInfo.APP_NAME} can use industry patterns to improve the platform — never to train third-party models.`}
               />
               {downArrow}
               <PipelineStep
@@ -171,14 +171,14 @@ export function DataImprovementConsentCard({
                   <PipelineStep
                     icon={Brain}
                     title="Model fine-tuning"
-                    description={`Improving ${AppInfo.APP_NAME} model as a whole.`}
+                    description={`Optional. Improving the ${AppInfo.APP_NAME} model as a whole.`}
                   />
                 </div>
                 <div className="rounded-none border border-border/60 bg-background/50 p-3">
                   <PipelineStep
                     icon={BotIcon}
-                    title="Org agents"
-                    description="Improving your agent's behavior within your Organization"
+                    title="Companion in your workspace"
+                    description="Resources you add train Companion for this workspace under the DPA. That is not this opt-in."
                   />
                 </div>
               </div>
@@ -195,8 +195,9 @@ export function DataImprovementConsentCard({
               Anonymised pattern contributions
             </Label>
             <p className="text-sm text-muted-foreground">
-              Share anonymised patterns to improve Skills, Runbooks and
-              recursive learning for your agents.
+              Share anonymised patterns to improve Skills and recursive learning
+              on the {AppInfo.APP_NAME} platform. Workspace Resources still
+              train Companion without this.
             </p>
             {consentedAt ? (
               <p className="text-xs text-muted-foreground">
@@ -222,8 +223,9 @@ export function DataImprovementConsentCard({
               Improve {AppInfo.APP_NAME} Model
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allowing your anonymised patterns to help fine-tune{' '}
-              {AppInfo.APP_NAME}&apos;s model as a whole.
+              Allow anonymised patterns to help fine-tune {AppInfo.APP_NAME}
+              &apos;s model. Optional and separate from Companion training on
+              your Resources.
             </p>
             {modelTrainingConsentedAt ? (
               <p className="text-xs text-muted-foreground">

@@ -1,29 +1,7 @@
-import * as React from 'react';
+import { redirect } from 'next/navigation';
 
-import { OrganizationDangerZoneSection } from '@/components/dashboard/settings/organization/information/organization-danger-zone-section';
-import { AnnotatedLayout } from '@/components/ui/annotated';
-import { Separator } from '@/components/ui/separator';
+import { Routes } from '@/constants/routes';
 
-export type OrganizationInformationLayoutProps = {
-  organizationDetails: React.ReactNode;
-  businessHours: React.ReactNode;
-  socialMedia: React.ReactNode;
-};
-
-export default function OrganizationInformationLayout({
-  organizationDetails,
-  businessHours,
-  socialMedia
-}: OrganizationInformationLayoutProps): React.JSX.Element {
-  return (
-    <AnnotatedLayout className="py-0">
-      {organizationDetails}
-      <Separator />
-      {businessHours}
-      <Separator />
-      {socialMedia}
-      <Separator />
-      <OrganizationDangerZoneSection />
-    </AnnotatedLayout>
-  );
+export default function OrganizationInformationLayout(): never {
+  redirect(Routes.OrganizationWorkspace);
 }

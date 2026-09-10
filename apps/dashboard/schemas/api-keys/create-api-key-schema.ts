@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-const apiKeyScopeEnum = z.enum(['intelligence', 'helpdesk']);
+import { API_KEY_SCOPES } from '@/lib/auth/api-key-scopes';
+
+const apiKeyScopeEnum = z.enum(API_KEY_SCOPES);
 
 export const createApiKeySchema = z
   .object({

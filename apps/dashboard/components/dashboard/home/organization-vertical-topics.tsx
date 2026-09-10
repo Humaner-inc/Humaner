@@ -16,12 +16,16 @@ export type OrganizationVerticalTopicsProps = {
   industry: IndustryType;
   commonTopics: string[];
   selectedTopics: string[];
+  readOnly?: boolean;
+  forCompanion?: boolean;
 };
 
 export function OrganizationVerticalTopics({
   industry,
   commonTopics,
-  selectedTopics: initialSelected
+  selectedTopics: initialSelected,
+  readOnly = false,
+  forCompanion = false
 }: OrganizationVerticalTopicsProps): React.JSX.Element {
   const router = useRouter();
   const industryDef = getIndustry(industry);
@@ -38,6 +42,9 @@ export function OrganizationVerticalTopics({
   const selectedSet = React.useMemo(() => new Set(selected), [selected]);
 
   const persist = (next: string[]): void => {
+    if (readOnly) {
+      return;
+    }
     setSelected(next);
     startTransition(async () => {
       const result = await updateOrganizationVerticalTopics({ topics: next });
@@ -71,7 +78,9 @@ export function OrganizationVerticalTopics({
         </p>
       </div>
       <p className="text-sm text-muted-foreground">
-        These sync to every agent&apos;s persona.
+        {forCompanion
+          ? "These shape Companion's persona."
+          : "These sync to every agent's persona."}
       </p>
       <ul className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
         {commonTopics.map((topic) => {
@@ -80,7 +89,7 @@ export function OrganizationVerticalTopics({
             <li key={topic}>
               <button
                 type="button"
-                disabled={isPending}
+                disabled={readOnly || isPending}
                 onClick={() => toggle(topic)}
                 aria-pressed={isSelected}
                 className={cn(

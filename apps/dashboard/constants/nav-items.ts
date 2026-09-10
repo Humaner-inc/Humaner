@@ -4,7 +4,6 @@ import {
   CreditCardIcon,
   LockKeyholeIcon,
   MessageSquare,
-  Sparkles,
   StoreIcon,
   UserIcon
 } from '@humaner/shared/icons';
@@ -15,24 +14,17 @@ import type { NavItem } from '@/types/nav-item';
 
 export const mainNavItems: NavItem[] = [];
 
-/** Platform-operator tools (Humaner staff). Never shown to regular users. */
-export const adminNavItems: NavItem[] = [
+/** Kept empty — admin tools live in the profile menu, not the sidebar. */
+export const adminNavItems: NavItem[] = [];
+
+/** Platform-operator tools shown in the profile popup and command menu. */
+export const adminProfileItems: NavItem[] = [
   {
     title: 'Support tickets',
     href: Routes.AdminTickets,
     icon: MessageSquare,
     adminOnly: true
-  },
-  ...(!isOssDeployment()
-    ? [
-        {
-          title: 'Demo agents',
-          href: Routes.AdminDemos,
-          icon: Sparkles,
-          adminOnly: true
-        } satisfies NavItem
-      ]
-    : [])
+  }
 ];
 
 export const accountNavItems: NavItem[] = [
@@ -56,7 +48,7 @@ export const accountNavItems: NavItem[] = [
 export const organizationNavItems: NavItem[] = [
   {
     title: 'Information',
-    href: Routes.OrganizationInformation,
+    href: Routes.OrganizationWorkspace,
     icon: StoreIcon,
     ownerOnly: true
   },

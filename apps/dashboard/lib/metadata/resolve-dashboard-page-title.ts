@@ -25,9 +25,15 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.InboxAll]: 'Inbox',
   [Routes.InboxAssigned]: 'Assigned to me',
   [Routes.InboxArchive]: 'Archive',
-  [Routes.InboxAliases]: 'Aliases',
+  [Routes.InboxAliases]: 'Inbox settings',
+  [Routes.InboxSettings]: 'Inbox settings',
+  [Routes.Resources]: 'Resources',
   [Routes.InboxProviders]: 'Providers',
   [Routes.InboxTags]: 'Tags',
+  [Routes.InboxDrafts]: 'Drafts',
+  [Routes.Tasks]: 'Tasks',
+  [Routes.OrganizationWorkspace]: 'Workspace',
+  [Routes.Calendar]: 'Calendar',
   [Routes.Training]: 'Training',
   [Routes.AdminTickets]: 'Support tickets',
   [Routes.AdminDemos]: 'Demo agents',
@@ -35,10 +41,10 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Profile]: 'Profile',
   [Routes.Security]: 'Security',
   [Routes.Notifications]: 'Notifications',
-  [Routes.OrganizationInformation]: 'Workspace settings',
+  [Routes.OrganizationInformation]: 'Workspace',
   [Routes.Members]: 'Team members',
   [Routes.Billing]: 'Billing',
-  [Routes.Developers]: 'Developers'
+  [Routes.Developers]: 'MCP'
 };
 
 const AGENT_TAB_TITLES: Record<string, string> = {

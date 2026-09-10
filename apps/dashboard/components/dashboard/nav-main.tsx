@@ -10,6 +10,7 @@ import {
 import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
+import { NavMailbox } from '@/components/dashboard/nav-mailbox';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
 import { SidebarMainNavHighlight } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
@@ -21,10 +22,12 @@ import {
 } from '@/components/ui/sidebar';
 import { adminNavItems, mainNavItems } from '@/constants/nav-items';
 import { Routes } from '@/constants/routes';
+import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import {
   canAccessPage,
   filterNavItemsForProfile,
-  isPlatformAdmin
+  isPlatformAdmin,
+  isWorkspaceOwner
 } from '@/lib/auth/workspace-access';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -37,6 +40,8 @@ export type NavMainProps = SidebarGroupProps & {
   inboxUnreadCount?: number;
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
+  mailInboxes?: MailInboxOption[];
+  companionHref?: string | null;
 };
 
 export function NavMain({
@@ -47,9 +52,12 @@ export function NavMain({
   inboxUnreadCount = 0,
   handoffOpenCount = 0,
   agentDeskOpenCount = 0,
+  mailInboxes = [],
+  companionHref,
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
+  const oss = isOssDeployment();
   const items = [
     ...filterNavItemsForProfile(mainNavItems, profile),
     ...(isPlatformAdmin(profile)
@@ -60,14 +68,25 @@ export function NavMain({
   return (
     <SidebarNavAccordionProvider agents={agents}>
       <SidebarMainNavHighlight className="flex flex-col gap-0 px-2 pt-4">
-        <NavOrganizationTree />
-        {!isOssDeployment() && canAccessPage(profile, 'inbox') ? (
+        {oss ? <NavOrganizationTree /> : null}
+        {!oss && canAccessPage(profile, 'inbox') ? (
+          <React.Suspense fallback={null}>
+            <NavMailbox
+              orgTier={orgTier}
+              unreadCount={inboxUnreadCount}
+              inboxes={mailInboxes}
+              companionHref={companionHref}
+              showMcp={isWorkspaceOwner(profile)}
+            />
+          </React.Suspense>
+        ) : null}
+        {oss && canAccessPage(profile, 'inbox') ? (
           <NavInboxTree
             orgTier={orgTier}
             unreadCount={inboxUnreadCount}
           />
         ) : null}
-        {canAccessPage(profile, 'desk') ? (
+        {oss && canAccessPage(profile, 'desk') ? (
           <NavDeskTree
             orgTier={orgTier}
             frontierBetaEnabled={frontierBetaEnabled}
@@ -75,7 +94,7 @@ export function NavMain({
             agentDeskOpenCount={agentDeskOpenCount}
           />
         ) : null}
-        {canAccessPage(profile, 'integrations') ? (
+        {oss && canAccessPage(profile, 'integrations') ? (
           <NavIntegrationsTree orgTier={orgTier} />
         ) : null}
         {items.length > 0 ? (
@@ -105,7 +124,7 @@ export function NavMain({
         ) : null}
       </SidebarMainNavHighlight>
       <div className="px-2">
-        {agents.length > 0 ? (
+        {oss && agents.length > 0 ? (
           <>
             <SidebarSeparator className="my-1.5 opacity-50" />
             <NavAgentTree

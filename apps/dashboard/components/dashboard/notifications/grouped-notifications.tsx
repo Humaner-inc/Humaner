@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import NiceModal from '@ebay/nice-modal-react';
 import {
   CheckIcon,
   CreditCardIcon,
@@ -13,7 +12,6 @@ import {
 } from '@humaner/shared/icons';
 import { format } from 'date-fns';
 
-import { UserTicketsSheet } from '@/components/support/user-tickets-sheet';
 import { TicketIcon } from '@/components/ui/ticket-icon';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import {
@@ -148,15 +146,6 @@ function NotificationLine({
     window.setTimeout(() => onDismiss?.(item.id), 220);
   };
 
-  const openItem = (): void => {
-    if (item.action === 'open_support_tickets') {
-      onNavigate();
-      NiceModal.show(UserTicketsSheet);
-      return;
-    }
-    onNavigate();
-  };
-
   const text = (
     <span
       className={cn(
@@ -213,25 +202,14 @@ function NotificationLine({
         <GroupGlyph kind={item.kind} />
       )}
 
-      {item.action === 'open_support_tickets' ? (
-        <button
-          type="button"
-          className="min-w-0 flex-1 truncate text-left"
-          aria-label={label}
-          onClick={openItem}
-        >
-          {text}
-        </button>
-      ) : (
-        <Link
-          href={item.href}
-          className="min-w-0 flex-1 truncate"
-          aria-label={label}
-          onClick={onNavigate}
-        >
-          {text}
-        </Link>
-      )}
+      <Link
+        href={item.href}
+        className="min-w-0 flex-1 truncate"
+        aria-label={label}
+        onClick={onNavigate}
+      >
+        {text}
+      </Link>
 
       {onDismiss ? (
         <button

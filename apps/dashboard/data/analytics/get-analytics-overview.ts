@@ -9,7 +9,6 @@ import {
 import type { MessageRole } from '@prisma/client';
 import { format, startOfDay, subDays } from 'date-fns';
 
-import { queryKnowledgeGapCoversForOrganization } from '@/data/knowledge/query-knowledge-gap-covers';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -257,7 +256,7 @@ export async function getAnalyticsOverview(options?: {
     prisma.message.count({
       where: { conversation: { agent: { organizationId, ...agentFilter } } }
     }),
-    queryKnowledgeGapCoversForOrganization(organizationId, options?.agentId)
+    Promise.resolve([])
   ]);
 
   const outcomeCounts = countConversationOutcomes(conversations);

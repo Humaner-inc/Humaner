@@ -27,7 +27,6 @@ export enum Routes {
   Dashboard = '/organization/overview',
   Home = '/organization/overview',
   OrganizationTeam = '/organization/team',
-  /** @deprecated Redirects to {@link Routes.OrganizationInformation}. */
   OrganizationWorkspace = '/organization/workspace',
   Agents = '/agents',
   AgentNew = '/agents/new',
@@ -51,6 +50,11 @@ export enum Routes {
   InboxAliases = '/inbox/aliases',
   InboxProviders = '/inbox/providers',
   InboxTags = '/inbox/tags',
+  InboxDrafts = '/inbox/drafts',
+  InboxSettings = '/inbox/settings',
+  Tasks = '/organization/tasks',
+  Calendar = '/calendar',
+  Resources = '/organization/resources',
   Training = '/training',
   AdminTickets = '/admin/tickets',
   AdminDemos = '/admin/demos',
@@ -75,6 +79,8 @@ export enum Routes {
   InvitationLogOutToAccept = '/invitations/log-out-to-accept',
 
   Onboarding = '/onboarding',
+  /** Shown immediately after Google sign-up — mailbox consent, before the wizard. */
+  OnboardingConnectGmail = '/onboarding/connect-gmail',
   /**
    * Custom-tier setup guide. Shown once when onboarding completes, and reachable
    * afterwards from the agent Configuration tab.

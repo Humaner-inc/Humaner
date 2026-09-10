@@ -12,6 +12,11 @@ import {
   aliasIdFilter,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
+import {
+  applyMailThreadAssignee,
+  COMPANION_ASSIGNEE,
+  parseMailAssigneeInput
+} from '@/lib/inbox/mail-assignee';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import {
   NotFoundError,
@@ -143,12 +148,17 @@ export const deleteMailThread = authActionClient
     return { success: true };
   });
 
+const mailAssigneeInput = z.union([
+  z.string().uuid(),
+  z.literal(COMPANION_ASSIGNEE)
+]);
+
 export const assignMailThread = authActionClient
   .metadata({ actionName: 'assignMailThread' })
   .schema(
     z.object({
       threadId: z.string().uuid(),
-      assigneeId: z.string().uuid().nullable()
+      assigneeId: mailAssigneeInput.nullable()
     })
   )
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -161,42 +171,16 @@ export const assignMailThread = authActionClient
       organizationId
     );
 
-    if (parsedInput.assigneeId) {
-      const member = await prisma.organizationMembership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId: parsedInput.assigneeId,
-            organizationId
-          }
-        },
-        select: { id: true }
-      });
-      if (!member) {
-        throw new PreConditionError('Assignee is not in this workspace');
-      }
-    }
-
-    const current = await prisma.mailThread.findFirst({
-      where: { id: parsedInput.threadId, organizationId },
-      select: { assigneeId: true }
+    const applied = await applyMailThreadAssignee({
+      threadId: parsedInput.threadId,
+      organizationId,
+      assignee: parsedInput.assigneeId
     });
-    if (!current) {
-      throw new NotFoundError('Thread not found');
-    }
-
-    // Compare-and-swap so concurrent assign/unassign cannot silently clobber.
-    const updated = await prisma.mailThread.updateMany({
-      where: {
-        id: parsedInput.threadId,
-        organizationId,
-        assigneeId: current.assigneeId
-      },
-      data: { assigneeId: parsedInput.assigneeId }
-    });
-
-    if (updated.count === 0) {
+    if (!applied.ok) {
       throw new PreConditionError(
-        'This thread was updated by someone else. Refresh and try again.'
+        applied.reason === 'conflict'
+          ? 'This thread was updated by someone else. Refresh and try again.'
+          : 'Assignee is not in this workspace'
       );
     }
 
@@ -367,7 +351,7 @@ export const bulkAssignMailThreads = authActionClient
   .schema(
     z.object({
       threadIds: z.array(z.string().uuid()).min(1).max(200),
-      assigneeId: z.string().uuid().nullable()
+      assigneeId: mailAssigneeInput.nullable()
     })
   )
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -380,12 +364,13 @@ export const bulkAssignMailThreads = authActionClient
       organizationId
     );
     const threadIds = threads.map((thread) => thread.id);
+    const next = parseMailAssigneeInput(parsedInput.assigneeId);
 
-    if (parsedInput.assigneeId) {
+    if (next.assigneeKind === 'HUMAN' && next.assigneeId) {
       const member = await prisma.organizationMembership.findUnique({
         where: {
           userId_organizationId: {
-            userId: parsedInput.assigneeId,
+            userId: next.assigneeId,
             organizationId
           }
         },
@@ -398,7 +383,10 @@ export const bulkAssignMailThreads = authActionClient
 
     await prisma.mailThread.updateMany({
       where: { id: { in: threadIds }, organizationId },
-      data: { assigneeId: parsedInput.assigneeId }
+      data: {
+        assigneeKind: next.assigneeKind,
+        assigneeId: next.assigneeId
+      }
     });
 
     revalidateMailListPaths();

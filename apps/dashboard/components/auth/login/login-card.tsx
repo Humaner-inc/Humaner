@@ -45,6 +45,7 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import { cn } from '@/lib/utils';
 import {
   passThroughlogInSchema,
@@ -139,7 +140,7 @@ export function LoginCard({
     setIsLoading(false);
     setLoginSuccess(true);
 
-    const redirectTo = result?.data?.redirectTo ?? Routes.Home;
+    const redirectTo = result?.data?.redirectTo ?? getSignedInHomePath();
     await new Promise((resolve) => {
       window.setTimeout(resolve, 550);
     });

@@ -17,6 +17,7 @@ import {
   getMailThreads
 } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
+import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
 
 function parseFilter(value: string | undefined): InboxListFilter {
   if (value === 'unread' || value === 'open' || value === 'pending') {
@@ -81,15 +82,28 @@ async function InboxAllPageContent({
       <div className="p-6 md:p-8">
         <InboxOptionalEmptyState
           title="No mail connected yet"
-          description="Connect your email provider to start using inbox and automatize your mail support."
+          description="Connect your email provider to start using the inbox."
         />
       </div>
     );
   }
 
-  const threadsPromise = getMailThreads({
-    connectionId: mailboxParam ?? null,
-    aliasId: mailboxParam ? null : (aliasParam ?? null),
+  const [inboxes, tags, members] = await Promise.all([
+    inboxesPromise,
+    tagsPromise,
+    membersPromise
+  ]);
+
+  const mailboxes = groupMailInboxes(inboxes);
+  const activeMailboxId =
+    mailboxParam &&
+    mailboxes.some((mailbox) => mailbox.connectionId === mailboxParam)
+      ? mailboxParam
+      : (mailboxes[0]?.connectionId ?? null);
+
+  const threads = await getMailThreads({
+    connectionId: activeMailboxId,
+    aliasId: activeMailboxId ? null : (aliasParam ?? null),
     tagId: tagParam ?? null,
     unreadOnly: !tagParam && activeFilter === 'unread',
     status:
@@ -99,18 +113,6 @@ async function InboxAllPageContent({
           ? 'PENDING'
           : undefined
   });
-
-  const [inboxes, tags, members, threads] = await Promise.all([
-    inboxesPromise,
-    tagsPromise,
-    membersPromise,
-    threadsPromise
-  ]);
-
-  const activeMailboxId =
-    mailboxParam && inboxes.some((inbox) => inbox.connectionId === mailboxParam)
-      ? mailboxParam
-      : null;
 
   const activeTagId =
     tagParam && tags.some((tag) => tag.id === tagParam) ? tagParam : null;
@@ -129,7 +131,7 @@ async function InboxAllPageContent({
         <div className="min-h-0 flex-1 overflow-auto p-6">
           <InboxOptionalEmptyState
             title="No threads yet"
-            description="Sync to import recent messages for your aliases."
+            description="Sync to import recent messages for this inbox."
             showConnect={false}
           />
         </div>

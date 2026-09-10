@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import { cn } from '@/lib/utils';
 import {
   submitRecoveryCodeSchema,
@@ -91,7 +92,7 @@ export function RecoveryCodeCard({
       return;
     }
 
-    const redirectTo = result?.data?.redirectTo ?? Routes.Home;
+    const redirectTo = result?.data?.redirectTo ?? getSignedInHomePath();
     window.location.assign(redirectTo);
   };
 

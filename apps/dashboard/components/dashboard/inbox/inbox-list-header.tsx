@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import type { MailTagItem } from '@/data/inbox/get-mail-threads';
+import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { cn } from '@/lib/utils';
 
 export type InboxListFilter = 'all' | 'unread' | 'open' | 'pending';
@@ -27,7 +28,7 @@ const FILTERS: Array<{ id: InboxListFilter; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'unread', label: 'Unread' },
   { id: 'open', label: 'Open' },
-  { id: 'pending', label: 'Pending' }
+  { id: 'pending', label: 'In progress' }
 ];
 
 const INBOX_BULK_DELETE_BUTTON_CLASS =
@@ -431,6 +432,13 @@ export function InboxListHeader({
                     onSelect={() => selection.assignSelected(null)}
                   >
                     Unassigned
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      selection.assignSelected(COMPANION_ASSIGNEE)
+                    }
+                  >
+                    Companion
                   </DropdownMenuItem>
                   {selection.members.map((member) => (
                     <DropdownMenuItem

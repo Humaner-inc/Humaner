@@ -36,17 +36,10 @@ export function InboxDomainSwitcher({
 
   const active =
     mailboxes.find((mailbox) => mailbox.connectionId === activeMailboxId) ??
+    mailboxes[0] ??
     null;
-  const totalUnread = mailboxes.reduce(
-    (sum, mailbox) => sum + mailbox.unreadCount,
-    0
-  );
   const single = mailboxes[0];
-  const label = active
-    ? active.email
-    : mailboxes.length === 1
-      ? single.email
-      : 'All mailboxes';
+  const label = active?.email ?? single.email;
 
   if (mailboxes.length === 1) {
     return (
@@ -59,8 +52,7 @@ export function InboxDomainSwitcher({
     );
   }
 
-  const hrefFor = (connectionId: string | null): string => {
-    if (!connectionId) return pathname;
+  const hrefFor = (connectionId: string): string => {
     return `${pathname}?mailbox=${connectionId}`;
   };
 
@@ -75,11 +67,6 @@ export function InboxDomainSwitcher({
           title={label}
         >
           <span className="truncate">{label}</span>
-          {!active && totalUnread > 0 ? (
-            <span className="shrink-0 tabular-nums text-foreground">
-              {formatUnreadCount(totalUnread)}
-            </span>
-          ) : null}
           {active && active.unreadCount > 0 ? (
             <span className="shrink-0 tabular-nums text-foreground">
               {formatUnreadCount(active.unreadCount)}
@@ -92,32 +79,17 @@ export function InboxDomainSwitcher({
         align="start"
         className="w-80"
       >
-        <DropdownMenuItem
-          asChild
-          className={cn(!activeMailboxId && 'bg-accent font-medium')}
-        >
-          <Link
-            href={hrefFor(null)}
-            className="flex w-full items-center gap-2"
-          >
-            <span className="min-w-0 flex-1 truncate">All mailboxes</span>
-            <span className="ml-auto flex shrink-0 items-center gap-2">
-              {totalUnread > 0 ? (
-                <span className="tabular-nums text-xs text-muted-foreground">
-                  {formatUnreadCount(totalUnread)}
-                </span>
-              ) : null}
-              {!activeMailboxId ? (
-                <CheckIcon className="size-3.5 text-emerald-600" />
-              ) : null}
-            </span>
-          </Link>
-        </DropdownMenuItem>
-        {mailboxes.map((mailbox) => {
-          const selected = activeMailboxId === mailbox.connectionId;
+        {mailboxes.map((mailbox, index) => {
+          const selected =
+            (activeMailboxId ?? mailboxes[0]?.connectionId) ===
+            mailbox.connectionId;
+          const aliases = mailbox.aliases.filter(
+            (alias) =>
+              alias.address.toLowerCase() !== mailbox.email.toLowerCase()
+          );
           return (
             <React.Fragment key={mailbox.connectionId}>
-              <DropdownMenuSeparator />
+              {index > 0 ? <DropdownMenuSeparator /> : null}
               <DropdownMenuItem
                 asChild
                 className={cn(selected && 'bg-accent font-medium')}
@@ -144,12 +116,12 @@ export function InboxDomainSwitcher({
                   </span>
                 </Link>
               </DropdownMenuItem>
-              {mailbox.aliases.length > 1 ? (
+              {aliases.length > 0 ? (
                 <>
                   <DropdownMenuLabel className="font-mono text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
                     Sending aliases
                   </DropdownMenuLabel>
-                  {mailbox.aliases.map((alias) => (
+                  {aliases.map((alias) => (
                     <div
                       key={alias.id}
                       className="px-2 py-1 font-mono text-xs text-muted-foreground"

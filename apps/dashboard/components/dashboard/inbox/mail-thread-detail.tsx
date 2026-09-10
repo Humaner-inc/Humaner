@@ -23,6 +23,7 @@ import {
 } from '@/actions/inbox/manage-mail-thread';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
+import { createTaskFromMailThreadAction } from '@/actions/tasks/create-task-from-mail-thread';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
@@ -30,6 +31,7 @@ import {
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
+import { MailThreadNotesPanel } from '@/components/dashboard/inbox/mail-thread-notes-panel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -55,16 +57,16 @@ import type {
   MailThreadDetail as MailThreadDetailDto
 } from '@/data/inbox/get-mail-threads';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import { tagsForAlias } from '@/lib/inbox/mail-tag-scope';
+import { mailThreadStatusLabel } from '@/lib/inbox/mail-thread-status';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
 type Suggestion = { label: string; draft: string };
 type SendPhase = 'idle' | 'sending' | 'success';
 
-const accentBorder =
-  'border-[color-mix(in_srgb,var(--accent-color,#2252bc)_55%,transparent)]';
 const accentSoftBg =
   'bg-[color-mix(in_srgb,var(--accent-color,#2252bc)_10%,transparent)]';
 
@@ -253,6 +255,7 @@ export function MailThreadDetail({
     tag?: MailTagItem | null;
     isUnread?: boolean;
     assigneeId?: string | null;
+    assigneeKind?: string;
   }) => void;
 }): React.JSX.Element {
   const router = useRouter();
@@ -393,9 +396,43 @@ export function MailThreadDetail({
     runDelete({ threadId: thread.id });
   };
 
+  const { execute: createTask, isExecuting: creatingTask } = useAction(
+    createTaskFromMailThreadAction,
+    {
+      onSuccess: ({ data }) => {
+        if (!data) return;
+        setThread((current) => ({
+          ...current,
+          handoffTicketId: data.id,
+          handoffTicketNumber: data.ticketNumber
+        }));
+        toast.success(
+          data.existing
+            ? `Task #${String(data.ticketNumber).padStart(5, '0')} already exists`
+            : `Task #${String(data.ticketNumber).padStart(5, '0')} created`
+        );
+      },
+      onError: ({ error }) =>
+        toast.error(error.serverError || 'Could not create task')
+    }
+  );
+
   const handleAssign = (assigneeId: string | null): void => {
-    setThread((current) => ({ ...current, assigneeId }));
-    onPatched?.({ assigneeId });
+    const assigneeKind =
+      assigneeId === COMPANION_ASSIGNEE
+        ? 'COMPANION'
+        : assigneeId
+          ? 'HUMAN'
+          : 'UNASSIGNED';
+    setThread((current) => ({
+      ...current,
+      assigneeId: assigneeId === COMPANION_ASSIGNEE ? null : assigneeId,
+      assigneeKind
+    }));
+    onPatched?.({
+      assigneeId: assigneeId === COMPANION_ASSIGNEE ? null : assigneeId,
+      assigneeKind
+    });
     toast.success('Assigned');
     runAssign({ threadId: thread.id, assigneeId });
   };
@@ -554,7 +591,12 @@ export function MailThreadDetail({
       >
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
-            <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
+            <span
+              className="shrink-0"
+              title={mailThreadStatusLabel(thread.status)}
+            >
+              <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
+            </span>
             <h1
               className={cn(
                 'min-w-0 truncate font-fellix font-semibold tracking-tight',
@@ -629,6 +671,13 @@ export function MailThreadDetail({
               )}
               <DropdownMenuItem onSelect={() => handleAssign(null)}>
                 Unassigned
+                {thread.assigneeKind === 'UNASSIGNED' ? ' ✓' : ''}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => handleAssign(COMPANION_ASSIGNEE)}
+              >
+                Companion
+                {thread.assigneeKind === 'COMPANION' ? ' ✓' : ''}
               </DropdownMenuItem>
               {members.map((member) => (
                 <DropdownMenuItem
@@ -685,6 +734,19 @@ export function MailThreadDetail({
           <Button
             type="button"
             variant="ghost"
+            size="sm"
+            className="h-8 rounded-none px-2 font-mono text-[10px]"
+            title="Create task"
+            disabled={creatingTask}
+            onClick={() => createTask({ threadId: thread.id })}
+          >
+            {thread.handoffTicketNumber
+              ? `#${String(thread.handoffTicketNumber).padStart(5, '0')}`
+              : 'Task'}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
             size="icon"
             className="size-8 rounded-none text-destructive hover:text-destructive"
             title="Delete"
@@ -728,8 +790,14 @@ export function MailThreadDetail({
             ))}
           </ol>
 
+          <MailThreadNotesPanel
+            threadId={thread.id}
+            notes={thread.notes ?? []}
+            sharedNoteDraft={thread.sharedNoteDraft ?? null}
+          />
+
           {suggesting ? (
-            <article className="w-full border border-border/50 bg-background px-4 py-3.5 shadow-sm">
+            <article className="w-full bg-[#fcf4ec] px-5 py-4 dark:bg-[#0A0D0D]">
               {suggestionsLoading ? (
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2.5">
@@ -844,58 +912,9 @@ export function MailThreadDetail({
               )}
             </article>
           ) : null}
-        </div>
-      </div>
 
-      <div className="shrink-0 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
-          {!composerOpen ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={openReply}
-                >
-                  <ArrowRightIcon className="size-3.5 rotate-180" />
-                  Reply
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={() => {
-                    toast.message('Forward is coming soon');
-                  }}
-                >
-                  <ForwardGlyph className="size-3.5" />
-                  Forward
-                </Button>
-              </div>
-              {!suggesting ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
-                  onClick={suggestAgain}
-                >
-                  <SkillzCubeLoader size={18} />
-                  Suggest
-                </Button>
-              ) : null}
-            </div>
-          ) : (
-            <section
-              className={cn(
-                'w-full border bg-background px-4 py-3.5 shadow-sm',
-                accentBorder,
-                accentSoftBg
-              )}
-            >
+          {composerOpen ? (
+            <section className="w-full bg-[#fcf4ec] px-5 py-4 dark:bg-[#0A0D0D]">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
                 <div className="min-w-0">
                   <p className="text-sm font-medium">Reply</p>
@@ -947,8 +966,8 @@ export function MailThreadDetail({
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
                 placeholder="Write your reply…"
-                rows={5}
-                className="min-h-28 resize-y rounded-none bg-background"
+                rows={8}
+                className="min-h-40 resize-y rounded-none border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
               />
               <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                 <Button
@@ -985,9 +1004,54 @@ export function MailThreadDetail({
                 </Button>
               </div>
             </section>
-          )}
+          ) : null}
         </div>
       </div>
+
+      {composerOpen ? null : (
+        <div className="shrink-0 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={openReply}
+                >
+                  <ArrowRightIcon className="size-3.5 rotate-180" />
+                  Reply
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={() => {
+                    toast.message('Forward is coming soon');
+                  }}
+                >
+                  <ForwardGlyph className="size-3.5" />
+                  Forward
+                </Button>
+              </div>
+              {!suggesting ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto h-9 gap-2 rounded-none bg-background px-4"
+                  onClick={suggestAgain}
+                >
+                  <SkillzCubeLoader size={18} />
+                  Suggest
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
 
       <DeleteMailThreadsDialog
         open={deleteOpen}

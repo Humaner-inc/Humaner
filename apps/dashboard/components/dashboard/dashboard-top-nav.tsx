@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { BellIcon, InfoIcon } from '@humaner/shared/icons';
 
-import { AskHumanerTrigger } from '@/components/dashboard/ask-humaner/ask-humaner-trigger';
+import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
+import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useDockNotifications } from '@/components/dashboard/dock/dock-notifications-context';
 import { NavUser } from '@/components/dashboard/nav-user';
@@ -14,11 +15,12 @@ import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
+const oss = isOssDeployment();
+
 export type DashboardTopNavProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   planName: string;
-  copilotEnabled?: boolean;
   industryLabel: string | null;
   audienceLabel: string | null;
   className?: string;
@@ -28,13 +30,14 @@ export function DashboardTopNav({
   profile,
   workspaces,
   planName,
-  copilotEnabled = false,
   industryLabel,
   audienceLabel,
   className
 }: DashboardTopNavProps): React.JSX.Element {
   const { toggleDock } = useDashboardDock();
   const { unreadCount } = useDockNotifications();
+  const chat = useHumanerChatOptional();
+  const mailLabel = oss ? 'Notifications' : 'Mail';
 
   return (
     <header
@@ -43,6 +46,30 @@ export function DashboardTopNav({
         className
       )}
     >
+      {chat ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'size-9 shrink-0 hover:bg-muted/60',
+            chat.companionVisible
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+          onClick={() => chat.setCompanionVisible(!chat.companionVisible)}
+          aria-pressed={chat.companionVisible}
+          aria-label={
+            chat.companionVisible ? 'Hide Companion' : 'Show Companion'
+          }
+          title={chat.companionVisible ? 'Companion on' : 'Companion off'}
+        >
+          <CompanionIcon
+            active={chat.companionVisible}
+            character={chat.companionCharacter}
+          />
+        </Button>
+      ) : null}
       <Button
         type="button"
         variant="ghost"
@@ -50,9 +77,7 @@ export function DashboardTopNav({
         className="relative size-9 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
         onClick={() => toggleDock('notifications')}
         aria-label={
-          unreadCount > 0
-            ? `Notifications, ${unreadCount} unread`
-            : 'Notifications'
+          unreadCount > 0 ? `${mailLabel}, ${unreadCount} unread` : mailLabel
         }
       >
         <BellIcon className="size-4" />
@@ -77,7 +102,6 @@ export function DashboardTopNav({
         className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
       />
       <div className="flex h-7 items-center gap-1.5">
-        {!isOssDeployment() && copilotEnabled ? <AskHumanerTrigger /> : null}
         <NavUser
           profile={profile}
           workspaces={workspaces}

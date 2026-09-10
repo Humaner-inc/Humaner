@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { pageActionClient } from '@/actions/safe-action';
+import { pageActionClientAny } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { feedClusterFromResolution } from '@/lib/desk/feed-cluster';
@@ -12,7 +12,7 @@ import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const updateHandoffTicketStatus = pageActionClient('desk')
+export const updateHandoffTicketStatus = pageActionClientAny('desk', 'tasks')
   .metadata({ actionName: 'updateHandoffTicketStatus' })
   .schema(updateHandoffTicketStatusSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
@@ -110,4 +110,5 @@ export const updateHandoffTicketStatus = pageActionClient('desk')
     revalidatePath(Routes.DeskClusters);
     revalidatePath(Routes.DeskAgent);
     revalidatePath(Routes.History);
+    revalidatePath(Routes.Tasks);
   });

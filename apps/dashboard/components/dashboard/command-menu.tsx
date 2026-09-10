@@ -14,6 +14,7 @@ import {
 import {
   accountNavItems,
   adminNavItems,
+  adminProfileItems,
   mainNavItems,
   organizationNavItems
 } from '@/constants/nav-items';
@@ -37,6 +38,12 @@ const navigationGroups = (profile: ProfileDto) => [
         ? filterNavItemsForProfile(adminNavItems, profile)
         : [])
     ]
+  },
+  {
+    heading: 'Admin',
+    items: isPlatformAdmin(profile)
+      ? filterNavItemsForProfile(adminProfileItems, profile)
+      : []
   },
   {
     heading: 'Account',

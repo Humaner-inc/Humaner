@@ -92,7 +92,7 @@ export const leaveOrganization = authActionClient
 
     revalidatePath(Routes.Home);
     revalidatePath(Routes.NoWorkspace);
-    revalidatePath(Routes.OrganizationInformation);
+    revalidatePath(Routes.OrganizationWorkspace);
 
     return {
       redirectTo: alternate ? Routes.Home : Routes.NoWorkspace

@@ -11,6 +11,7 @@ import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
+import { DashboardWorkspaceColumn } from '@/components/dashboard/dashboard-workspace-column';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
 import { DashboardDockProvider } from '@/components/dashboard/dock/dashboard-dock-context';
 import { DashboardDockPanel } from '@/components/dashboard/dock/dashboard-dock-panel';
@@ -18,10 +19,9 @@ import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-noti
 import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
-import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { Routes } from '@/constants/routes';
+import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
@@ -30,6 +30,7 @@ import {
   getMailInboxes,
   getMailUnreadCount
 } from '@/data/inbox/get-mail-threads';
+import { getWorkspaceKnowledgeAgent } from '@/data/knowledge/get-workspace-knowledge';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
@@ -161,7 +162,8 @@ export async function DashboardSessionShell({
     inboxUnreadCount,
     handoffOpenCounts,
     mailInboxes,
-    humanerAgentRecord
+    humanerAgentRecord,
+    workspaceCompanion
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -182,7 +184,8 @@ export async function DashboardSessionShell({
             organization: { select: { name: true } }
           }
         })
-      : Promise.resolve(null)
+      : Promise.resolve(null),
+    getWorkspaceKnowledgeAgent(session.user.organizationId)
   ]);
   const {
     items: notifications,
@@ -245,6 +248,14 @@ export async function DashboardSessionShell({
     frontierBetaEnabled: organization.frontierBetaEnabled
   }).copilot;
 
+  const sidebarAgents = agents.map((agent) => ({
+    id: agent.id,
+    name: agent.name,
+    image: agent.image,
+    character: agent.character,
+    isPaused: agent.isPaused
+  }));
+
   const dashboardShell = (
     <>
       <SidebarRenderer
@@ -256,13 +267,11 @@ export async function DashboardSessionShell({
         inboxUnreadCount={inboxUnreadCount}
         handoffOpenCount={handoffOpenCounts.humanOpen}
         agentDeskOpenCount={handoffOpenCounts.agentOpen}
-        agents={agents.map((a) => ({
-          id: a.id,
-          name: a.name,
-          image: a.image,
-          character: a.character,
-          isPaused: a.isPaused
-        }))}
+        mailInboxes={mailInboxes}
+        agents={sidebarAgents}
+        companionHref={
+          workspaceCompanion ? agentPersonaRoute(workspaceCompanion.id) : null
+        }
       />
       <SidebarInset
         id="skip"
@@ -272,7 +281,6 @@ export async function DashboardSessionShell({
           profile={profile}
           workspaces={workspaces}
           planName={getPlanForTier(userFromDb!.organization!.tier).name}
-          copilotEnabled={copilotEnabled}
           industryLabel={
             userFromDb!.organization!.industry
               ? getIndustry(userFromDb!.organization!.industry).label
@@ -281,9 +289,9 @@ export async function DashboardSessionShell({
           audienceLabel={userFromDb!.organization!.targetAudience ?? null}
         />
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
-            <PageAccessGate profile={profile}>{children}</PageAccessGate>
-          </div>
+          <DashboardWorkspaceColumn profile={profile}>
+            {children}
+          </DashboardWorkspaceColumn>
           <DashboardDockPanel />
         </div>
       </SidebarInset>
@@ -326,6 +334,9 @@ export async function DashboardSessionShell({
                     organizationName={humanerOrganizationName}
                     organizationLogoUrl={humanerOrganizationLogoUrl}
                     widgetColor={ASK_HUMANER_ACCENT}
+                    companionCharacter={
+                      workspaceCompanion?.character ?? 'CASUAL'
+                    }
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}

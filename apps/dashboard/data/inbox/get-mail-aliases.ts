@@ -11,6 +11,7 @@ export type MailAliasListItem = {
   address: string;
   displayName: string | null;
   enabled: boolean;
+  companionPolicy: 'DRAFT' | 'ASSIGN' | 'SEND';
   connectionEmail: string;
   provider: string;
   providerName: string;
@@ -36,6 +37,7 @@ export async function getMailAliases(): Promise<MailAliasListItem[]> {
       address: true,
       displayName: true,
       enabled: true,
+      companionPolicy: true,
       connection: {
         select: {
           email: true,
@@ -57,6 +59,7 @@ export async function getMailAliases(): Promise<MailAliasListItem[]> {
       address: alias.address,
       displayName: alias.displayName,
       enabled: alias.enabled,
+      companionPolicy: alias.companionPolicy,
       connectionEmail: alias.connection.email,
       provider: alias.connection.provider,
       providerName: preset?.name ?? alias.connection.provider,

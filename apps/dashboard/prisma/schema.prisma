@@ -16,42 +16,10 @@ datasource db {
 
 // ---- Enumerations ---- //
 
-enum ActionType {
-  CREATE @map("create")
-  UPDATE @map("update")
-  DELETE @map("delete")
-}
-
-enum ActorType {
-  SYSTEM @map("system")
-  MEMBER @map("member")
-  API    @map("api")
-}
-
-/// Actor for organization audit logs (Layer 12). Distinct from ContactActivity ActorType.
+/// Actor for organization audit logs (Layer 12).
 enum AuditActorType {
   USER   @map("user")
   SYSTEM @map("system")
-}
-
-enum ContactRecord {
-  PERSON  @map("person")
-  COMPANY @map("company")
-}
-
-enum ContactStage {
-  LEAD           @map("lead")
-  QUALIFIED      @map("qualified")
-  OPPORTUNITY    @map("opportunity")
-  PROPOSAL       @map("proposal")
-  IN_NEGOTIATION @map("inNegotiation")
-  LOST           @map("lost")
-  WON            @map("won")
-}
-
-enum ContactTaskStatus {
-  OPEN      @map("open")
-  COMPLETED @map("completed")
 }
 
 enum DayOfWeek {
@@ -64,17 +32,10 @@ enum DayOfWeek {
   SATURDAY  @map("saturday")
 }
 
-enum FeedbackCategory {
-  SUGGESTION @map("suggestion")
-  PROBLEM    @map("problem")
-  QUESTION   @map("question")
-}
-
-enum SupportTicketStatus {
-  OPEN        @map("open")
-  IN_PROGRESS @map("inProgress")
-  RESOLVED    @map("resolved")
-  CLOSED      @map("closed")
+enum CalendarProvider {
+  GOOGLE   @map("google")
+  CALENDLY @map("calendly")
+  OUTLOOK  @map("outlook")
 }
 
 enum WorkspaceJoinRequestStatus {
@@ -171,141 +132,6 @@ model ChangeEmailRequest {
   @@index([userId], map: "IX_ChangeEmailRequest_userId")
 }
 
-model Contact {
-  id             String             @id(map: "PK_Contact") @default(uuid()) @db.Uuid
-  organizationId String             @db.Uuid
-  record         ContactRecord      @default(PERSON)
-  image          String?            @db.VarChar(2048)
-  name           String             @db.VarChar(255)
-  email          String?            @db.VarChar(255)
-  address        String?            @db.VarChar(255)
-  phone          String?            @db.VarChar(32)
-  stage          ContactStage       @default(LEAD)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  activities     ContactActivity[]
-  comments       ContactComment[]
-  notes          ContactNote[]
-  pageVisits     ContactPageVisit[]
-  tags           ContactTag[]
-  favorites      Favorite[]
-  tasks          ContactTask[]
-
-  @@index([organizationId], map: "IX_Contact_organizationId")
-}
-
-model ContactActivity {
-  id         String     @id(map: "PK_ContactActivity") @default(uuid()) @db.Uuid
-  contactId  String     @db.Uuid
-  actionType ActionType
-  actorId    String     @db.VarChar(255)
-  actorType  ActorType
-  metadata   Json?
-  occurredAt DateTime   @default(now())
-  contact    Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([contactId], map: "IX_ContactActivity_contactId")
-  @@index([occurredAt], map: "IX_ContactActivity_occurredAt")
-}
-
-model ContactComment {
-  id        String   @id(map: "PK_ContactComment") @default(uuid()) @db.Uuid
-  contactId String   @db.Uuid
-  userId    String   @db.Uuid
-  text      String   @db.VarChar(2000)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([contactId], map: "IX_ContactComment_contactId")
-  @@index([userId], map: "IX_ContactComment_userId")
-}
-
-model ContactImage {
-  id          String  @id(map: "PK_ContactImage") @default(uuid()) @db.Uuid
-  contactId   String  @db.Uuid
-  data        Bytes?
-  contentType String? @db.VarChar(255)
-  hash        String? @db.VarChar(64)
-
-  @@index([contactId], map: "IX_ContactImage_contactId")
-}
-
-model ContactNote {
-  id        String   @id(map: "PK_ContactNote") @default(uuid()) @db.Uuid
-  contactId String   @db.Uuid
-  userId    String   @db.Uuid
-  text      String?  @db.VarChar(8000)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([contactId], map: "IX_ContactNote_contactId")
-  @@index([userId], map: "IX_ContactNote_userId")
-}
-
-model ContactPageVisit {
-  id        String   @id(map: "PK_ContactPageVisit") @default(uuid()) @db.Uuid
-  contactId String   @db.Uuid
-  userId    String?  @db.Uuid
-  timestamp DateTime @default(now())
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-
-  @@index([contactId], map: "IX_ContactPageVisit_contactId")
-  @@index([userId], map: "IX_ContactPageVisit_userId")
-}
-
-model ContactTag {
-  id       String    @id(map: "PK_ContactTag") @default(uuid()) @db.Uuid
-  text     String    @unique @db.VarChar(128)
-  contacts Contact[]
-}
-
-model ContactTask {
-  id          String            @id(map: "PK_ContactTask") @default(uuid()) @db.Uuid
-  contactId   String            @db.Uuid
-  title       String            @db.VarChar(255)
-  description String?           @db.VarChar(8000)
-  status      ContactTaskStatus @default(OPEN)
-  dueDate     DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  contact     Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([contactId], map: "IX_ContactTask_contactId")
-}
-
-model Favorite {
-  id        String  @id(map: "PK_Favorite") @default(uuid()) @db.Uuid
-  userId    String  @db.Uuid
-  contactId String  @db.Uuid
-  order     Int     @default(0)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([userId], map: "IX_Favorite_userId")
-  @@index([contactId], map: "IX_Favorite_contactId")
-}
-
-model Feedback {
-  id             String           @id(map: "PK_Feedback") @default(uuid()) @db.Uuid
-  organizationId String           @db.Uuid
-  userId         String?          @db.Uuid
-  category       FeedbackCategory @default(SUGGESTION)
-  message        String           @db.VarChar(4000)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-
-  @@index([organizationId], map: "IX_Feedback_organizationId")
-  @@index([userId], map: "IX_Feedback_userId")
-}
-
 model Invitation {
   id             String           @id(map: "PK_Invitation") @default(uuid()) @db.Uuid
   organizationId String           @db.Uuid
@@ -384,8 +210,9 @@ model Organization {
   /// Required acceptance of the Data Processing Agreement at workspace launch.
   dpaAcceptedAt              DateTime?
   /// Opt-in for optional product-improvement uses of workspace data (null = not yet prompted).
-  /// Covers anonymised Skills / Runbooks / knowledge-gap patterns only — not model fine-tuning.
+  /// Covers anonymised Skills / knowledge-gap patterns only — not model fine-tuning.
   /// Distinct from the DPA (processor terms), which is required and recorded in dpaAcceptedAt.
+  /// Workspace Resources train Companion locally under the DPA and do not use this flag.
   dataImprovementConsent     Boolean?
   dataImprovementConsentAt   DateTime?
   dataImprovementConsentById String?                  @db.Uuid
@@ -411,13 +238,13 @@ model Organization {
   /// Ordered ticket-creation form fields for the widget handoff popup.
   /// JSON array of `{ key, label }` — name/email are always present and locked.
   ticketFormFields           Json?
+  /// When true, Companion creates hosted events from confirmed mail appointments.
+  calendarMailAutomation     Boolean                  @default(false)
   agents                     Agent[]
   agentIntegrations          AgentIntegration[]
   apiKeys                    ApiKey[]
   businessHours              WorkHours[]
-  contacts                   Contact[]
   escalationPolicies         EscalationPolicy[]
-  feedback                   Feedback[]
   handoffTickets             HandoffTicket[]
   invitations                Invitation[]
   mailboxConnections         MailboxConnection[]
@@ -426,12 +253,12 @@ model Organization {
   mailTags                   MailTag[]
   memberships                OrganizationMembership[]
   joinRequests               WorkspaceJoinRequest[]
-  resolutionClusters         ResolutionCluster[]
-  runbooks                   Runbook[]
   teamMemberProfiles         TeamMemberProfile[]
   users                      User[]
   visitorMetadata            VisitorMetadata[]
   webhooks                   Webhook[]
+  calendarEvents             CalendarEvent[]
+  calendarConnections        CalendarConnection[]
   owner                      User?                    @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([ownerId], map: "IX_Organization_ownerId")
@@ -526,10 +353,6 @@ model User {
   accounts                     Account[]
   authenticatorApp             AuthenticatorApp?
   changeEmailRequests          ChangeEmailRequest[]
-  comments                     ContactComment[]
-  favorites                    Favorite[]
-  feedback                     Feedback[]
-  notes                        ContactNote[]
   notifications                Notification[]
   /// Active workspace pointer only — membership is `OrganizationMembership`.
   /// SetNull so deleting a workspace detaches multi-workspace users instead of
@@ -538,16 +361,16 @@ model User {
   ownedOrganizations           Organization[]           @relation("OrganizationOwner")
   organizationMemberships      OrganizationMembership[]
   workspaceJoinRequests        WorkspaceJoinRequest[]
-  pageVisits                   ContactPageVisit[]
   sessions                     Session[]
-  supportTickets               SupportTicket[]
-  supportTicketMessages        SupportTicketMessage[]
   assignedHandoffTickets       HandoffTicket[]
   assignedMailThreads          MailThread[]
   mailAliasMemberships         MailAliasMember[]
   mailThreadNotes              MailThreadNote[]
   teamMemberProfile            TeamMemberProfile?
   polarCreditGrants            PolarCreditGrant[]
+  createdCalendarEvents        CalendarEvent[]          @relation("CalendarEventCreator")
+  calendarEventAttendance      CalendarEventAttendee[]
+  calendarConnections          CalendarConnection[]
 
   @@index([organizationId], map: "IX_User_organizationId")
 }
@@ -646,6 +469,59 @@ model WorkTimeSlot {
   workHours   WorkHours @relation(fields: [workHoursId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([workHoursId], map: "IX_WorkTimeSlot_workHoursId")
+}
+
+/// Hosted team calendar (SoR for time). External calendars attach via Connect.
+model CalendarEvent {
+  id             String                  @id(map: "PK_CalendarEvent") @default(uuid()) @db.Uuid
+  organizationId String                  @db.Uuid
+  createdById    String                  @db.Uuid
+  title          String                  @db.VarChar(255)
+  description    String?                 @db.Text
+  startsAt       DateTime
+  endsAt         DateTime
+  allDay         Boolean                 @default(false)
+  /// manual | mail | google | calendly | outlook
+  source         String                  @default("manual") @db.VarChar(32)
+  sourceKey      String?                 @db.VarChar(255)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy      User                    @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  attendees      CalendarEventAttendee[]
+
+  @@unique([organizationId, sourceKey], map: "UQ_CalendarEvent_organizationId_sourceKey")
+  @@index([organizationId, startsAt], map: "IX_CalendarEvent_organizationId_startsAt")
+  @@index([createdById], map: "IX_CalendarEvent_createdById")
+}
+
+model CalendarConnection {
+  id             String           @id(map: "PK_CalendarConnection") @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  provider       CalendarProvider
+  accountEmail   String           @db.VarChar(255)
+  accessToken    String           @db.Text
+  refreshToken   String?          @db.Text
+  expiresAt      DateTime?
+  createdById    String           @db.Uuid
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy      User             @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([organizationId, provider], map: "UQ_CalendarConnection_organizationId_provider")
+  @@index([createdById], map: "IX_CalendarConnection_createdById")
+}
+
+model CalendarEventAttendee {
+  id      String        @id(map: "PK_CalendarEventAttendee") @default(uuid()) @db.Uuid
+  eventId String        @db.Uuid
+  userId  String        @db.Uuid
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([eventId, userId], map: "UQ_CalendarEventAttendee_event_user")
+  @@index([userId], map: "IX_CalendarEventAttendee_userId")
 }
 
 // ---- Humaner domain ---- //
@@ -822,14 +698,10 @@ model Agent {
   conversations           Conversation[]
   drafts                  KnowledgeSourceDraft[]
   chunks                  Chunk[]
-  evalRuns                AgentEvalRun[]
-  knowledgeGaps           KnowledgeGap[]
-  knowledgeGapClusters    KnowledgeGapCluster[]
   messageEmbeddings       MessageEmbedding[]
   integrations            AgentIntegration[]
   handoffTickets          HandoffTicket[]
   proactiveMessages       WidgetProactiveMessage[]
-  runbooks                Runbook[]
   escalationPolicies      EscalationPolicy[]
   intelligenceRequests    IntelligenceRequestLog[]
   createdAt               DateTime                @default(now())
@@ -894,16 +766,6 @@ model AgentWidgetHomeBanner {
   hash        String? @db.VarChar(64)
 
   @@index([agentId], map: "IX_AgentWidgetHomeBanner_agentId")
-}
-
-model AgentDemoBackground {
-  id          String  @id(map: "PK_AgentDemoBackground") @default(uuid()) @db.Uuid
-  agentId     String  @db.Uuid
-  data        Bytes?
-  contentType String? @db.VarChar(255)
-  hash        String? @db.VarChar(64)
-
-  @@index([agentId], map: "IX_AgentDemoBackground_agentId")
 }
 
 model AgentIntegration {
@@ -1084,9 +946,7 @@ model HandoffTicket {
   assignedAt         DateTime?
   routedTo           HandoffRoutedTo?
   clusterId          String?              @db.Uuid
-  cluster            ResolutionCluster?   @relation(fields: [clusterId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   runbookId          String?              @db.Uuid
-  runbook            Runbook?             @relation(fields: [runbookId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   resolvedAt         DateTime?
   /// "human" or "ai" — matches HandoffRoutedTo.
   resolvedBy         String?              @db.VarChar(8)
@@ -1102,7 +962,6 @@ model HandoffTicket {
   loopSolvedAt       DateTime?
   loopError          String?              @db.VarChar(512)
   liveChatTimedOut   Boolean              @default(false)
-  clusterEntries     ClusterEntry[]
   mailThreads        MailThread[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
@@ -1143,6 +1002,18 @@ enum MailThreadStatus {
 enum MailMessageDirection {
   INBOUND  @map("inbound")
   OUTBOUND @map("outbound")
+}
+
+enum MailAssigneeKind {
+  UNASSIGNED @map("unassigned")
+  HUMAN      @map("human")
+  COMPANION  @map("companion")
+}
+
+enum MailCompanionPolicy {
+  DRAFT  @map("draft")
+  ASSIGN @map("assign")
+  SEND   @map("send")
 }
 
 /// Org-level mail host connection (IMAP or OAuth). Optional — orgs can skip Inbox entirely.
@@ -1193,10 +1064,12 @@ model MailAlias {
   connectionId   String            @db.Uuid
   connection     MailboxConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   address        String            @db.VarChar(255)
-  displayName    String?           @db.VarChar(255)
-  enabled        Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  displayName    String?              @db.VarChar(255)
+  enabled        Boolean              @default(true)
+  /// Companion may draft for approval, assign itself, or send on this alias.
+  companionPolicy MailCompanionPolicy @default(DRAFT)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
   members        MailAliasMember[]
   threads        MailThread[]
   tags           MailTag[]
@@ -1229,8 +1102,13 @@ model MailThread {
   status           MailThreadStatus @default(OPEN)
   isUnread         Boolean          @default(true)
   archivedAt       DateTime?
+  assigneeKind     MailAssigneeKind @default(UNASSIGNED)
   assigneeId       String?          @db.Uuid
   assignee         User?            @relation(fields: [assigneeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  /// Shared human-only note draft — one per thread, never sent by Companion.
+  sharedNoteDraft           String?   @db.Text
+  sharedNoteDraftUpdatedAt  DateTime?
+  sharedNoteDraftAuthorId   String?   @db.Uuid
   handoffTicketId  String?          @db.Uuid
   handoffTicket    HandoffTicket?   @relation(fields: [handoffTicketId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   lastMessageAt    DateTime         @default(now())
@@ -1244,6 +1122,7 @@ model MailThread {
   @@index([organizationId, status, lastMessageAt], map: "IX_MailThread_org_status_last")
   @@index([organizationId, isUnread, archivedAt], map: "IX_MailThread_org_unread_archived")
   @@index([assigneeId], map: "IX_MailThread_assigneeId")
+  @@index([assigneeKind], map: "IX_MailThread_assigneeKind")
   @@index([handoffTicketId], map: "IX_MailThread_handoffTicketId")
 }
 
@@ -1333,35 +1212,6 @@ enum PlatformChunkSource {
   CURATED_REAL @map("curatedReal")
 }
 
-enum EvalRunType {
-  MANUAL           @map("manual")
-  AUTO_NEW_SOURCE  @map("autoNewSource")
-  AUTO_CONFIG      @map("autoConfig")
-  AUTO_WEEKLY      @map("autoWeekly")
-  PLATFORM         @map("platform")
-  VERTICAL_RELEASE @map("verticalRelease")
-}
-
-enum QuestionCategory {
-  COMMON     @map("common")
-  EDGE       @map("edge")
-  TRAP       @map("trap")
-  ESCALATION @map("escalation")
-}
-
-enum KnowledgeGapStatus {
-  PENDING   @map("pending")
-  RESOLVED  @map("resolved")
-  DISMISSED @map("dismissed")
-}
-
-enum PlatformGapStatus {
-  PENDING  @map("pending")
-  IN_EVAL  @map("inEval")
-  APPROVED @map("approved")
-  REJECTED @map("rejected")
-}
-
 model PlatformChunk {
   id           String              @id(map: "PK_PlatformChunk") @default(cuid())
   industry     IndustryType
@@ -1394,110 +1244,6 @@ model VerticalRelease {
   @@index([industry], map: "IX_VerticalRelease_industry")
 }
 
-model AgentEvalRun {
-  id                 String        @id(map: "PK_AgentEvalRun") @default(uuid()) @db.Uuid
-  agentId            String?       @db.Uuid
-  industry           IndustryType?
-  totalQuestions     Int
-  passed             Int
-  accuracyAvg        Float
-  personaAvg         Float
-  helpfulnessAvg     Float
-  hallucinationCount Int
-  runType            EvalRunType   @default(MANUAL)
-  createdAt          DateTime      @default(now())
-
-  agent   Agent?       @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  results EvalResult[]
-
-  @@index([agentId], map: "IX_AgentEvalRun_agentId")
-  @@index([industry], map: "IX_AgentEvalRun_industry")
-}
-
-model EvalResult {
-  id            String            @id(map: "PK_EvalResult") @default(uuid()) @db.Uuid
-  runId         String            @db.Uuid
-  question      String            @db.Text
-  questionType  QuestionCategory?
-  response      String            @db.Text
-  accuracy      Float
-  persona       Float
-  helpfulness   Float
-  hallucination Float
-  passed        Boolean
-  notes         String?           @db.Text
-  createdAt     DateTime          @default(now())
-
-  run AgentEvalRun @relation(fields: [runId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([runId], map: "IX_EvalResult_runId")
-}
-
-model KnowledgeGap {
-  id              String             @id(map: "PK_KnowledgeGap") @default(uuid()) @db.Uuid
-  agentId         String             @db.Uuid
-  question        String             @db.Text
-  evalRunId       String?            @db.Uuid
-  suggestedAnswer String?            @db.Text
-  status          KnowledgeGapStatus @default(PENDING)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-
-  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([agentId], map: "IX_KnowledgeGap_agentId")
-  @@index([status], map: "IX_KnowledgeGap_status")
-  @@index([agentId, status, createdAt(sort: Desc)], map: "IX_KnowledgeGap_agentId_status_createdAt")
-}
-
-/// Semantic clusters of similar user questions (Phase 3 — HDBSCAN on MessageEmbedding).
-model KnowledgeGapCluster {
-  id                String   @id(map: "PK_KnowledgeGapCluster") @default(uuid()) @db.Uuid
-  agentId           String   @db.Uuid
-  agent             Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  canonicalQuestion String   @db.Text
-  frequency         Int
-  messageIds        String[] @default([])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@index([agentId], map: "IX_KnowledgeGapCluster_agentId")
-}
-
-model PlatformGapCandidate {
-  id             String            @id(map: "PK_PlatformGapCandidate") @default(cuid())
-  industry       IndustryType
-  question       String            @db.Text
-  /// Normalised fingerprint used for k-anonymity grouping (never stores org IDs).
-  questionKey    String?           @db.VarChar(512)
-  frequency      Int               @default(1)
-  /// Distinct consenting orgs that contributed — count only, never IDs.
-  orgSampleSize  Int               @default(0)
-  status         PlatformGapStatus @default(PENDING)
-  requiresReview Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  @@unique([industry, questionKey], map: "UQ_PlatformGapCandidate_industry_questionKey")
-  @@index([industry], map: "IX_PlatformGapCandidate_industry")
-  @@index([status], map: "IX_PlatformGapCandidate_status")
-}
-
-/// Anonymised Human Desk resolution motions for runbook reinforcement.
-/// No orgId, visitorId, or transcript content — Recital 26 anonymised artifact.
-model RunbookSignal {
-  id                 String       @id(map: "PK_RunbookSignal") @default(uuid()) @db.Uuid
-  vertical           IndustryType
-  escalationReason   String       @db.VarChar(128)
-  resolutionMotion   String[]     @default([])
-  turnCount          Int          @default(0)
-  firstReplyResolved Boolean      @default(false)
-  createdAt          DateTime     @default(now())
-
-  @@index([vertical, escalationReason], map: "IX_RunbookSignal_vertical_reason")
-  @@index([createdAt], map: "IX_RunbookSignal_createdAt")
-}
-
 /// Aggregate skill / gap failure statistics across consenting orgs (no org IDs).
 model SkillPerformanceScore {
   id            String       @id(map: "PK_SkillPerformanceScore") @default(uuid()) @db.Uuid
@@ -1511,37 +1257,6 @@ model SkillPerformanceScore {
 
   @@unique([vertical, failureKey, windowStart], map: "UQ_SkillPerformanceScore_window")
   @@index([vertical], map: "IX_SkillPerformanceScore_vertical")
-}
-
-model SupportTicket {
-  id             String                 @id(map: "PK_SupportTicket") @default(uuid()) @db.Uuid
-  userId         String                 @db.Uuid
-  title          String                 @db.VarChar(255)
-  body           String                 @db.VarChar(8000)
-  contextTab     String                 @db.VarChar(128)
-  contextFeature String?                @db.VarChar(255)
-  screenshotPath String                 @db.VarChar(2048)
-  status         SupportTicketStatus    @default(OPEN)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages       SupportTicketMessage[]
-
-  @@index([userId], map: "IX_SupportTicket_userId")
-  @@index([status], map: "IX_SupportTicket_status")
-}
-
-model SupportTicketMessage {
-  id        String        @id(map: "PK_SupportTicketMessage") @default(uuid()) @db.Uuid
-  ticketId  String        @db.Uuid
-  userId    String        @db.Uuid
-  body      String        @db.VarChar(8000)
-  isStaff   Boolean       @default(false)
-  createdAt DateTime      @default(now())
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([ticketId], map: "IX_SupportTicketMessage_ticketId")
 }
 
 model VisitorMetadata {
@@ -1584,32 +1299,6 @@ model TeamMemberProfile {
   @@index([organizationId], map: "IX_TeamMemberProfile_organizationId")
 }
 
-enum RunbookReviewStatus {
-  PENDING_REVIEW @map("pendingReview")
-  APPROVED       @map("approved")
-}
-
-model Runbook {
-  id              String              @id(map: "PK_Runbook") @default(uuid()) @db.Uuid
-  organizationId  String              @db.Uuid
-  agentId         String              @db.Uuid
-  title           String              @db.VarChar(255)
-  description     String?             @db.Text
-  steps           Json                @default("[]")
-  triggerTopics   String[]            @default([])
-  sourceTicketId  String?             @db.Uuid
-  isAutoGenerated Boolean             @default(false)
-  reviewStatus    RunbookReviewStatus @default(APPROVED)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  agent           Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  handoffTickets  HandoffTicket[]
-
-  @@index([organizationId], map: "IX_Runbook_organizationId")
-  @@index([agentId], map: "IX_Runbook_agentId")
-}
-
 model EscalationPolicy {
   id                    String               @id(map: "PK_EscalationPolicy") @default(uuid()) @db.Uuid
   organizationId        String               @db.Uuid
@@ -1627,39 +1316,4 @@ model EscalationPolicy {
 
   @@index([organizationId], map: "IX_EscalationPolicy_organizationId")
   @@index([agentId], map: "IX_EscalationPolicy_agentId")
-}
-
-model ResolutionCluster {
-  id               String          @id(map: "PK_ResolutionCluster") @default(uuid()) @db.Uuid
-  organizationId   String          @db.Uuid
-  title            String          @db.VarChar(255)
-  pattern          String          @db.VarChar(255)
-  issueType        String          @default("general") @db.VarChar(128)
-  description      String?         @db.Text
-  topicEmbedding   String?         @db.Text
-  templateResponse String          @db.Text
-  ticketCount      Int             @default(0)
-  successRate      Float           @default(0)
-  lastUpdatedAt    DateTime        @default(now())
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  entries          ClusterEntry[]
-  handoffTickets   HandoffTicket[]
-
-  @@index([organizationId], map: "IX_ResolutionCluster_organizationId")
-}
-
-model ClusterEntry {
-  id            String            @id(map: "PK_ClusterEntry") @default(uuid()) @db.Uuid
-  clusterId     String            @db.Uuid
-  ticketId      String            @db.Uuid
-  resolution    String            @db.Text
-  wasSuccessful Boolean           @default(true)
-  createdAt     DateTime          @default(now())
-  cluster       ResolutionCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ticket        HandoffTicket     @relation(fields: [ticketId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([clusterId], map: "IX_ClusterEntry_clusterId")
-  @@index([ticketId], map: "IX_ClusterEntry_ticketId")
 }

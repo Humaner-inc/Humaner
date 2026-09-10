@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { connectImap } from '@/actions/inbox/connect-imap';
 import { deleteMailboxConnection } from '@/actions/inbox/delete-mailbox-connection';
 import { discoverImapAliases } from '@/actions/inbox/discover-imap-aliases';
+import { startGmailConnect } from '@/actions/inbox/start-gmail-connect';
 import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
@@ -195,13 +196,40 @@ export function ConnectImapForm({
       toast.success(
         `Connected — ${data?.aliasCount ?? 1} alias${(data?.aliasCount ?? 1) === 1 ? '' : 'es'} ready`
       );
-      router.push(Routes.InboxAliases);
+      router.push(Routes.InboxSettings);
       router.refresh();
     },
     onError: ({ error }) => {
       toast.error(error.serverError || 'Could not connect mailbox');
     }
   });
+
+  const { execute: connectGmail, isExecuting: isConnectingGmail } = useAction(
+    startGmailConnect,
+    {
+      onSuccess: ({ data }) => {
+        if (data?.url) {
+          window.location.assign(data.url);
+          return;
+        }
+        toast.error('Google did not return an authorization URL.');
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError || 'Could not start Google mail connect');
+      }
+    }
+  );
+
+  const beginGmailConnect = (nextProviderId: string): void => {
+    if (remainingInboxes <= 0) {
+      toast.error('This plan has no mailbox slots left.');
+      return;
+    }
+    if (nextProviderId !== 'gmail' && nextProviderId !== 'google-workspace') {
+      return;
+    }
+    connectGmail({ providerId: nextProviderId });
+  };
 
   const { execute: removeConnection, isExecuting: isRemoving } = useAction(
     deleteMailboxConnection,
@@ -232,6 +260,10 @@ export function ConnectImapForm({
     setSelectedAliases([]);
     setManualAlias('');
     setMobileShowDetail(true);
+
+    if (getMailProviderById(nextProviderId)?.oauthAvailable) {
+      beginGmailConnect(nextProviderId);
+    }
   };
 
   const editConnection = (connection: ConnectedMailboxItem): void => {
@@ -338,11 +370,8 @@ export function ConnectImapForm({
     </div>
   );
 
-  const detailPanel = selectedProvider ? (
-    <form
-      onSubmit={step === 'credentials' ? onDiscover : onConnect}
-      className="flex h-full min-h-0 flex-col bg-background"
-    >
+  const oauthDetailPanel = selectedProvider?.oauthAvailable ? (
+    <div className="flex h-full min-h-0 flex-col bg-background">
       <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 px-3 py-2 sm:px-4">
         {mobileShowDetail ? (
           <Button
@@ -368,36 +397,11 @@ export function ConnectImapForm({
           <p className="truncate text-sm font-medium leading-tight">
             {selectedProvider.name}
           </p>
-          {providerConnections.length > 0 ? (
-            <p className="truncate text-xs text-muted-foreground">
-              {providerConnections.length} mailbox
-              {providerConnections.length === 1 ? '' : 'es'} connected — add
-              another below.
-            </p>
-          ) : selectedProvider.setupNote ? (
-            <p className="truncate text-xs text-muted-foreground">
-              {selectedProvider.setupNote}
-            </p>
-          ) : (
-            <p className="truncate text-xs text-muted-foreground">
-              Sign in with your mailbox credentials · {remainingInboxes} mailbox
-              slot{remainingInboxes === 1 ? '' : 's'} left
-            </p>
-          )}
+          <p className="truncate text-xs text-muted-foreground">
+            Sign in with Google · send-as aliases import after authorization
+          </p>
         </div>
-        {connections.length > 0 ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="hidden shrink-0 font-mono sm:inline-flex"
-            asChild
-          >
-            <Link href={Routes.InboxAliases}>Manage aliases</Link>
-          </Button>
-        ) : null}
       </div>
-
       <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
         {providerConnections.length > 0 ? (
           <div className="mb-5 space-y-2 rounded-none border border-border/70 bg-muted/20 px-3 py-2.5">
@@ -408,316 +412,427 @@ export function ConnectImapForm({
               {providerConnections.map((connection) => (
                 <li
                   key={connection.id}
-                  className="group flex items-center justify-between gap-2"
+                  className="flex items-center justify-between gap-2"
                 >
                   <span className="min-w-0 truncate font-mono text-xs">
                     {connection.email}
                   </span>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 rounded-none px-2 font-mono text-[10px]"
-                      onClick={() => editConnection(connection)}
-                    >
-                      Edit
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          disabled={isRemoving}
-                        >
-                          <MoreHorizontalIcon className="size-3.5" />
-                          <span className="sr-only">Mailbox actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={() => editConnection(connection)}
-                        >
-                          Edit credentials
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={Routes.InboxAliases}>Manage aliases</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onSelect={() => setPendingRemove(connection)}
-                        >
-                          <Trash2Icon className="mr-2 size-4" />
-                          Remove mailbox
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 rounded-none px-2 font-mono text-[10px]"
+                    onClick={() => setPendingRemove(connection)}
+                  >
+                    Remove
+                  </Button>
                 </li>
               ))}
             </ul>
           </div>
         ) : null}
+        <p className="mb-5 text-sm text-muted-foreground">
+          Google opens in this window. Humaner stores encrypted tokens and
+          imports verified send-as aliases.
+        </p>
+        <Button
+          type="button"
+          disabled={isConnectingGmail || remainingInboxes <= 0}
+          className="font-mono"
+          onClick={() => beginGmailConnect(selectedProvider.id)}
+        >
+          {isConnectingGmail ? 'Opening Google…' : 'Continue with Google'}
+        </Button>
+      </div>
+    </div>
+  ) : null;
 
-        {!selectedProvider.setupNote ? (
-          <div className="mb-5 text-sm text-muted-foreground">
-            Credentials are fully encrypted at rest.{' '}
-            <a
-              href="https://humaner.io/security"
-              target="_blank"
-              rel="noreferrer"
-              className="group/security inline-flex items-center gap-0.5 text-foreground underline underline-offset-4"
+  const detailPanel = selectedProvider ? (
+    (oauthDetailPanel ?? (
+      <form
+        onSubmit={step === 'credentials' ? onDiscover : onConnect}
+        className="flex h-full min-h-0 flex-col bg-background"
+      >
+        <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 px-3 py-2 sm:px-4">
+          {mobileShowDetail ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 md:hidden"
+              onClick={() => setMobileShowDetail(false)}
             >
-              Security
-              <ArrowUpRight
-                className="size-3 opacity-0 transition-all duration-200 group-hover/security:-translate-y-0.5 group-hover/security:translate-x-0.5 group-hover/security:opacity-100"
-                aria-hidden
-              />
-            </a>
+              <ArrowLeftIcon className="size-4" />
+              <span className="sr-only">Back to providers</span>
+            </Button>
+          ) : null}
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border/60">
+            <BrandLogo
+              domain={selectedProvider.logoDomain}
+              fallbackIcon={MailIcon}
+              size={32}
+              className="size-5"
+            />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium leading-tight">
+              {selectedProvider.name}
+            </p>
+            {providerConnections.length > 0 ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {providerConnections.length} mailbox
+                {providerConnections.length === 1 ? '' : 'es'} connected — add
+                another below.
+              </p>
+            ) : selectedProvider.setupNote ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {selectedProvider.setupNote}
+              </p>
+            ) : (
+              <p className="truncate text-xs text-muted-foreground">
+                Sign in with your mailbox credentials · {remainingInboxes}{' '}
+                mailbox slot{remainingInboxes === 1 ? '' : 's'} left
+              </p>
+            )}
           </div>
-        ) : null}
+          {connections.length > 0 ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="hidden shrink-0 font-mono sm:inline-flex"
+              asChild
+            >
+              <Link href={Routes.InboxSettings}>Manage aliases</Link>
+            </Button>
+          ) : null}
+        </div>
 
-        {step === 'credentials' ? (
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="inbox-email">Email</Label>
-              <Input
-                id="inbox-email"
-                type="email"
-                autoComplete="username"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="support@company.com"
-                required
-              />
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          {providerConnections.length > 0 ? (
+            <div className="mb-5 space-y-2 rounded-none border border-border/70 bg-muted/20 px-3 py-2.5">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Active on {selectedProvider.name}
+              </p>
+              <ul className="space-y-1">
+                {providerConnections.map((connection) => (
+                  <li
+                    key={connection.id}
+                    className="group flex items-center justify-between gap-2"
+                  >
+                    <span className="min-w-0 truncate font-mono text-xs">
+                      {connection.email}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 rounded-none px-2 font-mono text-[10px]"
+                        onClick={() => editConnection(connection)}
+                      >
+                        Edit
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-7"
+                            disabled={isRemoving}
+                          >
+                            <MoreHorizontalIcon className="size-3.5" />
+                            <span className="sr-only">Mailbox actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={() => editConnection(connection)}
+                          >
+                            Edit credentials
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={Routes.InboxSettings}>
+                              Manage aliases
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onSelect={() => setPendingRemove(connection)}
+                          >
+                            <Trash2Icon className="mr-2 size-4" />
+                            Remove mailbox
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
+          ) : null}
 
-            <div className="space-y-2">
-              <Label htmlFor="inbox-password">Password</Label>
-              <Input
-                id="inbox-password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
+          {!selectedProvider.setupNote ? (
+            <div className="mb-5 text-sm text-muted-foreground">
+              Credentials are fully encrypted at rest.{' '}
+              <a
+                href="https://humaner.io/security"
+                target="_blank"
+                rel="noreferrer"
+                className="group/security inline-flex items-center gap-0.5 text-foreground underline underline-offset-4"
+              >
+                Security
+                <ArrowUpRight
+                  className="size-3 opacity-0 transition-all duration-200 group-hover/security:-translate-y-0.5 group-hover/security:translate-x-0.5 group-hover/security:opacity-100"
+                  aria-hidden
+                />
+              </a>
             </div>
+          ) : null}
 
-            <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5">
-              <div>
-                <p className="text-sm font-medium">SMTP same as IMAP login</p>
-                <p className="text-xs text-muted-foreground">
-                  Turn off only if send uses different credentials.
+          {step === 'credentials' ? (
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="inbox-email">Email</Label>
+                <Input
+                  id="inbox-email"
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="support@company.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="inbox-password">Password</Label>
+                <Input
+                  id="inbox-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-medium">SMTP same as IMAP login</p>
+                  <p className="text-xs text-muted-foreground">
+                    Turn off only if send uses different credentials.
+                  </p>
+                </div>
+                <Switch
+                  checked={smtpSameAsImap}
+                  onCheckedChange={setSmtpSameAsImap}
+                />
+              </div>
+
+              {!smtpSameAsImap ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp-user">SMTP username</Label>
+                    <Input
+                      id="smtp-user"
+                      autoComplete="username"
+                      value={smtpUser}
+                      onChange={(event) => setSmtpUser(event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp-password">SMTP password</Label>
+                    <Input
+                      id="smtp-password"
+                      type="password"
+                      autoComplete="current-password"
+                      value={smtpPassword}
+                      onChange={(event) => setSmtpPassword(event.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              {showAdvanced ? (
+                <div className="grid gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-2">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="imap-host">IMAP host</Label>
+                    <Input
+                      id="imap-host"
+                      value={imapHost}
+                      onChange={(event) => setImapHost(event.target.value)}
+                      placeholder="imap.example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imap-port">IMAP port</Label>
+                    <Input
+                      id="imap-port"
+                      value={imapPort}
+                      onChange={(event) => setImapPort(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp-port">SMTP port</Label>
+                    <Input
+                      id="smtp-port"
+                      value={smtpPort}
+                      onChange={(event) => setSmtpPort(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="smtp-host">SMTP host</Label>
+                    <Input
+                      id="smtp-host"
+                      value={smtpHost}
+                      onChange={(event) => setSmtpHost(event.target.value)}
+                      placeholder="smtp.example.com"
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  We scanned aliases on this mailbox. Select the ones you want
+                  to uses within your inbox.
+                </p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  {selectedAliases.length} alias
+                  {selectedAliases.length === 1 ? '' : 'es'} selected · aliases
+                  are free redirects
                 </p>
               </div>
-              <Switch
-                checked={smtpSameAsImap}
-                onCheckedChange={setSmtpSameAsImap}
-              />
-            </div>
 
-            {!smtpSameAsImap ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="smtp-user">SMTP username</Label>
-                  <Input
-                    id="smtp-user"
-                    autoComplete="username"
-                    value={smtpUser}
-                    onChange={(event) => setSmtpUser(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtp-password">SMTP password</Label>
-                  <Input
-                    id="smtp-password"
-                    type="password"
-                    autoComplete="current-password"
-                    value={smtpPassword}
-                    onChange={(event) => setSmtpPassword(event.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            ) : null}
+              <ul className="divide-y rounded-md border">
+                {aliasOptions.map((address) => {
+                  const isPrimary = address === primaryEmail;
+                  const checked = selectedAliases.includes(address);
 
-            {showAdvanced ? (
-              <div className="grid gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-2">
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="imap-host">IMAP host</Label>
-                  <Input
-                    id="imap-host"
-                    value={imapHost}
-                    onChange={(event) => setImapHost(event.target.value)}
-                    placeholder="imap.example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="imap-port">IMAP port</Label>
-                  <Input
-                    id="imap-port"
-                    value={imapPort}
-                    onChange={(event) => setImapPort(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="smtp-port">SMTP port</Label>
-                  <Input
-                    id="smtp-port"
-                    value={smtpPort}
-                    onChange={(event) => setSmtpPort(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="smtp-host">SMTP host</Label>
-                  <Input
-                    id="smtp-host"
-                    value={smtpHost}
-                    onChange={(event) => setSmtpHost(event.target.value)}
-                    placeholder="smtp.example.com"
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <div className="space-y-5">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                We scanned aliases on this mailbox. Select the ones you want to
-                uses within your inbox.
-              </p>
-              <p className="font-mono text-xs text-muted-foreground">
-                {selectedAliases.length} alias
-                {selectedAliases.length === 1 ? '' : 'es'} selected · aliases
-                are free redirects
-              </p>
-            </div>
-
-            <ul className="divide-y rounded-md border">
-              {aliasOptions.map((address) => {
-                const isPrimary = address === primaryEmail;
-                const checked = selectedAliases.includes(address);
-
-                return (
-                  <li key={address}>
-                    <label
-                      className={cn(
-                        'flex cursor-pointer items-start gap-3 px-4 py-3',
-                        isPrimary && 'bg-muted/30'
-                      )}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        disabled={isPrimary}
-                        onCheckedChange={() => toggleAlias(address)}
-                        className="mt-0.5"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-mono text-sm">
-                          {address}
-                        </span>
-                        {!isPrimary ? (
-                          <span className="text-xs text-muted-foreground">
-                            Found in recent mailbox
+                  return (
+                    <li key={address}>
+                      <label
+                        className={cn(
+                          'flex cursor-pointer items-start gap-3 px-4 py-3',
+                          isPrimary && 'bg-muted/30'
+                        )}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          disabled={isPrimary}
+                          onCheckedChange={() => toggleAlias(address)}
+                          className="mt-0.5"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-mono text-sm">
+                            {address}
                           </span>
-                        ) : null}
-                      </span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
+                          {!isPrimary ? (
+                            <span className="text-xs text-muted-foreground">
+                              Found in recent mailbox
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
 
-            <div className="space-y-2">
-              <Label htmlFor="inbox-manual-alias">Add a missing alias</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="inbox-manual-alias"
-                  value={manualAlias}
-                  onChange={(event) => setManualAlias(event.target.value)}
-                  placeholder="hello@company.com"
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      addManualAlias();
-                    }
-                  }}
-                />
+              <div className="space-y-2">
+                <Label htmlFor="inbox-manual-alias">Add a missing alias</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="inbox-manual-alias"
+                    value={manualAlias}
+                    onChange={(event) => setManualAlias(event.target.value)}
+                    placeholder="hello@company.com"
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addManualAlias();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={addManualAlias}
+                  >
+                    <PlusIcon className="size-4" />
+                    Add
+                  </Button>
+                </div>
+                <p className="flex items-start gap-2 border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
+                  <span>
+                    Humaner does not create aliases. It connects them as
+                    different sending addresses on this mailbox.
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+            {step === 'credentials' ? (
+              <>
                 <Button
                   type="button"
                   variant="outline"
-                  className="shrink-0"
-                  onClick={addManualAlias}
+                  className="font-mono"
+                  onClick={() => setShowAdvanced((value) => !value)}
                 >
-                  <PlusIcon className="size-4" />
-                  Add
+                  {showAdvanced
+                    ? 'Hide advanced'
+                    : 'Advanced IMAP / SMTP hosts'}
                 </Button>
-              </div>
-              <p className="flex items-start gap-2 border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
-                <span>
-                  Humaner does not create aliases. It connects them as different
-                  sending addresses on this mailbox.
-                </span>
-              </p>
-            </div>
+                <Button
+                  type="submit"
+                  disabled={isDiscovering || remainingInboxes <= 0}
+                  className="font-mono"
+                >
+                  {isDiscovering ? (
+                    'Linking mailbox…'
+                  ) : (
+                    <>
+                      Link mailbox
+                      <ArrowRight className="size-4" />
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="font-mono"
+                  onClick={() => setStep('credentials')}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isExecuting || selectedAliases.length === 0}
+                  className="font-mono"
+                >
+                  {isExecuting ? 'Connecting…' : 'Connect mailbox'}
+                </Button>
+              </>
+            )}
           </div>
-        )}
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-          {step === 'credentials' ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="font-mono"
-                onClick={() => setShowAdvanced((value) => !value)}
-              >
-                {showAdvanced ? 'Hide advanced' : 'Advanced IMAP / SMTP hosts'}
-              </Button>
-              <Button
-                type="submit"
-                disabled={isDiscovering || remainingInboxes <= 0}
-                className="font-mono"
-              >
-                {isDiscovering ? (
-                  'Linking mailbox…'
-                ) : (
-                  <>
-                    Link mailbox
-                    <ArrowRight className="size-4" />
-                  </>
-                )}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="font-mono"
-                onClick={() => setStep('credentials')}
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                disabled={isExecuting || selectedAliases.length === 0}
-                className="font-mono"
-              >
-                {isExecuting ? 'Connecting…' : 'Connect mailbox'}
-              </Button>
-            </>
-          )}
         </div>
-      </div>
-    </form>
+      </form>
+    ))
   ) : (
     <FeatureIntroEmpty
       icon={<MailIcon strokeWidth={1.25} />}

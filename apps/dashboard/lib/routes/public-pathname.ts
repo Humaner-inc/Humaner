@@ -6,7 +6,7 @@ export const INTERNAL_APP_PREFIX = '/dashboard';
 const LEGACY_HOME_PATHS: Record<string, string> = {
   '/dashboard/home': Routes.Home,
   '/dashboard/home/team': Routes.OrganizationTeam,
-  '/dashboard/home/workspace': Routes.OrganizationInformation
+  '/dashboard/home/workspace': Routes.OrganizationWorkspace
 };
 
 /** Maps an internal or legacy pathname to the public URL shown in the app and meta tags. */
@@ -37,6 +37,9 @@ const PROTECTED_APP_PREFIXES = [
   '/analytics',
   '/knowledge',
   '/human-desk',
+  '/tasks',
+  '/calendar',
+  '/resources',
   '/training',
   '/admin',
   '/workspace',

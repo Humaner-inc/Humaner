@@ -18,6 +18,8 @@ export type MailProviderDefinition = {
   requiresCustomHosts?: boolean;
   /** IMAP connect is available today (false = OAuth-only, coming later). */
   imapAvailable: boolean;
+  /** Gmail API OAuth connect is available today. */
+  oauthAvailable?: boolean;
   unavailableLabel?: string;
   setupNote?: string;
 };
@@ -185,7 +187,15 @@ export const MAIL_PROVIDERS: MailProviderDefinition[] = [
     logoDomain: 'google.com',
     category: 'business',
     imapAvailable: false,
-    unavailableLabel: 'soon available'
+    oauthAvailable: true
+  },
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    logoDomain: 'gmail.com',
+    category: 'consumer',
+    imapAvailable: false,
+    oauthAvailable: true
   },
   {
     id: 'microsoft-365',

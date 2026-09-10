@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { Routes } from '@/constants/routes';
 import {
   ACCOUNT_SETTINGS_NAV_TABS,
   getActiveSettingsTab,
@@ -25,6 +26,9 @@ export function SettingsNavTabs({
   className
 }: SettingsNavTabsProps): React.JSX.Element {
   const pathname = usePathname();
+  if (pathname.startsWith(Routes.Developers)) {
+    return <></>;
+  }
   const activeTab = getActiveSettingsTab(pathname);
   const isOwner = isWorkspaceOwner(profile);
   const isWorkspaceSettings = isWorkspaceSettingsPath(pathname);

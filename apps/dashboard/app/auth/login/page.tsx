@@ -5,9 +5,9 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { LoginCard } from '@/components/auth/login/login-card';
 import { PersistAuthCallbackUrl } from '@/components/auth/persist-auth-callback-url';
-import { Routes } from '@/constants/routes';
 import { getSafeAuthCallbackUrl } from '@/lib/auth/callback-url';
 import { resolveAuthErrorMessage } from '@/lib/auth/errors';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import { createTitle } from '@/lib/utils';
 import type { NextPageProps } from '@/types/next-page-props';
 
@@ -46,7 +46,7 @@ async function LoginPageContent({
           Always persist a destination so a stale Auth.js callback cookie
           (e.g. /settings/account/profile) cannot override the org home. */}
       <PersistAuthCallbackUrl
-        callbackUrl={getSafeAuthCallbackUrl(callbackUrl, Routes.Home)}
+        callbackUrl={getSafeAuthCallbackUrl(callbackUrl, getSignedInHomePath())}
       />
       <LoginCard initialErrorMessage={oauthErrorMessage} />
     </AuthOnboardingCardShell>

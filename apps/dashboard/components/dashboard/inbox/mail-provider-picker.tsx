@@ -96,7 +96,9 @@ export function MailProviderPicker({
                     selected={value === provider.id}
                     connected
                     onSelect={() => {
-                      if (!provider.imapAvailable) return;
+                      if (!provider.imapAvailable && !provider.oauthAvailable) {
+                        return;
+                      }
                       if (onSelectConnected) {
                         onSelectConnected(provider.id);
                         return;
@@ -130,7 +132,9 @@ export function MailProviderPicker({
                     provider={provider}
                     selected={value === provider.id}
                     onSelect={() => {
-                      if (provider.imapAvailable) onChange(provider.id);
+                      if (provider.imapAvailable || provider.oauthAvailable) {
+                        onChange(provider.id);
+                      }
                     }}
                   />
                 ))}
@@ -154,7 +158,7 @@ function ProviderListItem({
   connected?: boolean;
   onSelect: () => void;
 }): React.JSX.Element {
-  const disabled = !provider.imapAvailable;
+  const disabled = !provider.imapAvailable && !provider.oauthAvailable;
 
   return (
     <li>

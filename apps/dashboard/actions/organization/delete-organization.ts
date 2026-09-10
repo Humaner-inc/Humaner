@@ -53,7 +53,7 @@ export const deleteOrganization = ownerActionClient
 
     revalidatePath(Routes.Home);
     revalidatePath(Routes.NoWorkspace);
-    revalidatePath(Routes.OrganizationInformation);
+    revalidatePath(Routes.OrganizationWorkspace);
 
     return {
       redirectTo: remainingMembership ? Routes.Home : Routes.NoWorkspace
