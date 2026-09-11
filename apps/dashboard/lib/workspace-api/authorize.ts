@@ -14,7 +14,8 @@ import {
 
 export type WorkspaceToolContext = {
   organizationId: string;
-  apiKeyId: string;
+  /** Null when the caller is a signed-in dashboard session (Companion). */
+  apiKeyId: string | null;
   actorUserId: string;
   allowSend: boolean;
 };
@@ -32,8 +33,9 @@ export type WorkspaceAuthFailure = {
   allowOrigin: string | null;
 };
 
+/** Tasks are inbox work items, so they ride the mailbox scope. */
 function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
-  return tool.startsWith('list_calendar') || tool.startsWith('create_calendar')
+  return tool === 'list_calendar_events' || tool === 'create_calendar_event'
     ? 'calendar'
     : 'mailbox';
 }

@@ -1,9 +1,16 @@
 import 'server-only';
 
 import { suggestMailReplies } from '@/services/inbox/suggest-mail-replies';
-import { MailThreadStatus } from '@prisma/client';
+import {
+  HandoffTicketStatus,
+  HandoffTicketUrgency,
+  MailThreadStatus
+} from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
+import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
+import { formatTicketRef } from '@/lib/desk/ticket-ref';
+import { createTaskFromMailThread } from '@/lib/inbox/create-task-from-thread';
 import {
   applyMailThreadAssignee,
   COMPANION_ASSIGNEE,
@@ -368,6 +375,158 @@ async function executeAddNote(
   return { ok: true, data: note };
 }
 
+const TASK_STATUSES = new Set<string>(Object.values(HandoffTicketStatus));
+const TASK_URGENCIES = new Set<string>(Object.values(HandoffTicketUrgency));
+
+async function executeListTasks(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const limit = asLimit(args.limit, 20, 50);
+  const statusRaw = asString(args.status);
+  const status = TASK_STATUSES.has(statusRaw)
+    ? (statusRaw as HandoffTicketStatus)
+    : undefined;
+
+  const tasks = await prisma.handoffTicket.findMany({
+    where: {
+      organizationId: context.organizationId,
+      ...(status ? { status } : { status: { in: ['OPEN', 'IN_PROGRESS'] } })
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      ticketNumber: true,
+      subject: true,
+      status: true,
+      urgency: true,
+      updatedAt: true,
+      assignee: { select: { name: true } },
+      mailThreads: { select: { id: true }, take: 1 }
+    }
+  });
+
+  return {
+    ok: true,
+    data: {
+      tasks: tasks.map((task) => ({
+        id: task.id,
+        ref: formatTicketRef(task.ticketNumber),
+        subject: task.subject,
+        status: task.status,
+        urgency: task.urgency,
+        assignee: task.assignee?.name ?? null,
+        threadId: task.mailThreads[0]?.id ?? null,
+        updatedAt: task.updatedAt.toISOString()
+      }))
+    }
+  };
+}
+
+async function resolveTaskAgentId(
+  organizationId: string
+): Promise<string | null> {
+  const agent = await prisma.agent.findFirst({
+    where: { organizationId },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' }
+  });
+  return agent?.id ?? null;
+}
+
+async function executeCreateTask(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const subject = asString(args.subject);
+  if (!subject) return { ok: false, error: 'subject is required.' };
+
+  const agentId = await resolveTaskAgentId(context.organizationId);
+  if (!agentId) {
+    return {
+      ok: false,
+      error: 'This workspace has no agent to attach tasks to yet.'
+    };
+  }
+
+  const assigneeId = asString(args.assigneeId) || null;
+  if (assigneeId) {
+    const membership = await prisma.organizationMembership.findFirst({
+      where: { userId: assigneeId, organizationId: context.organizationId },
+      select: { id: true }
+    });
+    if (!membership) return { ok: false, error: 'Teammate not found.' };
+  }
+
+  const urgencyRaw = asString(args.urgency);
+  const summary = asString(args.summary) || subject;
+
+  const task = await createHandoffTicketWithNumber({
+    organizationId: context.organizationId,
+    agentId,
+    subject: subject.slice(0, 255),
+    summary: summary.slice(0, 4000),
+    transcript: '',
+    source: 'EMAIL',
+    status: 'OPEN',
+    urgency: TASK_URGENCIES.has(urgencyRaw)
+      ? (urgencyRaw as HandoffTicketUrgency)
+      : 'MEDIUM',
+    routedTo: 'HUMAN',
+    assigneeId,
+    assignedAt: assigneeId ? new Date() : null
+  });
+
+  return {
+    ok: true,
+    data: {
+      id: task.id,
+      ref: formatTicketRef(task.ticketNumber),
+      subject: subject.slice(0, 255)
+    }
+  };
+}
+
+async function executeCreateTaskFromThread(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const threadId = asString(args.threadId);
+  if (!threadId) return { ok: false, error: 'threadId is required.' };
+
+  const assigneeId = asString(args.assigneeId) || null;
+  if (assigneeId) {
+    const membership = await prisma.organizationMembership.findFirst({
+      where: { userId: assigneeId, organizationId: context.organizationId },
+      select: { id: true }
+    });
+    if (!membership) return { ok: false, error: 'Teammate not found.' };
+  }
+
+  try {
+    const task = await createTaskFromMailThread({
+      threadId,
+      organizationId: context.organizationId,
+      assigneeId
+    });
+    return {
+      ok: true,
+      data: {
+        id: task.id,
+        ref: formatTicketRef(task.ticketNumber),
+        alreadyExisted: task.existing
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : 'Could not create the task.'
+    };
+  }
+}
+
 async function executeListCalendar(
   args: Record<string, unknown>,
   context: WorkspaceToolContext
@@ -492,6 +651,12 @@ export async function executeWorkspaceTool(
       return executeTag(args, context);
     case 'add_mail_thread_note':
       return executeAddNote(args, context);
+    case 'list_tasks':
+      return executeListTasks(args, context);
+    case 'create_task':
+      return executeCreateTask(args, context);
+    case 'create_task_from_mail_thread':
+      return executeCreateTaskFromThread(args, context);
     case 'list_calendar_events':
       return executeListCalendar(args, context);
     case 'create_calendar_event':

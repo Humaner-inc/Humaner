@@ -27,7 +27,7 @@ function Calendar({
         dropdown_icon: 'hidden',
         vhidden: 'hidden',
         dropdown:
-          'appearance-none rounded-none border border-border bg-background px-2 py-1 font-mono text-xs capitalize outline-none',
+          'appearance-none rounded-lg border border-border bg-background px-2 py-1 font-mono text-xs capitalize outline-none',
         dropdown_month: 'pr-1',
         dropdown_year: 'pr-1',
         nav: 'flex items-center',

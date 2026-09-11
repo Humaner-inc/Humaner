@@ -27,8 +27,8 @@ export function AuthBackToMarketing(): React.JSX.Element {
         oss
           ? 'rounded-[0.5rem] text-[#18181b]/70 hover:bg-[#f2f2f2] hover:text-[#0A0D0D]'
           : isInverted
-            ? 'rounded-none text-[#0A0D0D]/70 hover:bg-[#0A0D0D]/10 hover:text-[#0A0D0D]'
-            : 'rounded-none text-white/70 hover:bg-white/10 hover:text-white'
+            ? 'rounded-lg text-[#0A0D0D]/70 hover:bg-[#0A0D0D]/10 hover:text-[#0A0D0D]'
+            : 'rounded-lg text-white/70 hover:bg-white/10 hover:text-white'
       )}
     >
       <ArrowLeftIcon className="size-5 shrink-0" />

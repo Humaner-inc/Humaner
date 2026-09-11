@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 export function sidebarNavParentClassName(active: boolean): string {
   return cn(
-    'group/nav flex w-full items-center gap-2.5 px-3 py-2 font-fellix text-sm transition-colors',
+    'group/nav mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2.5 px-2.5 py-2 font-fellix text-sm transition-colors',
     dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'
@@ -31,7 +31,7 @@ export function sidebarNavChildClassName(
   disabled?: boolean
 ): string {
   return cn(
-    'flex w-full items-center gap-2 py-1.5 pl-4 pr-2 text-left font-fellix text-sm font-light transition-colors',
+    'mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2 px-2.5 py-1.5 text-left font-fellix text-sm font-light transition-colors',
     dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'

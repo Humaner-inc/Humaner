@@ -93,7 +93,7 @@ export function OrganizationVerticalTopics({
                 onClick={() => toggle(topic)}
                 aria-pressed={isSelected}
                 className={cn(
-                  'flex w-full items-start gap-2.5 rounded-none px-1 py-1.5 text-left transition-colors',
+                  'flex w-full items-start gap-2.5 rounded-lg px-1 py-1.5 text-left transition-colors',
                   'hover:bg-muted/40 disabled:opacity-60',
                   isSelected ? 'text-foreground' : 'text-muted-foreground'
                 )}

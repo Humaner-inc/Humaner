@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
 
+import { dashboardPictureRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type AvatarElement = React.ElementRef<typeof AvatarPrimitive.Root>;
@@ -14,7 +15,8 @@ const Avatar = React.forwardRef<AvatarElement, AvatarProps>(
     <AvatarPrimitive.Root
       ref={ref}
       className={cn(
-        'relative flex size-10 shrink-0 overflow-hidden rounded-full',
+        'relative flex size-10 shrink-0 overflow-hidden',
+        dashboardPictureRadiusClassName,
         className
       )}
       {...props}
@@ -51,7 +53,8 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      'flex size-full items-center justify-center rounded-full bg-muted',
+      'flex size-full items-center justify-center bg-muted',
+      dashboardPictureRadiusClassName,
       className
     )}
     {...props}

@@ -29,7 +29,10 @@ import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isDialogOpen } from '@/lib/browser/is-dialog-open';
 import { isInputFocused } from '@/lib/browser/is-input-focused';
 import { isMac } from '@/lib/browser/is-mac';
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import {
+  dashboardItemRadiusClassName,
+  dashboardRadiusClassName
+} from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn, getInitials } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -60,7 +63,7 @@ function MenuRow({
   return (
     <DropdownMenuItem
       asChild
-      className="rounded-none px-2.5 py-2"
+      className={cn(dashboardItemRadiusClassName, 'px-2.5 py-2')}
     >
       <Link href={href}>
         <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -170,26 +173,17 @@ export function NavUser({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-7 shrink-0 p-0 hover:bg-accent/60',
-            dashboardRadiusClassName,
+            'size-7 shrink-0 rounded-lg p-0 hover:bg-accent/60',
             className
           )}
           aria-label="Open profile menu"
         >
-          <Avatar
-            className={cn(
-              'size-7 ring-1 ring-border/60',
-              dashboardRadiusClassName
-            )}
-          >
+          <Avatar className="size-7 ring-1 ring-border/60">
             <AvatarImage
               src={profile.image}
               alt={profile.name}
-              className={dashboardRadiusClassName}
             />
-            <AvatarFallback
-              className={cn(dashboardRadiusClassName, 'text-[10px]')}
-            >
+            <AvatarFallback className="text-[10px]">
               {getInitials(profile.name)}
             </AvatarFallback>
           </Avatar>
@@ -203,14 +197,19 @@ export function NavUser({
         )}
         align="end"
         forceMount
-        style={{
-          clipPath: 'polygon(0 0, 100% 0, calc(100% - 1.125rem) 100%, 0 100%)'
-        }}
       >
-        <div className="relative mb-1 overflow-hidden rounded-none border border-border/50 bg-muted/30 p-3 pr-16">
+        <div
+          className={cn(
+            dashboardItemRadiusClassName,
+            'relative mb-1 overflow-hidden border border-border/50 bg-muted/30 p-3 pr-16'
+          )}
+        >
           {!isOssDeployment() ? (
             <span
-              className="absolute right-2.5 top-2.5 inline-flex rounded-none px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
+              className={cn(
+                dashboardItemRadiusClassName,
+                'absolute right-2.5 top-2.5 inline-flex px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide'
+              )}
               style={{
                 backgroundColor:
                   'color-mix(in srgb, var(--accent-color, hsl(var(--brand))) 20%, transparent)',
@@ -264,7 +263,7 @@ export function NavUser({
               {workspaces.map((workspace) => (
                 <DropdownMenuItem
                   key={workspace.id}
-                  className="rounded-none px-2.5 py-2"
+                  className={cn(dashboardItemRadiusClassName, 'px-2.5 py-2')}
                   onClick={() => void handleSwitchWorkspace(workspace.id)}
                 >
                   <span className="min-w-0 flex-1 truncate">
@@ -281,7 +280,10 @@ export function NavUser({
                 </DropdownMenuItem>
               ))}
               <DropdownMenuItem
-                className="justify-between gap-2 rounded-none px-2.5 py-2"
+                className={cn(
+                  dashboardItemRadiusClassName,
+                  'justify-between gap-2 px-2.5 py-2'
+                )}
                 onClick={handleCreateWorkspace}
               >
                 <span>New Workspace</span>
@@ -301,7 +303,10 @@ export function NavUser({
           type="button"
           variant="secondary"
           size="sm"
-          className="mt-1 h-9 w-full justify-center gap-1.5 rounded-none bg-destructive/10 px-2 text-xs text-destructive hover:bg-destructive/15 hover:text-destructive"
+          className={cn(
+            dashboardItemRadiusClassName,
+            'mt-1 h-9 w-full justify-center gap-1.5 bg-destructive/10 px-2 text-xs text-destructive hover:bg-destructive/15 hover:text-destructive'
+          )}
           onClick={() => void handleLogOut()}
         >
           Log out

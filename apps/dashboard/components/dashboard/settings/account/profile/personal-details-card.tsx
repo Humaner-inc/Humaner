@@ -125,7 +125,7 @@ export function PersonalDetailsCard({
                 <ImageDropzone
                   accept={{ 'image/*': [] }}
                   multiple={false}
-                  borderRadius="none"
+                  borderRadius="lg"
                   onDrop={handleDrop}
                   src={image}
                   className="max-h-[120px] min-h-[120px] w-[120px] p-0.5"

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
 const avatarGroupVariants = cva(
-  'flex flex-row items-center [&>*]:rounded-full',
+  'flex flex-row items-center [&>*]:rounded-none',
   {
     variants: {
       spacing: {

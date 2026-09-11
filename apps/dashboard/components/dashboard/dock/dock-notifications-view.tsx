@@ -43,7 +43,7 @@ export function DockNotificationsView(): React.JSX.Element {
               type="button"
               variant="ghost"
               size="icon"
-              className="size-7 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-destructive"
+              className="size-7 shrink-0 rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-destructive"
               aria-label="Clear all notifications"
               onClick={dismissAll}
             >

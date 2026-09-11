@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/tooltip';
 import { MAX_IMAGE_SIZE } from '@/constants/limits';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import { dashboardPictureRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
@@ -153,7 +153,7 @@ export function AgentAvatarUpload({
       <div
         className={cn(
           'relative size-full overflow-hidden bg-white',
-          oss ? dashboardRadiusClassName : 'rounded-full',
+          dashboardPictureRadiusClassName,
           'ring-1 ring-foreground/12 ring-offset-2 ring-offset-background',
           'transition-[box-shadow,ring-color,transform] duration-300 ease-out',
           !disabled &&
@@ -165,7 +165,7 @@ export function AgentAvatarUpload({
           multiple={false}
           disabled={disabled}
           onDrop={handleDrop}
-          borderRadius={oss ? 'none' : 'full'}
+          borderRadius="none"
           title="Upload image"
           className={cn(
             dropzoneSize,
@@ -175,7 +175,7 @@ export function AgentAvatarUpload({
           <Avatar
             className={cn(
               avatarSize,
-              oss ? dashboardRadiusClassName : 'rounded-full',
+              dashboardPictureRadiusClassName,
               !disabled &&
                 'transition-[filter] duration-300 ease-out group-hover/avatar:brightness-[1.04]'
             )}
@@ -191,7 +191,7 @@ export function AgentAvatarUpload({
               className={cn(
                 avatarSize,
                 'overflow-hidden p-0',
-                oss ? dashboardRadiusClassName : 'rounded-full',
+                dashboardPictureRadiusClassName,
                 isCustomWithoutImage && !oss && 'bg-white'
               )}
             >

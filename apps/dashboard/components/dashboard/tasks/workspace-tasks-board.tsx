@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
 import { updateHandoffTicketStatus } from '@/actions/handoff/update-handoff-ticket-status';
 import { createWorkspaceTask } from '@/actions/tasks/create-workspace-task';
+import { AssigneePicker } from '@/components/dashboard/assignee-options';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type {
@@ -15,7 +16,6 @@ import type {
   HandoffTicketItem
 } from '@/data/handoff/get-handoff-tickets';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
-import { cn } from '@/lib/utils';
 import type { WorkHoursDto } from '@/types/dtos/work-hours-dto';
 import { HandoffTicketStatus } from '@/types/handoff-ticket';
 
@@ -157,25 +157,18 @@ export function WorkspaceTasksBoard({
             onChange={(event) => setSummary(event.target.value)}
             placeholder="Associated thread or note"
           />
-          <select
-            value={assigneeId}
-            onChange={(event) => setAssigneeId(event.target.value)}
-            className="h-10 border border-input bg-transparent px-3 text-sm outline-none"
-          >
-            <option value="">Unassigned</option>
-            {teamMembers.map((member) => (
-              <option
-                key={member.id}
-                value={member.id}
-              >
-                {member.name}
-              </option>
-            ))}
-          </select>
+          <AssigneePicker
+            members={teamMembers}
+            value={assigneeId || null}
+            currentUserId={currentUserId}
+            onChange={(next) => setAssigneeId(next ?? '')}
+            align="start"
+            className="h-10"
+          />
           <Button
             type="submit"
             disabled={isCreating || !subject.trim()}
-            className="rounded-none"
+            className="rounded-lg"
           >
             Create task
           </Button>
@@ -215,28 +208,20 @@ export function WorkspaceTasksBoard({
                       </p>
                     ) : null}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <select
-                        value={ticket.assignee?.id ?? ''}
-                        onChange={(event) =>
+                      <AssigneePicker
+                        members={teamMembers}
+                        value={ticket.assignee?.id ?? null}
+                        currentUserId={currentUserId}
+                        compact
+                        align="start"
+                        className="min-w-0 flex-1"
+                        onChange={(next) =>
                           assignTask({
                             id: ticket.id,
-                            assigneeId: event.target.value || null
+                            assigneeId: next
                           })
                         }
-                        className={cn(
-                          'h-8 min-w-0 flex-1 border border-input bg-transparent px-2 text-xs outline-none'
-                        )}
-                      >
-                        <option value="">Unassigned</option>
-                        {teamMembers.map((member) => (
-                          <option
-                            key={member.id}
-                            value={member.id}
-                          >
-                            {member.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
                       <select
                         value={
                           ticket.status === 'CLOSED'

@@ -1,5 +1,7 @@
 /**
- * Mail + calendar tools. REST and MCP share these handlers.
+ * Mail + task + calendar tools. Companion, MCP, and REST share these handlers
+ * so mailbox behaviour (alias send policy, org scoping) cannot drift between
+ * the in-app agent and external ones.
  */
 export const WORKSPACE_TOOL_NAMES = [
   'list_mail_threads',
@@ -10,6 +12,9 @@ export const WORKSPACE_TOOL_NAMES = [
   'assign_mail_thread',
   'tag_mail_thread',
   'add_mail_thread_note',
+  'list_tasks',
+  'create_task',
+  'create_task_from_mail_thread',
   'list_calendar_events',
   'create_calendar_event'
 ] as const;
@@ -138,6 +143,55 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
         body: { type: 'string', minLength: 1, maxLength: 8000 }
       },
       required: ['threadId', 'body']
+    }
+  },
+  {
+    name: 'list_tasks',
+    description:
+      'List workspace tasks. Tasks are the work items behind mail threads.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+        },
+        limit: { type: 'integer', minimum: 1, maximum: 50 }
+      }
+    }
+  },
+  {
+    name: 'create_task',
+    description:
+      'Create a standalone workspace task. Use create_task_from_mail_thread when the work comes from a thread.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        subject: { type: 'string', minLength: 1, maxLength: 255 },
+        summary: { type: 'string', maxLength: 4000 },
+        urgency: {
+          type: 'string',
+          enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+        },
+        assigneeId: { type: 'string', format: 'uuid' }
+      },
+      required: ['subject']
+    }
+  },
+  {
+    name: 'create_task_from_mail_thread',
+    description:
+      'Turn a mail thread into a task, carrying the transcript. Returns the existing task when the thread already has one.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        threadId: { type: 'string', format: 'uuid' },
+        assigneeId: { type: 'string', format: 'uuid' }
+      },
+      required: ['threadId']
     }
   },
   {

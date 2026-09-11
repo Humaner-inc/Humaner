@@ -214,8 +214,8 @@ export function SignUpCard({
           oss
             ? 'flex gap-1 rounded-[0.5rem] border border-[#eaeaea] bg-[#f2f2f2] p-1'
             : inverted
-              ? 'flex rounded-none border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04]'
-              : 'flex rounded-none border border-white/[0.08] bg-white/[0.04]'
+              ? 'flex rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04]'
+              : 'flex rounded-lg border border-white/[0.08] bg-white/[0.04]'
         }
         role="group"
         aria-label="Account type"

@@ -35,4 +35,4 @@ export function DropdownPanel({
 }
 
 export const DROPDOWN_PANEL_SHELL =
-  'overflow-hidden rounded-2xl border border-border/60 bg-popover p-1.5 shadow-lg backdrop-blur-xl';
+  'overflow-hidden rounded-lg border border-border/60 bg-popover p-1.5 shadow-lg backdrop-blur-xl';

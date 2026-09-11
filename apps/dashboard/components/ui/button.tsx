@@ -4,6 +4,10 @@ import { Loader2Icon } from '@humaner/shared/icons';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
+import {
+  dashboardCtaRadiusClassName,
+  dashboardRadiusClassName
+} from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 /** Brand chrome is always Humaner (not Self-Host zinc). */
@@ -28,7 +32,10 @@ const cloudOutlineClasses = cn(
   dashboardCtaCaseClassName
 );
 
-/** Self-Host — zinc; explicit rem radii (avoid rounded-md → --radius:0). */
+/** CTAs stay square; other variants inherit `--radius` via rounded-md. */
+const ctaRadius = dashboardCtaRadiusClassName;
+
+/** Self-Host — zinc; explicit rem radii. */
 const ossRadius = 'rounded-[0.5rem]';
 const ossNeutralCtaClasses = cn(
   ossRadius,
@@ -48,13 +55,17 @@ const ossOutlineClasses = cn(
 const buttonVariants = cva(
   cn(
     'inline-flex items-center justify-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
-    oss ? ossRadius : 'rounded-md'
+    oss ? ossRadius : dashboardRadiusClassName
   ),
   {
     variants: {
       variant: {
-        default: oss ? ossNeutralCtaClasses : cloudNeutralCtaClasses,
-        upgrade: oss ? ossUpgradeCtaClasses : cloudUpgradeCtaClasses,
+        default: oss
+          ? ossNeutralCtaClasses
+          : cn(cloudNeutralCtaClasses, ctaRadius),
+        upgrade: oss
+          ? ossUpgradeCtaClasses
+          : cn(cloudUpgradeCtaClasses, ctaRadius),
         accent: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
@@ -66,8 +77,8 @@ const buttonVariants = cva(
       },
       size: {
         default: 'h-9 px-4 py-2',
-        sm: cn('h-8 px-3 text-xs', oss ? ossRadius : 'rounded-md'),
-        lg: cn('h-10 px-8', oss ? ossRadius : 'rounded-md'),
+        sm: cn('h-8 px-3 text-xs', oss ? ossRadius : null),
+        lg: cn('h-10 px-8', oss ? ossRadius : null),
         icon: 'size-9'
       }
     },

@@ -24,7 +24,10 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
+import {
+  dashboardPictureRadiusClassName,
+  dashboardRadiusClassName
+} from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
@@ -62,7 +65,8 @@ export function WorkspaceAvatar({
 }): React.JSX.Element {
   const logoUrl = resolveWorkspaceLogo(workspace);
   const initial = workspace.name.trim().charAt(0).toUpperCase() || 'W';
-  const radius = rounded === 'full' ? 'rounded-full' : dashboardRadiusClassName;
+  const radius =
+    rounded === 'full' ? 'rounded-full' : dashboardPictureRadiusClassName;
 
   if (logoUrl) {
     return (

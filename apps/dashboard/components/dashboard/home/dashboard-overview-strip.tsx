@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { HintLabel } from '@/components/ui/hint-label';
 import { Routes } from '@/constants/routes';
 import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { getIndustry } from '@/lib/industries';
 import { getLogoUrl, toHostname } from '@/lib/logo';
 import { cn } from '@/lib/utils';
@@ -80,8 +79,7 @@ export function DashboardOverviewStrip({
             src={logoSrc}
             alt=""
             className={cn(
-              'mt-0.5 size-8 shrink-0 border border-border/60 object-cover',
-              dashboardRadiusClassName
+              'mt-0.5 size-8 shrink-0 rounded-none border border-border/60 object-cover'
             )}
           />
         ) : null}

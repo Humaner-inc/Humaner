@@ -196,7 +196,7 @@ export function MailTagsSettings({
               <ColorPicker
                 value={color}
                 onChange={setColor}
-                className="size-7 rounded-none border"
+                className="size-7 rounded-lg border"
                 title="Open full palette"
               />
               <div
@@ -208,7 +208,7 @@ export function MailTagsSettings({
                   key={preset}
                   type="button"
                   onClick={() => setColor(preset)}
-                  className="size-7 rounded-none ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="size-7 rounded-lg ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   style={{
                     backgroundColor: preset,
                     boxShadow:

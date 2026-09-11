@@ -363,10 +363,10 @@ const TimeSelect = React.memo(
         value={formattedValue}
         onValueChange={onChange}
       >
-        <SelectTrigger className="h-9 max-h-9 min-h-9 w-20 min-w-20 max-w-20 rounded-none">
+        <SelectTrigger className="h-9 max-h-9 min-h-9 w-20 min-w-20 max-w-20 rounded-lg">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className="rounded-none">
+        <SelectContent className="rounded-lg">
           <TimeSlotOptions />
         </SelectContent>
       </Select>
@@ -392,7 +392,7 @@ const TimeSlotOptions = React.memo(() => {
         <SelectItem
           key={option}
           value={option}
-          className="rounded-none"
+          className="rounded-lg"
         >
           {option}
         </SelectItem>

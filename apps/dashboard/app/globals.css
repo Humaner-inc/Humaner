@@ -66,7 +66,15 @@
     --input: 0 0% 92%;
     --ring: 240 6% 10%;
 
-    --radius: 0px;
+    /*
+     * Companion surface outline. `--border` is #eaeaea on a #fcf4ec canvas and
+     * disappears, so the composer gets its own token: ink on light, accent on
+     * dark. Keep both ends contrasting against their own `--background`.
+     */
+    --companion-border: 240 6% 10%;
+    --companion-dock-offset: 0px;
+
+    --radius: 12px;
     --font-fellix: var(--font-geist-sans);
     --font-the-seasons: var(--font-geist-sans);
     --font-humaner-mono: var(--font-geist-mono);
@@ -138,6 +146,9 @@
     --border: 240 4% 11%;
     --input: 240 4% 11%;
     --ring: 0 0% 92%;
+
+    /* Accent #e0e1df — reads against #0A0D0D. */
+    --companion-border: 90 3% 88%;
 
     --chart-1: 0 0% 95%;
     --chart-2: 90 3% 88%;

@@ -76,7 +76,7 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
     useDropzone(dropzoneOptions);
 
   const borderRadiusClass = {
-    none: '',
+    none: 'rounded-none',
     sm: 'rounded-sm',
     md: 'rounded-md',
     lg: 'rounded-lg',

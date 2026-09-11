@@ -52,7 +52,7 @@ export function DashboardTopNav({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-9 shrink-0 hover:bg-muted/60',
+            'size-9 shrink-0 rounded-lg hover:bg-muted/60',
             chat.companionVisible
               ? 'text-foreground'
               : 'text-muted-foreground hover:text-foreground'
@@ -74,7 +74,7 @@ export function DashboardTopNav({
         type="button"
         variant="ghost"
         size="icon"
-        className="relative size-9 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+        className="relative size-9 shrink-0 rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground"
         onClick={() => toggleDock('notifications')}
         aria-label={
           unreadCount > 0 ? `${mailLabel}, ${unreadCount} unread` : mailLabel
@@ -82,7 +82,7 @@ export function DashboardTopNav({
       >
         <BellIcon className="size-4" />
         {unreadCount > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center bg-red-500 font-mono text-[10px] text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 font-mono text-[10px] text-white">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         ) : null}
@@ -91,7 +91,7 @@ export function DashboardTopNav({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-9 shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+        className="size-9 shrink-0 rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground"
         onClick={() => toggleDock('help')}
         aria-label="Help"
       >
@@ -99,7 +99,7 @@ export function DashboardTopNav({
       </Button>
       <ThemeToggle
         variant="ghost"
-        className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
+        className="size-9 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
       />
       <div className="flex h-7 items-center gap-1.5">
         <NavUser

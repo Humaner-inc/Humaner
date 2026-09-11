@@ -5,9 +5,12 @@ import {
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
+import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
+import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
+import { cn } from '@/lib/utils';
 
 export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
   const overviewPromise = getInboxOverview();
@@ -39,7 +42,12 @@ export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
 
   if (threads.length === 0) {
     return (
-      <div className="-m-6 flex h-[calc(100dvh-3.5rem)] min-h-0 flex-col overflow-hidden md:-m-8">
+      <div
+        className={cn(
+          '-m-6 flex min-h-0 flex-col overflow-hidden md:-m-8',
+          DASHBOARD_FULL_BLEED_HEIGHT_CLASS
+        )}
+      >
         <div className="shrink-0 space-y-1 border-b border-border/50 px-4 py-3">
           <h1 className="page-title">Assigned to me</h1>
           <p className="text-sm text-muted-foreground">
@@ -62,10 +70,7 @@ export default async function InboxAssignedPage(): Promise<React.JSX.Element> {
       variant="desk"
       threads={threads}
       tags={tags}
-      members={members.map((member) => ({
-        id: member.id,
-        name: member.name
-      }))}
+      members={members.map(toAssigneePerson)}
       listChrome={
         <div className="space-y-1 px-3 py-3">
           <h1 className="page-title">Assigned to me</h1>

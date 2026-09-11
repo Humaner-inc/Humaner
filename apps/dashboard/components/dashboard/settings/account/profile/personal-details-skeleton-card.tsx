@@ -16,7 +16,7 @@ export function PersonalDetailsSkeletonCard(
     <Card {...props}>
       <CardContent className="pt-6">
         <div className="flex items-center justify-center pb-6">
-          <Skeleton className="size-[120px] rounded-none p-0.5" />
+          <Skeleton className="size-[120px] rounded-lg p-0.5" />
         </div>
         <div className="grid gap-x-8 gap-y-4">
           <div className="mb-2 flex flex-col space-y-2">

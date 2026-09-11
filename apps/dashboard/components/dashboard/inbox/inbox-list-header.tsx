@@ -9,6 +9,7 @@ import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
 import { syncInboxNow } from '@/actions/inbox/sync-inbox-now';
+import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
 import type { MailListSelectionApi } from '@/components/dashboard/inbox/mail-thread-list';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,7 +20,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import type { MailTagItem } from '@/data/inbox/get-mail-threads';
-import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { cn } from '@/lib/utils';
 
 export type InboxListFilter = 'all' | 'unread' | 'open' | 'pending';
@@ -330,7 +330,7 @@ export function InboxListHeader({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-8 shrink-0"
+        className="size-8 shrink-0 rounded-lg"
         disabled={isExecuting}
         title="Sync mailbox"
         onClick={() => execute({})}
@@ -428,26 +428,14 @@ export function InboxListHeader({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  <DropdownMenuItem
-                    onSelect={() => selection.assignSelected(null)}
-                  >
-                    Unassigned
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      selection.assignSelected(COMPANION_ASSIGNEE)
+                  <AssigneeMenuItems
+                    members={selection.members}
+                    value={null}
+                    includeCompanion
+                    onSelect={(assigneeId) =>
+                      selection.assignSelected(assigneeId)
                     }
-                  >
-                    Companion
-                  </DropdownMenuItem>
-                  {selection.members.map((member) => (
-                    <DropdownMenuItem
-                      key={member.id}
-                      onSelect={() => selection.assignSelected(member.id)}
-                    >
-                      {member.name}
-                    </DropdownMenuItem>
-                  ))}
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button

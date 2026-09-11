@@ -99,7 +99,7 @@ export function ComposeMailDialog({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent className="gap-0 rounded-none p-0 sm:max-w-lg">
+      <DialogContent className="gap-0 rounded-lg p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border px-5 py-4">
           <DialogTitle className="font-display text-xl font-semibold tracking-tight">
             Compose
@@ -121,7 +121,7 @@ export function ComposeMailDialog({
             >
               <SelectTrigger
                 id="compose-from"
-                className="h-9 rounded-none"
+                className="h-9 rounded-lg"
               >
                 <SelectValue placeholder="Select alias" />
               </SelectTrigger>
@@ -162,7 +162,7 @@ export function ComposeMailDialog({
               value={to}
               onChange={(event) => setTo(event.target.value)}
               disabled={isExecuting}
-              className="h-9 rounded-none"
+              className="h-9 rounded-lg"
             />
           </div>
 
@@ -179,7 +179,7 @@ export function ComposeMailDialog({
               onChange={(event) => setSubject(event.target.value)}
               disabled={isExecuting}
               placeholder="Subject"
-              className="h-9 rounded-none"
+              className="h-9 rounded-lg"
             />
           </div>
 
@@ -197,7 +197,7 @@ export function ComposeMailDialog({
               disabled={isExecuting}
               placeholder="Write your message…"
               rows={8}
-              className="min-h-40 resize-y rounded-none"
+              className="min-h-40 resize-y rounded-lg"
             />
           </div>
         </div>

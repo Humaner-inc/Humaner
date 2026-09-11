@@ -92,7 +92,7 @@ export const authThemeDark = {
   cardBg: cn('bg-[#fcf4ec]/90', glassCardEffects),
   cardText: 'text-[#0A0D0D]',
   cardBorder: 'border-white/50',
-  cardRadius: 'rounded-none',
+  cardRadius: 'rounded-lg',
   cardShadow:
     'shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.55),inset_0_1px_0_rgb(255_255_255_/_0.85)]',
   cardGlow:
@@ -103,20 +103,19 @@ export const authThemeDark = {
   label:
     'font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[#0A0D0D]/65',
   input:
-    'h-10 rounded-none border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-sm text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#e0e1df]/12 selection:text-[#0A0D0D] focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
-  cardSurface:
-    'rounded-none border border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02]',
+    'h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-sm text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#e0e1df]/12 selection:text-[#0A0D0D] focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
+  cardSurface: 'rounded-lg border border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02]',
   logoText: '[&_span]:text-white',
   progressTrack: 'border-t border-white/25',
   progressDotInactive: 'border-white/25 bg-[#0A0D0D]',
   progressRing: 'ring-offset-[#0A0D0D]',
   cardRingOffset: 'ring-offset-[#fcf4ec]',
   themePicker:
-    'rounded-none border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-[#0A0D0D]/70 hover:text-[#0A0D0D]',
+    'rounded-lg border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-[#0A0D0D]/70 hover:text-[#0A0D0D]',
   themePickerActive: 'bg-[#0A0D0D] text-white',
   radioCard: cn(
     onboardingRadioCardClassName,
-    'rounded-none py-2 pl-2.5 pr-7',
+    'rounded-lg py-2 pl-2.5 pr-7',
     'data-[state=checked]:!border-[#e0e1df]/40 data-[state=checked]:!bg-[#e0e1df]/[0.04]'
   ),
   radioCardCheck: onboardingRadioCardCheckClassName,
@@ -128,14 +127,14 @@ export const authThemeDark = {
   primaryButton: `${ctaPrimaryOnLightClassName} h-10 rounded-none px-4`,
   ghostButton: cn(
     onboardingGhostButtonClassName,
-    'rounded-none dark:!text-[#0A0D0D]/60 dark:hover:!bg-[#0A0D0D]/[0.04] dark:hover:!text-[#0A0D0D]'
+    'rounded-lg dark:!text-[#0A0D0D]/60 dark:hover:!bg-[#0A0D0D]/[0.04] dark:hover:!text-[#0A0D0D]'
   ),
   suggestedChip:
-    'rounded-none border-dashed border-[#0A0D0D]/10 bg-[#0A0D0D]/[0.02] font-mono text-xs text-[#0A0D0D]/50 transition-colors hover:border-[#e0e1df]/30 hover:text-[#e0e1df]',
+    'rounded-lg border-dashed border-[#0A0D0D]/10 bg-[#0A0D0D]/[0.02] font-mono text-xs text-[#0A0D0D]/50 transition-colors hover:border-[#e0e1df]/30 hover:text-[#e0e1df]',
   divider: 'border-[#0A0D0D]/[0.06]',
-  logoBox: 'rounded-none border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02]',
+  logoBox: 'rounded-lg border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02]',
   socialLink:
-    'rounded-none border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02] font-mono text-xs font-medium text-[#0A0D0D]/70 transition-colors hover:border-[#0A0D0D]/[0.12] hover:text-[#0A0D0D]',
+    'rounded-lg border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02] font-mono text-xs font-medium text-[#0A0D0D]/70 transition-colors hover:border-[#0A0D0D]/[0.12] hover:text-[#0A0D0D]',
   radioCardFg: 'text-[#0A0D0D]',
   radioCardFgMuted: 'text-[#0A0D0D]/50',
   radioCardFgSubtle: 'text-[#0A0D0D]/25',
@@ -170,7 +169,7 @@ export const authThemeLight = {
   cardBg: cn('bg-[#0A0D0D]/90', glassCardEffects),
   cardText: 'text-[#fcf4ec]',
   cardBorder: 'border-white/[0.12]',
-  cardRadius: 'rounded-none',
+  cardRadius: 'rounded-lg',
   cardShadow:
     'shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.35),inset_0_1px_0_rgb(255_255_255_/_0.1)]',
   cardGlow:
@@ -181,19 +180,19 @@ export const authThemeLight = {
   label:
     'font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-white/65',
   input:
-    'h-10 rounded-none border border-white/[0.08] bg-white/[0.04] text-sm text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#e0e1df]/15 selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
-  cardSurface: 'rounded-none border border-white/[0.06] bg-white/[0.04]',
+    'h-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-sm text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#e0e1df]/15 selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
+  cardSurface: 'rounded-lg border border-white/[0.06] bg-white/[0.04]',
   logoText: '[&_span]:text-[#0A0D0D]',
   progressTrack: 'border-t border-[#0A0D0D]/40',
   progressDotInactive: 'border-[#0A0D0D]/40 bg-[#fcf4ec]',
   progressRing: 'ring-offset-[#fcf4ec]',
   cardRingOffset: 'ring-offset-[#0A0D0D]',
   themePicker:
-    'rounded-none border-white/[0.08] bg-white/[0.04] text-white/70 hover:text-white',
+    'rounded-lg border-white/[0.08] bg-white/[0.04] text-white/70 hover:text-white',
   themePickerActive: 'bg-[#fcf4ec] text-[#0A0D0D]',
   radioCard: cn(
     onboardingRadioCardClassNameInverted,
-    'rounded-none py-2 pl-2.5 pr-7',
+    'rounded-lg py-2 pl-2.5 pr-7',
     'data-[state=checked]:!border-[#e0e1df]/40 data-[state=checked]:!bg-[#e0e1df]/[0.04]'
   ),
   radioCardCheck: onboardingRadioCardCheckClassNameInverted,
@@ -205,14 +204,14 @@ export const authThemeLight = {
   primaryButton: `${ctaPrimaryClassName} h-10 rounded-none px-4`,
   ghostButton: cn(
     onboardingGhostButtonClassNameInverted,
-    'rounded-none !text-white/60 hover:!bg-white/[0.04] hover:!text-[#fcf4ec]'
+    'rounded-lg !text-white/60 hover:!bg-white/[0.04] hover:!text-[#fcf4ec]'
   ),
   suggestedChip:
-    'rounded-none border-dashed border-white/10 bg-white/[0.04] font-mono text-xs text-white/50 transition-colors hover:border-[#e0e1df]/30 hover:text-[#e0e1df]',
+    'rounded-lg border-dashed border-white/10 bg-white/[0.04] font-mono text-xs text-white/50 transition-colors hover:border-[#e0e1df]/30 hover:text-[#e0e1df]',
   divider: 'border-white/[0.06]',
-  logoBox: 'rounded-none border-white/[0.06] bg-white/[0.04]',
+  logoBox: 'rounded-lg border-white/[0.06] bg-white/[0.04]',
   socialLink:
-    'rounded-none border-white/[0.06] bg-white/[0.04] font-mono text-xs font-medium text-white/70 transition-colors hover:border-white/[0.15] hover:text-white',
+    'rounded-lg border-white/[0.06] bg-white/[0.04] font-mono text-xs font-medium text-white/70 transition-colors hover:border-white/[0.15] hover:text-white',
   radioCardFg: 'text-[#fcf4ec]',
   radioCardFgMuted: 'text-white/50',
   radioCardFgSubtle: 'text-white/25',

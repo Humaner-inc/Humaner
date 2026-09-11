@@ -2,18 +2,18 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckIcon, ChevronDownIcon, UserIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
+import {
+  AssigneeFaces,
+  AssigneeMenuItems
+} from '@/components/dashboard/assignee-options';
 import { DESK_TICKET_ACTION_CHIP_CLASSNAME } from '@/components/dashboard/desk/desk-ticket-preview-row';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -82,26 +82,18 @@ export function DeskAssigneePicker({
           type="button"
           variant="outline"
           size="sm"
-          disabled={pending || teamMembers.length === 0}
+          disabled={pending}
           className={cn(
             compact
               ? DESK_TICKET_ACTION_CHIP_CLASSNAME
-              : 'h-7 gap-1.5 rounded-none px-2',
+              : 'h-7 gap-1.5 rounded-lg px-2',
+            'h-7 max-h-none min-h-7 gap-1.5 overflow-visible',
             className
           )}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
         >
-          {selected ? (
-            <AssigneeAvatar
-              assignee={selected}
-              className={compact ? 'size-3.5 shrink-0' : 'size-4 shrink-0'}
-            />
-          ) : (
-            <UserIcon
-              className={cn('shrink-0', compact ? 'size-3' : 'size-3.5')}
-            />
-          )}
+          <AssigneeFaces people={selected ? [selected] : []} />
           <span className="max-w-20 truncate">
             {selected
               ? selected.id === currentUserId
@@ -109,75 +101,20 @@ export function DeskAssigneePicker({
                 : selected.name.split(' ')[0]
               : 'Assign'}
           </span>
-          <ChevronDownIcon
-            className={cn(
-              'shrink-0 opacity-50',
-              compact ? 'size-3' : 'size-3.5'
-            )}
-          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-56 rounded-none"
+        className="w-56 rounded-lg"
         onClick={(event) => event.stopPropagation()}
       >
-        <DropdownMenuItem
-          className="text-xs"
-          onSelect={() => handleChange(null)}
-        >
-          Unassigned
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {teamMembers.map((member) => (
-          <DropdownMenuItem
-            key={member.id}
-            className="flex items-center gap-2 text-xs"
-            onSelect={() => handleChange(member.id)}
-          >
-            <AssigneeAvatar
-              assignee={member}
-              className="size-6"
-            />
-            <span className="min-w-0 flex-1 truncate">
-              {member.name}
-              {member.id === currentUserId ? ' (you)' : ''}
-            </span>
-            {assigneeId === member.id ? (
-              <CheckIcon className="size-3.5 text-primary" />
-            ) : null}
-          </DropdownMenuItem>
-        ))}
+        <AssigneeMenuItems
+          members={teamMembers}
+          value={assigneeId}
+          currentUserId={currentUserId}
+          onSelect={handleChange}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function AssigneeAvatar({
-  assignee,
-  className
-}: {
-  assignee: { name: string; image: string | null };
-  className?: string;
-}): React.JSX.Element {
-  const initials = assignee.name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <Avatar className={cn('bg-muted', className)}>
-      {assignee.image ? (
-        <AvatarImage
-          src={assignee.image}
-          alt={assignee.name}
-        />
-      ) : null}
-      <AvatarFallback className="text-[9px] font-medium">
-        {initials || <UserIcon className="size-3" />}
-      </AvatarFallback>
-    </Avatar>
   );
 }

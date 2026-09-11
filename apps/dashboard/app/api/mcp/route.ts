@@ -75,10 +75,16 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   if (method === 'tools/list') {
-    const auth = await authorizeWorkspaceRequest({
+    let auth = await authorizeWorkspaceRequest({
       request,
       tool: 'list_mail_threads'
     });
+    if (!auth.ok) {
+      auth = await authorizeWorkspaceRequest({
+        request,
+        tool: 'list_calendar_events'
+      });
+    }
     if (!auth.ok) {
       return rpcError(id, -32001, auth.message, auth.allowOrigin, auth.status);
     }

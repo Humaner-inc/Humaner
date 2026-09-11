@@ -54,7 +54,7 @@ export function InboxMailboxMenu({
         disabled={locked}
         aria-label="Switch inbox"
         className={cn(
-          'flex w-full items-center gap-1.5 py-1.5 pl-4 pr-2 text-left outline-none',
+          'mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-1.5 px-2.5 py-1.5 text-left outline-none',
           dashboardRadiusClassName,
           'font-fellix text-sm font-light text-sidebar-foreground/50',
           'transition-colors hover:bg-muted/20 hover:text-sidebar-foreground',

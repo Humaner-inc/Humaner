@@ -55,6 +55,7 @@ import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
 import type { ConnectedMailboxItem } from '@/data/inbox/get-mail-threads';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import {
   getMailProviderById,
   resolveMailProviderPreset
@@ -404,7 +405,7 @@ export function ConnectImapForm({
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
         {providerConnections.length > 0 ? (
-          <div className="mb-5 space-y-2 rounded-none border border-border/70 bg-muted/20 px-3 py-2.5">
+          <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               Active on {selectedProvider.name}
             </p>
@@ -421,7 +422,7 @@ export function ConnectImapForm({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-7 rounded-none px-2 font-mono text-[10px]"
+                    className="h-7 rounded-lg px-2 font-mono text-[10px]"
                     onClick={() => setPendingRemove(connection)}
                   >
                     Remove
@@ -510,7 +511,7 @@ export function ConnectImapForm({
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
           {providerConnections.length > 0 ? (
-            <div className="mb-5 space-y-2 rounded-none border border-border/70 bg-muted/20 px-3 py-2.5">
+            <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
               <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                 Active on {selectedProvider.name}
               </p>
@@ -528,7 +529,7 @@ export function ConnectImapForm({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-7 rounded-none px-2 font-mono text-[10px]"
+                        className="h-7 rounded-lg px-2 font-mono text-[10px]"
                         onClick={() => editConnection(connection)}
                       >
                         Edit
@@ -888,7 +889,7 @@ export function ConnectImapForm({
         </AlertDialogHeader>
 
         <div className="space-y-3">
-          <div className="rounded-none border border-border/60 bg-muted/20 px-3 py-2.5">
+          <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5">
             <p className="font-fellix text-xs font-medium text-muted-foreground">
               Mailbox email
             </p>
@@ -938,7 +939,7 @@ export function ConnectImapForm({
               value={removeConfirmEmail}
               disabled={isRemoving || !pendingRemove}
               onChange={(event) => setRemoveConfirmEmail(event.target.value)}
-              className="rounded-none font-mono text-sm"
+              className="rounded-lg font-mono text-sm"
             />
           </div>
         </div>
@@ -974,7 +975,12 @@ export function ConnectImapForm({
 
   return (
     <>
-      <div className="-m-6 flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden md:-m-8">
+      <div
+        className={cn(
+          '-m-6 flex min-h-0 overflow-hidden md:-m-8',
+          DASHBOARD_FULL_BLEED_HEIGHT_CLASS
+        )}
+      >
         <div className="hidden min-h-0 w-full md:block">
           <ResizablePanelGroup
             direction="horizontal"

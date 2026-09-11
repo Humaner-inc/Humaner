@@ -38,7 +38,7 @@ export const DESK_TICKET_STATUS_LABELS: Record<HandoffTicketStatus, string> = {
 
 /** Shared height/padding for status + assignee chips in ticket previews. */
 export const DESK_TICKET_ACTION_CHIP_CLASSNAME =
-  'inline-flex h-6 min-h-6 max-h-6 shrink-0 items-center gap-1 rounded-none border border-border/60 bg-background px-1.5 py-0 text-[10px] font-medium leading-none text-foreground shadow-none';
+  'inline-flex h-6 min-h-6 max-h-6 shrink-0 items-center gap-1 rounded-lg border border-border/60 bg-background px-1.5 py-0 text-[10px] font-medium leading-none text-foreground shadow-none';
 
 const URGENCY_COLOR: Record<HandoffTicketUrgency, string> = {
   HIGH: MODE_COLOR.LIVE,

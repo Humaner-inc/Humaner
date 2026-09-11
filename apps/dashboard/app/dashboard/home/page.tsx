@@ -9,7 +9,6 @@ import { AgentCard } from '@/components/dashboard/agents/agent-card';
 import { CreateAgentCard } from '@/components/dashboard/home/create-agent-card';
 import { DashboardOverviewStrip } from '@/components/dashboard/home/dashboard-overview-strip';
 import { DeskIssuesOverviewCard } from '@/components/dashboard/home/desk-issues-overview-card';
-import { InboxOverviewCard } from '@/components/dashboard/home/inbox-overview-card';
 import { TeamMembersOverviewCard } from '@/components/dashboard/home/team-members-overview-card';
 import { SectionPage } from '@/components/ui/section-shell';
 import { AppInfo } from '@/constants/app-info';
@@ -18,7 +17,6 @@ import { getProfile } from '@/data/account/get-profile';
 import { getAgentsOverview } from '@/data/agents/get-agents-overview';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getDeskIssuesOverview } from '@/data/desk/get-desk-issues-overview';
-import { getInboxHomeOverview } from '@/data/inbox/get-inbox-home-overview';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
 import { dedupedAuth } from '@/lib/auth';
 import { canAccessPathname } from '@/lib/auth/workspace-access';
@@ -68,7 +66,6 @@ async function HomePageContent(): Promise<React.JSX.Element> {
     liveAgentCount,
     deskOverview,
     members,
-    inboxOverview,
     creditUsage
   ] = await Promise.all([
     getProfile(),
@@ -95,7 +92,6 @@ async function HomePageContent(): Promise<React.JSX.Element> {
       : Promise.resolve(0),
     getDeskIssuesOverview(),
     getOrganizationMembers(),
-    oss ? Promise.resolve(null) : getInboxHomeOverview(),
     session?.user?.organizationId && !oss
       ? getSidebarMessageUsage()
       : Promise.resolve(null)
@@ -177,37 +173,7 @@ async function HomePageContent(): Promise<React.JSX.Element> {
                 </p>
               ) : null}
             </>
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] lg:items-start">
-              <div className="min-w-0 space-y-4">
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3">
-                  {agents.map((agent) => (
-                    <AgentCard
-                      key={agent.id}
-                      agent={agent}
-                      linkToWorkspace
-                      compact
-                    />
-                  ))}
-                  {!atLimit ? <CreateAgentCard /> : null}
-                </div>
-                {atLimit ? (
-                  <p
-                    className={cn(
-                      dashboardSurfaceDashedClassName,
-                      'px-4 py-3 text-center text-xs text-muted-foreground'
-                    )}
-                  >
-                    Live agent limit reached. Pause an agent or upgrade your
-                    plan.
-                  </p>
-                ) : null}
-              </div>
-              <aside className="lg:sticky lg:top-4">
-                <TeamMembersOverviewCard members={members} />
-              </aside>
-            </div>
-          )}
+          ) : null}
         </section>
 
         {oss ? (
@@ -218,19 +184,7 @@ async function HomePageContent(): Promise<React.JSX.Element> {
             />
             <TeamMembersOverviewCard members={members} />
           </section>
-        ) : (
-          <section
-            className={cn(
-              'grid gap-4',
-              inboxOverview ? 'md:grid-cols-2' : 'md:grid-cols-1'
-            )}
-          >
-            <DeskIssuesOverviewCard overview={deskOverview} />
-            {inboxOverview ? (
-              <InboxOverviewCard overview={inboxOverview} />
-            ) : null}
-          </section>
-        )}
+        ) : null}
       </div>
     </SectionPage>
   );

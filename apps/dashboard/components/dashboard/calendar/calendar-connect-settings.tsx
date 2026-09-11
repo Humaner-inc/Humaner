@@ -128,7 +128,7 @@ export function CalendarConnectSettings({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 rounded-none p-0"
+        className="w-80 rounded-lg p-0"
       >
         <div className="space-y-3 p-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">

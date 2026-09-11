@@ -1,14 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowsClockwise } from '@phosphor-icons/react/dist/ssr/ArrowsClockwise';
 import { AtomIcon } from '@phosphor-icons/react/dist/ssr/Atom';
 import { BookOpen } from '@phosphor-icons/react/dist/ssr/BookOpen';
 import { Brain } from '@phosphor-icons/react/dist/ssr/Brain';
 import { Briefcase } from '@phosphor-icons/react/dist/ssr/Briefcase';
-import { ChatDotsIcon } from '@phosphor-icons/react/dist/ssr/ChatDots';
+import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
+import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Code } from '@phosphor-icons/react/dist/ssr/Code';
-import { Headset } from '@phosphor-icons/react/dist/ssr/Headset';
+import { Ghost } from '@phosphor-icons/react/dist/ssr/Ghost';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
 import { ShieldCheck } from '@phosphor-icons/react/dist/ssr/ShieldCheck';
 import { TrayArrowDownIcon } from '@phosphor-icons/react/dist/ssr/TrayArrowDown';
@@ -48,16 +48,16 @@ const FEATURE_TILES: FeatureTile[] = [
     ink: TILE.ink
   },
   {
-    id: 'chatbot',
-    label: 'Chatbot',
-    icon: ChatDotsIcon,
+    id: 'companion',
+    label: 'Companion',
+    icon: Ghost,
     tile: 'cobalt',
     ink: TILE.cream
   },
   {
-    id: 'helpdesk',
-    label: 'Helpdesk',
-    icon: Headset,
+    id: 'providers',
+    label: 'Providers',
+    icon: Plugs,
     tile: 'green',
     ink: TILE.cream
   },
@@ -76,22 +76,22 @@ const FEATURE_TILES: FeatureTile[] = [
     ink: TILE.ink
   },
   {
-    id: 'loops',
-    label: 'Loops',
-    icon: ArrowsClockwise,
+    id: 'tasks',
+    label: 'Tasks',
+    icon: Checks,
     tile: 'cobalt',
     ink: TILE.cream
   },
   {
     id: 'api',
-    label: 'API',
+    label: 'MCP',
     icon: Code,
     tile: 'green',
     ink: TILE.cream
   },
   {
     id: 'knowledge',
-    label: 'Knowledge',
+    label: 'Resources',
     icon: BookOpen,
     tile: 'gray',
     ink: TILE.ink
@@ -111,9 +111,9 @@ const FEATURE_TILES: FeatureTile[] = [
     ink: TILE.cream
   },
   {
-    id: 'integrations',
-    label: 'Integrations',
-    icon: Plugs,
+    id: 'calendar',
+    label: 'Calendar',
+    icon: CalendarBlank,
     tile: 'cobalt',
     ink: TILE.cream
   },
@@ -132,7 +132,7 @@ const STEP_MS = 2200;
 
 const LIGHT_EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Support-layer tiles plus product features, rotating one-by-one like a wheel. */
+/** Mailbox tiles plus workspace features, rotating one-by-one like a wheel. */
 export function AuthHeroPanel(): React.JSX.Element {
   const reducedMotion = useReducedMotion();
   const { isInverted } = useAuthTheme();

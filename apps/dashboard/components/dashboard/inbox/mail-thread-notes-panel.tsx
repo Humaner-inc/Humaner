@@ -65,7 +65,7 @@ export function MailThreadNotesPanel({
           {sentNotes.map((note) => (
             <li
               key={note.id}
-              className="border border-border/50 px-3 py-2"
+              className="rounded-lg border border-border/50 px-3 py-2"
             >
               <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                 {note.authorName} ·{' '}
@@ -86,7 +86,7 @@ export function MailThreadNotesPanel({
         onChange={(event) => setDraft(event.target.value)}
         placeholder="Write a shared note…"
         rows={3}
-        className="mt-3 rounded-none"
+        className="mt-3 rounded-lg"
       />
       <div className="mt-2 flex justify-end">
         <Button

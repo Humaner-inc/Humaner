@@ -23,6 +23,7 @@ import {
   bulkDeleteMailThreads,
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
+import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
@@ -30,6 +31,7 @@ import {
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
 import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
+import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -55,6 +57,7 @@ import type {
   MailThreadDetail as MailThreadDetailDto,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
+import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
@@ -116,7 +119,7 @@ export type MailListSelectionApi = {
   assignSelected: (assigneeId: string | null) => void;
   tagSelected: (tagId: string | null) => void;
   tags: MailTagItem[];
-  members: Array<{ id: string; name: string }>;
+  members: AssigneePerson[];
   archivedView: boolean;
 };
 
@@ -131,7 +134,7 @@ export function MailThreadList({
 }: {
   threads: MailThreadListItem[];
   tags?: MailTagItem[];
-  members?: Array<{ id: string; name: string }>;
+  members?: AssigneePerson[];
   archivedView?: boolean;
   selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
   /** Extra chrome above the thread rows (title, filters) — desk triage sidebar. */
@@ -872,7 +875,12 @@ export function MailThreadList({
   if (isDesk) {
     return (
       <>
-        <div className="-m-6 flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden md:-m-8">
+        <div
+          className={cn(
+            '-m-6 flex min-h-0 overflow-hidden md:-m-8',
+            DASHBOARD_FULL_BLEED_HEIGHT_CLASS
+          )}
+        >
           {split}
         </div>
         {deleteDialog}
@@ -951,22 +959,12 @@ function MailBulkActionBar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onSelect={() => selection.assignSelected(null)}>
-            Unassigned
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={() => selection.assignSelected(COMPANION_ASSIGNEE)}
-          >
-            Companion
-          </DropdownMenuItem>
-          {selection.members.map((member) => (
-            <DropdownMenuItem
-              key={member.id}
-              onSelect={() => selection.assignSelected(member.id)}
-            >
-              {member.name}
-            </DropdownMenuItem>
-          ))}
+          <AssigneeMenuItems
+            members={selection.members}
+            value={null}
+            includeCompanion
+            onSelect={(assigneeId) => selection.assignSelected(assigneeId)}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
       <Button
@@ -1011,7 +1009,7 @@ function MailThreadRow({
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
-  members: Array<{ id: string; name: string }>;
+  members: AssigneePerson[];
   archivedView: boolean;
   previewActive: boolean;
   showCheckboxes: boolean;
@@ -1090,7 +1088,7 @@ function MailThreadRow({
       <div
         role="button"
         tabIndex={0}
-        className="flex h-full cursor-pointer items-center gap-3 px-4 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-5 sm:pr-28"
+        className="mx-1 my-0.5 flex h-[calc(100%-0.25rem)] cursor-pointer items-center gap-3 rounded-lg px-3 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-4 sm:pr-28"
         onClick={handleRowClick}
         onMouseEnter={onPrefetch}
         onFocus={onPrefetch}
@@ -1161,7 +1159,7 @@ function MailThreadRow({
             <span className="font-info text-muted-foreground"> · {label}</span>
             {thread.messageCount > 1 ? (
               <span
-                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-none bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
+                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-lg bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
                 title={`${thread.messageCount} emails`}
               >
                 {thread.messageCount > 99 ? '99+' : thread.messageCount}
@@ -1199,7 +1197,7 @@ function MailThreadRow({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-7 bg-background/95 shadow-sm"
+              className="size-7 rounded-lg bg-background/95 shadow-sm"
               title="Mark as read"
               onClick={(event) => {
                 stopRowEvent(event);
@@ -1217,7 +1215,7 @@ function MailThreadRow({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-7 bg-background/95 shadow-sm"
+                className="size-7 rounded-lg bg-background/95 shadow-sm"
                 onClick={stopRowEvent}
                 onPointerDown={stopRowEvent}
               >
@@ -1244,22 +1242,12 @@ function MailThreadRow({
                   Assign
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onSelect={() => onAssign(null)}>
-                    Unassigned
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => onAssign(COMPANION_ASSIGNEE)}
-                  >
-                    Companion
-                  </DropdownMenuItem>
-                  {members.map((member) => (
-                    <DropdownMenuItem
-                      key={member.id}
-                      onSelect={() => onAssign(member.id)}
-                    >
-                      {member.name}
-                    </DropdownMenuItem>
-                  ))}
+                  <AssigneeMenuItems
+                    members={members}
+                    value={null}
+                    includeCompanion
+                    onSelect={onAssign}
+                  />
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
               {applicableTags.length > 0 ? (

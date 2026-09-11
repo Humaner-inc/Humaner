@@ -448,7 +448,7 @@ export function WorkspaceCalendarWeek({
                       <button
                         key={event.id}
                         type="button"
-                        className="absolute inset-x-1 z-10 overflow-hidden rounded-none px-1.5 py-1 text-left"
+                        className="absolute inset-x-1 z-10 overflow-hidden rounded-lg px-1.5 py-1 text-left"
                         style={{
                           top: layout.top,
                           height: layout.height,
@@ -487,7 +487,7 @@ export function WorkspaceCalendarWeek({
           if (!open) setDraft(null);
         }}
       >
-        <DialogContent className="rounded-none sm:max-w-md">
+        <DialogContent className="rounded-lg sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{draft?.id ? 'Event' : 'New event'}</DialogTitle>
           </DialogHeader>
@@ -505,7 +505,7 @@ export function WorkspaceCalendarWeek({
                         : current
                     )
                   }
-                  className="rounded-none"
+                  className="rounded-lg"
                   placeholder="1:1, standup, customer call…"
                 />
               </div>
@@ -523,7 +523,7 @@ export function WorkspaceCalendarWeek({
                           : current
                       )
                     }
-                    className="rounded-none font-mono text-xs"
+                    className="rounded-lg font-mono text-xs"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -539,7 +539,7 @@ export function WorkspaceCalendarWeek({
                           : current
                       )
                     }
-                    className="rounded-none font-mono text-xs"
+                    className="rounded-lg font-mono text-xs"
                   />
                 </div>
               </div>
@@ -556,7 +556,7 @@ export function WorkspaceCalendarWeek({
                     )
                   }
                   rows={3}
-                  className="rounded-none"
+                  className="rounded-lg"
                 />
               </div>
               <div className="space-y-1.5">
@@ -597,7 +597,7 @@ export function WorkspaceCalendarWeek({
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-none font-mono text-destructive"
+                className="rounded-lg font-mono text-destructive"
                 disabled={pending}
                 onClick={() => {
                   if (draft.id) removeEvent({ id: draft.id });

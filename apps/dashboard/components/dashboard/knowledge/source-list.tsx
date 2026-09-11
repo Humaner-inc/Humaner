@@ -35,7 +35,7 @@ const TYPE_ICON: Record<SourceType, typeof GlobeIcon> = {
 const REMOTE_SOURCE_TYPES: SourceType[] = ['URL', 'SITEMAP', 'API'];
 
 const listRowIconButtonClassName =
-  'size-8 shrink-0 text-muted-foreground hover:bg-muted/60';
+  'size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-muted/60';
 
 export type SourceListProps = {
   sources: KnowledgeSourceItem[];

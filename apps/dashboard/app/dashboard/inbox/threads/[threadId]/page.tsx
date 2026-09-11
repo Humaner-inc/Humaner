@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeftIcon } from '@humaner/shared/icons';
 
 import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
+import { toAssigneePerson } from '@/components/ui/assignees';
 import { Routes } from '@/constants/routes';
 import { getMailTags, getMailThread } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
@@ -36,10 +37,7 @@ export default async function InboxThreadPage({
       <MailThreadDetail
         thread={thread}
         tags={tags}
-        members={members.map((member) => ({
-          id: member.id,
-          name: member.name
-        }))}
+        members={members.map(toAssigneePerson)}
       />
     </div>
   );

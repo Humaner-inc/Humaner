@@ -9,6 +9,7 @@ import {
   type InboxListFilter
 } from '@/components/dashboard/inbox/inbox-list-header';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
+import type { AssigneePerson } from '@/components/ui/assignees';
 import type {
   MailInboxOption,
   MailTagItem,
@@ -28,7 +29,7 @@ export function InboxAllMailList({
 }: {
   threads: MailThreadListItem[];
   tags: MailTagItem[];
-  members: Array<{ id: string; name: string }>;
+  members: AssigneePerson[];
   inboxes: MailInboxOption[];
   activeMailboxId: string | null;
   activeFilter: InboxListFilter;

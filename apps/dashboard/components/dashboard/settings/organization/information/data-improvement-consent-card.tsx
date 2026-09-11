@@ -140,7 +140,7 @@ export function DataImprovementConsentCard({
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="flex w-full items-center gap-2 rounded-none border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
+              className="flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
             >
               <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
               <span className="flex-1">How {AppInfo.APP_NAME} uses data</span>
@@ -167,14 +167,14 @@ export function DataImprovementConsentCard({
                 Then used for either
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-none border border-border/60 bg-background/50 p-3">
+                <div className="rounded-lg border border-border/60 bg-background/50 p-3">
                   <PipelineStep
                     icon={Brain}
                     title="Model fine-tuning"
                     description={`Optional. Improving the ${AppInfo.APP_NAME} model as a whole.`}
                   />
                 </div>
-                <div className="rounded-none border border-border/60 bg-background/50 p-3">
+                <div className="rounded-lg border border-border/60 bg-background/50 p-3">
                   <PipelineStep
                     icon={BotIcon}
                     title="Companion in your workspace"
@@ -186,7 +186,7 @@ export function DataImprovementConsentCard({
           </CollapsibleContent>
         </Collapsible>
 
-        <div className="flex items-start justify-between gap-4 rounded-none border border-border/60 bg-muted/30 p-4">
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 p-4">
           <div className="space-y-1">
             <Label
               htmlFor="data-improvement-consent"
@@ -214,7 +214,7 @@ export function DataImprovementConsentCard({
           />
         </div>
 
-        <div className="flex items-start justify-between gap-4 rounded-none border border-border/60 bg-muted/30 p-4">
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 p-4">
           <div className="space-y-1">
             <Label
               htmlFor="model-training-consent"

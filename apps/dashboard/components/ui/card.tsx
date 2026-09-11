@@ -1,8 +1,9 @@
 import * as React from 'react';
 
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
-const cardRadius = 'rounded-none';
+const cardRadius = dashboardRadiusClassName;
 
 export type CardElement = HTMLDivElement;
 export type CardProps = React.HTMLAttributes<HTMLDivElement>;

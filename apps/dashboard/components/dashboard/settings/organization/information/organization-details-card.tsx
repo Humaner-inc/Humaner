@@ -105,7 +105,7 @@ export function OrganizationDetailsCard({
             onSubmit={methods.handleSubmit(onSubmit)}
           >
             {brandHeader === 'logo' ? (
-              <div className="relative rounded-none border border-border/60 bg-secondary/30 p-4">
+              <div className="relative rounded-lg border border-border/60 bg-secondary/30 p-4">
                 <div className="absolute right-3 top-3">
                   <IndustryTag
                     industry={industry}
@@ -113,7 +113,7 @@ export function OrganizationDetailsCard({
                   />
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="size-14 shrink-0 overflow-hidden rounded-none border border-border/60 bg-background">
+                  <div className="size-14 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-background">
                     {details.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

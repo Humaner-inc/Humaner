@@ -111,7 +111,7 @@ function AgentStatusBadge({
       <span
         className={cn(
           'inline-flex size-1.5 shrink-0 bg-success',
-          'rounded-none'
+          'rounded-full'
         )}
       />
       <span className="font-info text-[10px] uppercase tracking-[0.08em] text-muted-foreground">

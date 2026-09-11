@@ -96,7 +96,7 @@ const humanerBrand: BrandConfig = {
     chart4: '43 65% 62%',
     chart5: '0 0% 92%'
   },
-  radius: '0px'
+  radius: '12px'
 };
 
 export const brand: BrandConfig = humanerBrand;

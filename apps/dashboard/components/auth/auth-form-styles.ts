@@ -159,19 +159,19 @@ export const onboardingCardClassName = oss
 
 export const onboardingRadioCardClassName = oss
   ? 'rounded-[0.5rem] border border-border bg-background py-2.5 pl-3 pr-8 text-left transition-all hover:bg-accent data-[state=checked]:border-primary data-[state=checked]:ring-1 data-[state=checked]:ring-ring'
-  : 'rounded-none border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#0A0D0D]/[0.15] hover:bg-[#0A0D0D]/[0.04] data-[state=checked]:border-[#e0e1df]/40 data-[state=checked]:bg-[#e0e1df]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e0e1df]/25';
+  : 'rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] py-2.5 pl-3 pr-8 text-left transition-all hover:border-[#0A0D0D]/[0.15] hover:bg-[#0A0D0D]/[0.04] data-[state=checked]:border-[#e0e1df]/40 data-[state=checked]:bg-[#e0e1df]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e0e1df]/25';
 
 export const onboardingRadioCardCheckClassName = oss
   ? 'rounded-[0.25rem] border-input bg-background group-data-[state=checked]:border-primary group-data-[state=checked]:bg-primary'
-  : 'rounded-none border-[#0A0D0D]/15 bg-[#0A0D0D]/[0.02] group-data-[state=checked]:border-[#e0e1df] group-data-[state=checked]:bg-[#e0e1df]';
+  : 'rounded-[3px] border-[#0A0D0D]/15 bg-[#0A0D0D]/[0.02] group-data-[state=checked]:border-[#e0e1df] group-data-[state=checked]:bg-[#e0e1df]';
 
 export const onboardingRadioCardClassNameInverted = oss
   ? onboardingRadioCardClassName
-  : 'rounded-none border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#e0e1df]/40 data-[state=checked]:bg-[#e0e1df]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e0e1df]/25';
+  : 'rounded-lg border border-white/[0.08] bg-white/[0.04] py-2.5 pl-3 pr-8 text-left transition-all hover:border-white/[0.15] hover:bg-white/[0.06] data-[state=checked]:border-[#e0e1df]/40 data-[state=checked]:bg-[#e0e1df]/[0.04] data-[state=checked]:ring-1 data-[state=checked]:ring-[#e0e1df]/25';
 
 export const onboardingRadioCardCheckClassNameInverted = oss
   ? onboardingRadioCardCheckClassName
-  : 'rounded-none border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#e0e1df] group-data-[state=checked]:bg-[#e0e1df]';
+  : 'rounded-[3px] border-white/15 bg-white/[0.04] group-data-[state=checked]:border-[#e0e1df] group-data-[state=checked]:bg-[#e0e1df]';
 
 export const onboardingOutlineButtonClassName = oss
   ? authOutlineButtonClassName
@@ -191,7 +191,7 @@ export const onboardingGhostButtonClassNameInverted = oss
 
 export const authInnerCardClassName = oss
   ? 'rounded-md border-0 bg-transparent text-foreground shadow-none'
-  : 'rounded-none border-0 bg-transparent text-[#fcf4ec] shadow-none';
+  : 'rounded-lg border-0 bg-transparent text-[#fcf4ec] shadow-none';
 
 export const authInnerCardHeaderClassName = 'space-y-1.5 p-0';
 

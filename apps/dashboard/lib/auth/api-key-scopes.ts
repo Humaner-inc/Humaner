@@ -108,7 +108,11 @@ export function requiredApiKeyScopeForPublicPath(
   if (pathname.includes('/calendar')) {
     return 'calendar';
   }
-  if (pathname.includes('/mail') || pathname.includes('/mcp')) {
+  if (
+    pathname.includes('/mail') ||
+    pathname.includes('/mcp') ||
+    pathname.includes('/tasks')
+  ) {
     return 'mailbox';
   }
   return 'intelligence';

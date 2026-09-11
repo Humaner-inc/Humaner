@@ -6,6 +6,7 @@ import {
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
+import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
@@ -44,10 +45,7 @@ export default async function InboxArchivePage(): Promise<React.JSX.Element> {
           <MailThreadList
             threads={threads}
             tags={tags}
-            members={members.map((member) => ({
-              id: member.id,
-              name: member.name
-            }))}
+            members={members.map(toAssigneePerson)}
             archivedView
           />
         ) : (
