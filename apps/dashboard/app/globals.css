@@ -187,7 +187,7 @@
   }
 
   ::selection {
-    background-color: rgb(224 225 223 / 0.35);
+    background-color: rgb(34 82 188 / 0.28);
     color: inherit;
   }
 
@@ -436,7 +436,15 @@ input[type='password'],
   animation: auth-input-highlight 0.55s ease-out;
 }
 
-/* Onboarding input autofill — prevent blue browser fill */
+/* Onboarding input autofill — prevent blue/grey browser fill */
+.onboarding-root:not([data-onboarding-appearance='light']):not([data-onboarding-appearance='acme'])
+  :is(input, textarea):-webkit-autofill,
+.onboarding-root:not([data-onboarding-appearance='light']):not([data-onboarding-appearance='acme'])
+  :is(input, textarea):-webkit-autofill:hover,
+.onboarding-root:not([data-onboarding-appearance='light']):not([data-onboarding-appearance='acme'])
+  :is(input, textarea):-webkit-autofill:focus,
+.onboarding-root:not([data-onboarding-appearance='light']):not([data-onboarding-appearance='acme'])
+  :is(input, textarea):-webkit-autofill:active,
 .onboarding-input:-webkit-autofill,
 .onboarding-input:-webkit-autofill:hover,
 .onboarding-input:-webkit-autofill:focus,
@@ -446,6 +454,22 @@ input[type='password'],
   -webkit-text-fill-color: #0A0D0D !important;
   caret-color: #0A0D0D;
   transition: background-color 99999s ease-out 0s;
+}
+
+.onboarding-root:not([data-onboarding-appearance='acme']) .highlighted-text-field {
+  --highlighted-field-accent-selection: rgb(34 82 188 / 0.35);
+}
+
+.onboarding-root:not([data-onboarding-appearance='acme'])
+  :is(input, textarea)::selection {
+  background-color: #2252bc;
+  color: #ffffff;
+}
+
+.onboarding-root:not([data-onboarding-appearance='acme'])
+  :is(input, textarea)::-moz-selection {
+  background-color: #2252bc;
+  color: #ffffff;
 }
 
 /* Highlighted URL field — keep input text transparent (mirror renders visible glyphs) */

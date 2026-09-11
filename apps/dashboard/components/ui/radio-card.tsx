@@ -2,9 +2,10 @@ import * as React from 'react';
 import { CheckIcon } from '@humaner/shared/icons';
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
 
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
-const ossRadius = 'rounded-md';
+const ossRadius = dashboardRadiusClassName;
 
 export type RadioCardsElement = React.ElementRef<
   typeof RadioGroupPrimitive.Root

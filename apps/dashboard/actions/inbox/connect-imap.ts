@@ -60,6 +60,7 @@ export const connectImap = ownerActionClient
       select: {
         tier: true,
         includedMessages: true,
+        completedOnboarding: true,
         _count: { select: { mailboxConnections: true } }
       }
     });
@@ -72,11 +73,16 @@ export const connectImap = ownerActionClient
       organization.tier,
       organization.includedMessages
     );
-    if (inboxLimit <= 0) {
+    const onboardingConnect = !organization.completedOnboarding;
+    if (!onboardingConnect && inboxLimit <= 0) {
       throw new PreConditionError(
         'Collaborative mailbox requires Custom or Humaner'
       );
     }
+
+    const effectiveLimit = onboardingConnect
+      ? Math.max(inboxLimit, 1)
+      : inboxLimit;
 
     const { primary, endpoints } =
       await buildValidatedMailEndpoints(parsedInput);
@@ -106,10 +112,10 @@ export const connectImap = ownerActionClient
       );
     }
 
-    const remaining = inboxLimit - organization._count.mailboxConnections;
+    const remaining = effectiveLimit - organization._count.mailboxConnections;
     if (remaining <= 0) {
       throw new ValidationError(
-        `This plan allows ${inboxLimit} connected mailbox${inboxLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
+        `This plan allows ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
       );
     }
 
@@ -171,9 +177,9 @@ export const connectImap = ownerActionClient
             where: { organizationId }
           });
 
-          if (currentConnectionCount >= inboxLimit) {
+          if (currentConnectionCount >= effectiveLimit) {
             throw new ValidationError(
-              `This plan allows ${inboxLimit} connected mailbox${inboxLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
+              `This plan allows ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
             );
           }
 

@@ -27,7 +27,7 @@ export const authSurfaceClassName = oss
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-[#eaeaea] bg-white text-[#0A0D0D] shadow-none placeholder:text-[#18181b]/45 selection:bg-[#0A0D0D]/15 selection:text-[#0A0D0D] focus-visible:border-[#0A0D0D] focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20'
-  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#e0e1df]/15 selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
+  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
 
 export const authInputAdornmentClassName = oss
   ? 'text-[#18181b]/55'
@@ -139,7 +139,7 @@ export const onboardingSurfaceClassName = oss
 
 export const onboardingInputClassName = oss
   ? authInputClassName
-  : 'h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-white text-[#0A0D0D] text-sm shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#e0e1df]/12 selection:text-[#0A0D0D] focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
+  : 'onboarding-input h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-white text-[#0A0D0D] text-sm shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
 
 export const onboardingLabelClassName = oss
   ? authLabelClassName

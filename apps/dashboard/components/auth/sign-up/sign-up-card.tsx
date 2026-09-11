@@ -53,7 +53,7 @@ import {
 } from '@/schemas/auth/sign-up-schema';
 
 const pillButtonClassNameCloud =
-  'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
+  'relative min-h-9 flex-1 rounded-md border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
 
 const pillButtonClassNameOss =
   'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 sm:min-h-10';
@@ -170,7 +170,7 @@ export function SignUpCard({
   const inputClassName = cn(
     authInputClassName,
     inverted &&
-      'border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] placeholder:text-[#0A0D0D]/35 selection:text-[#0A0D0D]'
+      'border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white'
   );
   const primaryButtonClassName = inverted
     ? `${ctaPrimaryOnLightClassName} h-11 w-full`
@@ -214,8 +214,8 @@ export function SignUpCard({
           oss
             ? 'flex gap-1 rounded-[0.5rem] border border-[#eaeaea] bg-[#f2f2f2] p-1'
             : inverted
-              ? 'flex rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04]'
-              : 'flex rounded-lg border border-white/[0.08] bg-white/[0.04]'
+              ? 'flex gap-1 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04] p-1'
+              : 'flex gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] p-1'
         }
         role="group"
         aria-label="Account type"
@@ -225,23 +225,13 @@ export function SignUpCard({
             { value: 'business_owner', label: 'Business owner' },
             { value: 'team_member', label: 'Team member' }
           ] as const
-        ).map((option, index) => {
+        ).map((option) => {
           const selected = intent === option.value;
           const disabled =
             lockIntent ||
             (Boolean(invitationId) && option.value === 'business_owner');
           return (
             <React.Fragment key={option.value}>
-              {index > 0 && !oss ? (
-                <div
-                  className={
-                    inverted
-                      ? 'w-px shrink-0 bg-[#0A0D0D]/[0.08]'
-                      : 'w-px shrink-0 bg-white/[0.08]'
-                  }
-                  aria-hidden
-                />
-              ) : null}
               <button
                 type="button"
                 disabled={disabled}

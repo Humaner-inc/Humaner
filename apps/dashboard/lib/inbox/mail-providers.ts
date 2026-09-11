@@ -1,4 +1,5 @@
 export type MailProviderCategory =
+  | 'google'
   | 'business'
   | 'european'
   | 'hosting'
@@ -28,6 +29,7 @@ export const MAIL_PROVIDER_CATEGORY_LABELS: Record<
   MailProviderCategory,
   string
 > = {
+  google: 'Google',
   business: 'Business mail suites',
   european: 'European hosts',
   hosting: 'Web hosting email',
@@ -37,6 +39,23 @@ export const MAIL_PROVIDER_CATEGORY_LABELS: Record<
 
 /** Curated IMAP/SMTP presets for common business mail hosts. */
 export const MAIL_PROVIDERS: MailProviderDefinition[] = [
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    logoDomain: 'gmail.com',
+    category: 'google',
+    imapAvailable: false,
+    oauthAvailable: true
+  },
+  {
+    id: 'google-workspace',
+    name: 'Google Workspace',
+    logoDomain: 'google.com',
+    category: 'google',
+    imapAvailable: false,
+    oauthAvailable: true
+  },
+
   // Business suites
   {
     id: 'zoho',
@@ -180,22 +199,6 @@ export const MAIL_PROVIDERS: MailProviderDefinition[] = [
     smtpHost: 'secure.emailsrvr.com',
     smtpPort: 465,
     imapAvailable: true
-  },
-  {
-    id: 'google-workspace',
-    name: 'Google Workspace',
-    logoDomain: 'google.com',
-    category: 'business',
-    imapAvailable: false,
-    oauthAvailable: true
-  },
-  {
-    id: 'gmail',
-    name: 'Gmail',
-    logoDomain: 'gmail.com',
-    category: 'consumer',
-    imapAvailable: false,
-    oauthAvailable: true
   },
   {
     id: 'microsoft-365',
@@ -573,6 +576,7 @@ export function getMailProvidersGrouped(): Array<{
   providers: MailProviderDefinition[];
 }> {
   const order: MailProviderCategory[] = [
+    'google',
     'business',
     'european',
     'hosting',
