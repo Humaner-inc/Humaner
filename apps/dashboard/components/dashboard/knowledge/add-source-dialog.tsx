@@ -78,7 +78,7 @@ const sourceTypeButtonClassName = cn(
 );
 
 const sourceTypeButtonSelectedClassName = cn(
-  'inline-flex w-full items-center justify-center rounded-none border border-transparent bg-[#0A0D0D] text-[#fcf4ec] transition-[color,background-color,border-color] duration-200 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
+  'inline-flex w-full items-center justify-center rounded-[16px] border border-transparent bg-[#0A0D0D] text-[#fcf4ec] transition-[color,background-color,border-color] duration-200 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
   sourceTypeButtonSizeClassName
 );
 

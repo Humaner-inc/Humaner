@@ -6,10 +6,7 @@ import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
-import {
-  InboxListHeader,
-  type InboxListFilter
-} from '@/components/dashboard/inbox/inbox-list-header';
+import { type InboxListFilter } from '@/components/dashboard/inbox/inbox-list-header';
 import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import {
@@ -18,9 +15,7 @@ import {
   getMailThreads
 } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
-import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
-import { cn } from '@/lib/utils';
 
 function parseFilter(value: string | undefined): InboxListFilter {
   if (value === 'unread' || value === 'open' || value === 'pending') {
@@ -119,33 +114,6 @@ async function InboxAllPageContent({
 
   const activeTagId =
     tagParam && tags.some((tag) => tag.id === tagParam) ? tagParam : null;
-
-  if (threads.length === 0) {
-    return (
-      <div
-        className={cn(
-          '-m-6 flex min-h-0 flex-col overflow-hidden md:-m-8',
-          DASHBOARD_FULL_BLEED_HEIGHT_CLASS
-        )}
-      >
-        <div className="shrink-0 border-b border-border/50 px-4 py-3">
-          <InboxListHeader
-            activeFilter={activeFilter}
-            activeTagId={activeTagId}
-            activeMailboxId={activeMailboxId}
-            tags={tags}
-          />
-        </div>
-        <div className="min-h-0 flex-1 overflow-auto p-6">
-          <InboxOptionalEmptyState
-            title="No threads yet"
-            description="Sync to import recent messages for this inbox."
-            showConnect={false}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <InboxAllMailList

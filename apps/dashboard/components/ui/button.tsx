@@ -6,7 +6,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import {
   dashboardCtaRadiusClassName,
-  dashboardRadiusClassName
+  dashboardRadiusClassName,
+  dashboardSecondaryRadiusClassName
 } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
@@ -32,8 +33,18 @@ const cloudOutlineClasses = cn(
   dashboardCtaCaseClassName
 );
 
-/** CTAs stay square; other variants inherit `--radius` via rounded-md. */
+/** Invert of `default` — same chrome, background fill instead of foreground. */
+const cloudBackgroundCtaClasses = cn(
+  dashboardCtaCaseClassName,
+  'border border-[#0A0D0D]/15 bg-[#fcf4ec] font-mono text-xs font-medium uppercase tracking-wider text-[#0A0D0D]',
+  'hover:bg-[#0A0D0D]/[0.04] hover:text-[#0A0D0D]',
+  'dark:border-white/20 dark:bg-[#0A0D0D] dark:text-[#fcf4ec]',
+  'dark:hover:border-white/40 dark:hover:bg-white/[0.06] dark:hover:text-[#fcf4ec]'
+);
+
+/** Primary and inverted CTAs share 16px; quiet secondary stays 14px. */
 const ctaRadius = dashboardCtaRadiusClassName;
+const secondaryRadius = dashboardSecondaryRadiusClassName;
 
 /** Self-Host — zinc; explicit rem radii. */
 const ossRadius = 'rounded-[0.5rem]';
@@ -63,15 +74,25 @@ const buttonVariants = cva(
         default: oss
           ? ossNeutralCtaClasses
           : cn(cloudNeutralCtaClasses, ctaRadius),
+        background: oss
+          ? ossUpgradeCtaClasses
+          : cn(cloudBackgroundCtaClasses, ctaRadius),
         upgrade: oss
           ? ossUpgradeCtaClasses
           : cn(cloudUpgradeCtaClasses, ctaRadius),
-        accent: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-        destructive:
+        accent: cn(
+          'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+          oss ? null : ctaRadius
+        ),
+        destructive: cn(
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-        outline: oss ? ossOutlineClasses : cloudOutlineClasses,
-        secondary:
+          oss ? null : secondaryRadius
+        ),
+        outline: oss ? ossOutlineClasses : cn(cloudOutlineClasses, ctaRadius),
+        secondary: cn(
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
+          oss ? null : secondaryRadius
+        ),
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-foreground underline-offset-4 hover:underline'
       },

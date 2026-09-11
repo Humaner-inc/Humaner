@@ -22,7 +22,7 @@ export function ChatPlainSendButton({
       disabled={disabled}
       aria-label="Send message"
       className={cn(
-        'mb-0.5 flex size-7 shrink-0 items-center justify-center rounded-sm transition-colors hover:bg-white/10 disabled:opacity-30',
+        'flex size-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-white/10 disabled:opacity-30',
         className
       )}
       style={{ color }}

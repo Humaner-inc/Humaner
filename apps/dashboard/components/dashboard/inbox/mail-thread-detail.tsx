@@ -34,7 +34,6 @@ import {
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
-import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
 import { MailThreadNotesPanel } from '@/components/dashboard/inbox/mail-thread-notes-panel';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -523,12 +522,19 @@ export function MailThreadDetail({
   const senderAddress =
     firstInbound?.fromAddress ?? latestInbound?.fromAddress ?? null;
   const senderMatch = senderAddress?.match(/^(.*?)\s*<([^>]+)>$/);
-  const senderLabel = (
+  const senderName = senderMatch?.[1]?.trim() || null;
+  const senderEmail = (
     senderMatch?.[2]?.trim() ||
     senderMatch?.[1]?.trim() ||
     senderAddress ||
     'Unknown sender'
   ).trim();
+  const senderLabel = senderName
+    ? `${senderName} · ${senderEmail}`
+    : senderEmail;
+  const senderDomain = senderEmail.includes('@')
+    ? senderEmail.slice(senderEmail.lastIndexOf('@') + 1).toLowerCase()
+    : null;
   const toName =
     senderMatch?.[1]?.trim() ||
     senderMatch?.[2]?.trim() ||
@@ -597,45 +603,54 @@ export function MailThreadDetail({
     >
       <header
         className={cn(
-          'flex shrink-0 items-center gap-3 border-b border-border bg-background',
-          embedded
-            ? cn(MAIL_SPLIT_ROW_HEIGHT_CLASS, 'px-4 sm:px-5')
-            : 'px-4 py-3 sm:px-5'
+          'flex shrink-0 items-start gap-3 border-b border-border bg-background px-5 py-4'
         )}
       >
+        <Avatar className="size-9 shrink-0 rounded-md">
+          {senderDomain ? (
+            <AvatarImage
+              src={getLogoUrl(senderDomain, 64, true)}
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          ) : null}
+          <AvatarFallback className="rounded-md text-[11px] font-medium">
+            {getInitials(senderName || senderEmail)}
+          </AvatarFallback>
+        </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
+            <h1 className="min-w-0 truncate font-display text-lg font-normal tracking-tight">
+              {thread.subject || '(no subject)'}
+            </h1>
+            {thread.tag ? (
+              <span
+                className="size-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: thread.tag.color }}
+                title={thread.tag.name}
+                aria-label={thread.tag.name}
+              />
+            ) : null}
             <span
               className="shrink-0"
               title={mailThreadStatusLabel(thread.status)}
             >
               <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
             </span>
-            <h1
-              className={cn(
-                'min-w-0 truncate font-fellix font-semibold tracking-tight',
-                embedded ? 'text-base leading-5' : 'text-xl sm:text-2xl'
-              )}
-            >
-              {thread.subject || '(no subject)'}
-            </h1>
-            {thread.tag ? (
-              <span
-                className="size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: thread.tag.color }}
-                title={thread.tag.name}
-                aria-label={thread.tag.name}
-              />
-            ) : null}
           </div>
-          {!embedded ? (
-            <p className="mt-1 truncate pl-[1.375rem] font-info text-xs text-muted-foreground">
-              {senderLabel}
-            </p>
-          ) : null}
+          <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+            {senderLabel}
+          </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
+          {thread.isUnread ? (
+            <span
+              className="mr-1 size-1.5 rounded-full bg-[#2252bc]"
+              title="Unread"
+            />
+          ) : null}
           <Button
             type="button"
             variant="ghost"
@@ -736,7 +751,7 @@ export function MailThreadDetail({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 rounded-none px-2 font-mono text-[10px]"
+            className="h-8 px-2 font-mono text-[10px]"
             title="Create task"
             disabled={creatingTask}
             onClick={() => createTask({ threadId: thread.id })}
@@ -811,7 +826,7 @@ export function MailThreadDetail({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-9 rounded-none px-4 font-mono"
+                    className="h-9 px-4 font-mono"
                     onClick={discardSuggestions}
                   >
                     Cancel
@@ -842,7 +857,7 @@ export function MailThreadDetail({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 rounded-none px-4 font-mono"
+                        className="h-9 px-4 font-mono"
                         disabled={loadingSuggestions}
                         onClick={suggestAgain}
                       >
@@ -852,7 +867,7 @@ export function MailThreadDetail({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 rounded-none px-4 font-mono"
+                        className="h-9 px-4 font-mono"
                         onClick={discardSuggestions}
                       >
                         Cancel
@@ -955,7 +970,7 @@ export function MailThreadDetail({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-9 rounded-none px-4 font-mono"
+                    className="h-9 px-4 font-mono"
                     onClick={suggestAgain}
                   >
                     Suggest again
@@ -975,7 +990,7 @@ export function MailThreadDetail({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-none px-4 font-mono"
+                  className="h-9 px-4 font-mono"
                   disabled={sendPhase !== 'idle'}
                   onClick={() => setComposerOpen(false)}
                 >
@@ -984,7 +999,7 @@ export function MailThreadDetail({
                 <Button
                   type="button"
                   size="sm"
-                  className="h-9 min-w-[7.5rem] rounded-none px-4 font-mono"
+                  className="h-9 min-w-[7.5rem] px-4 font-mono"
                   disabled={
                     sendPhase === 'sending' ||
                     (sendPhase === 'idle' && body.trim().length === 0)
@@ -1016,9 +1031,9 @@ export function MailThreadDetail({
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="background"
                   size="sm"
-                  className="h-9 gap-2 bg-background px-4"
+                  className="h-9 gap-2 px-4"
                   onClick={openReply}
                 >
                   <ArrowRightIcon className="size-3.5 rotate-180" />
@@ -1026,9 +1041,9 @@ export function MailThreadDetail({
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="background"
                   size="sm"
-                  className="h-9 gap-2 bg-background px-4"
+                  className="h-9 gap-2 px-4"
                   onClick={() => {
                     toast.message('Forward is coming soon');
                   }}
@@ -1040,9 +1055,9 @@ export function MailThreadDetail({
               {!suggesting ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="background"
                   size="sm"
-                  className="ml-auto h-9 gap-2 bg-background px-4"
+                  className="ml-auto h-9 gap-2 px-4"
                   onClick={suggestAgain}
                 >
                   <SkillzCubeLoader size={18} />

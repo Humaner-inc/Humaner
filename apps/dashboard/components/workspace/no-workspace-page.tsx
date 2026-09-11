@@ -48,7 +48,7 @@ type RequestAccessSchema = z.infer<typeof requestAccessSchema>;
 type DayPeriod = 'morning' | 'afternoon' | 'evening';
 
 const pillButtonClassName =
-  'relative min-h-9 flex-1 rounded-none border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
+  'relative min-h-9 flex-1 rounded-[14px] border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
 
 const glassCardClassName =
   'relative overflow-hidden rounded-lg border border-white/[0.12] bg-muted/20 text-[#fcf4ec] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)]';

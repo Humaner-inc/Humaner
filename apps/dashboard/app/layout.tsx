@@ -51,7 +51,18 @@ export const metadata: Metadata = {
   },
   description,
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    icon: [
+      {
+        url: '/brandmark-dark.svg',
+        type: 'image/svg+xml',
+        media: '(prefers-color-scheme: light)'
+      },
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+        media: '(prefers-color-scheme: dark)'
+      }
+    ],
     shortcut: '/favicon.svg',
     apple: '/favicon.svg'
   },

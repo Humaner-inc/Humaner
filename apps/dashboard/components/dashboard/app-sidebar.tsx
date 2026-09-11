@@ -71,7 +71,7 @@ export function AppSidebar({
           ) : (
             <HumanerBrandTitle
               name={appName}
-              className="min-w-0"
+              className="min-w-0 justify-center"
               wordmarkClassName="truncate text-center font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
             />
           )}

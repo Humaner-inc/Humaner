@@ -1,10 +1,10 @@
 /** Primary product line — browser title, OG titles, hero, and positioning. */
-export const HUMANER_TITLE = "The mailbox for humans and agents.";
+export const HUMANER_TITLE = "The agentic mailbox, for humans.";
 
 export const HUMANER_TAGLINE = HUMANER_TITLE;
 
 export const HUMANER_META_DESCRIPTION =
-  "Connect every inbox into one collaborative mailbox. Manage and run everything with your team and Companion (the Humaner agent trained for support). Or bring your own agent into the mix. ";
+  "Connect every inbox into one collaborative mailbox. Work it with your team and Companion — or point your own agent at the same mailbox over MCP.";
 
 export const HUMANER_ELEVATOR_PITCH = HUMANER_META_DESCRIPTION;
 

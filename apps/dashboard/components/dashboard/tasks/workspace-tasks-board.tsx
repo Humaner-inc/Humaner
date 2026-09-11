@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { InfoIcon } from '@humaner/shared/icons';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -9,8 +10,22 @@ import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
 import { updateHandoffTicketStatus } from '@/actions/handoff/update-handoff-ticket-status';
 import { createWorkspaceTask } from '@/actions/tasks/create-workspace-task';
 import { AssigneePicker } from '@/components/dashboard/assignee-options';
+import { ticketStatusToGlyph } from '@/components/dashboard/desk/desk-ticket-preview-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { StatusGlyph } from '@/components/ui/status-glyph';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import type {
   HandoffTeamMember,
   HandoffTicketItem
@@ -20,14 +35,30 @@ import type { WorkHoursDto } from '@/types/dtos/work-hours-dto';
 import { HandoffTicketStatus } from '@/types/handoff-ticket';
 
 const COLUMNS = [
-  { id: 'OPEN', label: 'Open', status: HandoffTicketStatus.OPEN },
+  {
+    id: 'OPEN',
+    label: 'Open',
+    status: HandoffTicketStatus.OPEN,
+    glyph: 'open' as const
+  },
   {
     id: 'IN_PROGRESS',
     label: 'In progress',
-    status: HandoffTicketStatus.IN_PROGRESS
+    status: HandoffTicketStatus.IN_PROGRESS,
+    glyph: 'progress' as const
   },
-  { id: 'RESOLVED', label: 'Done', status: HandoffTicketStatus.RESOLVED }
+  {
+    id: 'RESOLVED',
+    label: 'Done',
+    status: HandoffTicketStatus.RESOLVED,
+    glyph: 'resolved' as const
+  }
 ] as const;
+
+const STATUS_OPTIONS = COLUMNS.map((column) => ({
+  value: column.status,
+  label: column.label
+}));
 
 const DAY_LABELS: Record<string, string> = {
   SUNDAY: 'Sun',
@@ -127,10 +158,24 @@ export function WorkspaceTasksBoard({
             <h1 className="page-title">Tasks</h1>
             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
               Create team, support, or reply work and assign it against working
-              hours.
-            </p>
-            <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              {formatWorkingHours(businessHours)}
+              hours.{' '}
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex align-text-bottom text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label="Working hours for today"
+                  >
+                    <InfoIcon className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="max-w-xs text-xs leading-relaxed"
+                >
+                  {formatWorkingHours(businessHours)}
+                </TooltipContent>
+              </Tooltip>
             </p>
           </div>
         </div>
@@ -151,11 +196,13 @@ export function WorkspaceTasksBoard({
             onChange={(event) => setSubject(event.target.value)}
             placeholder="Task title"
             required
+            className="h-10 rounded-cta"
           />
           <Input
             value={summary}
             onChange={(event) => setSummary(event.target.value)}
             placeholder="Associated thread or note"
+            className="h-10 rounded-cta"
           />
           <AssigneePicker
             members={teamMembers}
@@ -168,7 +215,7 @@ export function WorkspaceTasksBoard({
           <Button
             type="submit"
             disabled={isCreating || !subject.trim()}
-            className="rounded-lg"
+            className="h-10"
           >
             Create task
           </Button>
@@ -183,7 +230,8 @@ export function WorkspaceTasksBoard({
               className="flex min-h-72 flex-col border border-border/60"
             >
               <header className="flex items-center justify-between border-b border-border/50 px-3 py-2">
-                <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                <h2 className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <StatusGlyph kind={column.glyph} />
                   {column.label}
                 </h2>
                 <span className="font-mono text-[11px] text-muted-foreground">
@@ -207,7 +255,7 @@ export function WorkspaceTasksBoard({
                         {ticket.summary}
                       </p>
                     ) : null}
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-1">
                       <AssigneePicker
                         members={teamMembers}
                         value={ticket.assignee?.id ?? null}
@@ -222,29 +270,43 @@ export function WorkspaceTasksBoard({
                           })
                         }
                       />
-                      <select
+                      <Select
                         value={
                           ticket.status === 'CLOSED'
                             ? HandoffTicketStatus.RESOLVED
                             : ticket.status
                         }
-                        onChange={(event) =>
+                        onValueChange={(next) =>
                           updateStatus({
                             id: ticket.id,
-                            status: event.target
-                              .value as (typeof HandoffTicketStatus)[keyof typeof HandoffTicketStatus]
+                            status:
+                              next as (typeof HandoffTicketStatus)[keyof typeof HandoffTicketStatus]
                           })
                         }
-                        className="h-8 border border-input bg-transparent px-2 text-xs outline-none"
                       >
-                        <option value={HandoffTicketStatus.OPEN}>Open</option>
-                        <option value={HandoffTicketStatus.IN_PROGRESS}>
-                          In progress
-                        </option>
-                        <option value={HandoffTicketStatus.RESOLVED}>
-                          Done
-                        </option>
-                      </select>
+                        <SelectTrigger className="h-7 min-h-7 w-40 shrink-0 items-center gap-1.5 rounded-lg py-0 text-xs leading-none [&>span]:flex [&>span]:h-full [&>span]:items-center [&>span]:gap-1.5 [&>span]:whitespace-nowrap [&>span]:leading-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value}
+                              textValue={option.label}
+                              className="items-center py-1.5 text-xs leading-none"
+                            >
+                              <span className="inline-flex h-4 items-center gap-1.5 whitespace-nowrap leading-none">
+                                <StatusGlyph
+                                  kind={ticketStatusToGlyph(option.value)}
+                                />
+                                <span className="leading-none">
+                                  {option.label}
+                                </span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </li>
                 ))}

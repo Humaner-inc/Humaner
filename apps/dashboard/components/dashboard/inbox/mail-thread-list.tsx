@@ -24,12 +24,13 @@ import {
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
 import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
+import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
+import { ComposeMailPanel } from '@/components/dashboard/inbox/compose-mail-panel';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
-import { MAIL_SPLIT_ROW_HEIGHT_CLASS } from '@/components/dashboard/inbox/mail-split-layout';
 import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -63,9 +64,8 @@ import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#2252bc';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
-  'h-8 rounded-none font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
+  'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
 
 function senderDomain(email: string | null): string | null {
@@ -81,29 +81,6 @@ function senderLabel(thread: MailThreadListItem): string {
 
 function stopRowEvent(event: React.SyntheticEvent): void {
   event.stopPropagation();
-}
-
-function ReadCircle({
-  unread,
-  color
-}: {
-  unread: boolean;
-  color: string;
-}): React.JSX.Element {
-  return (
-    <span
-      className="size-2.5 shrink-0 rounded-full"
-      style={
-        unread
-          ? { backgroundColor: color }
-          : {
-              boxShadow: `inset 0 0 0 1.5px ${color}`,
-              backgroundColor: 'transparent'
-            }
-      }
-      aria-hidden
-    />
-  );
 }
 
 export type MailListSelectionApi = {
@@ -143,6 +120,8 @@ export function MailThreadList({
   variant?: 'card' | 'desk';
 }): React.JSX.Element {
   const router = useRouter();
+  const isDesk = variant === 'desk';
+  const { composeOpen, composeInPanel, closeCompose } = useComposeMail();
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
     null
   );
@@ -156,6 +135,8 @@ export function MailThreadList({
   React.useEffect(() => {
     activeThreadIdRef.current = activeThreadId;
   }, [activeThreadId]);
+
+  const showComposePanel = composeOpen && composeInPanel && isDesk;
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
     () => new Set()
   );
@@ -297,6 +278,7 @@ export function MailThreadList({
 
   const selectThread = React.useCallback(
     (threadId: string) => {
+      closeCompose();
       activeThreadIdRef.current = threadId;
       setActiveThreadId(threadId);
       const cached = detailCacheRef.current.get(threadId);
@@ -311,7 +293,7 @@ export function MailThreadList({
       if (prefetchingRef.current.has(threadId)) return;
       requestThread(threadId);
     },
-    [markThreadOpened, requestThread]
+    [closeCompose, markThreadOpened, requestThread]
   );
 
   React.useEffect(() => {
@@ -598,7 +580,6 @@ export function MailThreadList({
     archivedView
   };
 
-  const isDesk = variant === 'desk';
   const selectionActive = selectMode || selectedIds.size > 0;
 
   const threadRows = displayThreads.map((thread, index) => {
@@ -685,7 +666,13 @@ export function MailThreadList({
             </span>
           </li>
         ) : null}
-        {threadRows}
+        {threadRows.length === 0 ? (
+          <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+            Nothing in this inbox yet.
+          </li>
+        ) : (
+          threadRows
+        )}
       </ul>
     </div>
   ) : (
@@ -705,7 +692,13 @@ export function MailThreadList({
           </span>
         </li>
       ) : null}
-      {threadRows}
+      {threadRows.length === 0 ? (
+        <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+          Nothing in this inbox yet.
+        </li>
+      ) : (
+        threadRows
+      )}
     </ul>
   );
 
@@ -714,7 +707,9 @@ export function MailThreadList({
     activeThreadId != null &&
     paneThread.id === activeThreadId;
 
-  const readingPane = (
+  const readingPane = showComposePanel ? (
+    <ComposeMailPanel />
+  ) : (
     <div
       className={cn(
         'flex h-full min-h-0 flex-col overflow-hidden bg-background',
@@ -762,7 +757,7 @@ export function MailThreadList({
 
   const deskSplitFallback = (
     <div className="flex size-full min-h-0">
-      <div className="h-full w-[24%] min-w-[18%] max-w-[34%] shrink-0 border-r border-border/50">
+      <div className="h-full w-[42%] min-w-[16rem] max-w-[50%] shrink-0 border-r border-border/50">
         {listPanel}
       </div>
       <div className="h-full min-h-0 min-w-0 flex-1 bg-background">
@@ -791,9 +786,9 @@ export function MailThreadList({
           >
             <ResizablePanel
               id="inbox-desk-list"
-              defaultSize={24}
-              minSize={18}
-              maxSize={34}
+              defaultSize={42}
+              minSize={28}
+              maxSize={50}
             >
               <div className="h-full border-r border-border/50">
                 {listPanel}
@@ -802,7 +797,7 @@ export function MailThreadList({
             <ResizableHandle className="w-px bg-border/50 transition-colors hover:bg-border" />
             <ResizablePanel
               id="inbox-desk-reading"
-              defaultSize={76}
+              defaultSize={58}
             >
               <div className="h-full min-h-0 bg-background">{readingPane}</div>
             </ResizablePanel>
@@ -812,7 +807,7 @@ export function MailThreadList({
         )}
       </div>
       <div className="w-full md:hidden">
-        {paneMatches ? (
+        {showComposePanel || paneMatches ? (
           <div className="h-full min-h-0 bg-background">{readingPane}</div>
         ) : (
           <div className="h-full border-r border-border/50">{listPanel}</div>
@@ -923,7 +918,7 @@ function MailBulkActionBar({
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 rounded-none font-mono text-[10px]"
+              className="h-8 font-mono text-[10px]"
             >
               Label
             </Button>
@@ -953,7 +948,7 @@ function MailBulkActionBar({
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 rounded-none font-mono text-[10px]"
+            className="h-8 font-mono text-[10px]"
           >
             Assign
           </Button>
@@ -971,7 +966,7 @@ function MailBulkActionBar({
         type="button"
         variant="outline"
         size="sm"
-        className="h-8 rounded-none font-mono text-[10px]"
+        className="h-8 font-mono text-[10px]"
         onClick={selection.archiveSelected}
       >
         {selection.archivedView ? 'Move to inbox' : 'Archive'}
@@ -1027,7 +1022,6 @@ function MailThreadRow({
   const router = useRouter();
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
-  const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
   const applicableTags = tagsForAlias(tags, thread.aliasId);
@@ -1073,22 +1067,15 @@ function MailThreadRow({
   return (
     <li
       className={cn(
-        'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_4.5rem]',
-        MAIL_SPLIT_ROW_HEIGHT_CLASS,
-        localUnread
-          ? 'bg-sky-50/80 dark:bg-sky-950/25'
-          : 'bg-[color-mix(in_srgb,var(--frame,#18181b)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#18181b)_16%,transparent)]',
-        previewActive &&
-          (localUnread
-            ? 'bg-sky-100/90 dark:bg-sky-950/40'
-            : 'bg-[color-mix(in_srgb,var(--frame,#18181b)_18%,transparent)] dark:bg-[color-mix(in_srgb,var(--frame,#18181b)_24%,transparent)]'),
+        'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
+        previewActive && 'bg-foreground/[0.06]',
         selected && 'bg-foreground/[0.04]'
       )}
     >
       <div
         role="button"
         tabIndex={0}
-        className="mx-1 my-0.5 flex h-[calc(100%-0.25rem)] cursor-pointer items-center gap-3 rounded-lg px-3 py-3.5 pr-[6.5rem] transition-colors hover:bg-foreground/[0.03] sm:px-4 sm:pr-28"
+        className="flex cursor-pointer items-start gap-3 px-3 py-3 pr-16 text-left transition-colors hover:bg-foreground/[0.04] sm:px-3"
         onClick={handleRowClick}
         onMouseEnter={onPrefetch}
         onFocus={onPrefetch}
@@ -1113,7 +1100,7 @@ function MailThreadRow({
       >
         {showCheckboxes ? (
           <div
-            className="shrink-0"
+            className="mt-1.5 shrink-0"
             data-no-pull
             onClick={stopRowEvent}
             onPointerDown={stopRowEvent}
@@ -1127,7 +1114,7 @@ function MailThreadRow({
           </div>
         ) : null}
 
-        <Avatar className="size-9 shrink-0">
+        <Avatar className="mt-0.5 size-7 shrink-0 rounded-md">
           {domain ? (
             <AvatarImage
               src={getLogoUrl(domain, 64, true)}
@@ -1136,59 +1123,68 @@ function MailThreadRow({
               decoding="async"
             />
           ) : null}
-          <AvatarFallback className="text-[10px] font-medium">
+          <AvatarFallback className="rounded-md text-[10px] font-medium">
             {getInitials(label)}
           </AvatarFallback>
         </Avatar>
 
-        <ReadCircle
-          unread={localUnread}
-          color={circleColor}
-        />
-
         <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p
+              className={cn(
+                'min-w-0 truncate text-[13px] leading-5',
+                localUnread
+                  ? 'font-semibold text-foreground'
+                  : 'text-foreground'
+              )}
+            >
+              {label}
+              {thread.tag ? (
+                <span
+                  className="ml-1.5 inline-block size-1.5 translate-y-[-1px] rounded-full"
+                  style={{ backgroundColor: thread.tag.color }}
+                  title={thread.tag.name}
+                />
+              ) : null}
+            </p>
+            <time
+              dateTime={thread.lastMessageAt}
+              suppressHydrationWarning
+              className="shrink-0 font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
+            >
+              {formatDistanceToNow(new Date(thread.lastMessageAt), {
+                addSuffix: true
+              })}
+            </time>
+          </div>
           <p
             className={cn(
-              'min-w-0 truncate pr-1 font-fellix text-sm leading-5 tracking-tight',
-              localUnread
-                ? 'font-semibold text-foreground'
-                : 'font-medium text-foreground/90'
+              'mt-0.5 min-w-0 truncate text-[12px] leading-4',
+              localUnread ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
-            {thread.subject}
-            <span className="font-info text-muted-foreground"> · {label}</span>
+            {thread.subject || '(no subject)'}
             {thread.messageCount > 1 ? (
               <span
-                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-lg bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
+                className="ml-1.5 inline-flex min-h-4 min-w-4 -translate-y-px items-center justify-center rounded-md bg-[#0A0D0D] px-1 align-middle font-mono text-[9px] font-normal leading-none text-white dark:bg-white dark:text-[#0A0D0D]"
                 title={`${thread.messageCount} emails`}
               >
                 {thread.messageCount > 99 ? '99+' : thread.messageCount}
               </span>
             ) : null}
           </p>
-
-          <p className="mt-0.5 min-w-0 truncate font-info text-xs leading-4 text-muted-foreground">
+          <p className="mt-0.5 min-w-0 truncate text-[11px] leading-4 text-muted-foreground">
             {thread.preview ?? 'No preview'}
           </p>
         </div>
       </div>
 
       <div
-        className="pointer-events-none absolute right-3 top-1/2 z-20 flex h-7 -translate-y-1/2 items-center sm:right-4"
+        className="pointer-events-none absolute right-3 top-3 z-20 flex h-7 items-center sm:right-3"
         data-no-pull
       >
-        <time
-          dateTime={thread.lastMessageAt}
-          suppressHydrationWarning
-          className="pointer-events-none font-info text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
-        >
-          {formatDistanceToNow(new Date(thread.lastMessageAt), {
-            addSuffix: true
-          })}
-        </time>
-
         <div
-          className="pointer-events-auto absolute right-0 top-0 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          className="pointer-events-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
           onClick={stopRowEvent}
           onPointerDown={stopRowEvent}
         >

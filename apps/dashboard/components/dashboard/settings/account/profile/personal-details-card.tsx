@@ -131,8 +131,8 @@ export function PersonalDetailsCard({
                   className="max-h-[120px] min-h-[120px] w-[120px] p-0.5"
                   disabled={methods.formState.isSubmitting}
                 >
-                  <Avatar className="size-28 rounded-none">
-                    <AvatarFallback className="size-28 rounded-none text-2xl">
+                  <Avatar className="size-28">
+                    <AvatarFallback className="size-28 text-2xl">
                       {name ? (
                         getInitials(name)
                       ) : (

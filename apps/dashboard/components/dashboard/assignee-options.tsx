@@ -6,6 +6,7 @@ import { CheckIcon, ChevronDownIcon } from '@humaner/shared/icons';
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
 import {
   ASSIGNEE_PANEL_PROPS,
+  AssigneeFace,
   Assignees,
   type AssigneePerson
 } from '@/components/ui/assignees';
@@ -153,21 +154,25 @@ export function AssigneePicker({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="outline"
+          variant="background"
           size="sm"
           disabled={disabled}
           className={cn(
-            compact
-              ? 'h-7 gap-1.5 rounded-lg px-1.5'
-              : 'h-10 gap-2 rounded-lg px-2',
+            'items-center justify-start font-normal normal-case tracking-normal leading-none',
+            compact ? 'h-7 gap-1.5 px-1.5' : 'h-10 gap-2 px-2',
             className
           )}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
         >
-          <AssigneeFaces people={selected ? [selected] : []} />
-          <span className="max-w-24 truncate">{label}</span>
-          <ChevronDownIcon className="size-3.5 shrink-0 opacity-50" />
+          <AssigneeFace
+            person={selected}
+            size={compact ? 20 : 24}
+          />
+          <span className="min-w-0 max-w-24 truncate leading-none">
+            {label}
+          </span>
+          <ChevronDownIcon className="ml-auto size-3.5 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

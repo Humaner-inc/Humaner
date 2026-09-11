@@ -19,7 +19,7 @@ export function ComposeMailButton({
   inboxes?: MailInboxOption[];
   defaultAliasId?: string | null;
   className?: string;
-  /** Open the dialog on mount (e.g. from ?compose=1). */
+  /** Open compose on mount (e.g. from ?compose=1). */
   autoOpen?: boolean;
 }): React.JSX.Element {
   const router = useRouter();
@@ -42,17 +42,14 @@ export function ComposeMailButton({
       type="button"
       size="sm"
       className={cn(
-        'h-9 gap-1.5 rounded-none px-3 font-mono text-[11px] normal-case tracking-normal',
-        // Force visible ink on cream (default CTA dark:text can lose to font styles).
-        'dark:bg-[#fcf4ec] dark:text-[#0A0D0D] dark:hover:bg-white dark:hover:text-[#0A0D0D]',
-        '[&_svg]:text-current',
+        'h-8 gap-1.5 px-3 font-mono text-[11px] normal-case tracking-normal',
         className
       )}
       disabled={inboxes.length === 0}
       onClick={() => openCompose(defaultAliasId)}
     >
       <PlusIcon className="size-3.5" />
-      Compose
+      New message
     </Button>
   );
 }

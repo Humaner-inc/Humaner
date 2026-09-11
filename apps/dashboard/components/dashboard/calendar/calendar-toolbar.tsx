@@ -27,7 +27,7 @@ import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
 import { cn } from '@/lib/utils';
 
 const TOOLBAR_BUTTON =
-  'h-9 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal';
+  'h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal';
 
 const VIEW_LABELS: Record<CalendarView, string> = {
   day: 'Day',

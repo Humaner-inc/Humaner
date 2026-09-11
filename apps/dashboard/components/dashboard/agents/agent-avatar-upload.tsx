@@ -165,7 +165,7 @@ export function AgentAvatarUpload({
           multiple={false}
           disabled={disabled}
           onDrop={handleDrop}
-          borderRadius="none"
+          borderRadius="lg"
           title="Upload image"
           className={cn(
             dropzoneSize,

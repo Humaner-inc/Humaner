@@ -13,7 +13,7 @@ export function ConnectedAccountsSkeletonCard(
         <div className="flex flex-col gap-4">
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-row items-center gap-4">
-              <Skeleton className="size-6 rounded-none" />
+              <Skeleton className="size-6 rounded-[12px]" />
               <div className="space-y-1">
                 <Skeleton className="h-5 w-16" />
                 <Skeleton className="h-4 w-[80px]" />
@@ -24,7 +24,7 @@ export function ConnectedAccountsSkeletonCard(
           <Separator />
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-row items-center gap-4">
-              <Skeleton className="size-6 rounded-none" />
+              <Skeleton className="size-6 rounded-[12px]" />
               <div className="space-y-1">
                 <Skeleton className="h-5 w-16" />
                 <Skeleton className="h-4 w-[80px]" />

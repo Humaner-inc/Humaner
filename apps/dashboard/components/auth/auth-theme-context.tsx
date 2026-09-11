@@ -121,10 +121,10 @@ export const authThemeDark = {
   radioCardCheck: onboardingRadioCardCheckClassName,
   outlineButton: cn(
     onboardingOutlineButtonClassName,
-    'rounded-none dark:!border-[#0A0D0D]/25 dark:!bg-transparent dark:!text-[#0A0D0D]/80',
+    'dark:!border-[#0A0D0D]/25 dark:!bg-transparent dark:!text-[#0A0D0D]/80',
     'dark:hover:!border-transparent dark:hover:!bg-[#0A0D0D] dark:hover:!text-[#fcf4ec]'
   ),
-  primaryButton: `${ctaPrimaryOnLightClassName} h-10 rounded-none px-4`,
+  primaryButton: `${ctaPrimaryOnLightClassName} h-10 px-4`,
   ghostButton: cn(
     onboardingGhostButtonClassName,
     'rounded-lg dark:!text-[#0A0D0D]/60 dark:hover:!bg-[#0A0D0D]/[0.04] dark:hover:!text-[#0A0D0D]'
@@ -198,10 +198,10 @@ export const authThemeLight = {
   radioCardCheck: onboardingRadioCardCheckClassNameInverted,
   outlineButton: cn(
     onboardingOutlineButtonClassNameInverted,
-    'rounded-none !border-white/20 !bg-transparent !text-white/80',
+    '!border-white/20 !bg-transparent !text-white/80',
     'hover:!border-transparent hover:!bg-[#fcf4ec] hover:!text-[#0A0D0D]'
   ),
-  primaryButton: `${ctaPrimaryClassName} h-10 rounded-none px-4`,
+  primaryButton: `${ctaPrimaryClassName} h-10 px-4`,
   ghostButton: cn(
     onboardingGhostButtonClassNameInverted,
     'rounded-lg !text-white/60 hover:!bg-white/[0.04] hover:!text-[#fcf4ec]'

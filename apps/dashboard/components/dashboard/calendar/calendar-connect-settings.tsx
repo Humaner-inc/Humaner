@@ -121,7 +121,7 @@ export function CalendarConnectSettings({
           type="button"
           variant="outline"
           size="sm"
-          className="h-9 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
+          className="h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal"
         >
           Connect calendar
         </Button>
@@ -154,7 +154,7 @@ export function CalendarConnectSettings({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 shrink-0 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
+                    className="h-8 shrink-0 px-3 font-mono text-xs font-medium normal-case tracking-normal"
                     disabled={pending}
                     onClick={() => disconnect({ connectionId: connected.id })}
                   >
@@ -164,7 +164,7 @@ export function CalendarConnectSettings({
                   <Button
                     type="button"
                     size="sm"
-                    className="h-8 shrink-0 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
+                    className="h-8 shrink-0 px-3 font-mono text-xs font-medium normal-case tracking-normal"
                     disabled={pending || connectedIds.has(provider.id)}
                     onClick={() => connect({ provider: provider.id })}
                   >

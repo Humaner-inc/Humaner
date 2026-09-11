@@ -613,7 +613,7 @@ export function WorkspaceCalendarWeek({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
+                className="h-8 px-3 font-mono text-xs font-medium normal-case tracking-normal"
                 disabled={pending}
                 onClick={() => setDraft(null)}
               >
@@ -622,7 +622,7 @@ export function WorkspaceCalendarWeek({
               <Button
                 type="button"
                 size="sm"
-                className="h-8 rounded-none px-3 font-mono text-xs font-medium normal-case tracking-normal"
+                className="h-8 px-3 font-mono text-xs font-medium normal-case tracking-normal"
                 disabled={pending}
                 onClick={submitDraft}
               >

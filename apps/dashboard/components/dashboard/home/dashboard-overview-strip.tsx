@@ -79,7 +79,7 @@ export function DashboardOverviewStrip({
             src={logoSrc}
             alt=""
             className={cn(
-              'mt-0.5 size-8 shrink-0 rounded-none border border-border/60 object-cover'
+              'mt-0.5 size-8 shrink-0 rounded-[12px] border border-border/60 object-cover'
             )}
           />
         ) : null}

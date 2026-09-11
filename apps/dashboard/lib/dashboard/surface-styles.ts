@@ -1,14 +1,35 @@
-/** Corner radius for dashboard chrome (`--radius`: 12px). */
-export const dashboardRadiusClassName = 'rounded-lg';
+import {
+  radiusChipClassName,
+  radiusCtaPrimaryClassName,
+  radiusCtaSecondaryClassName,
+  radiusInputClassName,
+  radiusModalClassName,
+  radiusSurfaceClassName
+} from '@humaner/shared';
 
-/** Nested rows/chips inside a 12px panel. */
-export const dashboardItemRadiusClassName = 'rounded-md';
+/** Cards and containers (`--radius`: 12px). */
+export const dashboardRadiusClassName = radiusSurfaceClassName;
 
-/** CTAs stay square. */
-export const dashboardCtaRadiusClassName = 'rounded-none';
+/** Inputs and search bars (12px). */
+export const dashboardInputRadiusClassName = radiusInputClassName;
 
-/** Photos, logos, and avatar faces stay square. */
-export const dashboardPictureRadiusClassName = 'rounded-none';
+/** Nested rows inside a 12px panel. */
+export const dashboardItemRadiusClassName = radiusSurfaceClassName;
+
+/** Primary CTAs (16px). */
+export const dashboardCtaRadiusClassName = radiusCtaPrimaryClassName;
+
+/** Secondary / outline buttons (14px). */
+export const dashboardSecondaryRadiusClassName = radiusCtaSecondaryClassName;
+
+/** Small chips and badges. */
+export const dashboardChipRadiusClassName = radiusChipClassName;
+
+/** Modals and sheets (24px). */
+export const dashboardModalRadiusClassName = radiusModalClassName;
+
+/** Photo, logo, and avatar tiles use the 12px surface radius. */
+export const dashboardPictureRadiusClassName = radiusSurfaceClassName;
 
 /** Shared bordered panel surfaces across dashboard pages. */
 export const dashboardSurfaceClassName = `${dashboardRadiusClassName} border border-border/70 bg-muted/20`;

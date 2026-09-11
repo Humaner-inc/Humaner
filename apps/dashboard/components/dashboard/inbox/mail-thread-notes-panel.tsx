@@ -92,7 +92,7 @@ export function MailThreadNotesPanel({
         <Button
           type="button"
           size="sm"
-          className="h-8 rounded-none px-3 font-mono text-xs"
+          className="h-8 px-3 font-mono text-xs"
           disabled={sending || draft.trim().length === 0}
           onClick={() => sendNote({ threadId, body: draft })}
         >

@@ -16,6 +16,7 @@
     "./self-host-cta-label": "./src/self-host-cta-label.tsx",
     "./brand-mark": "./src/brand-mark.tsx",
     "./cta": "./src/cta.ts",
+    "./radius": "./src/radius.ts",
     "./company": "./src/company.ts",
     "./support": "./src/support.ts",
     "./email-ui": "./src/email-ui.tsx",

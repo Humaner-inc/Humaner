@@ -22,15 +22,17 @@ export function getHumanerAgentPublicId(): string | undefined {
   return id || undefined;
 }
 
-/** Compact mark — footer, collapsed sidebar, dark chrome. */
-export const HUMANER_ICON_PATH = "/icon.svg";
-/** Cream / light surfaces — same invert as the hero mockup. */
-export const HUMANER_ICON_BLACK_PATH = "/icon_black.svg";
-/** Brandmark on dark chrome — emails + widget watermark. */
+/** Compact mark — favicon, dark theme, and icons. */
+export const HUMANER_ICON_PATH = "/favicon.svg";
+/** Light surfaces — dark ink brandmark. */
+export const HUMANER_ICON_BLACK_PATH = "/brandmark-dark.svg";
+/** Brandmark on light chrome — emails + light theme. */
 export const HUMANER_BRANDMARK_PATH = "/brandmark-dark.svg";
+/** Full brand logo. */
+export const HUMANER_LOGO_PATH = "/logo-black.png";
 
-/** PNG raster of icon_black.svg (SVG is blocked by most email clients). */
-export const EMAIL_LOGO_PATH = "/humaner-email.png";
+/** Mail header uses the light-theme brandmark. */
+export const EMAIL_LOGO_PATH = "/brandmark-dark.svg";
 
 /** X / Twitter mark for transactional email (same glyph as landing footer). */
 export const EMAIL_X_ICON_PATH = "/x-email.png";

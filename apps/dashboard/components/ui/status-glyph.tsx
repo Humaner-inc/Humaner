@@ -55,7 +55,7 @@ export function StatusGlyph({
         )}
         aria-hidden
       >
-        <span className="block h-0.5 w-2.5 rounded-full bg-current" />
+        <span className="h-[2px] w-2.5 shrink-0 rounded-full bg-current" />
       </span>
     );
   }

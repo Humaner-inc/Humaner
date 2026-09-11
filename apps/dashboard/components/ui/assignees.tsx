@@ -124,11 +124,12 @@ function Face({
 
 /**
  * Stacked assignee faces. Panel settings in the app:
- * `corner={0} stack="Row" overlap={10}`.
+ * `corner={12} stack="Row" overlap={10}`.
+ * Picture tiles use the 12px surface radius.
  * Omit props to get the wall defaults.
  */
 export function Assignees({
-  corner = 8,
+  corner = 12,
   stack = 'Row',
   overlap = 8,
   people,
@@ -200,9 +201,29 @@ export function Assignees({
   );
 }
 
+/** Single picture-tile face — 12px radius; do not nest this inside a pill. */
+export function AssigneeFace({
+  person,
+  size = 22,
+  className
+}: {
+  person: AssigneePerson | null;
+  size?: number;
+  className?: string;
+}): React.JSX.Element {
+  return (
+    <Face
+      person={person}
+      size={size}
+      corner={12}
+      className={cn('ring-0', className)}
+    />
+  );
+}
+
 /** Panel values used for assignee options in mail and tasks. */
 export const ASSIGNEE_PANEL_PROPS = {
-  corner: 0,
+  corner: 12,
   stack: 'Row' as const,
   overlap: 10
 };

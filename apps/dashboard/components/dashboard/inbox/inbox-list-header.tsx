@@ -32,7 +32,7 @@ const FILTERS: Array<{ id: InboxListFilter; label: string }> = [
 ];
 
 const INBOX_BULK_DELETE_BUTTON_CLASS =
-  'h-8 rounded-none font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
+  'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 
 const PANEL_TRANSITION = {
   duration: 0.28,
@@ -322,7 +322,7 @@ export function InboxListHeader({
   return (
     <div
       className={cn(
-        'flex flex-nowrap items-center gap-2 overflow-hidden rounded-lg border bg-background px-2 py-1.5 sm:gap-3 sm:px-3',
+        'flex flex-nowrap items-center gap-2 overflow-hidden px-2 py-1.5 sm:gap-3 sm:px-3',
         className
       )}
     >
@@ -388,7 +388,7 @@ export function InboxListHeader({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-8 rounded-none font-mono text-[10px]"
+                      className="h-8 font-mono text-[10px]"
                       disabled={selection.selectedCount === 0}
                     >
                       Label
@@ -421,7 +421,7 @@ export function InboxListHeader({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 rounded-none font-mono text-[10px]"
+                    className="h-8 font-mono text-[10px]"
                     disabled={selection.selectedCount === 0}
                   >
                     Assign
@@ -442,7 +442,7 @@ export function InboxListHeader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-none font-mono text-[10px]"
+                className="h-8 font-mono text-[10px]"
                 disabled={selection.selectedCount === 0}
                 onClick={selection.archiveSelected}
               >
@@ -462,7 +462,7 @@ export function InboxListHeader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-none font-mono text-[10px]"
+                className="h-8 font-mono text-[10px]"
                 onClick={selection.clearSelection}
               >
                 Cancel

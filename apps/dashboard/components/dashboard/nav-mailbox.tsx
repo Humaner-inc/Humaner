@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { PlusIcon } from '@humaner/shared/icons';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
-import { Buildings } from '@phosphor-icons/react/dist/ssr/Buildings';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Code } from '@phosphor-icons/react/dist/ssr/Code';
@@ -20,10 +19,11 @@ import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 import { InboxMailboxMenu } from '@/components/dashboard/inbox-mailbox-menu';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { MailboxNavIcon } from '@/components/dashboard/mailbox-nav-icon';
+import { SIDEBAR_DRAWER_IDS } from '@/components/dashboard/sidebar-nav-accordion';
 import {
   SidebarNavChild,
   SidebarNavLink,
-  SidebarNavSection
+  SidebarNavTree
 } from '@/components/dashboard/sidebar-nav-tree';
 import { SidebarGroup } from '@/components/ui/sidebar';
 import { isInboxLocked } from '@/constants/inbox-nav-items';
@@ -31,7 +31,6 @@ import {
   getActiveMailboxFolder,
   getActiveMailboxWorkspace,
   getActiveWorkspaceDrawerItem,
-  isWorkspaceDrawerPath,
   MAILBOX_FOLDER_ITEMS,
   MAILBOX_WORKSPACE_ITEMS,
   mailboxConnectionHref,
@@ -67,15 +66,14 @@ const WORKSPACE_ICONS: Record<MailboxWorkspaceId, typeof CalendarBlank> = {
   providers: Plugs
 };
 
-const WORKSPACE_DRAWER_ICONS: Record<WorkspaceDrawerId, typeof CalendarBlank> =
-  {
-    team: Users,
-    tasks: Checks,
-    calendar: CalendarBlank,
-    assigned: User,
-    resources: Books,
-    companion: Ghost
-  };
+const MAIN_ICONS: Record<WorkspaceDrawerId, typeof CalendarBlank> = {
+  team: Users,
+  tasks: Checks,
+  calendar: CalendarBlank,
+  assigned: User,
+  resources: Books,
+  companion: Ghost
+};
 
 export function NavMailbox({
   orgTier,
@@ -104,99 +102,67 @@ export function NavMailbox({
   const activeFolder = getActiveMailboxFolder(pathname);
   const activeWorkspace = getActiveMailboxWorkspace(pathname);
   const activeWorkspaceItem = getActiveWorkspaceDrawerItem(pathname);
-  const inboxSectionActive = activeFolder !== null;
-  const workspaceSectionActive = isWorkspaceDrawerPath(pathname);
+  const inboxActive = activeFolder !== null;
   const composeAliasId = primaryAliasForMailbox(inboxes, activeMailboxId);
   const hasMultipleInboxes = mailboxes.length > 1;
+  const inboxHref = mailboxConnectionHref(Routes.InboxAll, activeMailboxId);
+  const unread = activeMailbox?.unreadCount ?? unreadCount;
+  const inboxFolders = MAILBOX_FOLDER_ITEMS.filter(
+    (item) => item.id !== 'inbox'
+  );
+
+  const openNewMessage = (): void => {
+    if (composeAliasId) openCompose(composeAliasId);
+    else openCompose();
+  };
 
   return (
     <SidebarGroup className="p-0">
-      <SidebarNavSection
-        label="Inbox"
-        railHref={mailboxConnectionHref(Routes.InboxAll, activeMailboxId)}
-        railActive={inboxSectionActive}
-        leading={
-          <MailboxNavIcon
-            icon={Tray}
-            active={inboxSectionActive}
-            color={HUMANER_NAV_COLORS.info}
-          />
-        }
-      >
-        {hasMultipleInboxes ? (
-          <InboxMailboxMenu
-            mailboxes={mailboxes}
-            activeMailboxId={activeMailboxId}
-            activeFolder={activeFolder}
-            locked={locked}
-          />
-        ) : null}
-        {MAILBOX_FOLDER_ITEMS.map((item) => {
-          const Icon = FOLDER_ICONS[item.id];
-          const active = activeFolder === item.id;
-          return (
-            <SidebarNavChild
-              key={item.id}
-              href={mailboxConnectionHref(item.href, activeMailboxId)}
-              label={item.label}
-              active={active}
-              disabled={locked}
-              leading={
-                <MailboxNavIcon
-                  icon={Icon}
-                  active={active}
-                  color={item.color}
-                />
-              }
-              badge={
-                item.id === 'inbox' &&
-                !locked &&
-                (activeMailbox?.unreadCount ?? unreadCount) > 0 ? (
-                  <CountBadge
-                    count={activeMailbox?.unreadCount ?? unreadCount}
-                  />
-                ) : undefined
-              }
-              quickAction={
-                item.id === 'inbox' && !locked
-                  ? {
-                      label: 'Compose',
-                      icon: <PlusIcon className="size-3.5" />,
-                      onClick: () => {
-                        if (composeAliasId) openCompose(composeAliasId);
-                        else openCompose();
-                      }
-                    }
-                  : undefined
-              }
-            />
-          );
-        })}
-      </SidebarNavSection>
-
-      <div className="mt-4">
-        <SidebarNavSection
-          label="Workspace"
-          railHref={Routes.OrganizationTeam}
-          railActive={workspaceSectionActive}
+      <div className="space-y-0.5">
+        <SidebarNavTree
+          drawerId={SIDEBAR_DRAWER_IDS.inbox}
+          label="Inbox"
+          active={inboxActive}
+          parentHref={inboxHref}
+          mainNavHighlight
+          badge={
+            !locked && unread > 0 ? <CountBadge count={unread} /> : undefined
+          }
           leading={
             <MailboxNavIcon
-              icon={Buildings}
-              active={workspaceSectionActive}
-              color={HUMANER_NAV_COLORS.success}
+              icon={Tray}
+              active={inboxActive}
+              color={HUMANER_NAV_COLORS.info}
             />
           }
+          quickAction={
+            locked
+              ? undefined
+              : {
+                  label: 'New message',
+                  icon: <PlusIcon className="size-3.5" />,
+                  onClick: openNewMessage
+                }
+          }
         >
-          {WORKSPACE_DRAWER_ITEMS.map((item) => {
-            const Icon = WORKSPACE_DRAWER_ICONS[item.id];
-            const active = activeWorkspaceItem === item.id;
+          {hasMultipleInboxes ? (
+            <InboxMailboxMenu
+              mailboxes={mailboxes}
+              activeMailboxId={activeMailboxId}
+              activeFolder={activeFolder}
+              locked={locked}
+            />
+          ) : null}
+          {inboxFolders.map((item) => {
+            const Icon = FOLDER_ICONS[item.id];
+            const active = activeFolder === item.id;
             return (
               <SidebarNavChild
                 key={item.id}
-                href={item.href}
+                href={mailboxConnectionHref(item.href, activeMailboxId)}
                 label={item.label}
                 active={active}
-                disabled={locked && item.id === 'assigned'}
+                disabled={locked}
                 leading={
                   <MailboxNavIcon
                     icon={Icon}
@@ -207,24 +173,44 @@ export function NavMailbox({
               />
             );
           })}
-          {companionHref ? (
-            <SidebarNavChild
-              href={companionHref}
-              label="Companion"
-              active={activeWorkspaceItem === 'companion'}
+        </SidebarNavTree>
+
+        {WORKSPACE_DRAWER_ITEMS.map((item) => {
+          const Icon = MAIN_ICONS[item.id];
+          const active = activeWorkspaceItem === item.id;
+          return (
+            <SidebarNavLink
+              key={item.id}
+              href={item.href}
+              label={item.label}
+              active={active}
+              disabled={locked && item.id === 'assigned'}
+              mainNavHighlight
               leading={
                 <MailboxNavIcon
-                  icon={Ghost}
-                  active={activeWorkspaceItem === 'companion'}
-                  color={HUMANER_NAV_COLORS.info}
+                  icon={Icon}
+                  active={active}
+                  color={item.color}
                 />
               }
             />
-          ) : null}
-        </SidebarNavSection>
-      </div>
-
-      <div className="mt-4 space-y-0.5">
+          );
+        })}
+        {companionHref ? (
+          <SidebarNavLink
+            href={companionHref}
+            label="Companion"
+            active={activeWorkspaceItem === 'companion'}
+            mainNavHighlight
+            leading={
+              <MailboxNavIcon
+                icon={Ghost}
+                active={activeWorkspaceItem === 'companion'}
+                color={HUMANER_NAV_COLORS.info}
+              />
+            }
+          />
+        ) : null}
         {MAILBOX_WORKSPACE_ITEMS.map((item) => {
           const Icon = WORKSPACE_ICONS[item.id];
           const active = activeWorkspace === item.id;

@@ -5,11 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
-import {
-  AssigneeFaces,
-  AssigneeMenuItems
-} from '@/components/dashboard/assignee-options';
-import { DESK_TICKET_ACTION_CHIP_CLASSNAME } from '@/components/dashboard/desk/desk-ticket-preview-row';
+import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
+import { AssigneeFace } from '@/components/ui/assignees';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -80,20 +77,20 @@ export function DeskAssigneePicker({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           disabled={pending}
           className={cn(
-            compact
-              ? DESK_TICKET_ACTION_CHIP_CLASSNAME
-              : 'h-7 gap-1.5 rounded-lg px-2',
-            'h-7 max-h-none min-h-7 gap-1.5 overflow-visible',
+            'h-7 max-h-none min-h-7 justify-start gap-1.5 px-1 font-normal',
             className
           )}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
         >
-          <AssigneeFaces people={selected ? [selected] : []} />
+          <AssigneeFace
+            person={selected}
+            size={20}
+          />
           <span className="max-w-20 truncate">
             {selected
               ? selected.id === currentUserId

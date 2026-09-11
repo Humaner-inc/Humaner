@@ -56,6 +56,11 @@ export type SidebarNavParentProps = {
   tooltip?: string;
   mainNavHighlight?: boolean;
   badge?: React.ReactNode;
+  quickAction?: {
+    label: string;
+    icon: React.ReactNode;
+    onClick?: () => void;
+  };
 };
 
 export function SidebarNavParent({
@@ -68,7 +73,8 @@ export function SidebarNavParent({
   href,
   tooltip,
   mainNavHighlight = false,
-  badge
+  badge,
+  quickAction
 }: SidebarNavParentProps): React.JSX.Element {
   const isIconRail = useSidebarIconRail();
   const { iconRef, rowHandlers } = useBranchIconAnimation();
@@ -121,21 +127,50 @@ export function SidebarNavParent({
           active && 'bg-muted/40'
         )}
       >
-        <button
-          type="button"
-          onClick={onToggle}
-          className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
-        >
-          {leadingNode}
-          <span className="min-w-0 flex-1 truncate">{label}</span>
-          {badge ? <span className="mr-1 shrink-0">{badge}</span> : null}
-        </button>
+        {href ? (
+          <Link
+            href={href}
+            className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
+          >
+            {leadingNode}
+            <span className="min-w-0 flex-1 truncate">{label}</span>
+            {badge ? <span className="mr-1 shrink-0">{badge}</span> : null}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex min-w-0 flex-1 items-center gap-2.5 py-0 pl-0 text-left"
+          >
+            {leadingNode}
+            <span className="min-w-0 flex-1 truncate">{label}</span>
+            {badge ? <span className="mr-1 shrink-0">{badge}</span> : null}
+          </button>
+        )}
+        {quickAction ? (
+          <button
+            type="button"
+            aria-label={quickAction.label}
+            title={quickAction.label}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              quickAction.onClick?.();
+            }}
+            className={cn(
+              'flex size-7 shrink-0 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:bg-muted/40 hover:text-sidebar-foreground group-hover/nav:opacity-100 focus-visible:opacity-100',
+              dashboardRadiusClassName
+            )}
+          >
+            {quickAction.icon}
+          </button>
+        ) : null}
         <button
           type="button"
           aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
           onClick={onToggle}
           className={cn(
-            'mr-1 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground',
+            'mr-0.5 flex size-7 shrink-0 items-center justify-center text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground',
             dashboardRadiusClassName
           )}
         >
@@ -175,7 +210,7 @@ export function SidebarNavChildren({
       )}
     >
       <div className="overflow-hidden">
-        <div className="ml-[1.125rem] border-l border-border/50 py-0.5">
+        <div className="ml-3 border-l border-border/40 py-0.5 pl-1">
           {children}
         </div>
       </div>
@@ -348,6 +383,7 @@ export type SidebarNavTreeProps = {
   children: React.ReactNode;
   mainNavHighlight?: boolean;
   badge?: React.ReactNode;
+  quickAction?: SidebarNavParentProps['quickAction'];
 };
 
 export function SidebarNavTree({
@@ -359,7 +395,8 @@ export function SidebarNavTree({
   parentHref,
   children,
   mainNavHighlight = false,
-  badge
+  badge,
+  quickAction
 }: SidebarNavTreeProps): React.JSX.Element {
   const { open, onOpenChange } = useSidebarNavDrawer(drawerId);
 
@@ -375,6 +412,7 @@ export function SidebarNavTree({
         href={parentHref}
         mainNavHighlight={mainNavHighlight}
         badge={badge}
+        quickAction={quickAction}
       />
       <SidebarNavChildren expanded={open}>{children}</SidebarNavChildren>
     </div>

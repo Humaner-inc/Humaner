@@ -9,6 +9,7 @@ export * from "./widget-bookmarks";
 export * from "./widget-bookmark-icon";
 export * from "./widget-proactive";
 export * from "./cta";
+export * from "./radius";
 export * from "./company";
 export * from "./typography";
 export * from "./widget-icons";

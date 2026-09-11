@@ -13,7 +13,7 @@ export type HumanerLogoImageProps = {
   tone?: 'light' | 'dark';
 };
 
-/** Compact icon — `icon_black.svg` on cream/light, `icon.svg` on dark. */
+/** Compact icon — brandmark on light, favicon on dark. */
 export function HumanerLogoImage({
   alt = '',
   width,
