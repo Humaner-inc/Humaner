@@ -126,7 +126,7 @@ export function DashboardOverviewStrip({
                 <span className="leading-none">{industryLabel}</span>
               </>
             ) : null}
-            {!selfHostMode && audienceLabel && audienceFontClass ? (
+            {selfHostMode && audienceLabel && audienceFontClass ? (
               <>
                 <span
                   aria-hidden

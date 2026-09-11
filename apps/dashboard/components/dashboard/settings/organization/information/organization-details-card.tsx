@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   updateOrganizationDetailsSchema,
   type UpdateOrganizationDetailsSchema
@@ -133,9 +134,11 @@ export function OrganizationDetailsCard({
                     <p className="subsection-title truncate">
                       {watchedName || details.name || 'Organization'}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <AudienceTag targetAudience={targetAudience} />
-                    </div>
+                    {isOssDeployment() ? (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <AudienceTag targetAudience={targetAudience} />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

@@ -286,7 +286,9 @@ export async function DashboardSessionShell({
               ? getIndustry(userFromDb!.organization!.industry).label
               : null
           }
-          audienceLabel={userFromDb!.organization!.targetAudience ?? null}
+          audienceLabel={
+            oss ? (userFromDb!.organization!.targetAudience ?? null) : null
+          }
         />
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <DashboardWorkspaceColumn profile={profile}>
