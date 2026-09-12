@@ -73,8 +73,8 @@ export default async function InboxSettingsPage({
       : tab === 'inbox'
         ? `Humaner detect aliases for your inbox so you can use them while sending emails.`
         : overview.canManageProviders
-          ? 'Apps you can integrate into Humaner mailbox.'
-          : 'Apps you can integrate into Humaner mailbox.';
+          ? 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate.'
+          : 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate. Only the workspace owner can change this.';
 
   return (
     <div className="space-y-6">

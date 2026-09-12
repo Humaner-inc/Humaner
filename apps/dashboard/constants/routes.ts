@@ -54,6 +54,7 @@ export enum Routes {
   InboxTags = '/inbox/tags',
   InboxDrafts = '/inbox/drafts',
   InboxSettings = '/inbox/settings',
+  InboxSettingsConnectCallback = '/inbox/settings/connect-callback',
   Tasks = '/organization/tasks',
   Calendar = '/calendar',
   Resources = '/organization/resources',

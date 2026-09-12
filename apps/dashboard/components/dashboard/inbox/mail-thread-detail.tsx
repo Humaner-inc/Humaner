@@ -1061,11 +1061,11 @@ export function MailThreadDetail({
                         <CheckIcon className="size-4 animate-in zoom-in-50 fade-in duration-200" />
                       ) : (
                         <span className="inline-flex items-center gap-2">
+                          {sendPhase === 'idle' ? 'Send' : null}
                           <SendIcon
                             ref={sendIconRef}
                             size={16}
                           />
-                          {sendPhase === 'idle' ? 'Send' : null}
                         </span>
                       )}
                     </Button>

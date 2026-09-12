@@ -60,7 +60,7 @@ export const COMPANION_INTEGRATION_IDS = [
 export type CompanionIntegrationId = (typeof COMPANION_INTEGRATION_IDS)[number];
 
 export function isCompanionIntegrationId(
-  value: string
+  value: string | null | undefined
 ): value is CompanionIntegrationId {
   return value === 'linear' || value === 'stripe' || value === 'github';
 }
