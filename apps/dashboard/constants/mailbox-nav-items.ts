@@ -9,13 +9,9 @@ export type MailboxFolderId = 'inbox' | 'drafts' | 'archive' | 'tags';
 
 export type MailboxWorkspaceId = 'providers';
 
-export type WorkspaceDrawerId =
-  | 'team'
-  | 'tasks'
-  | 'calendar'
-  | 'assigned'
-  | 'resources'
-  | 'companion';
+export type WorkspaceSectionId = 'tasks' | 'assigned' | 'team' | 'calendar';
+
+export type WorkspaceDrawerId = WorkspaceSectionId | 'resources' | 'companion';
 
 export type MailboxFolderItem = {
   id: MailboxFolderId;
@@ -33,6 +29,13 @@ export type MailboxWorkspaceItem = {
 
 export type WorkspaceDrawerItem = {
   id: WorkspaceDrawerId;
+  label: string;
+  href: string;
+  color: HumanerNavColor;
+};
+
+export type WorkspaceSectionItem = {
+  id: WorkspaceSectionId;
   label: string;
   href: string;
   color: HumanerNavColor;
@@ -74,13 +77,8 @@ export const MAILBOX_WORKSPACE_ITEMS: MailboxWorkspaceItem[] = [
   }
 ];
 
-export const WORKSPACE_DRAWER_ITEMS: WorkspaceDrawerItem[] = [
-  {
-    id: 'team',
-    label: 'Team',
-    href: Routes.OrganizationTeam,
-    color: HUMANER_NAV_COLORS.success
-  },
+/** Collapsible Workspace section — Tasks, Assigned, Team, Calendar. */
+export const WORKSPACE_SECTION_ITEMS: WorkspaceSectionItem[] = [
   {
     id: 'tasks',
     label: 'Tasks',
@@ -88,17 +86,27 @@ export const WORKSPACE_DRAWER_ITEMS: WorkspaceDrawerItem[] = [
     color: HUMANER_NAV_COLORS.yellow
   },
   {
-    id: 'calendar',
-    label: 'Calendar',
-    href: Routes.Calendar,
-    color: HUMANER_NAV_COLORS.warning
-  },
-  {
     id: 'assigned',
     label: 'Assigned',
     href: Routes.InboxAssigned,
     color: HUMANER_NAV_COLORS.info
   },
+  {
+    id: 'team',
+    label: 'Team',
+    href: Routes.OrganizationTeam,
+    color: HUMANER_NAV_COLORS.success
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    href: Routes.Calendar,
+    color: HUMANER_NAV_COLORS.warning
+  }
+];
+
+/** Flat main-nav items outside the Workspace tree. */
+export const WORKSPACE_DRAWER_ITEMS: WorkspaceDrawerItem[] = [
   {
     id: 'resources',
     label: 'Resources',
@@ -153,35 +161,34 @@ export function getActiveMailboxWorkspace(
   return null;
 }
 
+/** Paths that expand the Workspace nav tree (not Companion / Resources). */
 export function isWorkspaceDrawerPath(pathname: string): boolean {
-  if (pathname.startsWith(Routes.OrganizationWorkspace)) return true;
   if (pathname.startsWith(Routes.OrganizationTeam)) return true;
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return true;
   }
-  if (
-    pathname.startsWith(Routes.Resources) ||
-    pathname.startsWith('/resources')
-  ) {
-    return true;
-  }
   if (pathname.startsWith(Routes.Calendar)) return true;
   if (pathname.startsWith(Routes.InboxAssigned)) return true;
-  if (!isOssDeployment() && /^\/agents\/(?!new(?:\/|$))[^/]+/.test(pathname)) {
-    return true;
-  }
   return false;
 }
 
-export function getActiveWorkspaceDrawerItem(
+export function getActiveWorkspaceSectionItem(
   pathname: string
-): WorkspaceDrawerId | null {
+): WorkspaceSectionId | null {
   if (pathname.startsWith(Routes.OrganizationTeam)) return 'team';
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return 'tasks';
   }
   if (pathname.startsWith(Routes.Calendar)) return 'calendar';
   if (pathname.startsWith(Routes.InboxAssigned)) return 'assigned';
+  return null;
+}
+
+export function getActiveWorkspaceDrawerItem(
+  pathname: string
+): WorkspaceDrawerId | null {
+  const section = getActiveWorkspaceSectionItem(pathname);
+  if (section) return section;
   if (
     pathname.startsWith(Routes.Resources) ||
     pathname.startsWith('/resources')

@@ -11,7 +11,7 @@ export type SettingsTabBarItem = {
   id: string;
   href: string;
   label: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon | React.ComponentType<{ className?: string }>;
   active: boolean;
 };
 
@@ -39,14 +39,16 @@ export function SettingsTabBar({
             key={tab.id}
             href={tab.href}
             className={cn(
-              'inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition-colors',
+              'inline-flex h-8 items-center gap-1.5 overflow-visible px-2.5 text-xs font-medium transition-colors',
               dashboardRadiusClassName,
               tab.active
                 ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
             )}
           >
-            {Icon ? <Icon className="size-3.5 shrink-0" /> : null}
+            {Icon ? (
+              <Icon className="size-3.5 shrink-0 overflow-visible" />
+            ) : null}
             {tab.label}
           </Link>
         );

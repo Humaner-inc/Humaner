@@ -24,6 +24,8 @@ import {
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
 import { createTaskFromMailThreadAction } from '@/actions/tasks/create-task-from-mail-thread';
+import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
+import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import {
   AssigneeFaces,
   AssigneeMenuItems,
@@ -54,7 +56,6 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
-import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
 import { mailStatusToGlyph, StatusGlyph } from '@/components/ui/status-glyph';
 import { Textarea } from '@/components/ui/textarea';
 import { Routes } from '@/constants/routes';
@@ -270,6 +271,8 @@ export function MailThreadDetail({
 }): React.JSX.Element {
   const router = useRouter();
   const dock = useDashboardDockOptional();
+  const companionChat = useHumanerChatOptional();
+  const companionCharacter = companionChat?.companionCharacter ?? 'CASUAL';
   const { autoSuggestReplies } = useInboxPreferences();
   const { play } = useOnboardingSound();
   const [thread, setThread] = React.useState(threadProp);
@@ -834,9 +837,14 @@ export function MailThreadDetail({
       </header>
 
       <div className="relative flex min-h-0 flex-1">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto bg-background">
-            <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6">
+            <div
+              className={cn(
+                'mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6',
+                !composerOpen && 'pb-24'
+              )}
+            >
               <ol className="space-y-4">
                 {thread.messages.map((message, index) => (
                   <MailThreadMessage
@@ -866,7 +874,13 @@ export function MailThreadDetail({
                   {suggestionsLoading ? (
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <SkillzCubeLoader size={32} />
+                        <CompanionIcon
+                          active
+                          size={20}
+                          character={companionCharacter}
+                          state="thinking"
+                          className="size-5"
+                        />
                         <p className="text-sm text-muted-foreground">
                           Suggesting replies
                         </p>
@@ -886,9 +900,12 @@ export function MailThreadDetail({
                       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <SkillzCubeLoader
-                              size={28}
-                              filled
+                            <CompanionIcon
+                              active
+                              size={20}
+                              character={companionCharacter}
+                              state="enter"
+                              className="size-5"
                             />
                             <p className="truncate font-fellix text-sm font-medium">
                               Suggested reply
@@ -1076,46 +1093,50 @@ export function MailThreadDetail({
           </div>
 
           {composerOpen ? null : (
-            <div className="shrink-0 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-              <div className="mx-auto w-full max-w-3xl px-4 py-3 sm:px-6">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="background"
-                      size="sm"
-                      className="h-9 gap-2 px-4"
-                      onClick={openReply}
-                    >
-                      <ArrowRightIcon className="size-3.5 rotate-180" />
-                      Reply
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="background"
-                      size="sm"
-                      className="h-9 gap-2 px-4"
-                      onClick={() => {
-                        toast.message('Forward is coming soon');
-                      }}
-                    >
-                      <ForwardGlyph className="size-3.5" />
-                      Forward
-                    </Button>
-                  </div>
-                  {!suggesting ? (
-                    <Button
-                      type="button"
-                      variant="background"
-                      size="sm"
-                      className="ml-auto h-9 gap-2 px-4"
-                      onClick={suggestAgain}
-                    >
-                      <SkillzCubeLoader size={18} />
-                      Suggest
-                    </Button>
-                  ) : null}
+            <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 px-4 sm:bottom-4 sm:px-6">
+              <div className="pointer-events-auto mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-2 rounded-[20px] border border-border/60 bg-background/95 px-2.5 py-2 shadow-[0_12px_40px_-20px_rgb(0_0_0/0.35)] backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                <div className="flex flex-wrap gap-1.5">
+                  <Button
+                    type="button"
+                    variant="background"
+                    size="sm"
+                    className="h-9 gap-2 px-4"
+                    onClick={openReply}
+                  >
+                    <ArrowRightIcon className="size-3.5 rotate-180" />
+                    Reply
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="background"
+                    size="sm"
+                    className="h-9 gap-2 px-4"
+                    onClick={() => {
+                      toast.message('Forward is coming soon');
+                    }}
+                  >
+                    <ForwardGlyph className="size-3.5" />
+                    Forward
+                  </Button>
                 </div>
+                {!suggesting ? (
+                  <Button
+                    type="button"
+                    variant="background"
+                    size="sm"
+                    className="ml-auto h-9 gap-2 px-4"
+                    onClick={suggestAgain}
+                  >
+                    <CompanionIcon
+                      active
+                      size={16}
+                      character={companionCharacter}
+                      state="idle"
+                      className="size-4"
+                    />
+                    Suggest
+                  </Button>
+                ) : null}
               </div>
             </div>
           )}

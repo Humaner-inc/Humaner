@@ -5,8 +5,22 @@ export const PERSONA_DISK: Record<PersonalityTone, string> = {
   casual: "#226342",
   corporate: "#2252bc",
   efficient: "#f85919",
+  /** Unique on dark shells — light grey tile. */
   custom: "#F2F2F2",
 };
+
+/** Unique disc on light shells — fracture grey so the tile reads on cream/white. */
+export const PERSONA_DISK_CUSTOM_ON_LIGHT = "#e0e1df";
+
+export function resolvePersonaDisk(
+  tone: PersonalityTone,
+  surface: "light" | "dark" = "dark",
+): string {
+  if (tone === "custom" && surface === "light") {
+    return PERSONA_DISK_CUSTOM_ON_LIGHT;
+  }
+  return PERSONA_DISK[tone];
+}
 
 /** Panel behind persona color fields — shows through the top-left dissolve. */
 export const PERSONA_FIELD_BACKGROUND = "#101010";

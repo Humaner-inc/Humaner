@@ -37,7 +37,7 @@ export function ApiKeysCard({
   };
   return (
     <Card
-      className={cn('flex h-full flex-col', className)}
+      className={cn('flex h-full flex-col border-0 bg-transparent', className)}
       {...other}
     >
       <CardContent className="max-h-72 flex-1 overflow-hidden p-0">
@@ -46,16 +46,16 @@ export function ApiKeysCard({
             <ApiKeyList apiKeys={apiKeys} />
           </ScrollArea>
         ) : (
-          <EmptyText className="p-6">No API key found.</EmptyText>
+          <EmptyText className="p-0">No API key found.</EmptyText>
         )}
       </CardContent>
-      <p className="px-6 pt-4 font-mono text-xs text-muted-foreground">
+      <p className="pt-4 font-mono text-xs text-muted-foreground">
         Point Cursor or Claude Code at POST /api/mcp with this key. Mail and
         calendar tools use the same handlers as POST /api/v1/mail and
         /api/v1/calendar.
       </p>
-      <Separator />
-      <CardFooter className="flex w-full justify-end pt-6">
+      <Separator className="mt-4" />
+      <CardFooter className="flex w-full justify-end px-0 pt-6">
         <Button
           type="button"
           variant="default"

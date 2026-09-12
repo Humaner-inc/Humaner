@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 
 import { ticketStatusToGlyph } from '@/components/dashboard/desk/desk-ticket-preview-row';
+import { WorkspacePageShell } from '@/components/dashboard/workspace-page-shell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StatusGlyph } from '@/components/ui/status-glyph';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import type { MailThreadListItem } from '@/data/inbox/get-mail-threads';
 import type { AssignedTaskItem } from '@/data/tasks/get-assigned-tasks';
-import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -93,19 +93,10 @@ export function AssignedWorkList({
   }, [filter, tasks, threads]);
 
   return (
-    <div
-      className={cn(
-        '-m-6 flex min-h-0 flex-1 flex-col overflow-hidden md:-m-8',
-        DASHBOARD_FULL_BLEED_HEIGHT_CLASS
-      )}
-    >
-      <div className="shrink-0 space-y-3 border-b border-border/50 px-3 py-3">
-        <div className="space-y-1">
-          <h1 className="page-title">Assigned to me</h1>
-          <p className="text-xs text-muted-foreground">
-            Mail and tasks assigned to you.
-          </p>
-        </div>
+    <WorkspacePageShell
+      title="Assigned"
+      description="Mail and tasks assigned to you."
+      toolbar={
         <div className="flex flex-wrap items-center gap-1.5">
           {FILTERS.map((item) => (
             <button
@@ -113,10 +104,10 @@ export function AssignedWorkList({
               type="button"
               onClick={() => setFilter(item.id)}
               className={cn(
-                'inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                'inline-flex shrink-0 items-center gap-1.5 rounded-[14px] border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
                 filter === item.id
-                  ? 'bg-foreground/[0.06] text-foreground'
-                  : 'text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
+                  ? 'border-[#0A0D0D]/30 bg-transparent text-foreground dark:border-white/25'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >
               {item.id === 'mail' ? (
@@ -129,9 +120,9 @@ export function AssignedWorkList({
             </button>
           ))}
         </div>
-      </div>
-
-      <ul className="min-h-0 flex-1 overflow-y-auto">
+      }
+    >
+      <ul className="overflow-hidden rounded-[12px] border border-border/60">
         {items.length === 0 ? (
           <li className="px-4 py-10 text-center text-sm text-muted-foreground">
             {filter === 'mail'
@@ -156,7 +147,7 @@ export function AssignedWorkList({
           )
         )}
       </ul>
-    </div>
+    </WorkspacePageShell>
   );
 }
 
@@ -181,14 +172,14 @@ function AssignedMailRow({
         href={inboxThreadRoute(thread.id)}
         className="flex items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-foreground/[0.04]"
       >
-        <Avatar className="mt-0.5 size-7 shrink-0 rounded-md">
+        <Avatar className="mt-0.5 size-7 shrink-0 rounded-[12px]">
           {domain ? (
             <AvatarImage
               src={getLogoUrl(domain, 64, true)}
               alt=""
             />
           ) : null}
-          <AvatarFallback className="rounded-md text-[10px] font-medium">
+          <AvatarFallback className="rounded-[12px] text-[10px] font-medium">
             {getInitials(label)}
           </AvatarFallback>
         </Avatar>

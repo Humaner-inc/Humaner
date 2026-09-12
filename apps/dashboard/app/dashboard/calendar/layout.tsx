@@ -2,8 +2,8 @@ import * as React from 'react';
 
 import { SectionPage } from '@/components/ui/section-shell';
 
-/** Full-bleed assigned work — same shell as Tasks / Calendar. */
-export default function InboxAssignedLayout({
+/** Full-bleed calendar — same shell as Tasks / Assigned. */
+export default function CalendarLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (

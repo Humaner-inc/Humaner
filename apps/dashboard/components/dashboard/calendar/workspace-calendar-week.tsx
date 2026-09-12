@@ -13,6 +13,7 @@ import {
   CalendarToolbar,
   TOOLBAR_BUTTON
 } from '@/components/dashboard/calendar/calendar-toolbar';
+import { WorkspacePageShell } from '@/components/dashboard/workspace-page-shell';
 import { Button } from '@/components/ui/button';
 import { ColorPicker } from '@/components/ui/color-picker';
 import {
@@ -427,194 +428,198 @@ export function WorkspaceCalendarWeek({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-        <h1 className="page-title">Calendar</h1>
-        <CalendarToolbar
-          focusDate={focus}
-          view={view}
-        >
-          <CalendarConnectSettings
-            connections={connections}
-            mailAutomation={mailAutomation}
-          />
-          <Button
-            type="button"
-            size="sm"
-            className={TOOLBAR_BUTTON}
-            onClick={() => openCreateNow(new Date())}
+    <>
+      <WorkspacePageShell
+        title="Calendar"
+        actions={
+          <CalendarToolbar
+            focusDate={focus}
+            view={view}
           >
-            New event
-          </Button>
-        </CalendarToolbar>
-      </header>
-
-      <div className="min-h-0 flex-1 overflow-auto">
-        {view === 'month' ? (
-          <MonthGrid
-            days={days}
-            focus={focus}
-            events={displayEvents}
-            now={now}
-            onOpenEvent={openEvent}
-            onCreateDay={(day) => openCreateNow(day)}
-            onDragStart={beginDrag}
-            onDropDay={handleDayDrop}
-          />
-        ) : (
-          <div
-            className={cn(
-              'grid min-w-[320px]',
-              view === 'day'
-                ? 'grid-cols-[4rem_minmax(0,1fr)]'
-                : 'min-w-[720px] grid-cols-[4rem_repeat(7,minmax(0,1fr))]'
-            )}
-          >
-            <div className="sticky top-0 z-20 border-b border-border/60 bg-background" />
-            {days.map((day) => {
-              const isToday = day.toDateString() === now.toDateString();
-              return (
-                <div
-                  key={day.toISOString()}
-                  className="sticky top-0 z-20 border-b border-l border-border/60 bg-background px-2 py-2 text-center"
-                >
-                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                    {day.toLocaleDateString([], { weekday: 'short' })}
-                  </p>
-                  <p
-                    className={cn(
-                      'mt-0.5 font-display text-lg leading-none',
-                      isToday && 'text-[#f85919]'
-                    )}
+            <CalendarConnectSettings
+              connections={connections}
+              mailAutomation={mailAutomation}
+            />
+            <Button
+              type="button"
+              size="sm"
+              className={TOOLBAR_BUTTON}
+              onClick={() => openCreateNow(new Date())}
+            >
+              New event
+            </Button>
+          </CalendarToolbar>
+        }
+      >
+        <div className="min-h-full">
+          {view === 'month' ? (
+            <MonthGrid
+              days={days}
+              focus={focus}
+              events={displayEvents}
+              now={now}
+              onOpenEvent={openEvent}
+              onCreateDay={(day) => openCreateNow(day)}
+              onDragStart={beginDrag}
+              onDropDay={handleDayDrop}
+            />
+          ) : (
+            <div
+              className={cn(
+                'grid min-w-[320px]',
+                view === 'day'
+                  ? 'grid-cols-[4rem_minmax(0,1fr)]'
+                  : 'min-w-[720px] grid-cols-[4rem_repeat(7,minmax(0,1fr))]'
+              )}
+            >
+              <div className="sticky top-0 z-20 border-b border-border/60 bg-background" />
+              {days.map((day) => {
+                const isToday = day.toDateString() === now.toDateString();
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className="sticky top-0 z-20 border-b border-l border-border/60 bg-background px-2 py-2 text-center"
                   >
-                    {day.getDate()}
-                  </p>
-                </div>
-              );
-            })}
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      {day.toLocaleDateString([], { weekday: 'short' })}
+                    </p>
+                    <p
+                      className={cn(
+                        'mt-0.5 font-display text-lg leading-none',
+                        isToday && 'text-[#f85919]'
+                      )}
+                    >
+                      {day.getDate()}
+                    </p>
+                  </div>
+                );
+              })}
 
-            <div className="relative">
-              {Array.from({ length: HOURS }, (_, index) => (
-                <div
-                  key={index}
-                  className="border-b border-border/40 pr-2 text-right font-mono text-[10px] text-muted-foreground"
-                  style={{ height: SLOT_PX }}
-                >
-                  <span className="-translate-y-1.5 block">
-                    {formatHour(HOUR_START + index)}
-                  </span>
-                </div>
-              ))}
-            </div>
+              <div className="relative">
+                {Array.from({ length: HOURS }, (_, index) => (
+                  <div
+                    key={index}
+                    className="border-b border-border/40 pr-2 text-right font-mono text-[10px] text-muted-foreground"
+                    style={{ height: SLOT_PX }}
+                  >
+                    <span className="-translate-y-1.5 block">
+                      {formatHour(HOUR_START + index)}
+                    </span>
+                  </div>
+                ))}
+              </div>
 
-            {days.map((day) => {
-              const work = workingRange(businessHours, dayEnumForDate(day));
-              const columnEvents = displayEvents.filter((event) => {
-                const start = new Date(event.startsAt);
-                return start.toDateString() === day.toDateString();
-              });
-              return (
-                <div
-                  key={`${day.toISOString()}-col`}
-                  className="relative border-l border-border/60"
-                  style={{ height: HOURS * SLOT_PX }}
-                  onClick={(event) => {
-                    const target = event.currentTarget;
-                    openCreateAt(
-                      day,
-                      event.clientY,
-                      target.getBoundingClientRect().top
-                    );
-                  }}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    handleTimedDrop(
-                      day,
-                      event.clientY,
-                      event.currentTarget.getBoundingClientRect().top
-                    );
-                  }}
-                >
-                  {work ? (
-                    <div
-                      className="pointer-events-none absolute inset-x-0 bg-[#f85919]/[0.06]"
-                      style={{
-                        top: ((work.startMin - HOUR_START * 60) / 60) * SLOT_PX,
-                        height: ((work.endMin - work.startMin) / 60) * SLOT_PX
-                      }}
-                    />
-                  ) : null}
-                  {Array.from({ length: HOURS }, (_, index) => (
-                    <div
-                      key={index}
-                      className="border-b border-border/30"
-                      style={{ height: SLOT_PX }}
-                    />
-                  ))}
-                  {columnEvents.map((event) => {
-                    const layout = eventLayout(event);
-                    if (layout.hidden) return null;
-                    const color = event.color || DEFAULT_EVENT_COLOR;
-                    return (
-                      <button
-                        key={event.id}
-                        type="button"
-                        draggable
-                        className="absolute inset-x-1 z-10 cursor-grab overflow-hidden rounded-lg px-1.5 py-1 text-left active:cursor-grabbing"
+              {days.map((day) => {
+                const work = workingRange(businessHours, dayEnumForDate(day));
+                const columnEvents = displayEvents.filter((event) => {
+                  const start = new Date(event.startsAt);
+                  return start.toDateString() === day.toDateString();
+                });
+                return (
+                  <div
+                    key={`${day.toISOString()}-col`}
+                    className="relative border-l border-border/60"
+                    style={{ height: HOURS * SLOT_PX }}
+                    onClick={(event) => {
+                      const target = event.currentTarget;
+                      openCreateAt(
+                        day,
+                        event.clientY,
+                        target.getBoundingClientRect().top
+                      );
+                    }}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      handleTimedDrop(
+                        day,
+                        event.clientY,
+                        event.currentTarget.getBoundingClientRect().top
+                      );
+                    }}
+                  >
+                    {work ? (
+                      <div
+                        className="pointer-events-none absolute inset-x-0 bg-[#f85919]/[0.06]"
                         style={{
-                          top: layout.top,
-                          height: layout.height,
-                          backgroundColor: color,
-                          color: eventInkColor(color)
+                          top:
+                            ((work.startMin - HOUR_START * 60) / 60) * SLOT_PX,
+                          height: ((work.endMin - work.startMin) / 60) * SLOT_PX
                         }}
-                        onDragStart={(dragEvent) => {
-                          dragEvent.stopPropagation();
-                          dragEvent.dataTransfer.setData(
-                            EVENT_DRAG_MIME,
-                            event.id
-                          );
-                          dragEvent.dataTransfer.setData(
-                            'text/plain',
-                            event.id
-                          );
-                          dragEvent.dataTransfer.effectAllowed = 'move';
-                          beginDrag(
-                            event,
-                            dragEvent.clientY,
-                            dragEvent.currentTarget.getBoundingClientRect().top
-                          );
-                        }}
-                        onDragEnd={() => {
-                          dragRef.current = null;
-                        }}
-                        onClick={(click) => {
-                          click.stopPropagation();
-                          openEvent(event);
-                        }}
-                      >
-                        <p className="truncate font-mono text-[11px] font-medium">
-                          {event.title}
-                        </p>
-                        <p className="truncate font-mono text-[10px] opacity-80">
-                          {new Date(event.startsAt).toLocaleTimeString([], {
-                            hour: 'numeric',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      />
+                    ) : null}
+                    {Array.from({ length: HOURS }, (_, index) => (
+                      <div
+                        key={index}
+                        className="border-b border-border/30"
+                        style={{ height: SLOT_PX }}
+                      />
+                    ))}
+                    {columnEvents.map((event) => {
+                      const layout = eventLayout(event);
+                      if (layout.hidden) return null;
+                      const color = event.color || DEFAULT_EVENT_COLOR;
+                      return (
+                        <button
+                          key={event.id}
+                          type="button"
+                          draggable
+                          className="absolute inset-x-1 z-10 cursor-grab overflow-hidden rounded-lg px-1.5 py-1 text-left active:cursor-grabbing"
+                          style={{
+                            top: layout.top,
+                            height: layout.height,
+                            backgroundColor: color,
+                            color: eventInkColor(color)
+                          }}
+                          onDragStart={(dragEvent) => {
+                            dragEvent.stopPropagation();
+                            dragEvent.dataTransfer.setData(
+                              EVENT_DRAG_MIME,
+                              event.id
+                            );
+                            dragEvent.dataTransfer.setData(
+                              'text/plain',
+                              event.id
+                            );
+                            dragEvent.dataTransfer.effectAllowed = 'move';
+                            beginDrag(
+                              event,
+                              dragEvent.clientY,
+                              dragEvent.currentTarget.getBoundingClientRect()
+                                .top
+                            );
+                          }}
+                          onDragEnd={() => {
+                            dragRef.current = null;
+                          }}
+                          onClick={(click) => {
+                            click.stopPropagation();
+                            openEvent(event);
+                          }}
+                        >
+                          <p className="truncate font-mono text-[11px] font-medium">
+                            {event.title}
+                          </p>
+                          <p className="truncate font-mono text-[10px] opacity-80">
+                            {new Date(event.startsAt).toLocaleTimeString([], {
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </WorkspacePageShell>
 
       <Dialog
         open={draft !== null}
@@ -803,7 +808,7 @@ export function WorkspaceCalendarWeek({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 

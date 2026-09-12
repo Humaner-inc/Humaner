@@ -1,18 +1,33 @@
 'use client';
 
 import * as React from 'react';
-import { BotIcon, MailIcon, PlugIcon } from '@humaner/shared/icons';
+import { CompanionFigure } from '@humaner/shared/companion-icon';
+import { MailIcon, PlugIcon } from '@humaner/shared/icons';
 
 import { SettingsTabBar } from '@/components/dashboard/settings/settings-tab-bar';
 import { Routes } from '@/constants/routes';
 
 export type WorkspaceSettingsTab = 'connect' | 'inbox' | 'companion';
 
+function CompanionTabIcon({
+  className
+}: {
+  className?: string;
+}): React.JSX.Element {
+  return (
+    <CompanionFigure
+      size={14}
+      state="idle"
+      className={className}
+    />
+  );
+}
+
 const TABS: Array<{
   id: WorkspaceSettingsTab;
   label: string;
   href: string;
-  icon: typeof PlugIcon;
+  icon: React.ComponentType<{ className?: string }>;
 }> = [
   {
     id: 'connect',
@@ -30,7 +45,7 @@ const TABS: Array<{
     id: 'companion',
     label: 'Companion',
     href: `${Routes.InboxSettings}?tab=companion`,
-    icon: BotIcon
+    icon: CompanionTabIcon
   }
 ];
 

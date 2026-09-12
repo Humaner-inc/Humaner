@@ -24,12 +24,21 @@ export function DashboardWorkspaceColumn({
 }): React.JSX.Element {
   const chat = useHumanerChatOptional();
   const companionVisible = chat?.companionVisible ?? false;
+  const [composerMounted, setComposerMounted] =
+    React.useState(companionVisible);
   const taskPanelOpen = chat?.taskPanelOpen ?? false;
-  const dockOffset = companionVisible
-    ? taskPanelOpen
+
+  React.useEffect(() => {
+    if (companionVisible) {
+      setComposerMounted(true);
+    }
+  }, [companionVisible]);
+
+  const dockOffset = !composerMounted
+    ? '0px'
+    : companionVisible && taskPanelOpen
       ? COMPANION_DOCK_OFFSET_WITH_PANEL
-      : COMPANION_DOCK_OFFSET
-    : '0px';
+      : COMPANION_DOCK_OFFSET;
 
   return (
     <div
@@ -44,8 +53,8 @@ export function DashboardWorkspaceColumn({
         <div
           className={cn(
             'flex h-full min-h-0 flex-1 flex-col overflow-hidden',
-            companionVisible &&
-              (taskPanelOpen
+            composerMounted &&
+              (companionVisible && taskPanelOpen
                 ? COMPANION_WORKSPACE_OFFSET_WITH_PANEL_CLASS
                 : COMPANION_WORKSPACE_OFFSET_CLASS)
           )}
@@ -53,7 +62,12 @@ export function DashboardWorkspaceColumn({
           {children}
         </div>
       </PageAccessGate>
-      {companionVisible ? <CompanionComposer /> : null}
+      {composerMounted ? (
+        <CompanionComposer
+          departing={!companionVisible}
+          onDeparted={() => setComposerMounted(false)}
+        />
+      ) : null}
     </div>
   );
 }

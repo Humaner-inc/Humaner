@@ -43,7 +43,7 @@ export const AUDIT_EVENT_LABELS: Record<AuditEvent, string> = {
   'api_key.rotated': 'API key rotated',
   'api_key.deleted': 'API key deleted',
   'agent.created': 'Agent created',
-  'agent.updated': 'Agent updated',
+  'agent.updated': 'Companion updated',
   'agent.deleted': 'Agent deleted',
   'knowledge.source_added': 'Knowledge source added',
   'knowledge.source_deleted': 'Knowledge source deleted',

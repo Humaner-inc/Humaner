@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { CompanionMark } from '@humaner/shared/companion-icon';
 import { PlusIcon } from '@humaner/shared/icons';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
@@ -11,6 +12,7 @@ import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Code } from '@phosphor-icons/react/dist/ssr/Code';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
+import { SquaresFour } from '@phosphor-icons/react/dist/ssr/SquaresFour';
 import { Tag } from '@phosphor-icons/react/dist/ssr/Tag';
 import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
 import { User } from '@phosphor-icons/react/dist/ssr/User';
@@ -32,13 +34,15 @@ import {
   getActiveMailboxFolder,
   getActiveMailboxWorkspace,
   getActiveWorkspaceDrawerItem,
+  getActiveWorkspaceSectionItem,
   MAILBOX_FOLDER_ITEMS,
   MAILBOX_WORKSPACE_ITEMS,
   mailboxConnectionHref,
   WORKSPACE_DRAWER_ITEMS,
+  WORKSPACE_SECTION_ITEMS,
   type MailboxFolderId,
   type MailboxWorkspaceId,
-  type WorkspaceDrawerId
+  type WorkspaceSectionId
 } from '@/constants/mailbox-nav-items';
 import { Routes } from '@/constants/routes';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
@@ -86,20 +90,18 @@ const WORKSPACE_ICONS: Record<MailboxWorkspaceId, typeof CalendarBlank> = {
   providers: Plugs
 };
 
-const MAIN_ICONS: Record<WorkspaceDrawerId, typeof CalendarBlank> = {
-  team: Users,
+const SECTION_ICONS: Record<WorkspaceSectionId, typeof CalendarBlank> = {
   tasks: Checks,
-  calendar: CalendarBlank,
   assigned: User,
-  resources: Books,
-  companion: ChatCircle
+  team: Users,
+  calendar: CalendarBlank
 };
 
 export function NavMailbox({
   orgTier,
   unreadCount = 0,
   inboxes = [],
-  companionHref: _companionHref,
+  companionHref = null,
   showMcp = false
 }: {
   orgTier: string;
@@ -123,6 +125,9 @@ export function NavMailbox({
   const activeFolder = getActiveMailboxFolder(pathname);
   const activeWorkspace = getActiveMailboxWorkspace(pathname);
   const activeWorkspaceItem = getActiveWorkspaceDrawerItem(pathname);
+  const activeSection = getActiveWorkspaceSectionItem(pathname);
+  const companionActive = activeWorkspaceItem === 'companion';
+  const workspaceActive = activeSection !== null;
   const inboxActive = activeFolder !== null;
   const composeAliasId = primaryAliasForMailbox(inboxes, activeMailboxId);
   const hasMultipleInboxes = mailboxes.length > 1;
@@ -201,27 +206,61 @@ export function NavMailbox({
           })}
         </SidebarNavTree>
 
-        {WORKSPACE_DRAWER_ITEMS.map((item) => {
-          const Icon = MAIN_ICONS[item.id];
-          const active = activeWorkspaceItem === item.id;
-          return (
-            <SidebarNavLink
-              key={item.id}
-              href={item.href}
-              label={item.label}
-              active={active}
-              disabled={locked && item.id === 'assigned'}
-              mainNavHighlight
-              leading={
-                <MailboxNavIcon
-                  icon={Icon}
-                  active={active}
-                  color={item.color}
-                />
-              }
+        <SidebarNavTree
+          drawerId={SIDEBAR_DRAWER_IDS.workspace}
+          label="Workspace"
+          active={workspaceActive}
+          parentHref={Routes.Tasks}
+          mainNavHighlight
+          leading={
+            <MailboxNavIcon
+              icon={SquaresFour}
+              active={workspaceActive}
+              color={HUMANER_NAV_COLORS.foreground}
             />
-          );
-        })}
+          }
+        >
+          {WORKSPACE_SECTION_ITEMS.map((item) => {
+            const Icon = SECTION_ICONS[item.id];
+            const active = activeSection === item.id;
+            return (
+              <SidebarNavChild
+                key={item.id}
+                href={item.href}
+                label={item.label}
+                active={active}
+                disabled={locked && item.id === 'assigned'}
+                leading={
+                  <MailboxNavIcon
+                    icon={Icon}
+                    active={active}
+                    color={item.color}
+                  />
+                }
+              />
+            );
+          })}
+        </SidebarNavTree>
+
+        {companionHref ? (
+          <SidebarNavLink
+            href={companionHref}
+            label="Companion"
+            active={companionActive}
+            mainNavHighlight
+            leading={
+              <CompanionMark
+                size={16}
+                className={cn(
+                  'size-4 shrink-0 transition-colors',
+                  companionActive
+                    ? 'text-[#2252bc]'
+                    : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground'
+                )}
+              />
+            }
+          />
+        ) : null}
         <SidebarNavLink
           href="#team"
           label="Messages"
@@ -236,6 +275,25 @@ export function NavMailbox({
             />
           }
         />
+        {WORKSPACE_DRAWER_ITEMS.map((item) => {
+          const active = activeWorkspaceItem === item.id;
+          return (
+            <SidebarNavLink
+              key={item.id}
+              href={item.href}
+              label={item.label}
+              active={active}
+              mainNavHighlight
+              leading={
+                <MailboxNavIcon
+                  icon={Books}
+                  active={active}
+                  color={item.color}
+                />
+              }
+            />
+          );
+        })}
         {MAILBOX_WORKSPACE_ITEMS.map((item) => {
           const Icon = WORKSPACE_ICONS[item.id];
           const active = activeWorkspace === item.id;
