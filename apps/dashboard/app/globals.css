@@ -857,7 +857,7 @@ input[type='password'],
 }
 
 .auth-hero-wheel {
-  --auth-wheel-radius: 11.5rem;
+  --auth-wheel-radius: 8.75rem;
   --auth-wheel-dur: 700ms;
   --auth-wheel-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;

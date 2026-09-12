@@ -1,18 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { AtomIcon } from '@phosphor-icons/react/dist/ssr/Atom';
-import { BookOpen } from '@phosphor-icons/react/dist/ssr/BookOpen';
-import { Brain } from '@phosphor-icons/react/dist/ssr/Brain';
-import { Briefcase } from '@phosphor-icons/react/dist/ssr/Briefcase';
+import { CompanionMark } from '@humaner/shared/companion-icon';
+import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
-import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
-import { Code } from '@phosphor-icons/react/dist/ssr/Code';
-import { Ghost } from '@phosphor-icons/react/dist/ssr/Ghost';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
-import { ShieldCheck } from '@phosphor-icons/react/dist/ssr/ShieldCheck';
-import { TrayArrowDownIcon } from '@phosphor-icons/react/dist/ssr/TrayArrowDown';
-import { UsersThree } from '@phosphor-icons/react/dist/ssr/UsersThree';
+import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
+import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 import { motion, useReducedMotion } from 'motion/react';
 
 import { useAuthTheme } from '@/components/auth/auth-theme-context';
@@ -34,7 +28,7 @@ type FeatureGlyph = React.ComponentType<{
 type FeatureTile = {
   id: string;
   label: string;
-  icon: FeatureGlyph;
+  icon?: FeatureGlyph;
   tile: 'gray' | 'cobalt' | 'green' | 'contrast';
   ink: string;
 };
@@ -43,85 +37,42 @@ const FEATURE_TILES: FeatureTile[] = [
   {
     id: 'inbox',
     label: 'Inbox',
-    icon: TrayArrowDownIcon,
+    icon: Tray,
     tile: 'gray',
     ink: TILE.ink
   },
   {
     id: 'companion',
     label: 'Companion',
-    icon: Ghost,
     tile: 'cobalt',
-    ink: TILE.cream
-  },
-  {
-    id: 'providers',
-    label: 'Providers',
-    icon: Plugs,
-    tile: 'green',
-    ink: TILE.cream
-  },
-  {
-    id: 'memory',
-    label: 'Memory',
-    icon: Brain,
-    tile: 'contrast',
-    ink: TILE.cream
-  },
-  {
-    id: 'skills',
-    label: 'Skills',
-    icon: Briefcase,
-    tile: 'gray',
-    ink: TILE.ink
-  },
-  {
-    id: 'tasks',
-    label: 'Tasks',
-    icon: Checks,
-    tile: 'cobalt',
-    ink: TILE.cream
-  },
-  {
-    id: 'api',
-    label: 'MCP',
-    icon: Code,
-    tile: 'green',
-    ink: TILE.cream
-  },
-  {
-    id: 'knowledge',
-    label: 'Resources',
-    icon: BookOpen,
-    tile: 'gray',
-    ink: TILE.ink
-  },
-  {
-    id: 'security',
-    label: 'Security',
-    icon: ShieldCheck,
-    tile: 'contrast',
-    ink: TILE.cream
-  },
-  {
-    id: 'intelligence',
-    label: 'Intelligence',
-    icon: AtomIcon,
-    tile: 'green',
     ink: TILE.cream
   },
   {
     id: 'calendar',
     label: 'Calendar',
     icon: CalendarBlank,
-    tile: 'cobalt',
+    tile: 'contrast',
     ink: TILE.cream
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    icon: Books,
+    tile: 'gray',
+    ink: TILE.ink
   },
   {
     id: 'team',
     label: 'Team',
-    icon: UsersThree,
-    tile: 'contrast',
+    icon: Users,
+    tile: 'green',
+    ink: TILE.cream
+  },
+  {
+    id: 'connect',
+    label: 'Connect',
+    icon: Plugs,
+    tile: 'cobalt',
     ink: TILE.cream
   }
 ];
@@ -132,7 +83,7 @@ const STEP_MS = 2200;
 
 const LIGHT_EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Mailbox tiles plus workspace features, rotating one-by-one like a wheel. */
+/** Mailbox features, rotating one-by-one like a wheel. */
 export function AuthHeroPanel(): React.JSX.Element {
   const reducedMotion = useReducedMotion();
   const { isInverted } = useAuthTheme();
@@ -254,11 +205,15 @@ function FeatureTileView({
         color
       }}
     >
-      <Icon
-        weight="fill"
-        className="size-10 sm:size-12"
-        aria-hidden
-      />
+      {item.id === 'companion' ? (
+        <CompanionMark className="size-10 sm:size-12" />
+      ) : Icon ? (
+        <Icon
+          weight="fill"
+          className="size-10 sm:size-12"
+          aria-hidden
+        />
+      ) : null}
     </div>
   );
 }

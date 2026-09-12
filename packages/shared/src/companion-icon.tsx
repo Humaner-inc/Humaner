@@ -2,11 +2,20 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import {
+  forwardRef,
   useEffect,
+  useImperativeHandle,
   type CSSProperties,
   type HTMLAttributes,
   type JSX,
 } from "react";
+
+import {
+  resolveIconSize,
+  type AnimatedIconHandle,
+  type LucideIcon,
+  type LucideIconProps,
+} from "./icon-utils";
 
 export type CompanionFigureState = "idle" | "enter" | "thinking" | "exit";
 
@@ -50,6 +59,46 @@ export function CompanionMark({
     </svg>
   );
 }
+
+/** Lucide-shaped wrapper so Companion can replace robot icons in icon maps. */
+export const Companion = forwardRef<AnimatedIconHandle, LucideIconProps>(
+  function Companion(
+    {
+      className,
+      size,
+      width,
+      height,
+      style,
+      strokeWidth: _strokeWidth,
+      ...props
+    },
+    ref,
+  ) {
+    const resolvedSize = resolveIconSize(className, size, width, height, 16);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        startAnimation() {},
+        stopAnimation() {},
+      }),
+      [],
+    );
+
+    return (
+      <span
+        className={joinClassNames(
+          "inline-flex shrink-0 items-center justify-center",
+          className,
+        )}
+        style={style}
+        {...props}
+      >
+        <CompanionMark size={resolvedSize} />
+      </span>
+    );
+  },
+) as LucideIcon;
 
 function CompanionLoader({ size }: { size: number }): JSX.Element {
   return (
