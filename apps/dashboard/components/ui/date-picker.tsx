@@ -43,7 +43,7 @@ function DatePicker({
           variant={variant || 'outline'}
           className={cn(
             'justify-start whitespace-nowrap text-left font-normal',
-            !date && 'text-muted-foreground',
+            !date && 'text-foreground/40',
             className
           )}
           {...other}

@@ -34,6 +34,7 @@ export const createTaskFromMailThreadAction = pageActionClientAny(
       });
 
       revalidatePath(Routes.Tasks);
+      revalidatePath(Routes.InboxAssigned);
       revalidatePath(inboxThreadRoute(parsedInput.threadId));
       return ticket;
     } catch (error) {

@@ -31,6 +31,10 @@ export function useDockNotifications(): DockNotificationsContextValue {
   return value;
 }
 
+export function useDockNotificationsOptional(): DockNotificationsContextValue | null {
+  return React.useContext(DockNotificationsContext);
+}
+
 export function DockNotificationsProvider({
   notifications,
   teamMembers,

@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils';
 
 function CountBadge({ count }: { count: number }): React.JSX.Element {
   return (
-    <span className="inline-flex min-w-4 items-center justify-center font-mono text-[9px] leading-4 text-sidebar-foreground/45">
+    <span className="inline-flex min-w-4 items-center justify-center font-mono text-[9px] leading-4 text-[#2252bc]">
       {count > 99 ? '99+' : count}
     </span>
   );

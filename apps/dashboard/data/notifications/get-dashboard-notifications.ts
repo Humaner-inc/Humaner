@@ -92,7 +92,8 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     expiringApiKeys,
     teamMembers,
     currentUser,
-    mailScope
+    mailScope,
+    mentionRows
   ] = await Promise.all([
     prisma.organization.findFirst({
       where: { id: organizationId },
@@ -166,7 +167,19 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
     }),
     oss
       ? Promise.resolve(null)
-      : resolveMailAliasScope({ userId, organizationId })
+      : resolveMailAliasScope({ userId, organizationId }),
+    prisma.notification.findMany({
+      where: { userId, dismissed: false },
+      orderBy: { createdAt: 'desc' },
+      take: GROUP_LIMIT,
+      select: {
+        id: true,
+        subject: true,
+        content: true,
+        link: true,
+        createdAt: true
+      }
+    })
   ]);
 
   if (!organization) {
@@ -220,8 +233,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             organizationId,
             assigneeId: userId,
             archivedAt: null,
-            status: { in: ['OPEN', 'PENDING'] },
-            aliasId: aliasIdFilter(mailScope)
+            status: { in: ['OPEN', 'PENDING'] }
           },
           select: {
             id: true,
@@ -421,6 +433,18 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
       href: inboxThreadRoute(thread.id),
       severity: 'info',
       createdAt: thread.lastMessageAt.toISOString()
+    });
+  }
+
+  for (const mention of mentionRows) {
+    items.push({
+      id: `mention-${mention.id}`,
+      kind: 'mention',
+      title: mention.subject || 'Mention',
+      description: mention.content,
+      href: mention.link || Routes.TeamPanel,
+      severity: 'info',
+      createdAt: mention.createdAt.toISOString()
     });
   }
 

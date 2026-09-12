@@ -66,5 +66,6 @@ export const createWorkspaceTask = pageActionClient('tasks')
     });
 
     revalidatePath(Routes.Tasks);
+    revalidatePath(Routes.InboxAssigned);
     return ticket;
   });

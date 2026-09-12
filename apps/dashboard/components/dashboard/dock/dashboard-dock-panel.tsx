@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { InfoIcon, MailIcon, XIcon } from '@humaner/shared/icons';
 
 import {
@@ -8,8 +9,10 @@ import {
   type DockMode
 } from '@/components/dashboard/dock/dashboard-dock-context';
 import { DockNotificationsView } from '@/components/dashboard/dock/dock-notifications-view';
+import { DockTeamView } from '@/components/dashboard/dock/dock-team-view';
 import { Button } from '@/components/ui/button';
 import { GlassFeatureIcon } from '@/components/ui/glass-feature-icon';
+import type { TeamWorkspaceFeed } from '@/data/team/get-team-workspace';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { getSupportMailtoUrl } from '@/lib/urls/get-support-email';
@@ -22,13 +25,31 @@ const DOCK_TITLES: Record<NonNullable<DockMode>, string> = {
   help: 'Need help?',
   notifications: oss ? 'Notifications' : 'Mail',
   'report-bug': 'Need help?',
-  feedback: 'Need help?'
+  feedback: 'Need help?',
+  team: 'Team'
 };
 
-export function DashboardDockPanel(): React.JSX.Element {
+function teamDockTitle(workspaceName: string): string {
+  const name = workspaceName.trim() || 'Workspace';
+  return `${name}'s team`;
+}
+
+export function DashboardDockPanel({
+  workspaceName,
+  teamFeed
+}: {
+  workspaceName?: string;
+  teamFeed?: TeamWorkspaceFeed;
+}): React.JSX.Element {
   const { activeMode, closeDock } = useDashboardDock();
   const panelMode = activeMode === 'ask' ? null : activeMode;
   const isOpen = panelMode !== null;
+  const title =
+    panelMode === 'team'
+      ? teamDockTitle(workspaceName ?? '')
+      : panelMode
+        ? DOCK_TITLES[panelMode]
+        : '';
 
   return (
     <div
@@ -43,7 +64,7 @@ export function DashboardDockPanel(): React.JSX.Element {
         <div className="flex h-full w-96 max-lg:w-full flex-col bg-background">
           <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
             <span className="flex-1 truncate font-mono text-xs tracking-tight">
-              {DOCK_TITLES[panelMode]}
+              {title}
             </span>
             <Button
               type="button"
@@ -58,27 +79,60 @@ export function DashboardDockPanel(): React.JSX.Element {
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden">
-            <DockContent mode={panelMode} />
+            <DockContent
+              mode={panelMode}
+              teamFeed={teamFeed}
+            />
           </div>
         </div>
       ) : null}
+      <React.Suspense fallback={null}>
+        <TeamPanelQueryOpener />
+      </React.Suspense>
     </div>
   );
 }
 
 function DockContent({
-  mode
+  mode,
+  teamFeed
 }: {
   mode: Exclude<NonNullable<DockMode>, 'ask'>;
+  teamFeed?: TeamWorkspaceFeed;
 }): React.JSX.Element {
   switch (mode) {
     case 'notifications':
       return <DockNotificationsView />;
+    case 'team':
+      return <DockTeamView initialFeed={teamFeed} />;
     case 'help':
     case 'report-bug':
     case 'feedback':
       return <DockHelpView />;
   }
+}
+
+function TeamPanelQueryOpener(): null {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { openDock } = useDashboardDock();
+
+  React.useEffect(() => {
+    const panel = searchParams.get('panel');
+    if (panel === 'team') {
+      openDock('team', { teamTab: 'messages' });
+      return;
+    }
+    if (panel === 'notes' || searchParams.get('notes') === '1') {
+      const threadId = pathname.match(/\/inbox\/threads\/([^/?#]+)/)?.[1];
+      openDock('team', {
+        teamTab: 'notes',
+        notesFocus: threadId ? { threadId } : null
+      });
+    }
+  }, [openDock, pathname, searchParams]);
+
+  return null;
 }
 
 function DockHelpView(): React.JSX.Element {

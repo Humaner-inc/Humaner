@@ -2,6 +2,7 @@ import 'server-only';
 
 import { MailMessageDirection, MailProvider } from '@prisma/client';
 
+import { workspaceAllowsCompanionAction } from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
 import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
@@ -205,9 +206,12 @@ export async function aliasAllowsCompanionSend(
   organizationId: string,
   threadId: string
 ): Promise<boolean> {
+  const allowed = await workspaceAllowsCompanionAction(organizationId, 'SEND');
+  if (!allowed) return false;
+
   const thread = await prisma.mailThread.findFirst({
     where: { id: threadId, organizationId },
-    select: { alias: { select: { companionPolicy: true } } }
+    select: { id: true }
   });
-  return thread?.alias.companionPolicy === 'SEND';
+  return Boolean(thread);
 }

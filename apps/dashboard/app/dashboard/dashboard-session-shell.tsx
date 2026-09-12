@@ -24,6 +24,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
+import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task-proposals';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import {
@@ -32,6 +33,7 @@ import {
 } from '@/data/inbox/get-mail-threads';
 import { getWorkspaceKnowledgeAgent } from '@/data/knowledge/get-workspace-knowledge';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
+import { getTeamWorkspaceFeed } from '@/data/team/get-team-workspace';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
@@ -44,10 +46,10 @@ import {
 import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
 import { getIndustry } from '@/lib/industries';
 import { ASK_HUMANER_ACCENT } from '@/lib/urls/extract-brand-accent-color';
+import { COMPANION_TASK_PROPOSALS_ENABLED } from '@/types/companion-task-proposal';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 export async function DashboardSessionShell({
@@ -151,8 +153,7 @@ export async function DashboardSessionShell({
     tier: userFromDb!.organization!.tier ?? 'free',
     operatorOwnedQuota: false
   };
-  const humanerAgentPublicId = getHumanerAgentPublicId();
-
+  const notificationsPromise = getDashboardNotifications();
   const [
     profile,
     agents,
@@ -162,30 +163,29 @@ export async function DashboardSessionShell({
     inboxUnreadCount,
     handoffOpenCounts,
     mailInboxes,
-    humanerAgentRecord,
-    workspaceCompanion
+    workspaceCompanion,
+    teamFeed,
+    taskProposals
   ] = await Promise.all([
     getProfile(),
     getAgents(),
     getWorkspaceSwitcherData(),
     oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
-    getDashboardNotifications(),
+    notificationsPromise,
     oss || !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
     canDesk
       ? getHandoffOpenCounts()
       : Promise.resolve({ humanOpen: 0, agentOpen: 0 }),
     oss || !canInbox ? Promise.resolve([]) : getMailInboxes(),
-    !oss && humanerAgentPublicId
-      ? prisma.agent.findUnique({
-          where: { publicId: humanerAgentPublicId },
-          select: {
-            image: true,
-            character: true,
-            organization: { select: { name: true } }
-          }
-        })
-      : Promise.resolve(null),
-    getWorkspaceKnowledgeAgent(session.user.organizationId)
+    getWorkspaceKnowledgeAgent(session.user.organizationId),
+    oss || !canInbox
+      ? Promise.resolve({ notes: [], messages: [] })
+      : getTeamWorkspaceFeed(),
+    oss || !COMPANION_TASK_PROPOSALS_ENABLED
+      ? Promise.resolve([])
+      : notificationsPromise.then((result) =>
+          getCompanionTaskProposals(result.items)
+        )
   ]);
   const {
     items: notifications,
@@ -226,14 +226,15 @@ export async function DashboardSessionShell({
       : {})
   };
 
-  const humanerAgentAvatarUrl = resolveAgentAvatarSrc(
-    humanerAgentRecord?.image,
-    humanerAgentRecord?.character ?? 'CORPORATE'
-  );
-  const humanerOrganizationName =
-    humanerAgentRecord?.organization?.name?.trim() || 'Humaner';
-  // Ask Humaner home mark is always the Humaner brand — never logo.dev monogram.
-  const humanerOrganizationLogoUrl = brand.logo;
+  const companionAvatarUrl = workspaceCompanion
+    ? resolveAgentAvatarSrc(
+        workspaceCompanion.image,
+        workspaceCompanion.character
+      )
+    : undefined;
+  const companionOrganizationName =
+    userFromDb!.organization!.name?.trim() || 'Workspace';
+  const companionOrganizationLogoUrl = brand.logo;
 
   const organization = userFromDb!.organization!;
   const industryVertical = organization.industry
@@ -280,6 +281,7 @@ export async function DashboardSessionShell({
         <DashboardTopNav
           profile={profile}
           workspaces={workspaces}
+          teamFeed={teamFeed}
           planName={getPlanForTier(userFromDb!.organization!.tier).name}
           industryLabel={
             userFromDb!.organization!.industry
@@ -294,7 +296,10 @@ export async function DashboardSessionShell({
           <DashboardWorkspaceColumn profile={profile}>
             {children}
           </DashboardWorkspaceColumn>
-          <DashboardDockPanel />
+          <DashboardDockPanel
+            workspaceName={companionOrganizationName}
+            teamFeed={teamFeed}
+          />
         </div>
       </SidebarInset>
     </>
@@ -329,19 +334,18 @@ export async function DashboardSessionShell({
               >
                 {!isOssDeployment() &&
                 copilotEnabled &&
-                humanerAgentPublicId ? (
+                workspaceCompanion?.publicId ? (
                   <HumanerChatProvider
-                    agentPublicId={humanerAgentPublicId}
-                    agentAvatarUrl={humanerAgentAvatarUrl}
-                    organizationName={humanerOrganizationName}
-                    organizationLogoUrl={humanerOrganizationLogoUrl}
+                    agentPublicId={workspaceCompanion.publicId}
+                    agentAvatarUrl={companionAvatarUrl}
+                    organizationName={companionOrganizationName}
+                    organizationLogoUrl={companionOrganizationLogoUrl}
                     widgetColor={ASK_HUMANER_ACCENT}
-                    companionCharacter={
-                      workspaceCompanion?.character ?? 'CASUAL'
-                    }
+                    companionCharacter={workspaceCompanion.character}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}
+                    taskProposals={taskProposals}
                   >
                     {dashboardShell}
                   </HumanerChatProvider>

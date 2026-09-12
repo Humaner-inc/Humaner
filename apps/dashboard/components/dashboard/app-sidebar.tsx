@@ -95,13 +95,8 @@ export function AppSidebar({
           />
         </ScrollArea>
       </SidebarContent>
-      <div className="mt-auto min-w-0 border-t border-sidebar-border/60">
-        {!oss ? (
-          <SidebarMessageUsage
-            usage={messageUsage}
-            className="pt-2"
-          />
-        ) : null}
+      <div className="mt-auto min-w-0">
+        {!oss ? <SidebarMessageUsage usage={messageUsage} /> : null}
         <SidebarFooter className="min-w-0 p-2">
           <WorkspaceSwitcher
             variant="sidebar"

@@ -26,6 +26,8 @@ export enum Routes {
   /** @deprecated Internal alias — use {@link Routes.Home} for navigation and meta links. */
   Dashboard = '/organization/overview',
   Home = '/organization/overview',
+  /** Opens the Team notes / messages dock after navigation. */
+  TeamPanel = '/organization/overview?panel=team',
   OrganizationTeam = '/organization/team',
   OrganizationWorkspace = '/organization/workspace',
   Agents = '/agents',

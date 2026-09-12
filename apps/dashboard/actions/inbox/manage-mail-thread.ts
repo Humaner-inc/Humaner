@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db/prisma';
 import { deleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
 import {
   aliasIdFilter,
+  mailThreadAccessWhere,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
 import {
@@ -30,16 +31,15 @@ async function assertThreadAccess(
   organizationId: string
 ) {
   const scope = await resolveMailAliasScope({ userId, organizationId });
-  const scopedAliasIds = aliasIdFilter(scope);
-  if (scope.type === 'ids' && scope.aliasIds.length === 0) {
-    throw new NotFoundError('Thread not found');
-  }
 
   const thread = await prisma.mailThread.findFirst({
     where: {
       id: threadId,
-      organizationId,
-      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
+      ...mailThreadAccessWhere({
+        organizationId,
+        userId,
+        scope
+      })
     },
     select: { id: true, aliasId: true }
   });

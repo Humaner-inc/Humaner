@@ -24,6 +24,7 @@ import {
   markMailThreadRead
 } from '@/actions/inbox/manage-mail-thread';
 import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
+import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailPanel } from '@/components/dashboard/inbox/compose-mail-panel';
 import {
@@ -61,12 +62,40 @@ import type {
 import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
+import {
+  OPEN_THREAD_NOTES_EVENT,
+  readOpenThreadNotesDetail
+} from '@/lib/inbox/open-thread-notes';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
+const DEFAULT_UNREAD = '#2252bc';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
   'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
+
+function ReadCircle({
+  unread,
+  color
+}: {
+  unread: boolean;
+  color: string;
+}): React.JSX.Element {
+  return (
+    <span
+      className="mt-2 size-2.5 shrink-0 rounded-full"
+      style={
+        unread
+          ? { backgroundColor: color }
+          : {
+              boxShadow: `inset 0 0 0 1.5px ${color}`,
+              backgroundColor: 'transparent'
+            }
+      }
+      aria-hidden
+    />
+  );
+}
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
@@ -121,6 +150,7 @@ export function MailThreadList({
 }): React.JSX.Element {
   const router = useRouter();
   const isDesk = variant === 'desk';
+  const dock = useDashboardDockOptional();
   const { composeOpen, composeInPanel, closeCompose } = useComposeMail();
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
     null
@@ -195,8 +225,7 @@ export function MailThreadList({
       ...current,
       [threadId]: {
         ...current[threadId],
-        isUnread: false,
-        awaitingReply: false
+        isUnread: false
       }
     }));
   }, []);
@@ -276,16 +305,38 @@ export function MailThreadList({
     [requestThread]
   );
 
+  const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
+    onSuccess: () => router.refresh(),
+    onError: ({ error, input }) => {
+      patchThreads([input.threadId], { isUnread: true });
+      toast.error(error.serverError || 'Could not update read state');
+    }
+  });
+
   const selectThread = React.useCallback(
     (threadId: string) => {
       closeCompose();
       activeThreadIdRef.current = threadId;
       setActiveThreadId(threadId);
+      const listThread = threads.find((thread) => thread.id === threadId);
+      const isUnread =
+        localOverrides[threadId]?.isUnread ?? listThread?.isUnread;
+      if (isUnread) {
+        markThreadOpened(threadId);
+        runRowMarkRead({ threadId, isUnread: false });
+      }
       const cached = detailCacheRef.current.get(threadId);
+      if (dock?.activeMode === 'team' && dock.teamTab === 'notes') {
+        const listThread = threads.find((thread) => thread.id === threadId);
+        dock.setNotesFocus({
+          threadId,
+          subject: cached?.subject ?? listThread?.subject ?? null,
+          sharedNoteDraft: cached?.sharedNoteDraft ?? null
+        });
+      }
       if (cached) {
         setPaneThread(cached);
         setPaneLoading(false);
-        markThreadOpened(threadId);
         return;
       }
       setPaneThread(null);
@@ -293,8 +344,27 @@ export function MailThreadList({
       if (prefetchingRef.current.has(threadId)) return;
       requestThread(threadId);
     },
-    [closeCompose, markThreadOpened, requestThread]
+    [
+      closeCompose,
+      dock,
+      localOverrides,
+      markThreadOpened,
+      requestThread,
+      runRowMarkRead,
+      threads
+    ]
   );
+
+  React.useEffect(() => {
+    function onOpenNotes(event: Event): void {
+      const threadId = readOpenThreadNotesDetail(event);
+      if (!threadId) return;
+      selectThread(threadId);
+    }
+    window.addEventListener(OPEN_THREAD_NOTES_EVENT, onOpenNotes);
+    return () =>
+      window.removeEventListener(OPEN_THREAD_NOTES_EVENT, onOpenNotes);
+  }, [selectThread]);
 
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
@@ -502,14 +572,6 @@ export function MailThreadList({
     onError: ({ error }) => toast.error(error.serverError || 'Could not tag')
   });
 
-  const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
-    onSuccess: () => refreshInBackground(),
-    onError: ({ error, input }) => {
-      patchThreads([input.threadId], { isUnread: true, awaitingReply: true });
-      toast.error(error.serverError || 'Could not update read state');
-    }
-  });
-
   const askDelete = React.useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return;
@@ -625,10 +687,7 @@ export function MailThreadList({
           runRowTag({ threadId: thread.id, tagId });
         }}
         onMarkRead={() => {
-          patchThreads([thread.id], {
-            isUnread: false,
-            awaitingReply: false
-          });
+          patchThreads([thread.id], { isUnread: false });
           runRowMarkRead({ threadId: thread.id, isUnread: false });
         }}
       />
@@ -1022,6 +1081,7 @@ function MailThreadRow({
   const router = useRouter();
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
+  const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
   const applicableTags = tagsForAlias(tags, thread.aliasId);
@@ -1068,8 +1128,12 @@ function MailThreadRow({
     <li
       className={cn(
         'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
-        previewActive && 'bg-foreground/[0.06]',
-        selected && 'bg-foreground/[0.04]'
+        localUnread && 'bg-[color-mix(in_srgb,#2252bc_8%,transparent)]',
+        previewActive &&
+          (localUnread
+            ? 'bg-[color-mix(in_srgb,#2252bc_14%,transparent)]'
+            : 'bg-foreground/[0.06]'),
+        selected && !localUnread && 'bg-foreground/[0.04]'
       )}
     >
       <div
@@ -1128,6 +1192,11 @@ function MailThreadRow({
           </AvatarFallback>
         </Avatar>
 
+        <ReadCircle
+          unread={localUnread}
+          color={circleColor}
+        />
+
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p
@@ -1139,13 +1208,6 @@ function MailThreadRow({
               )}
             >
               {label}
-              {thread.tag ? (
-                <span
-                  className="ml-1.5 inline-block size-1.5 translate-y-[-1px] rounded-full"
-                  style={{ backgroundColor: thread.tag.color }}
-                  title={thread.tag.name}
-                />
-              ) : null}
             </p>
             <time
               dateTime={thread.lastMessageAt}
@@ -1200,7 +1262,7 @@ function MailThreadRow({
                 onMarkRead();
               }}
             >
-              <CheckIcon className="size-3.5 text-sky-600" />
+              <CheckIcon className="size-3.5 text-[#2252bc]" />
               <span className="sr-only">Mark as read</span>
             </Button>
           ) : null}

@@ -1,6 +1,8 @@
 import 'server-only';
 
+import { inboxThreadNotesRoute } from '@/constants/inbox-nav-items';
 import { prisma } from '@/lib/db/prisma';
+import { notifyMentionedTeammates } from '@/lib/inbox/notify-mentions';
 
 export type MailThreadNoteItem = {
   id: string;
@@ -30,6 +32,8 @@ export async function sendMailThreadNote(input: {
   threadId: string;
   organizationId: string;
   authorId: string;
+  authorName: string;
+  subject: string;
   body: string;
 }): Promise<MailThreadNoteItem> {
   const body = input.body.trim();
@@ -57,6 +61,16 @@ export async function sendMailThreadNote(input: {
       }
     });
     return created;
+  });
+
+  await notifyMentionedTeammates({
+    organizationId: input.organizationId,
+    authorId: input.authorId,
+    body,
+    subject: 'Mentioned in a note',
+    content: `${input.authorName} mentioned you on ${input.subject || '(no subject)'}.`,
+    link: inboxThreadNotesRoute(input.threadId),
+    threadId: input.threadId
   });
 
   return {

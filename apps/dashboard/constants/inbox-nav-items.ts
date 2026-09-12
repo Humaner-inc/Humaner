@@ -36,7 +36,7 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
   },
   {
     id: 'aliases',
-    label: 'Aliases',
+    label: 'Workspace settings',
     href: Routes.InboxSettings
   },
   {
@@ -82,4 +82,8 @@ export function isInboxLocked(orgTier: string): boolean {
 
 export function inboxThreadRoute(threadId: string): string {
   return `/inbox/threads/${threadId}`;
+}
+
+export function inboxThreadNotesRoute(threadId: string): string {
+  return `${inboxThreadRoute(threadId)}?panel=notes`;
 }

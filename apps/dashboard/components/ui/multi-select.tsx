@@ -93,7 +93,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 </Badge>
               ))
             ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
+              <span className="text-foreground/40">{placeholder}</span>
             )}
           </div>
           <CaretSortIcon className="ml-2 size-4 shrink-0 opacity-50" />

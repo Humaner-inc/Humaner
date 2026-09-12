@@ -53,6 +53,7 @@ export const updateCalendarEvent = pageActionClient('calendar')
             description: parsedInput.description,
             startsAt,
             endsAt,
+            color: parsedInput.color,
             attendees:
               attendeeIds.length > 0
                 ? { create: attendeeIds.map((userId) => ({ userId })) }
@@ -67,7 +68,8 @@ export const updateCalendarEvent = pageActionClient('calendar')
           title: parsedInput.title,
           description: parsedInput.description,
           startsAt,
-          endsAt
+          endsAt,
+          color: parsedInput.color
         }
       });
     }

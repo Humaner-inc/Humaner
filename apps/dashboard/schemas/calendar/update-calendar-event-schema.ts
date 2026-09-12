@@ -17,7 +17,11 @@ export const updateCalendarEventSchema = z
       .nullable(),
     startsAt: z.coerce.date().optional(),
     endsAt: z.coerce.date().optional(),
-    attendeeIds: z.array(z.string().uuid()).max(50).optional()
+    attendeeIds: z.array(z.string().uuid()).max(50).optional(),
+    color: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/, 'Use a hex color.')
+      .optional()
   })
   .refine(
     (data) => {

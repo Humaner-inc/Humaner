@@ -69,6 +69,97 @@ export function calendarRange(
   return { start, end };
 }
 
+export const DEFAULT_EVENT_COLOR = '#f85919';
+
+export const CALENDAR_EVENT_COLORS = [
+  '#2252bc',
+  '#226342',
+  '#f85919',
+  '#aa1f18',
+  '#e6b325',
+  '#e0e1df',
+  '#18181b',
+  '#0A0D0D'
+] as const;
+
+export function sameCalendarDay(left: Date, right: Date): boolean {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+export function toLocalDateTimeInput(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function fromLocalDateTimeInput(value: string): Date {
+  return new Date(value);
+}
+
+export function snapMinutes(totalMinutes: number, step = 30): number {
+  return Math.round(totalMinutes / step) * step;
+}
+
+/** Prefill create: the given day, with the current clock time. */
+export function defaultEventWindow(
+  day?: Date,
+  from = new Date()
+): {
+  start: Date;
+  end: Date;
+} {
+  const start = new Date(day ?? from);
+  start.setHours(from.getHours(), from.getMinutes(), 0, 0);
+  const end = new Date(start);
+  end.setHours(end.getHours() + 1);
+  return { start, end };
+}
+
+export function eventInkColor(hex: string): string {
+  const raw = hex.replace('#', '');
+  if (raw.length !== 6) return '#fcf4ec';
+  const r = Number.parseInt(raw.slice(0, 2), 16);
+  const g = Number.parseInt(raw.slice(2, 4), 16);
+  const b = Number.parseInt(raw.slice(4, 6), 16);
+  if ([r, g, b].some((value) => Number.isNaN(value))) return '#fcf4ec';
+  const luma = (r * 299 + g * 587 + b * 114) / 1000;
+  return luma > 160 ? '#0A0D0D' : '#fcf4ec';
+}
+
+export function moveEventKeepingDuration(
+  startsAt: Date,
+  endsAt: Date,
+  day: Date,
+  startMinutes: number
+): { startsAt: Date; endsAt: Date } {
+  const duration = Math.max(
+    15 * 60 * 1000,
+    endsAt.getTime() - startsAt.getTime()
+  );
+  const nextStart = new Date(day);
+  nextStart.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
+  return {
+    startsAt: nextStart,
+    endsAt: new Date(nextStart.getTime() + duration)
+  };
+}
+
+export function moveEventToDayKeepClock(
+  startsAt: Date,
+  endsAt: Date,
+  day: Date
+): { startsAt: Date; endsAt: Date } {
+  return moveEventKeepingDuration(
+    startsAt,
+    endsAt,
+    day,
+    startsAt.getHours() * 60 + startsAt.getMinutes()
+  );
+}
+
 export function calendarPath(date: Date, view: CalendarView): string {
   const params = new URLSearchParams({
     date: formatCalendarDateParam(date)

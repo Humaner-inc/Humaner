@@ -7,10 +7,18 @@ import {
   MailThreadStatus
 } from '@prisma/client';
 
+import {
+  readCompanionWorkspaceRights,
+  workspaceAllowsCompanionAction
+} from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import { createTaskFromMailThread } from '@/lib/inbox/create-task-from-thread';
+import {
+  mailThreadAccessWhere,
+  resolveMailAliasScope
+} from '@/lib/inbox/mail-alias-scope';
 import {
   applyMailThreadAssignee,
   COMPANION_ASSIGNEE,
@@ -21,6 +29,8 @@ import {
   aliasAllowsCompanionSend,
   sendMailThreadReply
 } from '@/lib/inbox/send-mail-thread-reply';
+import { resolveProfileAssignee } from '@/lib/team/resolve-profile-assignee';
+import { inferRoutingTopics } from '@/lib/team/routing-topics';
 import type { WorkspaceToolContext } from '@/lib/workspace-api/authorize';
 import {
   resolveWorkspaceToolName,
@@ -35,6 +45,26 @@ export type WorkspaceToolResult = {
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function asTopicList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+async function actorMailAccess(context: WorkspaceToolContext) {
+  const scope = await resolveMailAliasScope({
+    userId: context.actorUserId,
+    organizationId: context.organizationId
+  });
+  return mailThreadAccessWhere({
+    organizationId: context.organizationId,
+    userId: context.actorUserId,
+    scope
+  });
 }
 
 function asLimit(value: unknown, fallback: number, max: number): number {
@@ -55,9 +85,10 @@ async function executeListThreads(
       ? (statusRaw as MailThreadStatus)
       : undefined;
 
+  const access = await actorMailAccess(context);
   const threads = await prisma.mailThread.findMany({
     where: {
-      organizationId: context.organizationId,
+      ...access,
       archivedAt: null,
       ...(unreadOnly ? { isUnread: true } : {}),
       ...(status ? { status } : {})
@@ -102,8 +133,9 @@ async function executeReadThread(
   const threadId = asString(args.threadId);
   if (!threadId) return { ok: false, error: 'threadId is required.' };
 
+  const access = await actorMailAccess(context);
   const thread = await prisma.mailThread.findFirst({
-    where: { id: threadId, organizationId: context.organizationId },
+    where: { id: threadId, ...access },
     select: {
       id: true,
       subject: true,
@@ -138,6 +170,23 @@ async function executeReadThread(
   });
   if (!thread) return { ok: false, error: 'Thread not found.' };
 
+  const rights = await readCompanionWorkspaceRights(context.organizationId);
+  const inbound = thread.messages.find(
+    (message) => message.direction === 'INBOUND'
+  );
+  const inferredTopics = inferRoutingTopics({
+    subject: thread.subject,
+    body: inbound?.bodyText,
+    fromAddress: inbound?.fromAddress
+  });
+  const suggestedAssigneeId =
+    thread.assigneeId || thread.assigneeKind === 'COMPANION'
+      ? null
+      : await resolveProfileAssignee(
+          context.organizationId,
+          inferredTopics.length > 0 ? inferredTopics : ['inbox']
+        );
+
   return {
     ok: true,
     data: {
@@ -146,10 +195,12 @@ async function executeReadThread(
       status: thread.status,
       alias: thread.alias.address,
       companionPolicy: thread.alias.companionPolicy,
+      companionActions: rights.actions,
       assignee: mailAssigneeLabel({
         assigneeKind: thread.assigneeKind,
         assigneeName: thread.assignee?.name ?? null
       }),
+      suggestedAssigneeId,
       handoffTicketId: thread.handoffTicketId,
       notes: thread.notes.map((note) => ({
         id: note.id,
@@ -176,15 +227,20 @@ async function executeSearchThreads(
   if (!query) return { ok: false, error: 'query is required.' };
   const limit = asLimit(args.limit, 20, 50);
 
+  const access = await actorMailAccess(context);
   const threads = await prisma.mailThread.findMany({
     where: {
-      organizationId: context.organizationId,
-      OR: [
-        { subject: { contains: query, mode: 'insensitive' } },
+      ...access,
+      AND: [
         {
-          messages: {
-            some: { bodyText: { contains: query, mode: 'insensitive' } }
-          }
+          OR: [
+            { subject: { contains: query, mode: 'insensitive' } },
+            {
+              messages: {
+                some: { bodyText: { contains: query, mode: 'insensitive' } }
+              }
+            }
+          ]
         }
       ]
     },
@@ -220,8 +276,9 @@ async function executeSuggestReply(
   const threadId = asString(args.threadId);
   if (!threadId) return { ok: false, error: 'threadId is required.' };
 
+  const access = await actorMailAccess(context);
   const thread = await prisma.mailThread.findFirst({
-    where: { id: threadId, organizationId: context.organizationId },
+    where: { id: threadId, ...access },
     select: {
       subject: true,
       alias: { select: { address: true } },
@@ -233,6 +290,18 @@ async function executeSuggestReply(
     }
   });
   if (!thread) return { ok: false, error: 'Thread not found.' };
+
+  const canDraft = await workspaceAllowsCompanionAction(
+    context.organizationId,
+    'DRAFT'
+  );
+  if (!canDraft) {
+    return {
+      ok: false,
+      error:
+        'Companion draft is off for this workspace. Turn it on in Workspace Settings → Companion.'
+    };
+  }
 
   const latest = thread.messages[0];
   const suggestions = await suggestMailReplies({
@@ -255,6 +324,13 @@ async function executeSendMail(
     return { ok: false, error: 'threadId and body are required.' };
   }
 
+  const access = await actorMailAccess(context);
+  const visible = await prisma.mailThread.findFirst({
+    where: { id: threadId, ...access },
+    select: { id: true }
+  });
+  if (!visible) return { ok: false, error: 'Thread not found.' };
+
   const allowed = await aliasAllowsCompanionSend(
     context.organizationId,
     threadId
@@ -263,7 +339,7 @@ async function executeSendMail(
     return {
       ok: false,
       error:
-        'This alias Companion policy is not send. Change it on Inbox Settings or draft for approval.'
+        'Companion send is off for this workspace. Turn it on in Workspace Settings → Companion, or draft for approval.'
     };
   }
 
@@ -290,12 +366,56 @@ async function executeAssign(
   if (!threadId) return { ok: false, error: 'threadId is required.' };
 
   const raw = args.assigneeId;
-  const assignee =
-    raw === null || raw === undefined || raw === ''
+  const explicitTopics = asTopicList(args.topics);
+  const unassign = raw === null;
+  let assignee =
+    unassign || raw === undefined || raw === ''
       ? null
       : asString(raw) === COMPANION_ASSIGNEE
         ? COMPANION_ASSIGNEE
         : asString(raw);
+
+  const access = await actorMailAccess(context);
+  const visible = await prisma.mailThread.findFirst({
+    where: { id: threadId, ...access },
+    select: {
+      id: true,
+      subject: true,
+      messages: {
+        where: { direction: 'INBOUND' },
+        orderBy: { sentAt: 'desc' },
+        take: 1,
+        select: { fromAddress: true, bodyText: true }
+      }
+    }
+  });
+  if (!visible) return { ok: false, error: 'Thread not found.' };
+
+  if (!unassign && !assignee) {
+    const inbound = visible.messages[0];
+    const inferred = inferRoutingTopics({
+      subject: visible.subject,
+      body: inbound?.bodyText,
+      fromAddress: inbound?.fromAddress
+    });
+    const topics =
+      explicitTopics.length > 0
+        ? explicitTopics
+        : inferred.length > 0
+          ? inferred
+          : ['inbox'];
+    assignee = await resolveProfileAssignee(context.organizationId, topics);
+    if (!assignee && explicitTopics.length > 0) {
+      return {
+        ok: false,
+        error:
+          'No team profile matches those skills, or everyone is at capacity. Add profiles or pass assigneeId.'
+      };
+    }
+    if (!assignee) {
+      assignee = COMPANION_ASSIGNEE;
+    }
+  }
 
   const applied = await applyMailThreadAssignee({
     threadId,
@@ -321,8 +441,9 @@ async function executeTag(
   const threadId = asString(args.threadId);
   if (!threadId) return { ok: false, error: 'threadId is required.' };
 
+  const access = await actorMailAccess(context);
   const thread = await prisma.mailThread.findFirst({
-    where: { id: threadId, organizationId: context.organizationId },
+    where: { id: threadId, ...access },
     select: { id: true, aliasId: true }
   });
   if (!thread) return { ok: false, error: 'Thread not found.' };
@@ -360,16 +481,24 @@ async function executeAddNote(
     return { ok: false, error: 'threadId and body are required.' };
   }
 
-  const thread = await prisma.mailThread.findFirst({
-    where: { id: threadId, organizationId: context.organizationId },
-    select: { id: true }
-  });
+  const [thread, author] = await Promise.all([
+    prisma.mailThread.findFirst({
+      where: { id: threadId, ...(await actorMailAccess(context)) },
+      select: { id: true, subject: true }
+    }),
+    prisma.user.findFirst({
+      where: { id: context.actorUserId },
+      select: { name: true }
+    })
+  ]);
   if (!thread) return { ok: false, error: 'Thread not found.' };
 
   const note = await sendMailThreadNote({
     threadId,
     organizationId: context.organizationId,
     authorId: context.actorUserId,
+    authorName: author?.name || 'Companion',
+    subject: thread.subject,
     body
   });
   return { ok: true, data: note };
@@ -450,7 +579,23 @@ async function executeCreateTask(
     };
   }
 
-  const assigneeId = asString(args.assigneeId) || null;
+  let assigneeId = asString(args.assigneeId) || null;
+  const explicitTopics = asTopicList(args.topics);
+  const summary = asString(args.summary) || subject;
+  if (!assigneeId) {
+    const inferred = inferRoutingTopics({ subject, body: summary });
+    const topics = explicitTopics.length > 0 ? explicitTopics : inferred;
+    if (topics.length > 0) {
+      assigneeId = await resolveProfileAssignee(context.organizationId, topics);
+    }
+    if (!assigneeId && explicitTopics.length > 0) {
+      return {
+        ok: false,
+        error:
+          'No team profile matches those skills, or everyone is at capacity. Add profiles or pass assigneeId.'
+      };
+    }
+  }
   if (assigneeId) {
     const membership = await prisma.organizationMembership.findFirst({
       where: { userId: assigneeId, organizationId: context.organizationId },
@@ -460,7 +605,6 @@ async function executeCreateTask(
   }
 
   const urgencyRaw = asString(args.urgency);
-  const summary = asString(args.summary) || subject;
 
   const task = await createHandoffTicketWithNumber({
     organizationId: context.organizationId,
@@ -495,7 +639,47 @@ async function executeCreateTaskFromThread(
   const threadId = asString(args.threadId);
   if (!threadId) return { ok: false, error: 'threadId is required.' };
 
-  const assigneeId = asString(args.assigneeId) || null;
+  let assigneeId = asString(args.assigneeId) || null;
+  const explicitTopics = asTopicList(args.topics);
+
+  const access = await actorMailAccess(context);
+  const visible = await prisma.mailThread.findFirst({
+    where: { id: threadId, ...access },
+    select: {
+      id: true,
+      subject: true,
+      messages: {
+        where: { direction: 'INBOUND' },
+        orderBy: { sentAt: 'desc' },
+        take: 1,
+        select: { fromAddress: true, bodyText: true }
+      }
+    }
+  });
+  if (!visible) return { ok: false, error: 'Thread not found.' };
+
+  if (!assigneeId) {
+    const inbound = visible.messages[0];
+    const inferred = inferRoutingTopics({
+      subject: visible.subject,
+      body: inbound?.bodyText,
+      fromAddress: inbound?.fromAddress
+    });
+    const topics =
+      explicitTopics.length > 0
+        ? explicitTopics
+        : inferred.length > 0
+          ? inferred
+          : ['inbox'];
+    assigneeId = await resolveProfileAssignee(context.organizationId, topics);
+    if (!assigneeId && explicitTopics.length > 0) {
+      return {
+        ok: false,
+        error:
+          'No team profile matches those skills, or everyone is at capacity. Add profiles or pass assigneeId.'
+      };
+    }
+  }
   if (assigneeId) {
     const membership = await prisma.organizationMembership.findFirst({
       where: { userId: assigneeId, organizationId: context.organizationId },

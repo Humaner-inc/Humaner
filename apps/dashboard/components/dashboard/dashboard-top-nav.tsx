@@ -1,15 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { BellIcon, InfoIcon } from '@humaner/shared/icons';
+import { BellIcon, InfoIcon, MessageCircleIcon } from '@humaner/shared/icons';
 
-import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
-import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useDockNotifications } from '@/components/dashboard/dock/dock-notifications-context';
 import { NavUser } from '@/components/dashboard/nav-user';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useTeamUnreadCount } from '@/hooks/use-team-unread-count';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
@@ -23,6 +22,10 @@ export type DashboardTopNavProps = {
   planName: string;
   industryLabel: string | null;
   audienceLabel: string | null;
+  teamFeed?: {
+    messages: Array<{ authorId: string; createdAt: string }>;
+    notes: Array<{ authorId: string; createdAt: string; body: string }>;
+  };
   className?: string;
 };
 
@@ -32,11 +35,18 @@ export function DashboardTopNav({
   planName,
   industryLabel,
   audienceLabel,
+  teamFeed,
   className
 }: DashboardTopNavProps): React.JSX.Element {
-  const { toggleDock } = useDashboardDock();
+  const { toggleDock, activeMode } = useDashboardDock();
   const { unreadCount } = useDockNotifications();
-  const chat = useHumanerChatOptional();
+  const teamUnreadCount = useTeamUnreadCount({
+    userId: profile.id,
+    userName: profile.name,
+    messages: teamFeed?.messages ?? [],
+    notes: teamFeed?.notes ?? [],
+    teamDockOpen: activeMode === 'team'
+  });
   const mailLabel = oss ? 'Notifications' : 'Mail';
 
   return (
@@ -46,30 +56,32 @@ export function DashboardTopNav({
         className
       )}
     >
-      {chat ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            'size-9 shrink-0 rounded-lg hover:bg-muted/60',
-            chat.companionVisible
-              ? 'text-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-          onClick={() => chat.setCompanionVisible(!chat.companionVisible)}
-          aria-pressed={chat.companionVisible}
-          aria-label={
-            chat.companionVisible ? 'Hide Companion' : 'Show Companion'
-          }
-          title={chat.companionVisible ? 'Companion on' : 'Companion off'}
-        >
-          <CompanionIcon
-            active={chat.companionVisible}
-            character={chat.companionCharacter}
-          />
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'relative size-9 shrink-0 rounded-lg hover:bg-muted/60',
+          activeMode === 'team'
+            ? 'text-foreground'
+            : 'text-muted-foreground hover:text-foreground'
+        )}
+        onClick={() => toggleDock('team', { teamTab: 'messages' })}
+        aria-pressed={activeMode === 'team'}
+        aria-label={
+          teamUnreadCount > 0
+            ? `Team, ${teamUnreadCount} unread`
+            : 'Team messages'
+        }
+        title="Team"
+      >
+        <MessageCircleIcon className="size-4" />
+        {teamUnreadCount > 0 ? (
+          <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 font-mono text-[10px] text-white">
+            {teamUnreadCount > 9 ? '9+' : teamUnreadCount}
+          </span>
+        ) : null}
+      </Button>
       <Button
         type="button"
         variant="ghost"

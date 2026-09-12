@@ -18,7 +18,7 @@ import {
 } from "./radius";
 
 const CTA_LAYOUT =
-  "inline-flex items-center justify-center font-mono text-xs font-medium uppercase tracking-wider transition-[color,background-color,border-color,box-shadow] duration-200 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center font-mono text-xs font-medium normal-case tracking-normal transition-[color,background-color,border-color,box-shadow] duration-200 disabled:pointer-events-none disabled:opacity-50";
 
 export const CTA_BASE = `${CTA_LAYOUT} ${radiusCtaPrimaryClassName}`;
 
@@ -93,7 +93,7 @@ export function getCtaTryHumanerIconClassName(
 export const ctaTryHumanerIconClassName = getCtaTryHumanerIconClassName("dark");
 
 const CTA_TRY_HUMANER_LABEL_BASE =
-  "font-mono text-xs font-medium uppercase tracking-[0.14em]";
+  "font-mono text-xs font-medium normal-case tracking-normal";
 
 export function getCtaTryHumanerLabelClassName(
   surface: "light" | "dark",

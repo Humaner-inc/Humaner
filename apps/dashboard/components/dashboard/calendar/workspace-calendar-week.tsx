@@ -14,6 +14,7 @@ import {
   TOOLBAR_BUTTON
 } from '@/components/dashboard/calendar/calendar-toolbar';
 import { Button } from '@/components/ui/button';
+import { ColorPicker } from '@/components/ui/color-picker';
 import {
   Dialog,
   DialogContent,
@@ -30,12 +31,20 @@ import type {
   CalendarTeamMember
 } from '@/data/calendar/get-workspace-calendar';
 import {
+  CALENDAR_EVENT_COLORS,
   calendarRange,
+  DEFAULT_EVENT_COLOR,
+  defaultEventWindow,
+  eventInkColor,
+  fromLocalDateTimeInput,
+  moveEventKeepingDuration,
+  moveEventToDayKeepClock,
   parseCalendarDate,
+  snapMinutes,
   startOfWeekMonday,
+  toLocalDateTimeInput,
   type CalendarView
 } from '@/lib/calendar/calendar-view';
-import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
 import { cn } from '@/lib/utils';
 import type { WorkHoursDto } from '@/types/dtos/work-hours-dto';
 
@@ -43,6 +52,7 @@ const HOUR_START = 7;
 const HOUR_END = 21;
 const HOURS = HOUR_END - HOUR_START;
 const SLOT_PX = 52;
+const EVENT_DRAG_MIME = 'application/x-humaner-calendar-event';
 const DAY_ENUMS = [
   'MONDAY',
   'TUESDAY',
@@ -60,23 +70,12 @@ type Draft = {
   startsAt: string;
   endsAt: string;
   attendeeIds: string[];
+  color: string;
 };
 
-function toLocalInput(iso: string): string {
-  const date = new Date(iso);
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function fromLocalInput(value: string): Date {
-  return new Date(value);
-}
-
-function formatHour(hour: number): string {
-  const suffix = hour >= 12 ? 'PM' : 'AM';
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-  return `${display} ${suffix}`;
-}
+type EventPatch = Partial<
+  Pick<CalendarEventItem, 'startsAt' | 'endsAt' | 'color'>
+>;
 
 function minutesSinceStart(date: Date): number {
   return date.getHours() * 60 + date.getMinutes() - HOUR_START * 60;
@@ -127,13 +126,30 @@ function workingRange(
   return { startMin, endMin };
 }
 
-function snapMinutes(totalMinutes: number): number {
-  return Math.round(totalMinutes / 30) * 30;
-}
-
 function dayEnumForDate(date: Date): (typeof DAY_ENUMS)[number] {
   const index = date.getDay() === 0 ? 6 : date.getDay() - 1;
   return DAY_ENUMS[index];
+}
+
+function formatHour(hour: number): string {
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display} ${suffix}`;
+}
+
+function draftFromWindow(
+  window: { start: Date; end: Date },
+  currentUserId: string,
+  color = DEFAULT_EVENT_COLOR
+): Draft {
+  return {
+    title: '',
+    description: '',
+    startsAt: toLocalDateTimeInput(window.start),
+    endsAt: toLocalDateTimeInput(window.end),
+    attendeeIds: [currentUserId],
+    color
+  };
 }
 
 export function WorkspaceCalendarWeek({
@@ -183,7 +199,22 @@ export function WorkspaceCalendarWeek({
     });
   }, [focus, view]);
   const [draft, setDraft] = React.useState<Draft | null>(null);
+  const [patches, setPatches] = React.useState<Record<string, EventPatch>>({});
+  const dragRef = React.useRef<{
+    id: string;
+    grabOffsetMin: number;
+  } | null>(null);
+  const suppressClickRef = React.useRef(false);
   const now = new Date();
+
+  const displayEvents = React.useMemo(
+    () =>
+      events.map((event) => {
+        const patch = patches[event.id];
+        return patch ? { ...event, ...patch } : event;
+      }),
+    [events, patches]
+  );
 
   const { execute: createEvent, isExecuting: creating } = useAction(
     createCalendarEvent,
@@ -211,6 +242,22 @@ export function WorkspaceCalendarWeek({
       }
     }
   );
+  const { execute: moveEvent, isExecuting: moving } = useAction(
+    updateCalendarEvent,
+    {
+      onSuccess: () => {
+        router.refresh();
+      },
+      onError: ({ error, input }) => {
+        setPatches((current) => {
+          const next = { ...current };
+          delete next[input.id];
+          return next;
+        });
+        toast.error(error.serverError || 'Could not move event');
+      }
+    }
+  );
   const { execute: removeEvent, isExecuting: removing } = useAction(
     deleteCalendarEvent,
     {
@@ -225,13 +272,17 @@ export function WorkspaceCalendarWeek({
     }
   );
 
-  const pending = creating || saving || removing;
+  const pending = creating || saving || removing || moving;
 
   const openCreateAt = (
     day: Date,
     clientY: number,
     columnTop: number
   ): void => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     const offsetPx = clientY - columnTop;
     const minutes = snapMinutes(HOUR_START * 60 + (offsetPx / SLOT_PX) * 60);
     const clamped = Math.min(
@@ -242,26 +293,101 @@ export function WorkspaceCalendarWeek({
     start.setHours(Math.floor(clamped / 60), clamped % 60, 0, 0);
     const end = new Date(start);
     end.setMinutes(end.getMinutes() + 60);
-    setDraft({
-      title: '',
-      description: '',
-      startsAt: toLocalInput(start.toISOString()),
-      endsAt: toLocalInput(end.toISOString()),
-      attendeeIds: [currentUserId]
-    });
+    setDraft(draftFromWindow({ start, end }, currentUserId));
+  };
+
+  const openCreateNow = (day?: Date): void => {
+    setDraft(
+      draftFromWindow(defaultEventWindow(day ?? new Date()), currentUserId)
+    );
   };
 
   const openEvent = (event: CalendarEventItem): void => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     setDraft({
       id: event.id,
       title: event.title,
       description: event.description ?? '',
-      startsAt: toLocalInput(event.startsAt),
-      endsAt: toLocalInput(event.endsAt),
+      startsAt: toLocalDateTimeInput(new Date(event.startsAt)),
+      endsAt: toLocalDateTimeInput(new Date(event.endsAt)),
       attendeeIds: event.attendeeIds.length
         ? event.attendeeIds
-        : [event.createdById]
+        : [event.createdById],
+      color: event.color || DEFAULT_EVENT_COLOR
     });
+  };
+
+  const applyMove = (
+    event: CalendarEventItem,
+    next: { startsAt: Date; endsAt: Date }
+  ): void => {
+    const startsAt = next.startsAt.toISOString();
+    const endsAt = next.endsAt.toISOString();
+    if (startsAt === event.startsAt && endsAt === event.endsAt) return;
+    setPatches((current) => ({
+      ...current,
+      [event.id]: { ...current[event.id], startsAt, endsAt }
+    }));
+    moveEvent({
+      id: event.id,
+      startsAt: next.startsAt,
+      endsAt: next.endsAt
+    });
+  };
+
+  const handleTimedDrop = (day: Date, clientY: number, columnTop: number) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const event = displayEvents.find((item) => item.id === drag.id);
+    if (!event) return;
+    suppressClickRef.current = true;
+    const offsetPx = clientY - columnTop;
+    const minutes = snapMinutes(
+      HOUR_START * 60 + (offsetPx / SLOT_PX) * 60 - drag.grabOffsetMin
+    );
+    const clamped = Math.min(
+      (HOUR_END - 1) * 60,
+      Math.max(HOUR_START * 60, minutes)
+    );
+    applyMove(
+      event,
+      moveEventKeepingDuration(
+        new Date(event.startsAt),
+        new Date(event.endsAt),
+        day,
+        clamped
+      )
+    );
+    dragRef.current = null;
+  };
+
+  const handleDayDrop = (day: Date) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const event = displayEvents.find((item) => item.id === drag.id);
+    if (!event) return;
+    suppressClickRef.current = true;
+    applyMove(
+      event,
+      moveEventToDayKeepClock(
+        new Date(event.startsAt),
+        new Date(event.endsAt),
+        day
+      )
+    );
+    dragRef.current = null;
+  };
+
+  const beginDrag = (
+    event: CalendarEventItem,
+    clientY: number,
+    blockTop: number
+  ) => {
+    const grabOffsetMin = ((clientY - blockTop) / SLOT_PX) * 60;
+    dragRef.current = { id: event.id, grabOffsetMin };
   };
 
   const submitDraft = (): void => {
@@ -271,12 +397,13 @@ export function WorkspaceCalendarWeek({
       toast.error('Title is required');
       return;
     }
-    const startsAt = fromLocalInput(draft.startsAt);
-    const endsAt = fromLocalInput(draft.endsAt);
+    const startsAt = fromLocalDateTimeInput(draft.startsAt);
+    const endsAt = fromLocalDateTimeInput(draft.endsAt);
     if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
       toast.error('Pick a valid time');
       return;
     }
+    const color = draft.color.slice(0, 7);
     if (draft.id) {
       saveEvent({
         id: draft.id,
@@ -284,7 +411,8 @@ export function WorkspaceCalendarWeek({
         description: draft.description.trim() || null,
         startsAt,
         endsAt,
-        attendeeIds: draft.attendeeIds
+        attendeeIds: draft.attendeeIds,
+        color
       });
       return;
     }
@@ -293,7 +421,8 @@ export function WorkspaceCalendarWeek({
       description: draft.description.trim() || undefined,
       startsAt,
       endsAt,
-      attendeeIds: draft.attendeeIds
+      attendeeIds: draft.attendeeIds,
+      color
     });
   };
 
@@ -313,20 +442,7 @@ export function WorkspaceCalendarWeek({
             type="button"
             size="sm"
             className={TOOLBAR_BUTTON}
-            onClick={() => {
-              const start = new Date(focus);
-              start.setMinutes(0, 0, 0);
-              start.setHours(Math.max(HOUR_START, new Date().getHours() + 1));
-              const end = new Date(start);
-              end.setHours(end.getHours() + 1);
-              setDraft({
-                title: '',
-                description: '',
-                startsAt: toLocalInput(start.toISOString()),
-                endsAt: toLocalInput(end.toISOString()),
-                attendeeIds: [currentUserId]
-              });
-            }}
+            onClick={() => openCreateNow(new Date())}
           >
             New event
           </Button>
@@ -338,23 +454,12 @@ export function WorkspaceCalendarWeek({
           <MonthGrid
             days={days}
             focus={focus}
-            events={events}
-            currentUserId={currentUserId}
+            events={displayEvents}
             now={now}
             onOpenEvent={openEvent}
-            onCreateDay={(day) => {
-              const start = new Date(day);
-              start.setHours(10, 0, 0, 0);
-              const end = new Date(start);
-              end.setHours(11, 0, 0, 0);
-              setDraft({
-                title: '',
-                description: '',
-                startsAt: toLocalInput(start.toISOString()),
-                endsAt: toLocalInput(end.toISOString()),
-                attendeeIds: [currentUserId]
-              });
-            }}
+            onCreateDay={(day) => openCreateNow(day)}
+            onDragStart={beginDrag}
+            onDropDay={handleDayDrop}
           />
         ) : (
           <div
@@ -404,7 +509,7 @@ export function WorkspaceCalendarWeek({
 
             {days.map((day) => {
               const work = workingRange(businessHours, dayEnumForDate(day));
-              const columnEvents = events.filter((event) => {
+              const columnEvents = displayEvents.filter((event) => {
                 const start = new Date(event.startsAt);
                 return start.toDateString() === day.toDateString();
               });
@@ -419,6 +524,19 @@ export function WorkspaceCalendarWeek({
                       day,
                       event.clientY,
                       target.getBoundingClientRect().top
+                    );
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleTimedDrop(
+                      day,
+                      event.clientY,
+                      event.currentTarget.getBoundingClientRect().top
                     );
                   }}
                 >
@@ -441,21 +559,38 @@ export function WorkspaceCalendarWeek({
                   {columnEvents.map((event) => {
                     const layout = eventLayout(event);
                     if (layout.hidden) return null;
-                    const mine =
-                      event.createdById === currentUserId ||
-                      event.attendeeIds.includes(currentUserId);
+                    const color = event.color || DEFAULT_EVENT_COLOR;
                     return (
                       <button
                         key={event.id}
                         type="button"
-                        className="absolute inset-x-1 z-10 overflow-hidden rounded-lg px-1.5 py-1 text-left"
+                        draggable
+                        className="absolute inset-x-1 z-10 cursor-grab overflow-hidden rounded-lg px-1.5 py-1 text-left active:cursor-grabbing"
                         style={{
                           top: layout.top,
                           height: layout.height,
-                          backgroundColor: mine
-                            ? HUMANER_NAV_COLORS.warning
-                            : 'color-mix(in srgb, var(--foreground) 18%, transparent)',
-                          color: mine ? '#fcf4ec' : undefined
+                          backgroundColor: color,
+                          color: eventInkColor(color)
+                        }}
+                        onDragStart={(dragEvent) => {
+                          dragEvent.stopPropagation();
+                          dragEvent.dataTransfer.setData(
+                            EVENT_DRAG_MIME,
+                            event.id
+                          );
+                          dragEvent.dataTransfer.setData(
+                            'text/plain',
+                            event.id
+                          );
+                          dragEvent.dataTransfer.effectAllowed = 'move';
+                          beginDrag(
+                            event,
+                            dragEvent.clientY,
+                            dragEvent.currentTarget.getBoundingClientRect().top
+                          );
+                        }}
+                        onDragEnd={() => {
+                          dragRef.current = null;
                         }}
                         onClick={(click) => {
                           click.stopPropagation();
@@ -544,6 +679,41 @@ export function WorkspaceCalendarWeek({
                 </div>
               </div>
               <div className="space-y-1.5">
+                <Label>Color</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ColorPicker
+                    value={draft.color}
+                    onChange={(color) =>
+                      setDraft((current) =>
+                        current ? { ...current, color } : current
+                      )
+                    }
+                    className="size-7 rounded-lg border"
+                    title="Open full palette"
+                  />
+                  {CALENDAR_EVENT_COLORS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() =>
+                        setDraft((current) =>
+                          current ? { ...current, color: preset } : current
+                        )
+                      }
+                      className="size-7 rounded-lg ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      style={{
+                        backgroundColor: preset,
+                        boxShadow:
+                          draft.color === preset
+                            ? `0 0 0 2px ${preset}`
+                            : undefined
+                      }}
+                      aria-label={preset}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="cal-notes">Notes</Label>
                 <Textarea
                   id="cal-notes"
@@ -557,6 +727,7 @@ export function WorkspaceCalendarWeek({
                   }
                   rows={3}
                   className="rounded-lg"
+                  placeholder="Agenda, link, or context…"
                 />
               </div>
               <div className="space-y-1.5">
@@ -640,18 +811,24 @@ function MonthGrid({
   days,
   focus,
   events,
-  currentUserId,
   now,
   onOpenEvent,
-  onCreateDay
+  onCreateDay,
+  onDragStart,
+  onDropDay
 }: {
   days: Date[];
   focus: Date;
   events: CalendarEventItem[];
-  currentUserId: string;
   now: Date;
   onOpenEvent: (event: CalendarEventItem) => void;
   onCreateDay: (day: Date) => void;
+  onDragStart: (
+    event: CalendarEventItem,
+    clientY: number,
+    blockTop: number
+  ) => void;
+  onDropDay: (day: Date) => void;
 }): React.JSX.Element {
   const eventsByDay = new Map<string, CalendarEventItem[]>();
   for (const event of events) {
@@ -689,6 +866,15 @@ function MonthGrid({
               !inMonth && 'bg-muted/20 text-muted-foreground'
             )}
             onClick={() => onCreateDay(day)}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'move';
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onDropDay(day);
+            }}
           >
             <span
               className={cn(
@@ -700,20 +886,28 @@ function MonthGrid({
             </span>
             <div className="flex min-h-0 flex-1 flex-col gap-0.5">
               {visible.map((event) => {
-                const mine =
-                  event.createdById === currentUserId ||
-                  event.attendeeIds.includes(currentUserId);
+                const color = event.color || DEFAULT_EVENT_COLOR;
                 return (
                   <span
                     key={event.id}
                     role="link"
                     tabIndex={0}
-                    className="truncate px-1 py-0.5 font-mono text-[10px]"
+                    draggable
+                    className="cursor-grab truncate px-1 py-0.5 font-mono text-[10px] active:cursor-grabbing"
                     style={{
-                      backgroundColor: mine
-                        ? HUMANER_NAV_COLORS.warning
-                        : 'color-mix(in srgb, var(--foreground) 18%, transparent)',
-                      color: mine ? '#fcf4ec' : undefined
+                      backgroundColor: color,
+                      color: eventInkColor(color)
+                    }}
+                    onDragStart={(dragEvent) => {
+                      dragEvent.stopPropagation();
+                      dragEvent.dataTransfer.setData(EVENT_DRAG_MIME, event.id);
+                      dragEvent.dataTransfer.setData('text/plain', event.id);
+                      dragEvent.dataTransfer.effectAllowed = 'move';
+                      onDragStart(
+                        event,
+                        dragEvent.clientY,
+                        dragEvent.currentTarget.getBoundingClientRect().top
+                      );
                     }}
                     onClick={(click) => {
                       click.stopPropagation();

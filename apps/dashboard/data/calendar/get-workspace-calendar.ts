@@ -8,6 +8,7 @@ import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-acc
 import { checkSession } from '@/lib/auth/session';
 import {
   calendarRange,
+  formatCalendarDateParam,
   parseCalendarDate,
   parseCalendarView,
   type CalendarView
@@ -32,6 +33,7 @@ export type CalendarEventItem = {
   createdByName: string;
   attendeeIds: string[];
   source: string;
+  color: string;
 };
 
 export type CalendarConnectionItem = {
@@ -82,6 +84,7 @@ export async function getWorkspaceCalendarWeek(
         description: true,
         startsAt: true,
         endsAt: true,
+        color: true,
         createdById: true,
         source: true,
         createdBy: { select: { name: true } },
@@ -137,6 +140,7 @@ export async function getWorkspaceCalendarWeek(
       description: event.description,
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt.toISOString(),
+      color: event.color,
       createdById: event.createdById,
       createdByName: event.createdBy.name,
       attendeeIds: event.attendees.map((attendee) => attendee.userId),
@@ -152,7 +156,7 @@ export async function getWorkspaceCalendarWeek(
     businessHours,
     rangeStart: start.toISOString(),
     rangeEnd: end.toISOString(),
-    focusDate: focus.toISOString(),
+    focusDate: formatCalendarDateParam(focus),
     view,
     mailAutomation: organization?.calendarMailAutomation ?? false,
     connections: connections.map((connection) => ({

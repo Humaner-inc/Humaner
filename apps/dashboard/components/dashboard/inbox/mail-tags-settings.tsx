@@ -271,9 +271,6 @@ export function MailTagsSettings({
                       }
                     }}
                   />
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {tag.color}
-                  </span>
                   {showScopeSelector ? (
                     <TagScopeSelect
                       aliases={aliases}
@@ -303,9 +300,6 @@ export function MailTagsSettings({
               ) : (
                 <>
                   <span className="text-sm">{tag.name}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {tag.color}
-                  </span>
                   {showScopeSelector ? (
                     <span className="ml-auto truncate font-mono text-[10px] text-muted-foreground">
                       {scopeLabel(tag.aliasId, aliases)}

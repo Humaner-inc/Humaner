@@ -8,10 +8,12 @@ import {
   GitCompareIcon,
   KeyRoundIcon,
   MailIcon,
+  MessageCircleIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
 import { format } from 'date-fns';
 
+import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
 import { TicketIcon } from '@/components/ui/ticket-icon';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import {
@@ -48,7 +50,8 @@ export type GroupedNotificationsProps = {
 const SECTION_SURFACE: Record<DashboardNotificationKind, string> = {
   ticket: 'bg-muted/50',
   task: 'bg-success/[0.07] dark:bg-success/[0.08]',
-  mail: 'bg-sky-500/[0.07] dark:bg-sky-400/[0.08]',
+  mail: 'bg-[#2252bc]/[0.07] dark:bg-[#2252bc]/[0.10]',
+  mention: 'bg-[#2252bc]/[0.07] dark:bg-[#2252bc]/[0.10]',
   api_key: 'bg-warning/[0.08] dark:bg-warning/[0.09]',
   loop: 'bg-violet-500/[0.07] dark:bg-violet-400/[0.08]',
   billing: 'bg-orange-500/[0.07] dark:bg-orange-400/[0.08]'
@@ -202,14 +205,13 @@ function NotificationLine({
         <GroupGlyph kind={item.kind} />
       )}
 
-      <Link
-        href={item.href}
-        className="min-w-0 flex-1 truncate"
-        aria-label={label}
-        onClick={onNavigate}
+      <NotificationTarget
+        item={item}
+        label={label}
+        onNavigate={onNavigate}
       >
         {text}
-      </Link>
+      </NotificationTarget>
 
       {onDismiss ? (
         <button
@@ -267,11 +269,54 @@ function GroupGlyph({
   );
 }
 
+function NotificationTarget({
+  item,
+  label,
+  onNavigate,
+  children
+}: {
+  item: DashboardNotification;
+  label: string;
+  onNavigate: () => void;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  const dock = useDashboardDockOptional();
+  const opensTeam = item.href.includes('panel=team');
+
+  if (opensTeam && dock) {
+    return (
+      <button
+        type="button"
+        className="min-w-0 flex-1 truncate text-left"
+        aria-label={label}
+        onClick={() => {
+          dock.openDock('team', { teamTab: 'messages' });
+          onNavigate();
+        }}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      className="min-w-0 flex-1 truncate"
+      aria-label={label}
+      onClick={onNavigate}
+    >
+      {children}
+    </Link>
+  );
+}
+
 const GROUP_ICONS: Record<
   Exclude<DashboardNotificationKind, 'task' | 'ticket' | 'loop'>,
   typeof MailIcon
 > = {
   mail: MailIcon,
+  mention: MessageCircleIcon,
   api_key: KeyRoundIcon,
   billing: CreditCardIcon
 };

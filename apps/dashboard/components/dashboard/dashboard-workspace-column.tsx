@@ -8,7 +8,9 @@ import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import {
   COMPANION_DOCK_OFFSET,
   COMPANION_DOCK_OFFSET_VAR,
-  COMPANION_WORKSPACE_OFFSET_CLASS
+  COMPANION_DOCK_OFFSET_WITH_PANEL,
+  COMPANION_WORKSPACE_OFFSET_CLASS,
+  COMPANION_WORKSPACE_OFFSET_WITH_PANEL_CLASS
 } from '@/lib/companion-visibility';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -22,15 +24,19 @@ export function DashboardWorkspaceColumn({
 }): React.JSX.Element {
   const chat = useHumanerChatOptional();
   const companionVisible = chat?.companionVisible ?? false;
+  const taskPanelOpen = chat?.taskPanelOpen ?? false;
+  const dockOffset = companionVisible
+    ? taskPanelOpen
+      ? COMPANION_DOCK_OFFSET_WITH_PANEL
+      : COMPANION_DOCK_OFFSET
+    : '0px';
 
   return (
     <div
       className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
       style={
         {
-          [COMPANION_DOCK_OFFSET_VAR]: companionVisible
-            ? COMPANION_DOCK_OFFSET
-            : '0px'
+          [COMPANION_DOCK_OFFSET_VAR]: dockOffset
         } as React.CSSProperties
       }
     >
@@ -38,7 +44,10 @@ export function DashboardWorkspaceColumn({
         <div
           className={cn(
             'flex h-full min-h-0 flex-1 flex-col overflow-hidden',
-            companionVisible && COMPANION_WORKSPACE_OFFSET_CLASS
+            companionVisible &&
+              (taskPanelOpen
+                ? COMPANION_WORKSPACE_OFFSET_WITH_PANEL_CLASS
+                : COMPANION_WORKSPACE_OFFSET_CLASS)
           )}
         >
           {children}

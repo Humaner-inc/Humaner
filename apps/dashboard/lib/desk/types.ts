@@ -43,7 +43,7 @@ export type TeamProfileItem = {
   role: string;
   knowledgeAreas: string[];
   maxConcurrent: number;
-  currentTickets: number;
+  assigned: number;
 };
 
 export type RunbookStep = {

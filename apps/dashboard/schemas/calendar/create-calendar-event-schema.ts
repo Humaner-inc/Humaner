@@ -15,7 +15,11 @@ export const createCalendarEventSchema = z
       .transform((value) => value || undefined),
     startsAt: z.coerce.date(),
     endsAt: z.coerce.date(),
-    attendeeIds: z.array(z.string().uuid()).max(50).default([])
+    attendeeIds: z.array(z.string().uuid()).max(50).default([]),
+    color: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/, 'Use a hex color.')
+      .optional()
   })
   .refine((data) => data.endsAt > data.startsAt, {
     message: 'End time must be after start time.',

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { WorkspaceRole } from '@prisma/client';
 import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
@@ -8,7 +9,7 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
-  aliasIdFilter,
+  mailThreadAccessWhere,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
 import {
@@ -16,7 +17,11 @@ import {
   updateSharedNoteDraft
 } from '@/lib/inbox/mail-thread-notes';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
-import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
+import {
+  ForbiddenError,
+  NotFoundError,
+  PreConditionError
+} from '@/lib/validation/exceptions';
 
 async function assertThreadAccess(
   threadId: string,
@@ -24,22 +29,21 @@ async function assertThreadAccess(
   organizationId: string
 ) {
   const scope = await resolveMailAliasScope({ userId, organizationId });
-  const scopedAliasIds = aliasIdFilter(scope);
-  if (scope.type === 'ids' && scope.aliasIds.length === 0) {
-    throw new NotFoundError('Thread not found');
-  }
-
   const thread = await prisma.mailThread.findFirst({
     where: {
       id: threadId,
-      organizationId,
-      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
+      ...mailThreadAccessWhere({
+        organizationId,
+        userId,
+        scope
+      })
     },
-    select: { id: true }
+    select: { id: true, subject: true }
   });
   if (!thread) {
     throw new NotFoundError('Thread not found');
   }
+  return thread;
 }
 
 function revalidateNotePaths(threadId: string): void {
@@ -87,7 +91,7 @@ export const sendMailThreadNoteAction = pageActionClient('inbox')
     const organizationId = session.user.organizationId;
     if (!organizationId) throw new PreConditionError('No active organization');
 
-    await assertThreadAccess(
+    const thread = await assertThreadAccess(
       parsedInput.threadId,
       session.user.id,
       organizationId
@@ -97,6 +101,8 @@ export const sendMailThreadNoteAction = pageActionClient('inbox')
       threadId: parsedInput.threadId,
       organizationId,
       authorId: session.user.id,
+      authorName: session.user.name,
+      subject: thread.subject,
       body: parsedInput.body
     });
 
@@ -109,4 +115,68 @@ export const sendMailThreadNoteAction = pageActionClient('inbox')
 
     revalidateNotePaths(parsedInput.threadId);
     return note;
+  });
+
+export const deleteMailThreadNotesAction = pageActionClient('inbox')
+  .metadata({ actionName: 'deleteMailThreadNotes' })
+  .schema(z.object({ threadId: z.string().uuid() }))
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    await assertThreadAccess(
+      parsedInput.threadId,
+      session.user.id,
+      organizationId
+    );
+
+    const [membership, authors] = await Promise.all([
+      prisma.organizationMembership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: session.user.id,
+            organizationId
+          }
+        },
+        select: { workspaceRole: true }
+      }),
+      prisma.mailThreadNote.findMany({
+        where: { threadId: parsedInput.threadId },
+        select: { authorId: true }
+      })
+    ]);
+
+    const isOwner = membership?.workspaceRole === WorkspaceRole.OWNER;
+    const onlyOwnNotes =
+      authors.length === 0 ||
+      authors.every((note) => note.authorId === session.user.id);
+    if (!isOwner && !onlyOwnNotes) {
+      throw new ForbiddenError(
+        'Only the note authors or the workspace owner can delete these notes'
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.mailThreadNote.deleteMany({
+        where: { threadId: parsedInput.threadId }
+      }),
+      prisma.mailThread.update({
+        where: { id: parsedInput.threadId },
+        data: {
+          sharedNoteDraft: null,
+          sharedNoteDraftUpdatedAt: new Date(),
+          sharedNoteDraftAuthorId: session.user.id
+        }
+      })
+    ]);
+
+    void publishOrgEvent(organizationId, {
+      type: 'thread.updated',
+      resourceId: parsedInput.threadId,
+      actorId: session.user.id,
+      actorName: session.user.name
+    });
+
+    revalidateNotePaths(parsedInput.threadId);
+    return { threadId: parsedInput.threadId };
   });

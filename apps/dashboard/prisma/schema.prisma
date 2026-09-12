@@ -240,6 +240,10 @@ model Organization {
   ticketFormFields           Json?
   /// When true, Companion creates hosted events from confirmed mail appointments.
   calendarMailAutomation     Boolean                  @default(false)
+  /// When true, opening an unread inbound thread drafts reply suggestions automatically.
+  inboxAutoSuggestReplies    Boolean                  @default(true)
+  /// Workspace Companion mail rights: DRAFT, ASSIGN, SEND. Empty inherits alias policies.
+  companionActions           String[]                 @default([])
   agents                     Agent[]
   agentIntegrations          AgentIntegration[]
   apiKeys                    ApiKey[]
@@ -259,6 +263,7 @@ model Organization {
   webhooks                   Webhook[]
   calendarEvents             CalendarEvent[]
   calendarConnections        CalendarConnection[]
+  teamMessages               TeamMessage[]
   owner                      User?                    @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([ownerId], map: "IX_Organization_ownerId")
@@ -366,6 +371,7 @@ model User {
   assignedMailThreads          MailThread[]
   mailAliasMemberships         MailAliasMember[]
   mailThreadNotes              MailThreadNote[]
+  teamMessages                 TeamMessage[]
   teamMemberProfile            TeamMemberProfile?
   polarCreditGrants            PolarCreditGrant[]
   createdCalendarEvents        CalendarEvent[]          @relation("CalendarEventCreator")
@@ -481,6 +487,7 @@ model CalendarEvent {
   startsAt       DateTime
   endsAt         DateTime
   allDay         Boolean                 @default(false)
+  color          String                  @default("#f85919") @db.VarChar(16)
   /// manual | mail | google | calendly | outlook
   source         String                  @default("manual") @db.VarChar(32)
   sourceKey      String?                 @db.VarChar(255)
@@ -1174,6 +1181,22 @@ model MailMessage {
 
   @@unique([threadId, providerMessageId], map: "UQ_MailMessage_thread_providerMessage")
   @@index([threadId, sentAt], map: "IX_MailMessage_thread_sentAt")
+}
+
+/// Workspace-wide team message — visible to every member.
+model TeamMessage {
+  id             String       @id(map: "PK_TeamMessage") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  authorId       String       @db.Uuid
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  body           String       @db.Text
+  attachments    Json         @default("[]")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, createdAt], map: "IX_TeamMessage_organizationId_createdAt")
+  @@index([authorId], map: "IX_TeamMessage_authorId")
 }
 
 /// Internal-only collaboration note — never sent to the customer.

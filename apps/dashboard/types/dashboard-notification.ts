@@ -7,6 +7,7 @@ export type DashboardNotificationKind =
   | 'ticket'
   | 'task'
   | 'mail'
+  | 'mention'
   | 'api_key'
   | 'loop'
   | 'billing';

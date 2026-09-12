@@ -241,7 +241,7 @@ export function NavUser({
           />
           {canManageWorkspaces ? (
             <MenuRow
-              label="Inbox Settings"
+              label="Workspace Settings"
               href={Routes.InboxSettings}
             />
           ) : null}

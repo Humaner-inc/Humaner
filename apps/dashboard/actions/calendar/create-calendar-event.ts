@@ -35,6 +35,7 @@ export const createCalendarEvent = pageActionClient('calendar')
         description: parsedInput.description,
         startsAt: parsedInput.startsAt,
         endsAt: parsedInput.endsAt,
+        color: parsedInput.color ?? '#f85919',
         attendees: attendeeIds.length
           ? {
               create: attendeeIds.map((userId) => ({ userId }))

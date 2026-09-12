@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 
+import type { CompanionTaskProposal } from '@/types/companion-task-proposal';
+
 /**
  * Self-Host (OSS) twin of the Ask Humaner chat context.
  *
@@ -39,6 +41,7 @@ export type HumanerChatProviderProps = {
   dashboardVisitorId: string;
   visitorMetadata?: DashboardVisitorMetadata;
   suggestedTopics?: string[];
+  taskProposals?: CompanionTaskProposal[];
   children: React.ReactNode;
 };
 

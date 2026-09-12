@@ -111,4 +111,5 @@ export const updateHandoffTicketStatus = pageActionClientAny('desk', 'tasks')
     revalidatePath(Routes.DeskAgent);
     revalidatePath(Routes.History);
     revalidatePath(Routes.Tasks);
+    revalidatePath(Routes.InboxAssigned);
   });

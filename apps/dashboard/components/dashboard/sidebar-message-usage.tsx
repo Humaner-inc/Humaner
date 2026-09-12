@@ -4,15 +4,17 @@ import * as React from 'react';
 import Link from 'next/link';
 import { formatCreditUsd } from '@humaner/shared/credits';
 
+import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
+import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
+import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
 import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
 import { cn } from '@/lib/utils';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 const USAGE_UPGRADE_THRESHOLD_PERCENT = 90;
-const SIDEBAR_TRANSITION_CLASS = 'duration-200 ease-linear';
 const CREDITS_BAR_MS = 700;
 const CREDITS_BAR_BLUE = PLAN_TIER_ACCENT.classic;
 
@@ -144,6 +146,7 @@ export function SidebarMessageUsage({
   className
 }: SidebarMessageUsageProps): React.JSX.Element {
   const { state, isMobile } = useSidebar();
+  const chat = useHumanerChatOptional();
   const isIconRail = !isMobile && state === 'collapsed';
   const usagePercent = Math.min(
     100,
@@ -153,13 +156,15 @@ export function SidebarMessageUsage({
   );
   const isFreePlan = usage.tier === 'free';
   const operatorOwned = Boolean(usage.operatorOwnedQuota);
+  const companionOn = chat ? chat.companionVisible : true;
   const showUpgradeCta =
+    companionOn &&
     !isIconRail &&
     !operatorOwned &&
     usagePercent >= USAGE_UPGRADE_THRESHOLD_PERCENT &&
     usage.tier !== 'humaner';
   const meter = useSyncedCreditsMeter({
-    play: !isIconRail && !operatorOwned,
+    play: companionOn && !operatorOwned,
     remainingCents: usage.creditsRemainingCents,
     usedCents: usage.creditsUsedCents,
     usagePercent
@@ -168,79 +173,102 @@ export function SidebarMessageUsage({
 
   return (
     <div
-      className={cn('min-w-0 px-2 pb-2', className)}
-      title={isIconRail ? remainingLabel : undefined}
+      className={cn(
+        'min-w-0 px-2',
+        !isMobile && 'group-data-[collapsible=icon]:px-1',
+        className
+      )}
+      title={isIconRail && companionOn ? remainingLabel : undefined}
     >
+      {chat ? (
+        <div className="flex justify-center py-1.5">
+          <CompanionVisibilityToggle compact={isIconRail} />
+        </div>
+      ) : null}
+
       <div
         className={cn(
-          'grid min-w-0 transition-[grid-template-rows,opacity]',
-          SIDEBAR_TRANSITION_CLASS,
-          showUpgradeCta
+          'grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-out',
+          companionOn
             ? 'grid-rows-[1fr] opacity-100'
-            : 'grid-rows-[0fr] opacity-0',
-          !isMobile &&
-            'group-data-[collapsible=icon]:grid-rows-[0fr] group-data-[collapsible=icon]:opacity-0'
+            : 'grid-rows-[0fr] opacity-0'
         )}
-        aria-hidden={!showUpgradeCta}
+        aria-hidden={!companionOn}
       >
-        <div className="overflow-hidden">
-          <Button
-            asChild
-            size="sm"
-            variant="upgrade"
-            className="mb-2 h-8 w-full min-w-0"
-          >
-            <Link href={Routes.Billing}>
-              {isFreePlan ? 'Upgrade plan' : 'Add fuel'}
-            </Link>
-          </Button>
-        </div>
-      </div>
+        <div className="min-w-0 overflow-hidden">
+          {showUpgradeCta ? (
+            <Button
+              asChild
+              size="sm"
+              variant="upgrade"
+              className="mb-1.5 h-8 w-full min-w-0"
+            >
+              <Link href={Routes.Billing}>
+                {isFreePlan ? 'Upgrade plan' : 'Add fuel'}
+              </Link>
+            </Button>
+          ) : null}
 
-      <div
-        className={cn(
-          'hidden min-w-0 group-data-[collapsible=icon]:grid',
-          isMobile && 'hidden',
-          SIDEBAR_TRANSITION_CLASS,
-          'grid-rows-[1fr] opacity-100'
-        )}
-        aria-hidden={!isIconRail}
-      >
-        <div className="overflow-hidden px-0.5">
-          <span className="block text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
-            {operatorOwned
-              ? usage.messagesUsed.toLocaleString()
-              : formatCreditUsd(usage.creditsRemainingCents)}
-          </span>
+          {isIconRail ? (
+            <p className="pb-1 text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
+              {operatorOwned
+                ? usage.messagesUsed.toLocaleString()
+                : formatCreditUsd(usage.creditsRemainingCents)}
+            </p>
+          ) : (
+            <div className="space-y-1.5 pb-1.5">
+              <p className="text-center font-mono text-[10px] font-medium tabular-nums">
+                {operatorOwned
+                  ? `${usage.messagesUsed.toLocaleString()} replies`
+                  : remainingLabel}
+              </p>
+              {operatorOwned ? null : (
+                <SidebarUsageProgress
+                  expanded
+                  value={usagePercent}
+                  fillPercent={meter.fillPercent}
+                />
+              )}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div
-        className={cn(
-          'min-w-0 space-y-2 overflow-hidden',
-          `transition-[max-height,opacity] ${SIDEBAR_TRANSITION_CLASS}`,
-          isIconRail ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100',
-          !isMobile &&
-            'group-data-[collapsible=icon]:max-h-0 group-data-[collapsible=icon]:opacity-0'
-        )}
-        aria-hidden={isIconRail}
-      >
-        <div className="flex min-w-0 items-center justify-between gap-2 text-xs">
-          <span className="truncate text-muted-foreground">Companion</span>
-          <span className="shrink-0 font-mono text-[10px] font-medium tabular-nums">
-            {operatorOwned
-              ? `${usage.messagesUsed.toLocaleString()} replies`
-              : remainingLabel}
-          </span>
-        </div>
-        {operatorOwned ? null : (
-          <SidebarUsageProgress
-            expanded={!isIconRail}
-            value={usagePercent}
-            fillPercent={meter.fillPercent}
-          />
-        )}
       </div>
     </div>
+  );
+}
+
+function CompanionVisibilityToggle({
+  compact = false
+}: {
+  compact?: boolean;
+}): React.JSX.Element | null {
+  const chat = useHumanerChatOptional();
+  if (!chat) return null;
+
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center',
+        compact ? 'gap-1' : 'gap-1.5'
+      )}
+    >
+      <CompanionIcon
+        active={chat.companionVisible}
+        character={chat.companionCharacter}
+        size={16}
+        className="size-4"
+      />
+      <Switch
+        checked={chat.companionVisible}
+        onCheckedChange={chat.setCompanionVisible}
+        aria-label={
+          chat.companionVisible ? 'Turn Companion off' : 'Turn Companion on'
+        }
+        className={compact ? 'h-3.5 w-6' : undefined}
+        thumbClassName={
+          compact ? 'size-2.5 data-[state=checked]:translate-x-2.5' : undefined
+        }
+      />
+    </span>
   );
 }

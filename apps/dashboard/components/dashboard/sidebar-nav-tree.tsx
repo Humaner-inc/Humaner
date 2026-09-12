@@ -429,6 +429,7 @@ export type SidebarNavLinkProps = {
   disabled?: boolean;
   mainNavHighlight?: boolean;
   badge?: React.ReactNode;
+  onClick?: () => void;
 };
 
 export function SidebarNavLink({
@@ -440,12 +441,40 @@ export function SidebarNavLink({
   external = false,
   disabled = false,
   mainNavHighlight = false,
-  badge
+  badge,
+  onClick
 }: SidebarNavLinkProps): React.JSX.Element {
   const isIconRail = useSidebarIconRail();
   const mainNavProps = mainNavHighlight
     ? ({ [SIDEBAR_MAIN_NAV_ATTR]: '' } as const)
     : {};
+  const className = cn(
+    sidebarNavParentClassName(active),
+    isIconRail && 'justify-center px-2 py-2.5',
+    active && 'bg-muted/40',
+    disabled && 'pointer-events-none opacity-40'
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        title={isIconRail ? label : undefined}
+        data-active={active ? true : undefined}
+        {...mainNavProps}
+        disabled={disabled}
+        className={className}
+        onClick={onClick}
+      >
+        {leading ??
+          (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
+        {!isIconRail ? (
+          <span className="flex-1 truncate text-left">{label}</span>
+        ) : null}
+        {!isIconRail ? badge : null}
+      </button>
+    );
+  }
 
   return (
     <Link
@@ -455,12 +484,7 @@ export function SidebarNavLink({
       title={isIconRail ? label : undefined}
       data-active={active ? true : undefined}
       {...mainNavProps}
-      className={cn(
-        sidebarNavParentClassName(active),
-        isIconRail && 'justify-center px-2 py-2.5',
-        active && 'bg-muted/40',
-        disabled && 'pointer-events-none opacity-40'
-      )}
+      className={className}
     >
       {leading ??
         (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}

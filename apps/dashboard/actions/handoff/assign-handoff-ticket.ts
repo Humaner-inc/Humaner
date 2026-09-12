@@ -83,4 +83,5 @@ export const assignHandoffTicket = pageActionClientAny('desk', 'tasks')
     revalidatePath(Routes.Home);
     revalidatePath(Routes.HumanDesk);
     revalidatePath(Routes.Tasks);
+    revalidatePath(Routes.InboxAssigned);
   });

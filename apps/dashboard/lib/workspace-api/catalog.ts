@@ -104,7 +104,8 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
   },
   {
     name: 'assign_mail_thread',
-    description: 'Assign a thread to a teammate, Companion, or unassign it.',
+    description:
+      'Assign a thread to a teammate, Companion, or unassign it. Omit assigneeId to pick the least-loaded matching team profile from the thread (inbox, Stripe, GitHub, Linear). Pass topics to override. Pass assigneeId null to unassign.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
@@ -112,7 +113,14 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
         threadId: { type: 'string', format: 'uuid' },
         assigneeId: {
           type: 'string',
-          description: 'User UUID, "companion", or null to unassign.'
+          description:
+            'User UUID, "companion", or null to unassign. Omit when using topics.'
+        },
+        topics: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Skills to match on team profiles: inbox, billing, stripe, github, linear, and so on.'
         }
       },
       required: ['threadId']
@@ -175,7 +183,13 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
           type: 'string',
           enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
         },
-        assigneeId: { type: 'string', format: 'uuid' }
+        assigneeId: { type: 'string', format: 'uuid' },
+        topics: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'When assigneeId is omitted, pick a teammate from profiles. Infer stripe, github, linear, billing, or inbox from the subject if topics are omitted.'
+        }
       },
       required: ['subject']
     }
@@ -189,7 +203,13 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
       additionalProperties: false,
       properties: {
         threadId: { type: 'string', format: 'uuid' },
-        assigneeId: { type: 'string', format: 'uuid' }
+        assigneeId: { type: 'string', format: 'uuid' },
+        topics: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'When assigneeId is omitted, pick a teammate from profiles. Infer skills from the thread (inbox, Stripe, GitHub, Linear) if topics are omitted.'
+        }
       },
       required: ['threadId']
     }

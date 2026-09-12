@@ -6,9 +6,9 @@ import { PlusIcon } from '@humaner/shared/icons';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
+import { ChatCircle } from '@phosphor-icons/react/dist/ssr/ChatCircle';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Code } from '@phosphor-icons/react/dist/ssr/Code';
-import { Ghost } from '@phosphor-icons/react/dist/ssr/Ghost';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
 import { Tag } from '@phosphor-icons/react/dist/ssr/Tag';
@@ -16,6 +16,7 @@ import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
 import { User } from '@phosphor-icons/react/dist/ssr/User';
 import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 
+import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { InboxMailboxMenu } from '@/components/dashboard/inbox-mailbox-menu';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { MailboxNavIcon } from '@/components/dashboard/mailbox-nav-icon';
@@ -46,11 +47,30 @@ import {
   groupMailInboxes,
   primaryAliasForMailbox
 } from '@/lib/inbox/mail-inbox-groups';
+import { cn } from '@/lib/utils';
 
-function CountBadge({ count }: { count: number }): React.JSX.Element {
+function formatInboxCount(count: number): string {
+  return count > 99 ? '99+' : String(count);
+}
+
+function InboxCountIcon({
+  count,
+  active
+}: {
+  count: number;
+  active: boolean;
+}): React.JSX.Element {
   return (
-    <span className="inline-flex min-w-4 items-center justify-center font-mono text-[9px] leading-4 text-sidebar-foreground/45">
-      {count > 99 ? '99+' : count}
+    <span
+      className={cn(
+        'flex h-4 min-w-4 shrink-0 items-center justify-center font-mono text-[10px] leading-none tabular-nums',
+        active
+          ? 'text-[#2252bc]'
+          : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground'
+      )}
+      aria-label={`${count} unread`}
+    >
+      {formatInboxCount(count)}
     </span>
   );
 }
@@ -72,14 +92,14 @@ const MAIN_ICONS: Record<WorkspaceDrawerId, typeof CalendarBlank> = {
   calendar: CalendarBlank,
   assigned: User,
   resources: Books,
-  companion: Ghost
+  companion: ChatCircle
 };
 
 export function NavMailbox({
   orgTier,
   unreadCount = 0,
   inboxes = [],
-  companionHref,
+  companionHref: _companionHref,
   showMcp = false
 }: {
   orgTier: string;
@@ -89,6 +109,7 @@ export function NavMailbox({
   showMcp?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
+  const { toggleDock, activeMode } = useDashboardDock();
   const searchParams = useSearchParams();
   const { openCompose } = useComposeMail();
   const locked = isInboxLocked(orgTier);
@@ -105,6 +126,7 @@ export function NavMailbox({
   const inboxActive = activeFolder !== null;
   const composeAliasId = primaryAliasForMailbox(inboxes, activeMailboxId);
   const hasMultipleInboxes = mailboxes.length > 1;
+  const mailboxConnected = mailboxes.length > 0;
   const inboxHref = mailboxConnectionHref(Routes.InboxAll, activeMailboxId);
   const unread = activeMailbox?.unreadCount ?? unreadCount;
   const inboxFolders = MAILBOX_FOLDER_ITEMS.filter(
@@ -125,15 +147,19 @@ export function NavMailbox({
           active={inboxActive}
           parentHref={inboxHref}
           mainNavHighlight
-          badge={
-            !locked && unread > 0 ? <CountBadge count={unread} /> : undefined
-          }
           leading={
-            <MailboxNavIcon
-              icon={Tray}
-              active={inboxActive}
-              color={HUMANER_NAV_COLORS.info}
-            />
+            mailboxConnected && !locked && unread > 0 ? (
+              <InboxCountIcon
+                count={unread}
+                active={inboxActive}
+              />
+            ) : (
+              <MailboxNavIcon
+                icon={Tray}
+                active={inboxActive}
+                color={HUMANER_NAV_COLORS.info}
+              />
+            )
           }
           quickAction={
             locked
@@ -196,21 +222,20 @@ export function NavMailbox({
             />
           );
         })}
-        {companionHref ? (
-          <SidebarNavLink
-            href={companionHref}
-            label="Companion"
-            active={activeWorkspaceItem === 'companion'}
-            mainNavHighlight
-            leading={
-              <MailboxNavIcon
-                icon={Ghost}
-                active={activeWorkspaceItem === 'companion'}
-                color={HUMANER_NAV_COLORS.info}
-              />
-            }
-          />
-        ) : null}
+        <SidebarNavLink
+          href="#team"
+          label="Messages"
+          active={activeMode === 'team'}
+          mainNavHighlight
+          onClick={() => toggleDock('team', { teamTab: 'messages' })}
+          leading={
+            <MailboxNavIcon
+              icon={ChatCircle}
+              active={activeMode === 'team'}
+              color={HUMANER_NAV_COLORS.info}
+            />
+          }
+        />
         {MAILBOX_WORKSPACE_ITEMS.map((item) => {
           const Icon = WORKSPACE_ICONS[item.id];
           const active = activeWorkspace === item.id;

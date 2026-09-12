@@ -27,6 +27,12 @@ export const NOTIFICATION_GROUPS: NotificationGroupConfig[] = [
     context: ''
   },
   {
+    kind: 'mention',
+    noun: 'mention',
+    nounPlural: 'mentions',
+    context: ''
+  },
+  {
     kind: 'ticket',
     noun: 'ticket',
     nounPlural: 'tickets',

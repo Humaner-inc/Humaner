@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { cache } from 'react';
+import { after } from 'next/server';
 import { WorkspaceRole } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
@@ -34,39 +36,51 @@ export async function ensureAllAliasMemberships(
  * - Teammates with Inbox page access → every alias (memberships healed).
  * - Everyone else → only aliases they were explicitly added to.
  */
+const resolveMailAliasScopeCached = cache(
+  async (userId: string, organizationId: string): Promise<MailAliasScope> => {
+    const membership = await prisma.organizationMembership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId
+        }
+      },
+      select: { workspaceRole: true, allowedPages: true }
+    });
+
+    const hasFullInbox =
+      membership?.workspaceRole === WorkspaceRole.OWNER ||
+      Boolean(membership?.allowedPages.includes('inbox'));
+
+    if (hasFullInbox) {
+      try {
+        after(() => {
+          void ensureAllAliasMemberships(userId, organizationId);
+        });
+      } catch {
+        void ensureAllAliasMemberships(userId, organizationId);
+      }
+      return { type: 'all' };
+    }
+
+    const aliases = await prisma.mailAlias.findMany({
+      where: {
+        organizationId,
+        enabled: true,
+        members: { some: { userId } }
+      },
+      select: { id: true }
+    });
+
+    return { type: 'ids', aliasIds: aliases.map((alias) => alias.id) };
+  }
+);
+
 export async function resolveMailAliasScope(input: {
   userId: string;
   organizationId: string;
 }): Promise<MailAliasScope> {
-  const membership = await prisma.organizationMembership.findUnique({
-    where: {
-      userId_organizationId: {
-        userId: input.userId,
-        organizationId: input.organizationId
-      }
-    },
-    select: { workspaceRole: true, allowedPages: true }
-  });
-
-  const hasFullInbox =
-    membership?.workspaceRole === WorkspaceRole.OWNER ||
-    Boolean(membership?.allowedPages.includes('inbox'));
-
-  if (hasFullInbox) {
-    await ensureAllAliasMemberships(input.userId, input.organizationId);
-    return { type: 'all' };
-  }
-
-  const aliases = await prisma.mailAlias.findMany({
-    where: {
-      organizationId: input.organizationId,
-      enabled: true,
-      members: { some: { userId: input.userId } }
-    },
-    select: { id: true }
-  });
-
-  return { type: 'ids', aliasIds: aliases.map((alias) => alias.id) };
+  return resolveMailAliasScopeCached(input.userId, input.organizationId);
 }
 
 export function aliasIdFilter(
@@ -74,4 +88,78 @@ export function aliasIdFilter(
 ): { in: string[] } | undefined {
   if (scope.type === 'all') return undefined;
   return { in: scope.aliasIds };
+}
+
+/** Inbox aliases plus threads assigned to this user. */
+export function mailThreadAccessWhere(input: {
+  organizationId: string;
+  userId: string;
+  scope: MailAliasScope;
+}): {
+  organizationId: string;
+  OR?: Array<{ aliasId: { in: string[] } } | { assigneeId: string }>;
+} {
+  if (input.scope.type === 'all') {
+    return { organizationId: input.organizationId };
+  }
+
+  const clauses: Array<{ aliasId: { in: string[] } } | { assigneeId: string }> =
+    [{ assigneeId: input.userId }];
+  if (input.scope.aliasIds.length > 0) {
+    clauses.push({ aliasId: { in: input.scope.aliasIds } });
+  }
+
+  return {
+    organizationId: input.organizationId,
+    OR: clauses
+  };
+}
+
+/** Recipients who may see a thread — same rules as `mailThreadAccessWhere`. */
+export async function filterUsersWithThreadAccess(input: {
+  organizationId: string;
+  threadId: string;
+  userIds: string[];
+}): Promise<string[]> {
+  if (input.userIds.length === 0) return [];
+
+  const thread = await prisma.mailThread.findFirst({
+    where: {
+      id: input.threadId,
+      organizationId: input.organizationId
+    },
+    select: { aliasId: true, assigneeId: true }
+  });
+  if (!thread) return [];
+
+  const [memberships, aliasMembers] = await Promise.all([
+    prisma.organizationMembership.findMany({
+      where: {
+        organizationId: input.organizationId,
+        userId: { in: input.userIds }
+      },
+      select: { userId: true, workspaceRole: true, allowedPages: true }
+    }),
+    prisma.mailAliasMember.findMany({
+      where: {
+        aliasId: thread.aliasId,
+        userId: { in: input.userIds }
+      },
+      select: { userId: true }
+    })
+  ]);
+
+  const membershipByUser = new Map(
+    memberships.map((membership) => [membership.userId, membership])
+  );
+  const aliasMemberIds = new Set(aliasMembers.map((member) => member.userId));
+
+  return input.userIds.filter((userId) => {
+    const membership = membershipByUser.get(userId);
+    if (!membership) return false;
+    if (membership.workspaceRole === WorkspaceRole.OWNER) return true;
+    if (membership.allowedPages.includes('inbox')) return true;
+    if (thread.assigneeId === userId) return true;
+    return aliasMemberIds.has(userId);
+  });
 }

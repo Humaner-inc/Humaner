@@ -1,11 +1,14 @@
 import 'server-only';
 
+import { after } from 'next/server';
+
 import { dedupedAuth } from '@/lib/auth';
 import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import {
   aliasIdFilter,
+  mailThreadAccessWhere,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
 import { mailAssigneeLabel } from '@/lib/inbox/mail-assignee';
@@ -260,8 +263,16 @@ export async function getMailThreads(options?: {
     organizationId
   });
   const scopedAliasIds = aliasIdFilter(scope);
-  if (scope.type === 'ids' && scope.aliasIds.length === 0) return [];
+  const assignedToCurrentUser = options?.assignedToCurrentUser === true;
   if (
+    !assignedToCurrentUser &&
+    scope.type === 'ids' &&
+    scope.aliasIds.length === 0
+  ) {
+    return [];
+  }
+  if (
+    !assignedToCurrentUser &&
     options?.aliasId &&
     scope.type === 'ids' &&
     !scope.aliasIds.includes(options.aliasId)
@@ -276,19 +287,20 @@ export async function getMailThreads(options?: {
       ...(options?.unreadOnly ? { isUnread: true } : {}),
       ...(options?.status ? { status: options.status } : {}),
       ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
-      ...(options?.connectionId
-        ? {
-            alias: {
-              connectionId: options.connectionId,
-              ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+      ...(assignedToCurrentUser
+        ? { assigneeId: session.user.id }
+        : options?.connectionId
+          ? {
+              alias: {
+                connectionId: options.connectionId,
+                ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+              }
             }
-          }
-        : options?.aliasId
-          ? { aliasId: options.aliasId }
-          : scopedAliasIds
-            ? { aliasId: scopedAliasIds }
-            : {}),
-      ...(options?.assignedToCurrentUser ? { assigneeId: session.user.id } : {})
+          : options?.aliasId
+            ? { aliasId: options.aliasId }
+            : scopedAliasIds
+              ? { aliasId: scopedAliasIds }
+              : {})
     },
     orderBy: { lastMessageAt: 'desc' },
     take: 200,
@@ -368,9 +380,11 @@ export async function getMailThreads(options?: {
     )
     .map((thread) => thread.id);
   if (staleOpenedIds.length > 0) {
-    void prisma.mailThread.updateMany({
-      where: { id: { in: staleOpenedIds } },
-      data: { isUnread: false }
+    after(() => {
+      void prisma.mailThread.updateMany({
+        where: { id: { in: staleOpenedIds } },
+        data: { isUnread: false }
+      });
     });
   }
 
@@ -395,13 +409,15 @@ export async function getMailThread(
     organizationId
   });
   const scopedAliasIds = aliasIdFilter(scope);
-  if (scope.type === 'ids' && scope.aliasIds.length === 0) return null;
 
   const thread = await prisma.mailThread.findFirst({
     where: {
       id: threadId,
-      organizationId,
-      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
+      ...mailThreadAccessWhere({
+        organizationId,
+        userId: session.user.id,
+        scope
+      })
     },
     select: {
       id: true,
@@ -415,10 +431,27 @@ export async function getMailThread(
       handoffTicket: { select: { ticketNumber: true } },
       sharedNoteDraft: true,
       lastMessageAt: true,
-      alias: { select: { id: true, address: true, connectionId: true } },
+      alias: {
+        select: {
+          id: true,
+          address: true,
+          connection: {
+            select: {
+              aliases: {
+                where: {
+                  enabled: true,
+                  ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+                },
+                orderBy: { address: 'asc' },
+                select: { id: true, address: true, displayName: true }
+              }
+            }
+          }
+        }
+      },
       notes: {
         orderBy: { createdAt: 'asc' },
-        take: 100,
+        take: 40,
         select: {
           id: true,
           body: true,
@@ -438,7 +471,7 @@ export async function getMailThread(
       },
       messages: {
         orderBy: { sentAt: 'asc' },
-        take: 200,
+        take: 80,
         select: {
           id: true,
           direction: true,
@@ -455,17 +488,7 @@ export async function getMailThread(
 
   if (!thread) return null;
 
-  const sendAliases = await prisma.mailAlias.findMany({
-    where: {
-      organizationId,
-      enabled: true,
-      connectionId: thread.alias.connectionId,
-      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
-    },
-    orderBy: { address: 'asc' },
-    select: { id: true, address: true, displayName: true }
-  });
-
+  const sendAliases = thread.alias.connection.aliases;
   const latest = thread.messages[thread.messages.length - 1];
   const awaitingReply = latest?.direction === 'INBOUND';
 

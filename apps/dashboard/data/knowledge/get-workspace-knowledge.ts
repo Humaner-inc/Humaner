@@ -23,12 +23,20 @@ export async function getWorkspaceKnowledgeAgent(
   organizationId: string
 ): Promise<{
   id: string;
+  publicId: string;
   name: string;
   character: CharacterType;
+  image: string | null;
 } | null> {
   return prisma.agent.findFirst({
     where: { organizationId },
-    select: { id: true, name: true, character: true },
+    select: {
+      id: true,
+      publicId: true,
+      name: true,
+      character: true,
+      image: true
+    },
     orderBy: { createdAt: 'asc' }
   });
 }
