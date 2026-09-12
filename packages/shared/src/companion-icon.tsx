@@ -77,7 +77,18 @@ function CompanionLoader({ size }: { size: number }): JSX.Element {
 
 export type CompanionFigureProps = Omit<
   HTMLAttributes<HTMLSpanElement>,
-  "style"
+  | "style"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
+  | "onDragEnter"
+  | "onDragExit"
+  | "onDragLeave"
+  | "onDragOver"
+  | "onDrop"
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
 > & {
   state?: CompanionFigureState;
   size?: number;
