@@ -8,6 +8,7 @@ import { actionClient } from '@/actions/safe-action';
 import { EMAIL_VERIFICATION_EXPIRY_MINUTES } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
+import { requireAuthAccessUnlock } from '@/lib/auth/access-code';
 import { requireAuthSecret } from '@/lib/auth/auth-secret';
 import { generateEmailVerificationOtp } from '@/lib/auth/email-verification-otp';
 import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
@@ -30,6 +31,8 @@ export const signUp = actionClient
   .metadata({ actionName: 'signUp' })
   .schema(signUpSchema)
   .action(async ({ parsedInput }) => {
+    await requireAuthAccessUnlock();
+
     const normalizedEmail = parsedInput.email.toLowerCase();
     const intent = parsedInput.intent ?? 'business_owner';
     const invitationId = parsedInput.invitationId?.trim() || undefined;

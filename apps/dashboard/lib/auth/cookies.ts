@@ -49,6 +49,9 @@ export class AuthCookies {
   /** Set when the user skips the post-signup Gmail consent page. */
   public static GmailConnectDismissed = 'humaner.gmail-connect-dismissed';
 
+  /** Temporary early-access unlock for /auth/login and /auth/signup. */
+  public static AuthAccessUnlock = 'humaner.auth-access';
+
   public static sessionCookieOptions(expires?: Date): {
     httpOnly: true;
     secure: boolean;

@@ -3,9 +3,14 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 
+import { AuthAccessWall } from '@/components/auth/auth-access-wall';
 import { AuthLayoutFrame } from '@/components/auth/auth-layout-frame';
 import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
+import {
+  hasAuthAccessUnlock,
+  isAuthAccessGateEnabled
+} from '@/lib/auth/access-code';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
@@ -85,6 +90,18 @@ async function AuthSessionGate({
   const oss = isOssDeployment();
   const showBackToMarketing = !oss && isLoginOrSignUpRoute();
 
+  if (
+    isLoginOrSignUpRoute() &&
+    isAuthAccessGateEnabled() &&
+    !(await hasAuthAccessUnlock())
+  ) {
+    return (
+      <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
+        <AuthAccessWall />
+      </AuthLayoutFrame>
+    );
+  }
+
   return (
     <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
       {children}
@@ -96,11 +113,7 @@ export default function AuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <React.Suspense
-      fallback={
-        <AuthLayoutFrame showBackToMarketing>{children}</AuthLayoutFrame>
-      }
-    >
+    <React.Suspense fallback={<AuthLayoutFrame showBackToMarketing />}>
       <AuthSessionGate>{children}</AuthSessionGate>
     </React.Suspense>
   );

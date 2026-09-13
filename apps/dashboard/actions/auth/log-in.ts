@@ -9,6 +9,7 @@ import { actionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { signIn } from '@/lib/auth';
+import { requireAuthAccessUnlock } from '@/lib/auth/access-code';
 import {
   getSafeAuthCallbackUrl,
   toClientAuthRedirect,
@@ -27,6 +28,8 @@ export const logIn = actionClient
   .metadata({ actionName: 'login' })
   .schema(passThroughlogInSchema)
   .action(async ({ parsedInput }) => {
+    await requireAuthAccessUnlock();
+
     const cookieStore = await cookies();
     const fallbackRedirect = getSafeAuthCallbackUrl(
       cookieStore.get(AuthCookies.CallbackUrl)?.value,
