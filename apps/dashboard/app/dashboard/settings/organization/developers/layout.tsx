@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { type Metadata } from 'next';
-import { Code } from '@phosphor-icons/react/dist/ssr/Code';
 
+import { McpIcon } from '@/components/brand/mcp-icon';
+import { McpServerConfigPanel } from '@/components/dashboard/settings/organization/developers/mcp-server-config-panel';
 import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
-import { createTitle } from '@/lib/utils';
+import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
+import { cn, createTitle } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: createTitle('MCP')
@@ -12,31 +14,52 @@ export const metadata: Metadata = {
 export type DevelopersLayoutProps = {
   apiKeys: React.ReactNode;
   webhooks: React.ReactNode;
+  mcpLogs: React.ReactNode;
 };
 
 export default function DevelopersLayout({
   apiKeys,
-  webhooks
+  webhooks,
+  mcpLogs
 }: DevelopersLayoutProps): React.JSX.Element {
   return (
-    <div className="space-y-8">
-      <header className="flex items-start gap-3.5">
-        <PresentationPageMark className="bg-[#2252bc] text-[#fcf4ec]">
-          <Code
+    <div className="space-y-6">
+      <header className="flex items-center gap-3.5">
+        <PresentationPageMark className="border border-border/60 bg-[#0A0D0D] text-[#fcf4ec]">
+          <McpIcon
+            variant="glyph"
             className="size-6"
-            weight="duotone"
           />
         </PresentationPageMark>
-        <div className="min-w-0">
-          <h1 className="page-title">MCP</h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Point Cursor or Claude Code at the mailbox — same tools as REST for
-            mail, calendar, and tasks.
-          </p>
-        </div>
+        <h1 className="page-title">MCP</h1>
       </header>
-      {apiKeys}
-      {webhooks}
+
+      <section className={cn(dashboardSurfaceClassName, 'overflow-hidden')}>
+        <div className="px-5 py-5 sm:px-6">
+          <McpServerConfigPanel />
+        </div>
+
+        <div className="border-t border-border/40" />
+
+        <div className="px-5 py-4 sm:px-6">
+          <h2 className="mb-3 text-sm font-medium text-foreground">API keys</h2>
+          {apiKeys}
+        </div>
+
+        <div className="border-t border-border/40" />
+
+        <div className="px-5 py-4 sm:px-6">
+          <h2 className="mb-3 text-sm font-medium text-foreground">Webhooks</h2>
+          {webhooks}
+        </div>
+
+        <div className="border-t border-border/40" />
+
+        <div className="px-5 py-4 sm:px-6">
+          <h2 className="mb-3 text-sm font-medium text-foreground">Logs</h2>
+          {mcpLogs}
+        </div>
+      </section>
     </div>
   );
 }

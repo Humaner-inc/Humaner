@@ -50,7 +50,7 @@ export function ApiKeyList({
   return (
     <ul
       role="list"
-      className={cn('m-0 list-none divide-y divide-border/60 p-0', className)}
+      className={cn('m-0 flex list-none flex-col gap-1 p-0', className)}
       {...other}
     >
       {apiKeys.map((apiKey) => (
@@ -101,17 +101,7 @@ function ApiKeyStatusMark({
     );
   }
 
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        'border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground',
-        dashboardRadiusClassName
-      )}
-    >
-      Inactive
-    </Badge>
-  );
+  return <></>;
 }
 
 function ApiKeyListItem({
@@ -132,35 +122,29 @@ function ApiKeyListItem({
     <li
       role="listitem"
       className={cn(
-        'flex w-full min-w-0 items-center gap-3 px-4 py-3 sm:px-4',
+        'group flex w-full min-w-0 items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/30',
         className
       )}
       {...other}
     >
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/50 bg-muted/20 text-muted-foreground">
         <KeyRoundIcon className="size-3.5" />
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm font-medium">
             {apiKey.description}
           </span>
-          <ApiKeyStatusMark status={status} />
-          <Badge
-            variant="outline"
-            className={cn(
-              'border-border/60 px-1.5 py-0 text-[10px] font-medium tracking-wide text-muted-foreground',
-              dashboardRadiusClassName
-            )}
-          >
-            {formatApiKeyAccessLabel(apiKey.scopes)}
-          </Badge>
+          {status === 'active' ? <ApiKeyStatusMark status={status} /> : null}
+          {status === 'broken' ? <ApiKeyStatusMark status={status} /> : null}
         </div>
         <p
           suppressHydrationWarning
-          className="mt-0.5 font-info text-xs text-muted-foreground"
+          className="mt-0.5 truncate font-info text-xs text-muted-foreground"
         >
+          {formatApiKeyAccessLabel(apiKey.scopes)}
+          {' · '}
           {status === 'broken'
             ? apiKey.expiresAt
               ? `Expired ${formatDistanceToNow(apiKey.expiresAt, { addSuffix: true })}`

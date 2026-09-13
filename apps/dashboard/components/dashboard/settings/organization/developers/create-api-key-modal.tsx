@@ -1,13 +1,16 @@
 'use client';
 
+import * as React from 'react';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { CalendarIcon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { addYears, format, isBefore, startOfDay } from 'date-fns';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { createApiKey } from '@/actions/api-keys/create-api-key';
 import { ApiKeyAccessPicker } from '@/components/dashboard/settings/organization/developers/api-key-access-picker';
+import { CreatedApiKeyContent } from '@/components/dashboard/settings/organization/developers/created-api-key-content';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -54,10 +57,26 @@ import {
 
 export type CreateApiKeyModalProps = NiceModalHocProps;
 
+const MIN_CREATING_MS = 500;
+
+type CreateApiKeyView = 'form' | 'creating' | 'created';
+
+async function waitAtLeast(startedAt: number, minMs: number): Promise<void> {
+  const remaining = minMs - (Date.now() - startedAt);
+  if (remaining <= 0) {
+    return;
+  }
+  await new Promise<void>((resolve) => {
+    window.setTimeout(resolve, remaining);
+  });
+}
+
 export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
   () => {
     const modal = useEnhancedModal();
     const mdUp = useMediaQuery(MediaQueries.MdUp, { ssr: false });
+    const [view, setView] = React.useState<CreateApiKeyView>('form');
+    const [createdApiKey, setCreatedApiKey] = React.useState('');
     const methods = useZodForm({
       schema: createApiKeySchema,
       mode: 'onSubmit',
@@ -75,30 +94,59 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
     const access = methods.watch('access');
     const scopes = methods.watch('scopes');
     const canSubmit =
+      view === 'form' &&
       !methods.formState.isSubmitting &&
       (!methods.formState.isSubmitted || methods.formState.isDirty);
+    const finishWithKey = React.useCallback(
+      (apiKey: string) => {
+        modal.resolve(apiKey);
+        modal.handleClose();
+      },
+      [modal]
+    );
+    const handleDismiss = (): void => {
+      if (view === 'creating') {
+        return;
+      }
+      if (createdApiKey) {
+        finishWithKey(createdApiKey);
+        return;
+      }
+      modal.handleClose();
+    };
     const onSubmit: SubmitHandler<CreateApiKeySchema> = async (values) => {
       if (!canSubmit) {
         return;
       }
-      const result = await createApiKey({
-        description: values.description,
-        neverExpires: values.neverExpires,
-        expiresAt: values.expiresAt,
-        access: values.access ?? 'full',
-        scopes: values.scopes ?? []
-      });
-      if (
-        result &&
-        !result.serverError &&
-        !result.validationErrors &&
-        result.data
-      ) {
-        toast.success('API key added');
-        modal.resolve(result.data.apiKey);
-        modal.handleClose();
-      } else {
+      const startedAt = Date.now();
+      setView('creating');
+      try {
+        const result = await createApiKey({
+          description: values.description,
+          neverExpires: values.neverExpires,
+          expiresAt: values.expiresAt,
+          access: values.access ?? 'full',
+          scopes: values.scopes ?? []
+        });
+        await waitAtLeast(startedAt, MIN_CREATING_MS);
+        if (
+          result &&
+          !result.serverError &&
+          !result.validationErrors &&
+          result.data
+        ) {
+          toast.success('API key added');
+          setCreatedApiKey(result.data.apiKey);
+          window.setTimeout(() => {
+            setView('created');
+          }, 40);
+          return;
+        }
         toast.error("Couldn't add API key");
+        setView('form');
+      } catch {
+        toast.error("Couldn't add API key");
+        setView('form');
       }
     };
     const renderForm = (
@@ -235,7 +283,7 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
         <Button
           type="button"
           variant="outline"
-          onClick={modal.handleClose}
+          onClick={handleDismiss}
         >
           Cancel
         </Button>
@@ -243,49 +291,144 @@ export const CreateApiKeyModal = NiceModal.create<CreateApiKeyModalProps>(
           type="button"
           variant="default"
           disabled={!canSubmit}
-          loading={methods.formState.isSubmitting}
+          loading={methods.formState.isSubmitting || view === 'creating'}
           onClick={methods.handleSubmit(onSubmit)}
         >
           Create
         </Button>
       </>
     );
+    const createdHeading = mdUp ? (
+      <DialogHeader className="space-y-2 text-center">
+        <DialogTitle className="font-display text-xl">API Key ✓</DialogTitle>
+        <DialogDescription className="sr-only">
+          Copy your API key now. It will not be shown again.
+        </DialogDescription>
+      </DialogHeader>
+    ) : (
+      <DrawerHeader className="space-y-2 text-center">
+        <DrawerTitle className="font-display text-xl">API Key ✓</DrawerTitle>
+        <DrawerDescription className="sr-only">
+          Copy your API key now. It will not be shown again.
+        </DrawerDescription>
+      </DrawerHeader>
+    );
+    const createdFooter = mdUp ? (
+      <DialogFooter className="border-t border-border/60 px-6 py-4">
+        <Button
+          type="button"
+          variant="default"
+          className="w-full sm:w-auto"
+          onClick={handleDismiss}
+        >
+          Got it
+        </Button>
+      </DialogFooter>
+    ) : (
+      <DrawerFooter className="border-t border-border/60 px-6 py-4">
+        <Button
+          type="button"
+          variant="default"
+          className="w-full"
+          onClick={handleDismiss}
+        >
+          Got it
+        </Button>
+      </DrawerFooter>
+    );
+    const renderBody =
+      view === 'created' && createdApiKey ? (
+        <div className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-300">
+          <CreatedApiKeyContent
+            apiKey={createdApiKey}
+            heading={createdHeading}
+            footer={createdFooter}
+          />
+        </div>
+      ) : (
+        <div className="relative">
+          <div
+            className={cn(
+              'grid gap-4 transition-opacity duration-200 ease-out motion-reduce:transition-none',
+              view === 'creating'
+                ? 'pointer-events-none opacity-0'
+                : 'opacity-100'
+            )}
+            aria-hidden={view === 'creating'}
+          >
+            {mdUp ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{title}</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    {description}
+                  </DialogDescription>
+                </DialogHeader>
+                {renderForm}
+                <DialogFooter>{renderButtons}</DialogFooter>
+              </>
+            ) : (
+              <>
+                <DrawerHeader className="text-left">
+                  <DrawerTitle>{title}</DrawerTitle>
+                  <DrawerDescription className="sr-only">
+                    {description}
+                  </DrawerDescription>
+                </DrawerHeader>
+                {renderForm}
+                <DrawerFooter className="flex-col-reverse pt-4">
+                  {renderButtons}
+                </DrawerFooter>
+              </>
+            )}
+          </div>
+          {view === 'creating' ? (
+            <div
+              className="absolute inset-0 flex items-center justify-center bg-background motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
+              role="status"
+              aria-live="polite"
+            >
+              {mdUp ? (
+                <DialogTitle className="sr-only">Creating API key</DialogTitle>
+              ) : (
+                <DrawerTitle className="sr-only">Creating API key</DrawerTitle>
+              )}
+              <SquircleLoader size={36} />
+            </div>
+          ) : null}
+        </div>
+      );
     return (
       <FormProvider {...methods}>
         {mdUp ? (
           <Dialog open={modal.visible}>
             <DialogContent
-              className="max-w-md"
-              onClose={modal.handleClose}
+              className={cn(
+                'max-w-md overflow-hidden',
+                view === 'created' && 'gap-0 p-0'
+              )}
+              onClose={handleDismiss}
+              preventDismiss={view === 'creating'}
               onAnimationEndCapture={modal.handleAnimationEndCapture}
             >
-              <DialogHeader>
-                <DialogTitle>{title}</DialogTitle>
-                <DialogDescription className="sr-only">
-                  {description}
-                </DialogDescription>
-              </DialogHeader>
-              {renderForm}
-              <DialogFooter>{renderButtons}</DialogFooter>
+              {renderBody}
             </DialogContent>
           </Dialog>
         ) : (
           <Drawer
             open={modal.visible}
-            onOpenChange={modal.handleOpenChange}
+            onOpenChange={(open) => {
+              if (!open && view === 'creating') {
+                return;
+              }
+              if (!open && createdApiKey) {
+                finishWithKey(createdApiKey);
+                return;
+              }
+              modal.handleOpenChange(open);
+            }}
           >
-            <DrawerContent>
-              <DrawerHeader className="text-left">
-                <DrawerTitle>{title}</DrawerTitle>
-                <DrawerDescription className="sr-only">
-                  {description}
-                </DrawerDescription>
-              </DrawerHeader>
-              {renderForm}
-              <DrawerFooter className="flex-col-reverse pt-4">
-                {renderButtons}
-              </DrawerFooter>
-            </DrawerContent>
+            <DrawerContent>{renderBody}</DrawerContent>
           </Drawer>
         )}
       </FormProvider>

@@ -1,72 +1,49 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
 import { PlusIcon } from '@humaner/shared/icons';
 
 import { ApiKeyList } from '@/components/dashboard/settings/organization/developers/api-key-list';
-import { CopyCreatedApiKeyModal } from '@/components/dashboard/settings/organization/developers/copy-created-api-key-modal';
 import { CreateApiKeyModal } from '@/components/dashboard/settings/organization/developers/create-api-key-modal';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  type CardProps
-} from '@/components/ui/card';
 import { EmptyText } from '@/components/ui/empty-text';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 import type { ApiKeyDto } from '@/types/dtos/api-key-dto';
 
-export type ApiKeysCardProps = CardProps & {
+export type ApiKeysCardProps = {
   apiKeys: ApiKeyDto[];
 };
 
-export function ApiKeysCard({
-  apiKeys,
-  className,
-  ...other
-}: ApiKeysCardProps): React.JSX.Element {
+export function ApiKeysCard({ apiKeys }: ApiKeysCardProps): React.JSX.Element {
+  const router = useRouter();
+
   const handleShowCreateApiKeyModal = async (): Promise<void> => {
     const apiKey: string = await NiceModal.show(CreateApiKeyModal);
     if (apiKey) {
-      await NiceModal.show(CopyCreatedApiKeyModal, { apiKey });
+      router.refresh();
     }
   };
+
   return (
-    <Card
-      className={cn('flex h-full flex-col border-0 bg-transparent', className)}
-      {...other}
-    >
-      <CardContent className="max-h-72 flex-1 overflow-hidden p-0">
-        {apiKeys.length > 0 ? (
-          <ScrollArea className="h-full">
-            <ApiKeyList apiKeys={apiKeys} />
-          </ScrollArea>
-        ) : (
-          <EmptyText className="p-0">No API key found.</EmptyText>
-        )}
-      </CardContent>
-      <p className="pt-4 font-mono text-xs text-muted-foreground">
-        Point Cursor or Claude Code at POST /api/mcp with this key. Mail and
-        calendar tools use the same handlers as POST /api/v1/mail and
-        /api/v1/calendar.
-      </p>
-      <Separator className="mt-4" />
-      <CardFooter className="flex w-full justify-end px-0 pt-6">
+    <div className="space-y-3">
+      {apiKeys.length > 0 ? (
+        <ApiKeyList apiKeys={apiKeys} />
+      ) : (
+        <EmptyText className="p-0 text-sm">No keys yet.</EmptyText>
+      )}
+      <div className="flex justify-end pt-1">
         <Button
           type="button"
-          variant="default"
-          size="default"
-          className="group gap-0 transition-[gap] duration-200 hover:gap-1.5"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
           onClick={handleShowCreateApiKeyModal}
         >
-          <PlusIcon className="size-0 shrink-0 opacity-0 transition-all duration-200 group-hover:size-4 group-hover:opacity-100" />
-          Create API key
+          <PlusIcon className="size-3.5" />
+          Create key
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1012,7 +1012,10 @@ function MailBulkActionBar({
             Assign
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent
+          align="start"
+          matchTrigger
+        >
           <AssigneeMenuItems
             members={selection.members}
             value={null}

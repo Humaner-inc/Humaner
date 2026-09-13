@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { CalendarIcon } from '@humaner/shared/icons';
 import { addYears, format, isBefore, startOfDay } from 'date-fns';
@@ -59,6 +60,7 @@ export type EditApiKeyModalProps = NiceModalHocProps & {
 export const EditApiKeyModal = NiceModal.create<EditApiKeyModalProps>(
   ({ apiKey }) => {
     const modal = useEnhancedModal();
+    const router = useRouter();
     const mdUp = useMediaQuery(MediaQueries.MdUp, { ssr: false });
     const methods = useZodForm({
       schema: updateApiKeySchema,
@@ -84,6 +86,7 @@ export const EditApiKeyModal = NiceModal.create<EditApiKeyModalProps>(
       if (!result?.serverError && !result?.validationErrors) {
         toast.success('API key updated');
         modal.handleClose();
+        router.refresh();
       } else {
         toast.error("Couldn't update API key");
       }

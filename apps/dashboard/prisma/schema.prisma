@@ -261,6 +261,7 @@ model Organization {
   users                      User[]
   visitorMetadata            VisitorMetadata[]
   webhooks                   Webhook[]
+  mcpRequestLogs             McpRequestLog[]
   calendarEvents             CalendarEvent[]
   calendarConnections        CalendarConnection[]
   teamMessages               TeamMessage[]
@@ -739,6 +740,24 @@ model IntelligenceRequestLog {
 
   @@index([agentId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_agentId_createdAt")
   @@index([organizationId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_organizationId_createdAt")
+}
+
+/// One row per MCP JSON-RPC call attributed to a workspace API key.
+model McpRequestLog {
+  id             String       @id(map: "PK_McpRequestLog") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  /// JSON-RPC method, e.g. initialize, tools/list, tools/call.
+  method         String       @db.VarChar(64)
+  /// Workspace tool for tools/call. Empty for other methods.
+  tool           String       @db.VarChar(64)
+  status         Int
+  durationMs     Int
+  apiKeyId       String?      @db.Uuid
+  errorMessage   String?      @db.VarChar(500)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)], map: "IX_McpRequestLog_organizationId_createdAt")
 }
 
 model WidgetProactiveMessage {

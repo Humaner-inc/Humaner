@@ -1,17 +1,17 @@
 /** Primary product line — browser title, OG titles, hero, and positioning. */
-export const HUMANER_TITLE = "The agentic mailbox, for humans.";
+export const HUMANER_TITLE = "The agentic inbox, for humans.";
 
 export const HUMANER_TAGLINE = HUMANER_TITLE;
 
 export const HUMANER_META_DESCRIPTION =
-  "Connect every inbox into one collaborative mailbox. Work it with your team and Companion — or point your own agent at the same mailbox over MCP.";
+  "Run your mails effortlessly. Companion is our agent built for support, tasks and contacts memory. Give him some work or use your own with our MCP.";
 
 export const HUMANER_ELEVATOR_PITCH = HUMANER_META_DESCRIPTION;
 
 export const HUMANER_DIFFERENTIATORS = [
   "Connect the inboxes you already use. Gmail, Microsoft, or any IMAP host — sending aliases stay on that mailbox.",
   "One workspace across domains and businesses, so agencies and multi-brand teams stop switching accounts.",
-  "Companion is the native workspace agent — it drafts, triages, and acts on mail with you, never behind your back.",
+  "Companion is super intelligent, it retrieves, remembers, suggests and learns. So you can focus on what matters.",
   "Per-alias Companion policy: draft only, assign, or send. You decide how much rope the agent gets.",
   "MCP and REST expose the same mailbox tools, so Claude Code, Cursor, or your own agent work the inbox too.",
   "Calendar and tasks sit beside the inbox, assigned against working hours.",

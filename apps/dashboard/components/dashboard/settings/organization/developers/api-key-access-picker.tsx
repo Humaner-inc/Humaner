@@ -16,15 +16,20 @@ import {
   type ApiKeyAccessMode,
   type ApiKeyScope
 } from '@/lib/auth/api-key-scopes';
+import { brandAngleSurfaceClassName } from '@/lib/dashboard/brand-angle-styles';
 import { cn } from '@/lib/utils';
 
 const FADE = { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
+
+const ACCESS_CARD_SURFACE = brandAngleSurfaceClassName('rounded-xl');
+
+const SCOPE_CARD_SURFACE = brandAngleSurfaceClassName('rounded-xl');
 
 const ACCESS_OPTIONS = [
   {
     id: 'full' as const,
     label: 'Full access',
-    description: 'Mailbox, calendar, Intelligence, and Helpdesk.',
+    description: 'Mailbox, calendar, and Intelligence.',
     Icon: KeyRoundIcon
   },
   {
@@ -66,12 +71,14 @@ const SELECTED_MUTED: Record<AccessSurface, string> = {
 };
 
 const SELECTED_SCOPE =
-  'border-[#226342] bg-[color-mix(in_srgb,#226342_16%,transparent)]';
+  'border-[#226342] bg-[color-mix(in_srgb,#226342_16%,transparent)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.06)] ring-1 ring-[#226342]/30';
 
 const IDLE_SCOPE: Record<AccessSurface, string> = {
-  light: 'border-[#0A0D0D]/20 bg-transparent',
-  dark: 'border-white/20 bg-transparent',
-  adaptive: 'border-[#0A0D0D]/20 bg-transparent dark:border-white/20'
+  light:
+    'border-[#0A0D0D]/20 bg-transparent hover:border-[#0A0D0D]/35 hover:bg-[#0A0D0D]/[0.03]',
+  dark: 'border-white/20 bg-transparent hover:border-white/35 hover:bg-white/[0.04]',
+  adaptive:
+    'border-[#0A0D0D]/20 bg-transparent hover:border-[#0A0D0D]/35 hover:bg-[#0A0D0D]/[0.03] dark:border-white/20 dark:hover:border-white/35 dark:hover:bg-white/[0.04]'
 };
 
 export function ApiKeyAccessPicker({
@@ -155,15 +162,21 @@ export function ApiKeyAccessPicker({
             transition={FADE}
             className="overflow-hidden"
           >
-            <div className="flex flex-col gap-2 pt-0.5">
+            <div className="flex flex-col gap-2.5 pt-0.5">
+              <Label className={cn('pb-0.5', labelClassName)}>
+                Permissions
+              </Label>
               {API_KEY_SCOPE_OPTIONS.map((option) => {
                 const checked = scopes.includes(option.id);
                 return (
                   <label
                     key={option.id}
                     className={cn(
-                      'flex cursor-pointer items-start gap-2.5 border px-3 py-2.5',
-                      checked ? SELECTED_SCOPE : IDLE_SCOPE[surface]
+                      SCOPE_CARD_SURFACE,
+                      'group flex cursor-pointer items-start gap-3 border px-3.5 py-3 transition-all duration-200',
+                      'focus-within:ring-2 focus-within:ring-[#226342]/25 focus-within:ring-offset-2 focus-within:ring-offset-background',
+                      checked ? SELECTED_SCOPE : IDLE_SCOPE[surface],
+                      disabled && 'cursor-not-allowed opacity-60'
                     )}
                   >
                     <Checkbox
@@ -229,7 +242,8 @@ function AccessOptionCard({
       onMouseEnter={() => iconRef.current?.startAnimation()}
       onMouseLeave={() => iconRef.current?.stopAnimation()}
       className={cn(
-        'flex min-h-[8.75rem] flex-col items-start justify-between gap-3 px-4 py-4 text-left shadow-none',
+        ACCESS_CARD_SURFACE,
+        'flex min-h-[8.75rem] flex-col items-start justify-between gap-3 px-4 py-4 text-left shadow-none transition-all duration-200',
         radioClassName,
         selected ? SELECTED_CARD[surface] : IDLE_CARD[surface]
       )}

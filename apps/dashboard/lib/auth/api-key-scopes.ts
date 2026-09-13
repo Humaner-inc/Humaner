@@ -1,9 +1,7 @@
-export const API_KEY_SCOPES = [
-  'intelligence',
-  'helpdesk',
-  'mailbox',
-  'calendar'
-] as const;
+export const API_KEY_SCOPES = ['intelligence', 'mailbox', 'calendar'] as const;
+
+/** @deprecated Legacy keys may still carry this scope in the database. */
+export const LEGACY_API_KEY_SCOPE = 'helpdesk' as const;
 
 export type ApiKeyScope = (typeof API_KEY_SCOPES)[number];
 
@@ -18,12 +16,7 @@ export const API_KEY_SCOPE_OPTIONS: {
     id: 'intelligence',
     label: 'Intelligence',
     description:
-      'Search knowledge, live context, memory, identify visitors, match runbooks.'
-  },
-  {
-    id: 'helpdesk',
-    label: 'Helpdesk',
-    description: 'Create tickets, email your team, and check escalation.'
+      'Workspace knowledge, memory, and live context for agents over REST or MCP.'
   },
   {
     id: 'mailbox',
@@ -48,19 +41,34 @@ export function isApiKeyScope(value: string): value is ApiKeyScope {
   return API_KEY_SCOPES.includes(value as ApiKeyScope);
 }
 
+function scopeIncludesLegacyHelpdesk(scopes: readonly string[]): boolean {
+  return scopes.includes(LEGACY_API_KEY_SCOPE);
+}
+
 /** Empty scopes = full access (legacy keys and explicit full-access keys). */
 export function apiKeyHasScope(
   scopes: readonly string[],
-  required: ApiKeyScope
+  required: ApiKeyScope | typeof LEGACY_API_KEY_SCOPE
 ): boolean {
   if (scopes.length === 0) {
     return true;
+  }
+  if (required === 'intelligence') {
+    return (
+      scopes.includes('intelligence') || scopeIncludesLegacyHelpdesk(scopes)
+    );
+  }
+  if (required === LEGACY_API_KEY_SCOPE) {
+    return (
+      scopeIncludesLegacyHelpdesk(scopes) || scopes.includes('intelligence')
+    );
   }
   return scopes.includes(required);
 }
 
 export function scopeForIntelligenceTool(tool: string): ApiKeyScope {
-  return HELPDESK_INTELLIGENCE_TOOLS.has(tool) ? 'helpdesk' : 'intelligence';
+  void HELPDESK_INTELLIGENCE_TOOLS.has(tool);
+  return 'intelligence';
 }
 
 export function normalizeApiKeyScopes(input: {
@@ -77,16 +85,25 @@ export function formatApiKeyAccessLabel(scopes: readonly string[]): string {
   if (scopes.length === 0) {
     return 'Full access';
   }
-  const labels = API_KEY_SCOPE_OPTIONS.filter((option) =>
-    scopes.includes(option.id)
-  ).map((option) => option.label);
-  return labels.join(' · ') || 'Scoped';
+
+  const labels = new Set<string>();
+  for (const scope of scopes) {
+    if (scope === LEGACY_API_KEY_SCOPE) {
+      labels.add('Intelligence');
+      continue;
+    }
+    const option = API_KEY_SCOPE_OPTIONS.find((entry) => entry.id === scope);
+    if (option) {
+      labels.add(option.label);
+    }
+  }
+
+  return [...labels].join(' · ') || 'Scoped';
 }
 
-export function apiKeyMissingScopeMessage(scope: ApiKeyScope): string {
-  if (scope === 'helpdesk') {
-    return 'This API key does not have Helpdesk access.';
-  }
+export function apiKeyMissingScopeMessage(
+  scope: ApiKeyScope | typeof LEGACY_API_KEY_SCOPE
+): string {
   if (scope === 'mailbox') {
     return 'This API key does not have Mailbox access.';
   }
@@ -103,7 +120,7 @@ export function requiredApiKeyScopeForPublicPath(
     pathname.includes('/handoff/ticket') ||
     pathname.includes('/visitors/erase')
   ) {
-    return 'helpdesk';
+    return 'intelligence';
   }
   if (pathname.includes('/calendar')) {
     return 'calendar';

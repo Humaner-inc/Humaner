@@ -1,60 +1,49 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
+import { PlusIcon } from '@humaner/shared/icons';
 
 import { CreateWebhookModal } from '@/components/dashboard/settings/organization/developers/create-webhook-modal';
 import { WebhookList } from '@/components/dashboard/settings/organization/developers/webhook-list';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  type CardProps
-} from '@/components/ui/card';
 import { EmptyText } from '@/components/ui/empty-text';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 import type { WebhookDto } from '@/types/dtos/webhook-dto';
 
-export type WebhooksCardProps = CardProps & {
+export type WebhooksCardProps = {
   webhooks: WebhookDto[];
 };
 
 export function WebhooksCard({
-  webhooks,
-  className,
-  ...other
+  webhooks
 }: WebhooksCardProps): React.JSX.Element {
-  const handleShowCreateWebhookModal = (): void => {
-    NiceModal.show(CreateWebhookModal);
+  const router = useRouter();
+
+  const handleShowCreateWebhookModal = async (): Promise<void> => {
+    await NiceModal.show(CreateWebhookModal);
+    router.refresh();
   };
+
   return (
-    <Card
-      className={cn('flex h-full flex-col border-0 bg-transparent', className)}
-      {...other}
-    >
-      <CardContent className="max-h-72 flex-1 overflow-hidden p-0">
-        {webhooks.length > 0 ? (
-          <ScrollArea className="h-full">
-            <WebhookList webhooks={webhooks} />
-          </ScrollArea>
-        ) : (
-          <EmptyText className="p-0">No webhook found.</EmptyText>
-        )}
-      </CardContent>
-      <Separator className="mt-4" />
-      <CardFooter className="flex w-full justify-end px-0 pt-6">
+    <div className="space-y-3">
+      {webhooks.length > 0 ? (
+        <WebhookList webhooks={webhooks} />
+      ) : (
+        <EmptyText className="p-0 text-sm">No webhooks yet.</EmptyText>
+      )}
+      <div className="flex justify-end pt-1">
         <Button
           type="button"
-          variant="default"
-          size="default"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
           onClick={handleShowCreateWebhookModal}
         >
+          <PlusIcon className="size-3.5" />
           Create webhook
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

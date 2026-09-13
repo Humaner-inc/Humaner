@@ -8,4 +8,4 @@ export const API_KEY_LEGACY_LENGTH =
   API_KEY_RANDOM_SIZE * 2 + API_KEY_LEGACY_PREFIX.length;
 
 /** Placeholder shown in docs/snippets before a real key is created. */
-export const API_KEY_SNIPPET_PLACEHOLDER = 'hu_1b1a577877';
+export const API_KEY_SNIPPET_PLACEHOLDER = 'Your_api_key';

@@ -104,11 +104,14 @@ export type DropdownMenuContentElement = React.ElementRef<
 >;
 export type DropdownMenuContentProps = React.ComponentPropsWithoutRef<
   typeof DropdownMenuPrimitive.Content
->;
+> & {
+  /** Match the trigger’s width (assign pickers). */
+  matchTrigger?: boolean;
+};
 const DropdownMenuContent = React.forwardRef<
   DropdownMenuContentElement,
   DropdownMenuContentProps
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 4, matchTrigger, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
@@ -116,6 +119,8 @@ const DropdownMenuContent = React.forwardRef<
       className={cn(
         'z-50 min-w-32 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-md',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+        matchTrigger &&
+          'w-[--radix-dropdown-menu-trigger-width] min-w-[--radix-dropdown-menu-trigger-width] max-w-[--radix-dropdown-menu-trigger-width]',
         className
       )}
       {...props}

@@ -43,7 +43,7 @@ export const CONNECT_APPS: Array<ConnectApp & { id: ConnectAppId }> = [
   {
     id: 'github',
     name: 'GitHub',
-    description: 'Issues, PRs, and deploys in the same thread.',
+    description: 'Manage your repo and issues from your inbox.',
     logoDomain: 'github.com',
     status: 'connect',
     category: 'engineering'
@@ -51,7 +51,7 @@ export const CONNECT_APPS: Array<ConnectApp & { id: ConnectAppId }> = [
   {
     id: 'stripe',
     name: 'Stripe',
-    description: 'Customer billing beside the conversation.',
+    description: 'Customer billing & invoices managed through Humaner.',
     logoDomain: 'stripe.com',
     status: 'connect',
     category: 'billing'

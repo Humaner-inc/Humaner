@@ -102,7 +102,7 @@ export const Companion = forwardRef<AnimatedIconHandle, LucideIconProps>(
 ) as LucideIcon;
 
 function CompanionLoader({ size }: { size: number }): JSX.Element {
-  return <SquircleLoader size={size} />;
+  return <SquircleLoader size={size} color="currentColor" />;
 }
 
 export type CompanionFigureProps = Omit<

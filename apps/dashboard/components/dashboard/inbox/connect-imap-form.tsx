@@ -579,7 +579,7 @@ export function ConnectImapForm({
             <div className="mb-5 text-sm text-muted-foreground">
               Credentials are fully encrypted at rest.{' '}
               <a
-                href="https://humaner.io/security"
+                href="https://humaner.io/#security"
                 target="_blank"
                 rel="noreferrer"
                 className="group/security inline-flex items-center gap-0.5 text-foreground underline underline-offset-4"
@@ -848,7 +848,7 @@ export function ConnectImapForm({
         asChild
       >
         <a
-          href="https://humaner.io/security"
+          href="https://humaner.io/#security"
           target="_blank"
           rel="noopener noreferrer"
         >

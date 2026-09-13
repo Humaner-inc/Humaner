@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { dashboardCtaRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { cn } from '@/lib/utils';
 
@@ -177,7 +178,8 @@ export function AssigneePicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        className="w-56 rounded-lg"
+        matchTrigger
+        className={dashboardCtaRadiusClassName}
         onClick={(event) => event.stopPropagation()}
       >
         <AssigneeMenuItems

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -40,6 +41,7 @@ export type RevokeApiKeyModalProps = NiceModalHocProps & {
 export const RevokeApiKeyModal = NiceModal.create<RevokeApiKeyModalProps>(
   ({ apiKey }) => {
     const modal = useEnhancedModal();
+    const router = useRouter();
     const mdUp = useMediaQuery(MediaQueries.MdUp, { ssr: false });
     const methods = useZodForm({
       schema: revokeApiKeySchema,
@@ -59,6 +61,7 @@ export const RevokeApiKeyModal = NiceModal.create<RevokeApiKeyModalProps>(
       if (!result?.serverError && !result?.validationErrors) {
         toast.success('API key revoked');
         modal.handleClose();
+        router.refresh();
       } else {
         toast.error("Couldn't revoke API key");
       }

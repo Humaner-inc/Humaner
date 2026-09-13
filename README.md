@@ -116,4 +116,4 @@ Details: [`SELFHOST.md`](./SELFHOST.md)
 
 This project is licensed under the **[GNU Affero General Public License v3.0](./LICENSE)** (AGPL-3.0).
 
-**Security:** responsible disclosure via [`SECURITY.md`](./SECURITY.md) · [humaner.io/security](https://humaner.io/security).
+**Security:** responsible disclosure via [`SECURITY.md`](./SECURITY.md) · [humaner.io/#security](https://humaner.io/#security).

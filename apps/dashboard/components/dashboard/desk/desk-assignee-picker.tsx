@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type DeskAssigneeOption = {
@@ -102,7 +103,8 @@ export function DeskAssigneePicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-56 rounded-lg"
+        matchTrigger
+        className={dashboardRadiusClassName}
         onClick={(event) => event.stopPropagation()}
       >
         <AssigneeMenuItems

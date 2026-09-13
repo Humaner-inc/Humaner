@@ -9,7 +9,6 @@ import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
 import { ChatCircle } from '@phosphor-icons/react/dist/ssr/ChatCircle';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
-import { Code } from '@phosphor-icons/react/dist/ssr/Code';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
 import { SquaresFour } from '@phosphor-icons/react/dist/ssr/SquaresFour';
@@ -22,6 +21,7 @@ import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-con
 import { InboxMailboxMenu } from '@/components/dashboard/inbox-mailbox-menu';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { MailboxNavIcon } from '@/components/dashboard/mailbox-nav-icon';
+import { McpNavIcon } from '@/components/dashboard/mcp-nav-icon';
 import { SIDEBAR_DRAWER_IDS } from '@/components/dashboard/sidebar-nav-accordion';
 import {
   SidebarNavChild,
@@ -322,11 +322,7 @@ export function NavMailbox({
             active={pathname.startsWith(Routes.Developers)}
             mainNavHighlight
             leading={
-              <MailboxNavIcon
-                icon={Code}
-                active={pathname.startsWith(Routes.Developers)}
-                color={HUMANER_NAV_COLORS.foreground}
-              />
+              <McpNavIcon active={pathname.startsWith(Routes.Developers)} />
             }
           />
         ) : null}

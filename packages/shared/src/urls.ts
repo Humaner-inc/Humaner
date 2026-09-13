@@ -101,7 +101,7 @@ export function getDpaUrl(): string {
 }
 
 export function getSecurityUrl(): string {
-  return `${getLandingUrl()}/security`;
+  return `${getLandingUrl()}/#security`;
 }
 
 export function getContactUrl(): string {
