@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   MAILBOX_FOLDER_ITEMS,
   mailboxConnectionHref,
@@ -40,6 +41,11 @@ export function InboxMailboxMenu({
   activeFolder: MailboxFolderId | null;
   locked: boolean;
 }): React.JSX.Element {
+  const { state } = useSidebar();
+  if (state === 'collapsed') {
+    return <></>;
+  }
+
   const activeMailbox =
     mailboxes.find((mailbox) => mailbox.connectionId === activeMailboxId) ??
     mailboxes[0] ??

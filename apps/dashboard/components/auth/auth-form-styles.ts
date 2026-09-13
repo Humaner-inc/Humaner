@@ -27,11 +27,20 @@ export const authSurfaceClassName = oss
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-[#eaeaea] bg-white text-[#0A0D0D] shadow-none placeholder:text-[#18181b]/45 selection:bg-[#0A0D0D]/15 selection:text-[#0A0D0D] focus-visible:border-[#0A0D0D] focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20'
-  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
+  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#2252bc] selection:text-white focus:bg-[#fcf4ec] focus:text-[#0A0D0D] focus:placeholder:text-[#0A0D0D]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#fcf4ec] [&:not(:placeholder-shown)]:text-[#0A0D0D]';
 
 export const authInputAdornmentClassName = oss
   ? 'text-[#18181b]/55'
-  : 'text-white/40';
+  : 'auth-input-adornment text-white/40 transition-colors group-focus-within/field:text-[#0A0D0D] group-has-[:not(:placeholder-shown)]/field:text-[#0A0D0D]';
+
+/** Cream-page / light-surface fields — invert to dark fill + cream text. */
+export const authInputOnLightClassName = oss
+  ? authInputClassName
+  : 'auth-input--on-light h-11 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white focus:border-transparent focus:bg-[#0A0D0D] focus:text-[#fcf4ec] focus:placeholder:text-[#fcf4ec]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#0A0D0D] [&:not(:placeholder-shown)]:text-[#fcf4ec]';
+
+export const authInputAdornmentOnLightClassName = oss
+  ? authInputAdornmentClassName
+  : 'auth-input-adornment text-[#0A0D0D]/40 transition-colors group-focus-within/field:text-[#fcf4ec] group-has-[:not(:placeholder-shown)]/field:text-[#fcf4ec]';
 
 export const authLabelClassName = oss
   ? 'text-sm font-medium text-[#0A0D0D]'

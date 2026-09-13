@@ -7,7 +7,12 @@ import {
   ctaPrimaryOnLightClassName,
   ctaSecondaryOnLightClassName
 } from '@humaner/shared/cta';
-import { AlertCircleIcon } from '@humaner/shared/icons';
+import {
+  AlertCircleIcon,
+  LockIcon,
+  MailIcon,
+  UserIcon
+} from '@humaner/shared/icons';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
@@ -21,7 +26,10 @@ import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
   authDividerClassName,
+  authInputAdornmentClassName,
+  authInputAdornmentOnLightClassName,
   authInputClassName,
+  authInputOnLightClassName,
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
@@ -41,8 +49,8 @@ import {
   FormMessage,
   FormProvider
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { InputPassword } from '@/components/ui/input-password';
+import { InputWithAdornments } from '@/components/ui/input-with-adornments';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { cn } from '@/lib/utils';
@@ -167,11 +175,12 @@ export function SignUpCard({
     authLabelClassName,
     inverted && 'text-[#0A0D0D]/65'
   );
-  const inputClassName = cn(
-    authInputClassName,
-    inverted &&
-      'border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white'
-  );
+  const inputClassName = inverted
+    ? authInputOnLightClassName
+    : authInputClassName;
+  const adornmentClassName = inverted
+    ? authInputAdornmentOnLightClassName
+    : authInputAdornmentClassName;
   const primaryButtonClassName = inverted
     ? `${ctaPrimaryOnLightClassName} h-11 w-full`
     : authPrimaryButtonClassName;
@@ -196,7 +205,7 @@ export function SignUpCard({
         </h1>
         <p className={mutedClassName}>
           {organizationName
-            ? `Join ${organizationName}`
+            ? `Join ${organizationName}'s mailbox`
             : 'Already have an account?'}{' '}
           {!organizationName ? (
             <Link
@@ -274,9 +283,9 @@ export function SignUpCard({
       >
         {intent === 'team_member'
           ? invitationId
-            ? 'Create your account to accept the invitation.'
-            : 'Create an account, then request access with a workspace ID.'
-          : 'Create a workspace for your business and invite your team.'}
+            ? 'Create your account to join the mailbox.'
+            : 'Create an account, then join the mailbox with a workspace ID.'
+          : 'Create the mailbox for your business and invite your team.'}
       </p>
 
       <FormProvider {...methods}>
@@ -299,13 +308,18 @@ export function SignUpCard({
               <FormItem className="flex w-full flex-col">
                 <FormLabel className={labelClassName}>Name</FormLabel>
                 <FormControl>
-                  <Input
+                  <InputWithAdornments
                     type="text"
                     maxLength={64}
                     autoComplete="name"
                     placeholder="Enter your name"
                     className={inputClassName}
                     disabled={methods.formState.isSubmitting}
+                    startAdornment={
+                      <UserIcon
+                        className={cn('size-4 shrink-0', adornmentClassName)}
+                      />
+                    }
                     {...field}
                   />
                 </FormControl>
@@ -320,13 +334,18 @@ export function SignUpCard({
               <FormItem className="flex w-full flex-col">
                 <FormLabel className={labelClassName}>Email</FormLabel>
                 <FormControl>
-                  <Input
+                  <InputWithAdornments
                     type="email"
                     maxLength={255}
                     autoComplete="username"
                     placeholder="Enter your email address"
                     className={inputClassName}
                     disabled={methods.formState.isSubmitting || emailLocked}
+                    startAdornment={
+                      <MailIcon
+                        className={cn('size-4 shrink-0', adornmentClassName)}
+                      />
+                    }
                     {...field}
                   />
                 </FormControl>
@@ -349,6 +368,11 @@ export function SignUpCard({
                       placeholder="Enter your password"
                       className={inputClassName}
                       disabled={methods.formState.isSubmitting}
+                      startAdornment={
+                        <LockIcon
+                          className={cn('size-4 shrink-0', adornmentClassName)}
+                        />
+                      }
                       {...field}
                     />
                   </FormControl>

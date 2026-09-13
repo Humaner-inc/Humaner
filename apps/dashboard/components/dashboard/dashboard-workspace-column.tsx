@@ -8,9 +8,7 @@ import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import {
   COMPANION_DOCK_OFFSET,
   COMPANION_DOCK_OFFSET_VAR,
-  COMPANION_DOCK_OFFSET_WITH_PANEL,
-  COMPANION_WORKSPACE_OFFSET_CLASS,
-  COMPANION_WORKSPACE_OFFSET_WITH_PANEL_CLASS
+  COMPANION_DOCK_OFFSET_WITH_PANEL
 } from '@/lib/companion-visibility';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -49,19 +47,20 @@ export function DashboardWorkspaceColumn({
         } as React.CSSProperties
       }
     >
-      <PageAccessGate profile={profile}>
-        <div
-          className={cn(
-            'flex h-full min-h-0 flex-1 flex-col overflow-hidden',
-            composerMounted &&
-              (companionVisible && taskPanelOpen
-                ? COMPANION_WORKSPACE_OFFSET_WITH_PANEL_CLASS
-                : COMPANION_WORKSPACE_OFFSET_CLASS)
-          )}
-        >
-          {children}
-        </div>
-      </PageAccessGate>
+      <div
+        className={cn(
+          'flex min-h-0 w-full flex-col overflow-hidden',
+          composerMounted
+            ? 'h-[calc(100%-var(--companion-dock-offset,0px))] max-h-[calc(100%-var(--companion-dock-offset,0px))]'
+            : 'h-full min-h-0 flex-1'
+        )}
+      >
+        <PageAccessGate profile={profile}>
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            {children}
+          </div>
+        </PageAccessGate>
+      </div>
       {composerMounted ? (
         <CompanionComposer
           departing={!companionVisible}

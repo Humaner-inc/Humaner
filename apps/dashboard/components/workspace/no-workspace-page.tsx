@@ -273,8 +273,8 @@ export function NoWorkspacePage({
             <p
               className={cn(authMutedTextClassName, 'text-sm leading-relaxed')}
             >
-              You&apos;ve no workspace. Create, or request an access to an
-              existing one.
+              You haven&apos;t joined a mailbox yet. Request access with a
+              workspace ID, or create one.
             </p>
           </div>
 
@@ -291,8 +291,8 @@ export function NoWorkspacePage({
             >
               {(
                 [
-                  { value: 'join' as const, label: 'Join a workspace' },
-                  { value: 'create' as const, label: 'Create workspace' }
+                  { value: 'join' as const, label: 'Join a mailbox' },
+                  { value: 'create' as const, label: 'Create mailbox' }
                 ] as const
               ).map((option, index) => {
                 const selected = mode === option.value;
@@ -330,11 +330,11 @@ export function NoWorkspacePage({
                   >
                     <div className="space-y-1">
                       <p className="font-fellix text-base font-medium text-[#fcf4ec]">
-                        Request access
+                        Request mailbox access
                       </p>
                       <p className={cn(authMutedTextClassName, 'text-xs')}>
                         {pendingJoinRequest
-                          ? `Your request to join ${pendingJoinRequest.organizationName} is pending approval.`
+                          ? `An admin is reviewing your access to ${pendingJoinRequest.organizationName}'s mailbox.`
                           : 'Paste the workspace ID from Organization settings.'}
                       </p>
                     </div>
@@ -402,11 +402,11 @@ export function NoWorkspacePage({
                   >
                     <div className="space-y-1">
                       <p className="font-fellix text-base font-medium text-[#fcf4ec]">
-                        Create a workspace
+                        Create a mailbox
                       </p>
                       <p className={cn(authMutedTextClassName, 'text-xs')}>
-                        We&apos;ll use your business website to configure your
-                        organization.
+                        We&apos;ll use your business website to set up the
+                        workspace mailbox.
                       </p>
                     </div>
 
@@ -460,7 +460,7 @@ export function NoWorkspacePage({
                         loading={isSubmitting}
                         disabled={isSubmitting}
                       >
-                        Create workspace
+                        Create mailbox
                       </Button>
                     </div>
                   </form>

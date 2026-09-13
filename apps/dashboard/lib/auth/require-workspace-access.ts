@@ -116,6 +116,13 @@ export function canAccessPageKey(
     return true;
   }
 
+  if (
+    (pageKey === 'tasks' || pageKey === 'calendar') &&
+    context.allowedPages.includes('inbox')
+  ) {
+    return true;
+  }
+
   return false;
 }
 

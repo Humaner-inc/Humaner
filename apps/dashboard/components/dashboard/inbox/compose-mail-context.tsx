@@ -8,12 +8,23 @@ import { Routes } from '@/constants/routes';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
+export type ComposeMailDraft = {
+  to?: string;
+  subject?: string;
+  body?: string;
+  title?: string;
+};
+
 type ComposeMailContextValue = {
   inboxes: MailInboxOption[];
   composeOpen: boolean;
   composeInPanel: boolean;
   defaultAliasId: string | null;
-  openCompose: (defaultAliasId?: string | null) => void;
+  draft: ComposeMailDraft | null;
+  openCompose: (
+    defaultAliasId?: string | null,
+    draft?: ComposeMailDraft | null
+  ) => void;
   closeCompose: () => void;
 };
 
@@ -42,15 +53,21 @@ export function ComposeMailProvider({
   const [defaultAliasId, setDefaultAliasId] = React.useState<string | null>(
     null
   );
+  const [draft, setDraft] = React.useState<ComposeMailDraft | null>(null);
   const composeInPanel = inboxHostsCompose(pathname);
 
-  const openCompose = React.useCallback((aliasId?: string | null) => {
-    setDefaultAliasId(aliasId ?? null);
-    setOpen(true);
-  }, []);
+  const openCompose = React.useCallback(
+    (aliasId?: string | null, nextDraft?: ComposeMailDraft | null) => {
+      setDefaultAliasId(aliasId ?? null);
+      setDraft(nextDraft ?? null);
+      setOpen(true);
+    },
+    []
+  );
 
   const closeCompose = React.useCallback(() => {
     setOpen(false);
+    setDraft(null);
   }, []);
 
   const value = React.useMemo(
@@ -59,10 +76,19 @@ export function ComposeMailProvider({
       composeOpen: open,
       composeInPanel,
       defaultAliasId,
+      draft,
       openCompose,
       closeCompose
     }),
-    [inboxes, open, composeInPanel, defaultAliasId, openCompose, closeCompose]
+    [
+      inboxes,
+      open,
+      composeInPanel,
+      defaultAliasId,
+      draft,
+      openCompose,
+      closeCompose
+    ]
   );
 
   return (
@@ -74,6 +100,7 @@ export function ComposeMailProvider({
           onOpenChange={setOpen}
           inboxes={inboxes}
           defaultAliasId={defaultAliasId}
+          draft={draft}
         />
       ) : null}
     </ComposeMailContext.Provider>

@@ -1,11 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import {
-  CheckIcon,
-  Loader2Icon,
-  TriangleAlertIcon
-} from '@humaner/shared/icons';
+import { CheckIcon, TriangleAlertIcon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import type { SyncStatus } from '@prisma/client';
 import { motion } from 'motion/react';
 
@@ -89,10 +86,7 @@ export function KnowledgeSourceStatus({
         title={IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
         aria-label={IN_FLIGHT_LABELS[status as keyof typeof IN_FLIGHT_LABELS]}
       >
-        <Loader2Icon
-          className="size-4 animate-spin"
-          aria-hidden
-        />
+        <SquircleLoader />
       </span>
     );
   }

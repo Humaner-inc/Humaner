@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDownIcon, RefreshCwIcon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -336,9 +337,11 @@ export function InboxListHeader({
         title="Sync mailbox"
         onClick={() => execute({})}
       >
-        <RefreshCwIcon
-          className={cn('size-3.5', isExecuting && 'animate-spin')}
-        />
+        {isExecuting ? (
+          <SquircleLoader />
+        ) : (
+          <RefreshCwIcon className="size-3.5" />
+        )}
         <span className="sr-only">
           {isExecuting ? 'Syncing' : 'Sync mailbox'}
         </span>

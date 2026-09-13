@@ -55,7 +55,7 @@ export function KnowledgeIngestionPanel({
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="flex w-full flex-col items-center gap-4 px-2"
           >
-            <SkillzCubeLoader size={48} />
+            <SkillzCubeLoader />
             <div className="text-center">
               <p className="font-display text-2xl font-medium text-foreground">
                 Loading resources

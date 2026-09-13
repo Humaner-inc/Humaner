@@ -34,7 +34,7 @@ const isSelfHostBuild =
 const nextConfig = {
   // Docker / self-host: emit standalone server bundle
   ...(isSelfHostBuild ? { output: 'standalone' } : {}),
-  transpilePackages: ['@humaner/shared', 'lucide-animated'],
+  transpilePackages: ['@humaner/shared', 'lucide-animated', 'ldrs'],
   // Prefer skills/runtime on hot paths; full package stays external on the server.
   serverExternalPackages: ['@humaner/customer-support-skills'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
@@ -65,7 +65,8 @@ const nextConfig = {
       '@radix-ui/react-toast',
       '@radix-ui/react-tooltip',
       'lucide-animated',
-      '@humaner/shared'
+      '@humaner/shared',
+      'ldrs'
     ]
   },
   turbopack: {

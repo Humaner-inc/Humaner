@@ -59,7 +59,6 @@ import type {
   MailThreadDetail as MailThreadDetailDto,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
-import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import {
@@ -803,7 +802,7 @@ export function MailThreadList({
         />
       ) : paneLoading || activeThreadId ? (
         <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
-          <SkillzCubeLoader size={28} />
+          <SkillzCubeLoader />
           Opening conversation…
         </div>
       ) : (
@@ -815,11 +814,11 @@ export function MailThreadList({
   );
 
   const deskSplitFallback = (
-    <div className="flex size-full min-h-0">
-      <div className="h-full w-[42%] min-w-[16rem] max-w-[50%] shrink-0 border-r border-border/50">
+    <div className="flex size-full min-h-0 overflow-hidden">
+      <div className="h-full min-h-0 w-[42%] min-w-[16rem] max-w-[50%] shrink-0 overflow-hidden border-r border-border/50">
         {listPanel}
       </div>
-      <div className="h-full min-h-0 min-w-0 flex-1 bg-background">
+      <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-background">
         {readingPane}
       </div>
     </div>
@@ -836,7 +835,7 @@ export function MailThreadList({
 
   const split = isDesk ? (
     <>
-      <div className="hidden min-h-0 w-full md:block">
+      <div className="hidden h-full min-h-0 w-full overflow-hidden md:block">
         {splitReady ? (
           <ResizablePanelGroup
             id="inbox-desk-split"
@@ -848,8 +847,9 @@ export function MailThreadList({
               defaultSize={42}
               minSize={28}
               maxSize={50}
+              className="min-h-0 overflow-hidden"
             >
-              <div className="h-full border-r border-border/50">
+              <div className="h-full min-h-0 overflow-hidden border-r border-border/50">
                 {listPanel}
               </div>
             </ResizablePanel>
@@ -857,19 +857,26 @@ export function MailThreadList({
             <ResizablePanel
               id="inbox-desk-reading"
               defaultSize={58}
+              className="min-h-0 overflow-hidden"
             >
-              <div className="h-full min-h-0 bg-background">{readingPane}</div>
+              <div className="h-full min-h-0 overflow-hidden bg-background">
+                {readingPane}
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : (
           deskSplitFallback
         )}
       </div>
-      <div className="w-full md:hidden">
+      <div className="h-full min-h-0 w-full overflow-hidden md:hidden">
         {showComposePanel || paneMatches ? (
-          <div className="h-full min-h-0 bg-background">{readingPane}</div>
+          <div className="h-full min-h-0 overflow-hidden bg-background">
+            {readingPane}
+          </div>
         ) : (
-          <div className="h-full border-r border-border/50">{listPanel}</div>
+          <div className="h-full min-h-0 overflow-hidden border-r border-border/50">
+            {listPanel}
+          </div>
         )}
       </div>
     </>
@@ -929,14 +936,7 @@ export function MailThreadList({
   if (isDesk) {
     return (
       <>
-        <div
-          className={cn(
-            '-m-6 flex min-h-0 overflow-hidden md:-m-8',
-            DASHBOARD_FULL_BLEED_HEIGHT_CLASS
-          )}
-        >
-          {split}
-        </div>
+        <div className="flex h-full min-h-0 overflow-hidden">{split}</div>
         {deleteDialog}
       </>
     );

@@ -41,8 +41,8 @@ export function sidebarNavChildClassName(
 }
 
 function useSidebarIconRail(): boolean {
-  const { state, isMobile } = useSidebar();
-  return state === 'collapsed' && !isMobile;
+  const { state } = useSidebar();
+  return state === 'collapsed';
 }
 
 export type SidebarNavParentProps = {
@@ -199,7 +199,11 @@ export function SidebarNavChildren({
   const isIconRail = useSidebarIconRail();
 
   if (isIconRail) {
-    return <></>;
+    return (
+      <div className="flex w-full flex-col items-center gap-0.5 py-0.5">
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -272,6 +276,26 @@ export function SidebarNavChild({
   leading,
   quickAction
 }: SidebarNavChildProps): React.JSX.Element {
+  const isIconRail = useSidebarIconRail();
+
+  if (isIconRail) {
+    return (
+      <Link
+        href={disabled ? '#' : href}
+        title={label}
+        tabIndex={tabIndex}
+        className={cn(
+          sidebarNavParentClassName(active),
+          'justify-center px-2 py-2.5',
+          active && 'bg-muted/50',
+          disabled && 'pointer-events-none opacity-40'
+        )}
+      >
+        {leading}
+      </Link>
+    );
+  }
+
   return (
     <div
       className={cn(

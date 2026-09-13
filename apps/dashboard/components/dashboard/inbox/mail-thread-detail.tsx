@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowRightIcon,
   CheckIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   FileTextIcon,
   StarIcon,
@@ -32,6 +33,7 @@ import {
   COMPANION_ASSIGNEE_PERSON
 } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
+import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import {
   DeleteMailThreadsDialog,
   readSkipDeleteWarning,
@@ -63,9 +65,14 @@ import type {
   MailTagItem,
   MailThreadDetail as MailThreadDetailDto
 } from '@/data/inbox/get-mail-threads';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
+import {
+  buildForwardBody,
+  buildForwardSubject
+} from '@/lib/inbox/mail-forward';
 import { tagsForAlias } from '@/lib/inbox/mail-tag-scope';
 import { mailThreadStatusLabel } from '@/lib/inbox/mail-thread-status';
 import { getLogoUrl } from '@/lib/logo';
@@ -76,6 +83,93 @@ type SendPhase = 'idle' | 'sending' | 'success';
 
 const accentSoftBg =
   'bg-[color-mix(in_srgb,var(--accent-color,#2252bc)_10%,transparent)]';
+
+const outboundCardBg =
+  'bg-[color-mix(in_srgb,var(--accent-color,#2252bc)_14%,transparent)]';
+const inboundCardBg = 'bg-muted/70 dark:bg-white/[0.055]';
+
+const engravedBarClassName = cn(
+  'flex w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl border px-2.5 py-2',
+  'border-black/[0.08] bg-black/[0.045] dark:border-white/[0.10] dark:bg-black/40',
+  'shadow-[inset_0_2px_8px_rgb(10_13_13/0.12),inset_0_1px_0_rgb(255_255_255/0.72),inset_0_-1px_0_rgb(10_13_13/0.10)]',
+  'dark:shadow-[inset_0_3px_12px_rgb(0_0_0/0.62),inset_0_1px_0_rgb(255_255_255/0.12),inset_0_-1px_0_rgb(0_0_0/0.55)]',
+  'backdrop-blur-md'
+);
+
+function useSwipeBack(
+  onBack: () => void,
+  enabled: boolean
+): {
+  onTouchStart: React.TouchEventHandler<HTMLElement>;
+  onTouchEnd: React.TouchEventHandler<HTMLElement>;
+} {
+  const startXRef = React.useRef<number | null>(null);
+  const startYRef = React.useRef(0);
+
+  const onTouchStart = React.useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      if (!enabled) return;
+      const touch = event.touches[0];
+      if (!touch || touch.clientX > 48) return;
+      startXRef.current = touch.clientX;
+      startYRef.current = touch.clientY;
+    },
+    [enabled]
+  );
+
+  const onTouchEnd = React.useCallback(
+    (event: React.TouchEvent<HTMLElement>) => {
+      if (!enabled || startXRef.current == null) return;
+      const touch = event.changedTouches[0];
+      const startX = startXRef.current;
+      startXRef.current = null;
+      if (!touch) return;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startYRef.current;
+      if (dx >= 64 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+        onBack();
+      }
+    },
+    [enabled, onBack]
+  );
+
+  return { onTouchStart, onTouchEnd };
+}
+
+function useThreadScrollDocked(
+  ref: React.RefObject<HTMLDivElement | null>,
+  resetKey: string
+): boolean {
+  const [docked, setDocked] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const update = (): void => {
+      const overflow = el.scrollHeight - el.clientHeight;
+      const remaining = overflow - el.scrollTop;
+      setDocked((current) => {
+        if (overflow < 12) return true;
+        if (remaining <= 32) return true;
+        if (remaining >= 88) return false;
+        return current;
+      });
+    };
+
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    return () => {
+      el.removeEventListener('scroll', update);
+      observer.disconnect();
+    };
+  }, [ref, resetKey]);
+
+  return docked;
+}
 
 function shouldAutoSuggest(
   thread: MailThreadDetailDto,
@@ -155,7 +249,12 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
 
   return (
     <li>
-      <article className="space-y-3">
+      <article
+        className={cn(
+          'space-y-3 rounded-xl px-3 py-3 sm:px-4',
+          outbound ? outboundCardBg : inboundCardBg
+        )}
+      >
         <div
           role="button"
           tabIndex={0}
@@ -187,6 +286,16 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold leading-5">
                   {displayName}
+                  <span
+                    className={cn(
+                      'ml-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em]',
+                      outbound
+                        ? 'text-[color:var(--accent-color,#2252bc)]'
+                        : 'text-muted-foreground'
+                    )}
+                  >
+                    {outbound ? 'Sent' : 'Received'}
+                  </span>
                   {fromName ? (
                     <span className="ml-1.5 font-info text-muted-foreground">
                       &lt;{fromEmail}&gt;
@@ -215,7 +324,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
         </div>
 
         {expanded ? (
-          rich ? (
+          <div className={cn(!rich && 'px-0.5')}>
             <MailMessageBody
               bodyHtml={message.bodyHtml}
               bodyText={message.bodyText}
@@ -223,22 +332,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
               className="mt-0"
               eager
             />
-          ) : (
-            <div
-              className={cn(
-                'bg-background px-5 py-4',
-                outbound && accentSoftBg
-              )}
-            >
-              <MailMessageBody
-                bodyHtml={message.bodyHtml}
-                bodyText={message.bodyText}
-                subject={subject}
-                className="mt-0 px-0.5"
-                eager
-              />
-            </div>
-          )
+          </div>
         ) : null}
       </article>
     </li>
@@ -274,6 +368,7 @@ export function MailThreadDetail({
   const companionChat = useHumanerChatOptional();
   const companionCharacter = companionChat?.companionCharacter ?? 'CASUAL';
   const { autoSuggestReplies } = useInboxPreferences();
+  const { openCompose } = useComposeMail();
   const { play } = useOnboardingSound();
   const [thread, setThread] = React.useState(threadProp);
   React.useEffect(() => {
@@ -339,6 +434,9 @@ export function MailThreadDetail({
   const [composerOpen, setComposerOpen] = React.useState(false);
   const [sendAliasId, setSendAliasId] = React.useState(threadProp.aliasId);
   const composerRef = React.useRef<HTMLTextAreaElement>(null);
+  const threadScrollRef = React.useRef<HTMLDivElement>(null);
+  const dockedAtBottom = useThreadScrollDocked(threadScrollRef, thread.id);
+  const showFloatingBar = !composerOpen && !dockedAtBottom;
   const [suggesting, setSuggesting] = React.useState(() =>
     shouldAutoSuggest(threadProp, autoSuggestReplies)
   );
@@ -368,6 +466,12 @@ export function MailThreadDetail({
     onRemoved?.();
     leaveOrClose();
   }, [leaveOrClose, onRemoved]);
+
+  const isMobilePane = useMediaQuery('(max-width: 767px)', {
+    ssr: false,
+    fallback: false
+  });
+  const swipeBack = useSwipeBack(leaveOrClose, isMobilePane);
 
   const { execute: sendReply, isExecuting } = useAction(replyMailThread, {
     onSuccess: () => {
@@ -620,6 +724,68 @@ export function MailThreadDetail({
     setSuggesting(false);
   };
 
+  const openForward = (): void => {
+    const last = thread.messages[thread.messages.length - 1];
+    if (!last) {
+      toast.error('Nothing to forward');
+      return;
+    }
+    openCompose(thread.aliasId, {
+      title: 'Forward',
+      subject: buildForwardSubject(thread.subject),
+      body: buildForwardBody({
+        fromAddress: last.fromAddress,
+        sentAt: last.sentAt,
+        subject: thread.subject,
+        bodyHtml: last.bodyHtml,
+        bodyText: last.bodyText
+      })
+    });
+  };
+
+  const renderActionButtons = (): React.JSX.Element => (
+    <>
+      <Button
+        type="button"
+        variant="background"
+        size="sm"
+        className="h-9 gap-2 px-4"
+        onClick={openReply}
+      >
+        <ArrowRightIcon className="size-3.5 rotate-180" />
+        Reply
+      </Button>
+      <Button
+        type="button"
+        variant="background"
+        size="sm"
+        className="h-9 gap-2 px-4"
+        onClick={openForward}
+      >
+        <ForwardGlyph className="size-3.5" />
+        Forward
+      </Button>
+      {!suggesting ? (
+        <Button
+          type="button"
+          variant="background"
+          size="sm"
+          className="h-9 gap-2 px-4"
+          onClick={suggestAgain}
+        >
+          <CompanionIcon
+            active
+            size={16}
+            character={companionCharacter}
+            state="idle"
+            className="size-4"
+          />
+          Suggest
+        </Button>
+      ) : null}
+    </>
+  );
+
   const assignValue =
     thread.assigneeKind === 'COMPANION'
       ? COMPANION_ASSIGNEE
@@ -635,10 +801,26 @@ export function MailThreadDetail({
         'relative flex min-h-0 flex-col bg-background',
         embedded ? 'h-full' : 'min-h-[32rem]'
       )}
+      onTouchStart={swipeBack.onTouchStart}
+      onTouchEnd={swipeBack.onTouchEnd}
     >
+      {isMobilePane ? (
+        <button
+          type="button"
+          onClick={leaveOrClose}
+          aria-label="Back to inbox"
+          title="Swipe right or tap to go back"
+          className="absolute left-0 top-1/2 z-30 flex h-16 w-7 -translate-y-1/2 items-center justify-center rounded-r-full border border-l-0 border-border/70 bg-background/90 text-muted-foreground shadow-[0_8px_24px_-12px_rgb(10_13_13/0.45)] backdrop-blur-md"
+        >
+          <ChevronLeftIcon
+            className="size-4"
+            strokeWidth={2}
+          />
+        </button>
+      ) : null}
       <header
         className={cn(
-          'flex shrink-0 items-start gap-3 border-b border-border bg-background px-5 py-4'
+          'flex shrink-0 items-start gap-3 border-b border-border bg-background px-5 py-4 max-md:pl-9'
         )}
       >
         <Avatar className="size-9 shrink-0 rounded-md">
@@ -704,9 +886,7 @@ export function MailThreadDetail({
             size="icon"
             className="size-8 rounded-lg"
             title="Forward"
-            onClick={() => {
-              toast.message('Forward is coming soon');
-            }}
+            onClick={openForward}
           >
             <ForwardGlyph />
             <span className="sr-only">Forward</span>
@@ -836,13 +1016,16 @@ export function MailThreadDetail({
         </div>
       </header>
 
-      <div className="relative flex min-h-0 flex-1">
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto bg-background">
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div
+            ref={threadScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto bg-background"
+          >
             <div
               className={cn(
-                'mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6',
-                !composerOpen && 'pb-24'
+                'mx-auto w-full max-w-3xl space-y-4 px-4 py-5 max-md:pl-9 sm:px-6',
+                showFloatingBar && 'pb-24'
               )}
             >
               <ol className="space-y-4">
@@ -1089,57 +1272,38 @@ export function MailThreadDetail({
                   </div>
                 </section>
               ) : null}
+
+              {!composerOpen ? (
+                <div
+                  className={cn(
+                    engravedBarClassName,
+                    'transition-opacity duration-300',
+                    dockedAtBottom
+                      ? 'opacity-100'
+                      : 'pointer-events-none opacity-0'
+                  )}
+                  aria-hidden={!dockedAtBottom}
+                  inert={!dockedAtBottom || undefined}
+                >
+                  {renderActionButtons()}
+                </div>
+              ) : null}
             </div>
           </div>
 
-          {composerOpen ? null : (
-            <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 px-4 sm:bottom-4 sm:px-6">
-              <div className="pointer-events-auto mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-2 rounded-[20px] border border-border/60 bg-background/95 px-2.5 py-2 shadow-[0_12px_40px_-20px_rgb(0_0_0/0.35)] backdrop-blur supports-[backdrop-filter]:bg-background/80">
-                <div className="flex flex-wrap gap-1.5">
-                  <Button
-                    type="button"
-                    variant="background"
-                    size="sm"
-                    className="h-9 gap-2 px-4"
-                    onClick={openReply}
-                  >
-                    <ArrowRightIcon className="size-3.5 rotate-180" />
-                    Reply
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="background"
-                    size="sm"
-                    className="h-9 gap-2 px-4"
-                    onClick={() => {
-                      toast.message('Forward is coming soon');
-                    }}
-                  >
-                    <ForwardGlyph className="size-3.5" />
-                    Forward
-                  </Button>
-                </div>
-                {!suggesting ? (
-                  <Button
-                    type="button"
-                    variant="background"
-                    size="sm"
-                    className="ml-auto h-9 gap-2 px-4"
-                    onClick={suggestAgain}
-                  >
-                    <CompanionIcon
-                      active
-                      size={16}
-                      character={companionCharacter}
-                      state="idle"
-                      className="size-4"
-                    />
-                    Suggest
-                  </Button>
-                ) : null}
+          {!composerOpen ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 px-4 sm:bottom-4 sm:px-6">
+              <div
+                className={cn(
+                  't-panel-slide mx-auto max-w-3xl',
+                  engravedBarClassName
+                )}
+                data-open={showFloatingBar ? 'true' : 'false'}
+              >
+                {renderActionButtons()}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 

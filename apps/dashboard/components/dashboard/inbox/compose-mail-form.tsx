@@ -27,12 +27,18 @@ const COMPOSE_FIELD_CLASS =
 export function ComposeMailForm({
   inboxes,
   defaultAliasId = null,
+  initialTo = '',
+  initialSubject = '',
+  initialBody = '',
   onSent,
   onCancel,
   className
 }: {
   inboxes: MailInboxOption[];
   defaultAliasId?: string | null;
+  initialTo?: string;
+  initialSubject?: string;
+  initialBody?: string;
   onSent?: () => void;
   onCancel?: () => void;
   className?: string;
@@ -42,14 +48,20 @@ export function ComposeMailForm({
   const [aliasId, setAliasId] = React.useState(
     () => defaultAliasId ?? inboxes[0]?.id ?? ''
   );
-  const [to, setTo] = React.useState('');
-  const [subject, setSubject] = React.useState('');
-  const [body, setBody] = React.useState('');
+  const [to, setTo] = React.useState(initialTo);
+  const [subject, setSubject] = React.useState(initialSubject);
+  const [body, setBody] = React.useState(initialBody);
 
   React.useEffect(() => {
     if (!defaultAliasId) return;
     setAliasId(defaultAliasId);
   }, [defaultAliasId]);
+
+  React.useEffect(() => {
+    setTo(initialTo);
+    setSubject(initialSubject);
+    setBody(initialBody);
+  }, [initialTo, initialSubject, initialBody]);
 
   const { execute, isExecuting } = useAction(composeMail, {
     onSuccess: () => {

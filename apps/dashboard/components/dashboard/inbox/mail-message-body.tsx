@@ -1,42 +1,65 @@
 'use client';
 
 import * as React from 'react';
+import { ChevronDownIcon } from '@humaner/shared/icons';
 import { useTheme } from 'next-themes';
 
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible';
+import {
   htmlToPlainText,
   isRichMailHtml,
+  isStructuredMailHtml,
   prepareMailHtmlForDisplay,
   stripLeadingSubjectFromText
 } from '@/lib/inbox/mail-body-display';
+import {
+  triageMailBody,
+  type MailExchange
+} from '@/lib/inbox/mail-exchange-split';
 import { cn } from '@/lib/utils';
 
-/** Same as page background — one surface behind the email card. */
-const MAIL_CANVAS_LIGHT = '#fcf4ec';
-const MAIL_CANVAS_DARK = '#0A0D0D';
 const MAIL_SANDBOX =
   'allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads';
 
 /**
  * Minimal iframe CSS — do NOT restyle sender HTML (borders, margins, type).
- * Canvas color adapts so white bordered cards stay visible in both themes.
- * No scripts in the mail document — hide broken images from the parent.
+ * Canvas stays transparent so the message sits on the same card as plain mail.
+ * Dark theme inverts authored content only; images are double-inverted.
  */
-function mailIframeCss(canvas: string): string {
+function mailIframeCss(invert: boolean): string {
+  const invertRules = invert
+    ? `
+body > * {
+  filter: invert(1) hue-rotate(180deg);
+}
+body > * img,
+body > * video,
+body > * picture,
+body > * canvas,
+body > * [style*="background-image"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+`
+    : '';
+
   return `
 html {
   margin: 0;
   padding: 0;
-  background: ${canvas};
-  color-scheme: light;
+  background: transparent;
+  color-scheme: ${invert ? 'dark' : 'light'};
 }
+${invertRules}
 body {
   margin: 0;
-  /* Room so card borders / outer margins aren't clipped at the iframe edge */
-  padding: 20px 12px;
+  padding: 4px 0;
   width: 100%;
   box-sizing: border-box;
-  background: ${canvas};
+  background: transparent;
   color: #0A0D0D;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   font-size: 14px;
@@ -47,10 +70,6 @@ body {
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-body > table,
-body > div > table {
-  background-color: #ffffff;
 }
 body > :first-child[style*="display:none"],
 body > :first-child[style*="display: none"],
@@ -98,8 +117,8 @@ blockquote[type="cite"] {
 `.trim();
 }
 
-function buildMailSrcDoc(bodyHtml: string, canvas: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';"><base target="_blank" rel="noopener noreferrer"><style>${mailIframeCss(canvas)}</style></head><body>${bodyHtml}</body></html>`;
+function buildMailSrcDoc(bodyHtml: string, invert: boolean): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="${invert ? 'dark' : 'light'}"><meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';"><base target="_blank" rel="noopener noreferrer"><style>${mailIframeCss(invert)}</style></head><body>${bodyHtml}</body></html>`;
 }
 
 function hideBrokenImage(img: HTMLImageElement): void {
@@ -140,54 +159,69 @@ function stripLeakedPreheader(body: HTMLElement): void {
   }
 }
 
-export function MailMessageBody({
-  bodyHtml,
-  bodyText,
-  subject,
-  className,
-  eager = false
+const SCRIPT_BLOCK_RE = /<script[\s\S]*?>[\s\S]*?<\/script>/gi;
+const EVENT_HANDLER_RE = /\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
+
+function toSafeStructuredHtml(html: string): string {
+  return html
+    .replace(SCRIPT_BLOCK_RE, '')
+    .replace(EVENT_HANDLER_RE, '')
+    .replace(/javascript:/gi, '');
+}
+
+function MailPlainBody({
+  text,
+  className
 }: {
-  bodyHtml: string | null;
-  bodyText: string | null;
-  /** Thread subject — stripped when restated as the first body line. */
-  subject?: string | null;
+  text: string;
   className?: string;
-  /** Mount the iframe immediately (latest messages). Older ones wait until near view. */
-  eager?: boolean;
+}): React.JSX.Element {
+  return (
+    <div
+      className={cn(
+        'mt-3 whitespace-pre-wrap break-words text-[14px] leading-[1.55] text-foreground',
+        className
+      )}
+    >
+      {text || 'This message has no plain-text body.'}
+    </div>
+  );
+}
+
+function MailStructuredBody({
+  html,
+  className
+}: {
+  html: string;
+  className?: string;
+}): React.JSX.Element {
+  return (
+    <div
+      className={cn('mail-structured-body', className)}
+      dangerouslySetInnerHTML={{ __html: toSafeStructuredHtml(html) }}
+    />
+  );
+}
+
+function MailHtmlFrame({
+  html,
+  invert,
+  eager,
+  className
+}: {
+  html: string;
+  invert: boolean;
+  eager: boolean;
+  className?: string;
 }): React.JSX.Element {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const [height, setHeight] = React.useState(120);
   const [active, setActive] = React.useState(eager);
-  const { resolvedTheme } = useTheme();
-  const canvas =
-    resolvedTheme === 'dark' ? MAIL_CANVAS_DARK : MAIL_CANVAS_LIGHT;
-
-  const origin =
-    typeof window !== 'undefined' ? window.location.origin : undefined;
-
-  const html = React.useMemo(() => {
-    const raw = bodyHtml?.trim() ? bodyHtml : null;
-    if (!raw || !isRichMailHtml(raw)) return null;
-    return prepareMailHtmlForDisplay(raw, subject, origin);
-  }, [bodyHtml, subject, origin]);
-
-  const text = React.useMemo(() => {
-    const fromText = stripLeadingSubjectFromText(bodyText, subject);
-    if (fromText?.trim()) return fromText;
-
-    const rawHtml = bodyHtml?.trim();
-    if (rawHtml && !isRichMailHtml(rawHtml)) {
-      return stripLeadingSubjectFromText(htmlToPlainText(rawHtml), subject);
-    }
-
-    return fromText;
-  }, [bodyHtml, bodyText, subject]);
-
-  const srcDoc = html ? buildMailSrcDoc(html, canvas) : null;
+  const srcDoc = buildMailSrcDoc(html, invert);
 
   React.useEffect(() => {
-    if (active || !srcDoc) return;
+    if (active) return;
     const el = hostRef.current;
     if (!el) return;
 
@@ -201,10 +235,10 @@ export function MailMessageBody({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [active, srcDoc]);
+  }, [active]);
 
   React.useEffect(() => {
-    if (!srcDoc || !active) return;
+    if (!active) return;
 
     const frame = iframeRef.current;
     if (!frame) return;
@@ -305,25 +339,12 @@ export function MailMessageBody({
     };
   }, [srcDoc, active, eager]);
 
-  if (!srcDoc) {
-    return (
-      <div
-        className={cn(
-          'mt-3 whitespace-pre-wrap break-words text-[14px] leading-[1.55] text-foreground',
-          className
-        )}
-      >
-        {text || 'This message has no plain-text body.'}
-      </div>
-    );
-  }
-
   if (!active) {
     return (
       <div
         ref={hostRef}
         className={cn('overflow-x-auto', className)}
-        style={{ backgroundColor: canvas, minHeight: 120 }}
+        style={{ backgroundColor: 'transparent', minHeight: 120 }}
         aria-hidden
       />
     );
@@ -332,7 +353,7 @@ export function MailMessageBody({
   return (
     <div
       className={cn('overflow-x-auto', className)}
-      style={{ backgroundColor: canvas }}
+      style={{ backgroundColor: 'transparent' }}
     >
       <iframe
         ref={iframeRef}
@@ -340,11 +361,189 @@ export function MailMessageBody({
         srcDoc={srcDoc}
         sandbox={MAIL_SANDBOX}
         referrerPolicy="no-referrer"
-        className="block w-full border-0"
-        style={{ height, minHeight: 64, backgroundColor: canvas }}
+        className="block w-full border-0 bg-transparent"
+        style={{ height, minHeight: 64, backgroundColor: 'transparent' }}
         scrolling="no"
         suppressHydrationWarning
       />
+    </div>
+  );
+}
+
+function MailExchangeView({
+  exchange,
+  subject,
+  origin,
+  invert,
+  eager,
+  className
+}: {
+  exchange: MailExchange;
+  subject?: string | null;
+  origin?: string;
+  invert: boolean;
+  eager: boolean;
+  className?: string;
+}): React.JSX.Element {
+  const rawHtml = exchange.html?.trim() || null;
+  const preparedHtml = React.useMemo(() => {
+    if (!rawHtml) return null;
+    return prepareMailHtmlForDisplay(rawHtml, subject, origin);
+  }, [origin, rawHtml, subject]);
+
+  const text = React.useMemo(() => {
+    if (rawHtml && !isRichMailHtml(rawHtml)) {
+      const fromHtml = stripLeadingSubjectFromText(
+        htmlToPlainText(rawHtml),
+        subject
+      );
+      if (fromHtml?.trim()) return fromHtml;
+    }
+    return stripLeadingSubjectFromText(exchange.text, subject);
+  }, [exchange.text, rawHtml, subject]);
+
+  if (preparedHtml && isRichMailHtml(rawHtml)) {
+    return (
+      <MailHtmlFrame
+        html={preparedHtml}
+        invert={invert}
+        eager={eager}
+        className={className}
+      />
+    );
+  }
+
+  if (preparedHtml && isStructuredMailHtml(rawHtml)) {
+    return (
+      <MailStructuredBody
+        html={preparedHtml}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <MailPlainBody
+      text={text || ''}
+      className={className}
+    />
+  );
+}
+
+function MailPreviousExchanges({
+  exchanges,
+  subject,
+  origin,
+  invert
+}: {
+  exchanges: MailExchange[];
+  subject?: string | null;
+  origin?: string;
+  invert: boolean;
+}): React.JSX.Element {
+  const [open, setOpen] = React.useState(false);
+  const count = exchanges.length;
+  const label = count === 1 ? 'Previous message' : `${count} earlier messages`;
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="mt-4 border-t border-border/60 pt-3"
+    >
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+        >
+          <span className="min-w-0">
+            <span className="font-fellix text-sm font-medium">{label}</span>
+            <span className="mt-0.5 block truncate font-info text-xs">
+              {exchanges[0]?.attribution ||
+                exchanges[0]?.text?.slice(0, 96) ||
+                'Quoted conversation'}
+            </span>
+          </span>
+          <ChevronDownIcon
+            className={cn(
+              'size-4 shrink-0 transition-transform duration-200',
+              open && 'rotate-180'
+            )}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <ol className="mt-3 space-y-4">
+          {exchanges.map((exchange, index) => (
+            <li
+              key={`${exchange.attribution ?? 'prev'}-${index}`}
+              className="border-l-2 border-border/70 pl-3"
+            >
+              {exchange.attribution ? (
+                <p className="mb-1.5 font-info text-xs text-muted-foreground">
+                  {exchange.attribution}
+                </p>
+              ) : null}
+              <MailExchangeView
+                exchange={exchange}
+                subject={subject}
+                origin={origin}
+                invert={invert}
+                eager={false}
+                className="mt-0"
+              />
+            </li>
+          ))}
+        </ol>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+export function MailMessageBody({
+  bodyHtml,
+  bodyText,
+  subject,
+  className,
+  eager = false
+}: {
+  bodyHtml: string | null;
+  bodyText: string | null;
+  /** Thread subject — stripped when restated as the first body line. */
+  subject?: string | null;
+  className?: string;
+  /** Mount the iframe immediately (latest messages). Older ones wait until near view. */
+  eager?: boolean;
+}): React.JSX.Element {
+  const { resolvedTheme } = useTheme();
+  const invert = resolvedTheme === 'dark';
+
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : undefined;
+
+  const triage = React.useMemo(
+    () => triageMailBody(bodyHtml, bodyText, subject),
+    [bodyHtml, bodyText, subject]
+  );
+
+  return (
+    <div className={className}>
+      <MailExchangeView
+        exchange={triage.latest}
+        subject={subject}
+        origin={origin}
+        invert={invert}
+        eager={eager}
+        className="mt-0"
+      />
+      {triage.previous.length > 0 ? (
+        <MailPreviousExchanges
+          exchanges={triage.previous}
+          subject={subject}
+          origin={origin}
+          invert={invert}
+        />
+      ) : null}
     </div>
   );
 }

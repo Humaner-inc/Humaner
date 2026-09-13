@@ -11,7 +11,7 @@ export function ComposeMailPanel({
 }: {
   className?: string;
 }): React.JSX.Element {
-  const { inboxes, defaultAliasId, closeCompose } = useComposeMail();
+  const { inboxes, defaultAliasId, draft, closeCompose } = useComposeMail();
   const [revealed, setRevealed] = React.useState(false);
 
   React.useEffect(() => {
@@ -30,7 +30,9 @@ export function ComposeMailPanel({
       data-open={revealed ? 'true' : 'false'}
     >
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <p className="font-display text-lg tracking-tight">New message</p>
+        <p className="font-display text-lg tracking-tight">
+          {draft?.title ?? 'New message'}
+        </p>
         <button
           type="button"
           onClick={closeCompose}
@@ -40,8 +42,12 @@ export function ComposeMailPanel({
         </button>
       </div>
       <ComposeMailForm
+        key={`${draft?.title ?? 'new'}-${draft?.subject ?? ''}`}
         inboxes={inboxes}
         defaultAliasId={defaultAliasId}
+        initialTo={draft?.to}
+        initialSubject={draft?.subject}
+        initialBody={draft?.body}
         onSent={closeCompose}
         className="px-5 py-5"
       />

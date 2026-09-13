@@ -166,8 +166,7 @@ export function OrganizationDetailsCard({
             <div className="flex w-full flex-col gap-2">
               <FormLabel>Workspace ID</FormLabel>
               <FormDescription>
-                Share with teammates who sign up as team members without an
-                invite.
+                Share with teammates who join the mailbox without an invite.
               </FormDescription>
               <div className="flex items-center gap-2">
                 <Input

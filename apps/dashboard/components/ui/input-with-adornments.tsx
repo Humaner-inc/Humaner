@@ -17,9 +17,9 @@ const InputWithAdornments = React.forwardRef<
     { className, startAdornment, endAdornment, containerClassName, ...other },
     ref
   ) => (
-    <div className={cn('relative w-full', containerClassName)}>
+    <div className={cn('group/field relative w-full', containerClassName)}>
       {startAdornment && (
-        <span className="pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-muted-foreground">
+        <span className="auth-input-adornment-slot pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-muted-foreground">
           {startAdornment}
         </span>
       )}

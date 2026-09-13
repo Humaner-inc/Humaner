@@ -44,11 +44,46 @@ export function isRichMailHtml(bodyHtml: string | null | undefined): boolean {
   return false;
 }
 
+/** Block / inline tags that should keep authored spacing in the reading pane. */
+const STRUCTURED_MAIL_TAG_RE =
+  /<\s*(p|br|ul|ol|li|h[1-6]|blockquote|pre|hr|strong|em|b|i|a|div)\b/i;
+
+/**
+ * True when HTML has real structure (paragraphs, lists, breaks) even if it
+ * is not a designed marketing table. Those should not flatten to one line.
+ */
+export function isStructuredMailHtml(
+  bodyHtml: string | null | undefined
+): boolean {
+  if (!bodyHtml?.trim()) return false;
+  if (isRichMailHtml(bodyHtml)) return false;
+  return STRUCTURED_MAIL_TAG_RE.test(bodyHtml);
+}
+
+const SOURCE_BLOCK_RE = /<(style|script|head|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi;
+const UNCLOSED_SOURCE_RE = /<(style|script|head|noscript)\b[^>]*>[\s\S]*$/gi;
+const CSS_SOURCE_RE =
+  /\{[^}]{0,240}\b(?:font|color|margin|padding|display|background)\s*:/i;
+
+/** Drop `<style>` / `<script>` so CSS source never becomes visible text. */
+export function stripMailSourceBlocks(html: string): string {
+  return html.replace(SOURCE_BLOCK_RE, '').replace(UNCLOSED_SOURCE_RE, '');
+}
+
+export function looksLikeMailSource(text: string): boolean {
+  const sample = text.replace(/\s+/g, ' ').trim();
+  if (sample.length < 8) return false;
+  if (CSS_SOURCE_RE.test(sample)) return true;
+  return /^(?:body|html|@media|@font-face)\b/i.test(sample);
+}
+
 /** Best-effort plain text from simple HTML when `bodyText` is missing. */
 export function htmlToPlainText(bodyHtml: string): string {
-  return bodyHtml
+  return stripMailSourceBlocks(bodyHtml)
     .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '\n• ')
+    .replace(/<\/(?:p|div|tr|h[1-6]|blockquote)>/gi, '\n\n')
+    .replace(/<\/(?:ul|ol)>/gi, '\n\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/g, '&')
@@ -57,6 +92,7 @@ export function htmlToPlainText(bodyHtml: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -191,7 +227,7 @@ export function prepareMailHtmlForDisplay(
   subject: string | null | undefined,
   origin?: string
 ): string {
-  let html = stripMailPreviewBlocks(bodyHtml);
+  let html = stripMailSourceBlocks(stripMailPreviewBlocks(bodyHtml));
   if (origin) {
     html = rewriteMailAssetUrls(html, origin);
   }

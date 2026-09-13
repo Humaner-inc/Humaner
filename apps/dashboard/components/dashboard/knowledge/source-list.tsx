@@ -10,6 +10,7 @@ import {
   RefreshCwIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import type { SourceType } from '@prisma/client';
 import { toast } from 'sonner';
 
@@ -164,10 +165,14 @@ export function SourceList({
                   }
                   onClick={() => handleRescan(source)}
                 >
-                  <RefreshCwIcon
-                    className={cn('size-4', isRescanning && 'animate-spin')}
-                    aria-hidden
-                  />
+                  {isRescanning ? (
+                    <SquircleLoader />
+                  ) : (
+                    <RefreshCwIcon
+                      className="size-4"
+                      aria-hidden
+                    />
+                  )}
                   <span className="sr-only">Rescan source</span>
                 </Button>
               ) : null}

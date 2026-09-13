@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ctaSecondaryAdaptiveClassName } from '@humaner/shared/cta';
-import { Loader2Icon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -140,11 +140,7 @@ const Button = React.forwardRef<ButtonElement, ButtonProps>(
           children
         ) : (
           <>
-            {loading && (
-              <Loader2Icon
-                className={cn('size-4 animate-spin', !!children && 'mr-2')}
-              />
-            )}
+            {loading && <SquircleLoader className={cn(!!children && 'mr-2')} />}
             {children}
           </>
         )}

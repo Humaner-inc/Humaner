@@ -9,7 +9,8 @@ export default function InboxAllLayout({
   return (
     <SectionPage
       width="full"
-      className="flex min-h-0 flex-1 flex-col"
+      overflow="hidden"
+      className="flex h-full min-h-0 flex-1 flex-col p-0 md:p-0"
     >
       {children}
     </SectionPage>

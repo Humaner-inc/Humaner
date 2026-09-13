@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 /** Full-height scroll region for main nav pages (sidebar shows the section name). */
 export type SectionContentProps = React.HTMLAttributes<HTMLDivElement> & {
   width?: 'md' | 'lg' | 'xl' | 'full';
+  /** Inbox / desk splits need a bounded pane — not an outer scrollport. */
+  overflow?: 'auto' | 'hidden';
 };
 
 const WIDTH_CLASS = {
@@ -17,14 +19,21 @@ const WIDTH_CLASS = {
 export function SectionContent({
   className,
   width = 'xl',
+  overflow = 'auto',
   children,
   ...props
 }: SectionContentProps): React.JSX.Element {
   return (
-    <div className="min-h-0 flex-1 overflow-auto">
+    <div
+      className={cn(
+        'min-h-0 flex-1',
+        overflow === 'hidden' ? 'overflow-hidden' : 'overflow-auto'
+      )}
+    >
       <div
         className={cn(
           'mx-auto w-full p-6 md:p-8',
+          overflow === 'hidden' && 'flex h-full min-h-0 flex-col',
           WIDTH_CLASS[width],
           className
         )}

@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronRightIcon, Loader2Icon } from '@humaner/shared/icons';
+import { ChevronRightIcon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import * as TreeViewPrimitive from 'react-accessible-treeview';
 
 import { Input } from '@/components/ui/input';
@@ -116,10 +117,7 @@ const TreeViewItem = React.forwardRef<TreeViewItemElement, TreeViewItemProps>(
         {isBranch && (
           <>
             {isLoading ? (
-              <Loader2Icon
-                className="animate-spin text-muted-foreground"
-                size={14}
-              />
+              <SquircleLoader />
             ) : (
               <ChevronRightIcon
                 className="text-muted-foreground transition-transform duration-200 group-aria-expanded:rotate-90 group-aria-expanded:text-muted-foreground group-aria-selected:text-muted-foreground"

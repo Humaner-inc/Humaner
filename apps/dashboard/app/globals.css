@@ -413,29 +413,125 @@ input[type='password'],
   }
 }
 
-/* Auth input autofill — dark variant */
+/* Auth input autofill — invert to cream so paste matches filled/focus */
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
-  box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  -webkit-text-fill-color: #0a0d0d !important;
+  caret-color: #0a0d0d;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.group\/field:has(.auth-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment,
+.group\/field:has(.auth-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment-slot,
+.group\/field:has(.auth-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  button {
+  color: #0a0d0d !important;
+}
+
+/* Light-surface auth inputs (team member on cream) — invert to dark */
+.auth-input--on-light:-webkit-autofill,
+.auth-input--on-light:-webkit-autofill:hover,
+.auth-input--on-light:-webkit-autofill:focus,
+.auth-input--on-light:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0a0d0d inset !important;
+  box-shadow: 0 0 0 1000px #0a0d0d inset !important;
   -webkit-text-fill-color: #fcf4ec !important;
   caret-color: #fcf4ec;
   transition: background-color 99999s ease-out 0s;
 }
 
-:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light']) .auth-input:-webkit-autofill,
-:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
-  .auth-input:-webkit-autofill:hover,
-:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
-  .auth-input:-webkit-autofill:focus,
-:is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
-  .auth-input:-webkit-autofill:active {
+.group\/field:has(.auth-input--on-light:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment,
+.group\/field:has(.auth-input--on-light:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment-slot,
+.group\/field:has(.auth-input--on-light:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  button {
+  color: #fcf4ec !important;
+}
+
+/* Onboarding inputs invert against the card: light card → dark fill, dark card → cream fill */
+.onboarding-root[data-onboarding-appearance='dark']
+  .onboarding-input:is(:focus, :not(:placeholder-shown)) {
+  background-color: #0a0d0d !important;
+  border-color: transparent !important;
+  color: #fcf4ec !important;
+  caret-color: #fcf4ec;
+}
+
+.onboarding-root[data-onboarding-appearance='dark']
+  .onboarding-input:is(:focus, :not(:placeholder-shown))::placeholder {
+  color: rgb(252 244 236 / 0.35);
+}
+
+.onboarding-root[data-onboarding-appearance='dark'] .onboarding-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='dark']
+  .onboarding-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='dark']
+  .onboarding-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='dark']
+  .onboarding-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0a0d0d inset !important;
+  box-shadow: 0 0 0 1000px #0a0d0d inset !important;
+  -webkit-text-fill-color: #fcf4ec !important;
+  caret-color: #fcf4ec;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:is(:focus, :not(:placeholder-shown)) {
+  background-color: #fcf4ec !important;
+  border-color: transparent !important;
+  color: #0a0d0d !important;
+  caret-color: #0a0d0d;
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:is(:focus, :not(:placeholder-shown))::placeholder {
+  color: rgb(10 13 13 / 0.35);
+}
+
+.onboarding-root[data-onboarding-appearance='light'] .onboarding-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   box-shadow: 0 0 0 1000px #fcf4ec inset !important;
   -webkit-text-fill-color: #0a0d0d !important;
   caret-color: #0a0d0d;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.onboarding-root[data-onboarding-appearance='dark']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment,
+.onboarding-root[data-onboarding-appearance='dark']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment-slot,
+.onboarding-root[data-onboarding-appearance='dark']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  button {
+  color: #fcf4ec !important;
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment,
+.onboarding-root[data-onboarding-appearance='light']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment-slot,
+.onboarding-root[data-onboarding-appearance='light']
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  button {
+  color: #0a0d0d !important;
 }
 
 @keyframes auth-input-highlight {
@@ -1124,5 +1220,64 @@ input[type='password'],
   .t-icon-swap .t-icon {
     transition: none !important;
   }
+}
+
+/* Simple HTML mail — keep lists, headings, and paragraph rhythm */
+.mail-structured-body {
+  font-size: 14px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  color: inherit;
+}
+.mail-structured-body > :first-child {
+  margin-top: 0;
+}
+.mail-structured-body > :last-child {
+  margin-bottom: 0;
+}
+.mail-structured-body p,
+.mail-structured-body div {
+  margin: 0 0 0.85em;
+}
+.mail-structured-body h1,
+.mail-structured-body h2,
+.mail-structured-body h3,
+.mail-structured-body h4 {
+  margin: 1.15em 0 0.45em;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.mail-structured-body ul,
+.mail-structured-body ol {
+  margin: 0 0 0.9em;
+  padding-left: 1.35em;
+}
+.mail-structured-body li {
+  margin: 0.3em 0;
+}
+.mail-structured-body li > p {
+  margin: 0.2em 0;
+}
+.mail-structured-body strong,
+.mail-structured-body b {
+  font-weight: 600;
+}
+.mail-structured-body a {
+  color: #2252bc;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mail-structured-body blockquote {
+  margin: 0.75em 0;
+  padding-left: 0.85em;
+  border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent);
+  color: color-mix(in srgb, currentColor 72%, transparent);
+}
+.mail-structured-body hr {
+  margin: 1em 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
 

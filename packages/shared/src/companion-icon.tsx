@@ -16,6 +16,7 @@ import {
   type LucideIcon,
   type LucideIconProps,
 } from "./icon-utils";
+import { SquircleLoader } from "./squircle-loader";
 
 export type CompanionFigureState = "idle" | "enter" | "thinking" | "exit";
 
@@ -101,27 +102,7 @@ export const Companion = forwardRef<AnimatedIconHandle, LucideIconProps>(
 ) as LucideIcon;
 
 function CompanionLoader({ size }: { size: number }): JSX.Element {
-  return (
-    <span className="block animate-spin" style={{ height: size, width: size }}>
-      <svg
-        aria-hidden
-        fill="none"
-        height={size}
-        viewBox="0 0 24 24"
-        width={size}
-      >
-        <circle
-          cx="12"
-          cy="12"
-          r="8"
-          stroke="currentColor"
-          strokeDasharray="36 14"
-          strokeLinecap="round"
-          strokeWidth="2.4"
-        />
-      </svg>
-    </span>
-  );
+  return <SquircleLoader size={size} />;
 }
 
 export type CompanionFigureProps = Omit<

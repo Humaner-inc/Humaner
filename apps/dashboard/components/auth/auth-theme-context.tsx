@@ -38,9 +38,14 @@ const AuthThemeContext = React.createContext<AuthThemeContextValue | null>(
 
 export function AuthThemeProvider({
   children,
-  className
-}: React.PropsWithChildren<{ className?: string }>): React.JSX.Element {
-  const [appearance, setAppearance] = React.useState<AuthAppearance>('dark');
+  className,
+  initialAppearance = 'dark'
+}: React.PropsWithChildren<{
+  className?: string;
+  initialAppearance?: AuthAppearance;
+}>): React.JSX.Element {
+  const [appearance, setAppearance] =
+    React.useState<AuthAppearance>(initialAppearance);
 
   const toggleAppearance = React.useCallback(() => {
     setAppearance((current) => (current === 'dark' ? 'light' : 'dark'));

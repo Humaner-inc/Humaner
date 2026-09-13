@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCwIcon } from '@humaner/shared/icons';
+import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -112,9 +113,11 @@ export function PullToRefreshInbox({
         }}
       >
         <div className="inline-flex items-center gap-2 rounded-full border bg-background/95 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground shadow-sm backdrop-blur">
-          <RefreshCwIcon
-            className={cn('size-3.5', (isExecuting || ready) && 'animate-spin')}
-          />
+          {isExecuting || ready ? (
+            <SquircleLoader />
+          ) : (
+            <RefreshCwIcon className="size-3.5" />
+          )}
           {isExecuting
             ? 'Syncing…'
             : ready
