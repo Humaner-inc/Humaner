@@ -108,7 +108,7 @@ export const authThemeDark = {
   label:
     'font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[#0A0D0D]/65',
   input:
-    'onboarding-input h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-sm text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
+    'onboarding-input h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-sm text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#0b00d1] selection:text-white focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
   cardSurface: 'rounded-lg border border-[#0A0D0D]/[0.06] bg-[#0A0D0D]/[0.02]',
   logoText: '[&_span]:text-white',
   progressTrack: 'border-t border-white/25',
@@ -185,7 +185,7 @@ export const authThemeLight = {
   label:
     'font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-white/65',
   input:
-    'onboarding-input h-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-sm text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
+    'onboarding-input h-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-sm text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#0b00d1] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
   cardSurface: 'rounded-lg border border-white/[0.06] bg-white/[0.04]',
   logoText: '[&_span]:text-[#0A0D0D]',
   progressTrack: 'border-t border-[#0A0D0D]/40',

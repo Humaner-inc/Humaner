@@ -40,7 +40,7 @@ export const ESCALATION_TIERS: EscalationTier[] = [
     sla: '< 24 hr',
     defaultSlaMinutes: 1440,
     urgencyLevel: 'MEDIUM',
-    color: '#2252bc'
+    color: '#0b00d1'
   },
   {
     mode: 'SELF_RESOLVING',
@@ -62,7 +62,7 @@ export const MODE_LABEL: Record<EscalationMode, string> = {
 export const MODE_COLOR: Record<EscalationMode, string> = {
   LIVE: '#f85919',
   PRIORITY: '#e8b04d',
-  STANDARD: '#2252bc',
+  STANDARD: '#0b00d1',
   SELF_RESOLVING: '#226342'
 };
 

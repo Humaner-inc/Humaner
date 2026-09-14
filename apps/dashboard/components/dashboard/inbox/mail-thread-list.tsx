@@ -68,7 +68,7 @@ import {
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#2252bc';
+const DEFAULT_UNREAD = '#0b00d1';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
   'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
@@ -1131,10 +1131,10 @@ function MailThreadRow({
     <li
       className={cn(
         'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
-        localUnread && 'bg-[color-mix(in_srgb,#2252bc_8%,transparent)]',
+        localUnread && 'bg-[color-mix(in_srgb,#0b00d1_8%,transparent)]',
         previewActive &&
           (localUnread
-            ? 'bg-[color-mix(in_srgb,#2252bc_14%,transparent)]'
+            ? 'bg-[color-mix(in_srgb,#0b00d1_14%,transparent)]'
             : 'bg-foreground/[0.06]'),
         selected && !localUnread && 'bg-foreground/[0.04]'
       )}
@@ -1265,7 +1265,7 @@ function MailThreadRow({
                 onMarkRead();
               }}
             >
-              <CheckIcon className="size-3.5 text-[#2252bc]" />
+              <CheckIcon className="size-3.5 text-[#0b00d1]" />
               <span className="sr-only">Mark as read</span>
             </Button>
           ) : null}

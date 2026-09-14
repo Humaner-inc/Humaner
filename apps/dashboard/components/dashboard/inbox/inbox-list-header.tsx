@@ -306,7 +306,7 @@ export function InboxListHeader({
         href: hrefFor({ filter: filter.id }),
         label: filter.label,
         active: !activeTagId && activeFilter === filter.id,
-        color: filter.id === 'unread' ? '#2252bc' : undefined
+        color: filter.id === 'unread' ? '#0b00d1' : undefined
       })),
       ...tags.map((tag) => ({
         key: tag.id,

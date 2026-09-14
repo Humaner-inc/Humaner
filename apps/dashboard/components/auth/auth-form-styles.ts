@@ -27,7 +27,7 @@ export const authSurfaceClassName = oss
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-[#eaeaea] bg-white text-[#0A0D0D] shadow-none placeholder:text-[#18181b]/45 selection:bg-[#0A0D0D]/15 selection:text-[#0A0D0D] focus-visible:border-[#0A0D0D] focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20'
-  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#2252bc] selection:text-white focus:bg-[#fcf4ec] focus:text-[#0A0D0D] focus:placeholder:text-[#0A0D0D]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#fcf4ec] [&:not(:placeholder-shown)]:text-[#0A0D0D]';
+  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#0b00d1] selection:text-white focus:bg-[#fcf4ec] focus:text-[#0A0D0D] focus:placeholder:text-[#0A0D0D]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#fcf4ec] [&:not(:placeholder-shown)]:text-[#0A0D0D]';
 
 export const authInputAdornmentClassName = oss
   ? 'text-[#18181b]/55'
@@ -36,7 +36,7 @@ export const authInputAdornmentClassName = oss
 /** Cream-page / light-surface fields — invert to dark fill + cream text. */
 export const authInputOnLightClassName = oss
   ? authInputClassName
-  : 'auth-input--on-light h-11 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white focus:border-transparent focus:bg-[#0A0D0D] focus:text-[#fcf4ec] focus:placeholder:text-[#fcf4ec]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#0A0D0D] [&:not(:placeholder-shown)]:text-[#fcf4ec]';
+  : 'auth-input--on-light h-11 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#0b00d1] selection:text-white focus:border-transparent focus:bg-[#0A0D0D] focus:text-[#fcf4ec] focus:placeholder:text-[#fcf4ec]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#0A0D0D] [&:not(:placeholder-shown)]:text-[#fcf4ec]';
 
 export const authInputAdornmentOnLightClassName = oss
   ? authInputAdornmentClassName
@@ -148,7 +148,7 @@ export const onboardingSurfaceClassName = oss
 
 export const onboardingInputClassName = oss
   ? authInputClassName
-  : 'onboarding-input h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-white text-[#0A0D0D] text-sm shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#2252bc] selection:text-white focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
+  : 'onboarding-input h-10 rounded-lg border border-[#0A0D0D]/[0.08] bg-white text-[#0A0D0D] text-sm shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#0b00d1] selection:text-white focus-visible:border-[#e0e1df]/50 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20';
 
 export const onboardingLabelClassName = oss
   ? authLabelClassName

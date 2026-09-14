@@ -30,7 +30,7 @@ import type { MailTagItem } from '@/data/inbox/get-mail-threads';
 import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
-  '#2252bc',
+  '#0b00d1',
   '#226342',
   '#f85919',
   '#aa1f18',

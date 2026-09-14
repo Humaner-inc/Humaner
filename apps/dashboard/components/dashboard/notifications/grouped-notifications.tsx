@@ -50,8 +50,8 @@ export type GroupedNotificationsProps = {
 const SECTION_SURFACE: Record<DashboardNotificationKind, string> = {
   ticket: 'bg-muted/50',
   task: 'bg-success/[0.07] dark:bg-success/[0.08]',
-  mail: 'bg-[#2252bc]/[0.07] dark:bg-[#2252bc]/[0.10]',
-  mention: 'bg-[#2252bc]/[0.07] dark:bg-[#2252bc]/[0.10]',
+  mail: 'bg-[#0b00d1]/[0.07] dark:bg-[#0b00d1]/[0.10]',
+  mention: 'bg-[#0b00d1]/[0.07] dark:bg-[#0b00d1]/[0.10]',
   api_key: 'bg-warning/[0.08] dark:bg-warning/[0.09]',
   loop: 'bg-violet-500/[0.07] dark:bg-violet-400/[0.08]',
   billing: 'bg-orange-500/[0.07] dark:bg-orange-400/[0.08]'

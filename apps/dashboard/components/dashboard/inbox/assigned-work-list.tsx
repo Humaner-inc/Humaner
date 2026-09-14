@@ -15,7 +15,7 @@ import type { AssignedTaskItem } from '@/data/tasks/get-assigned-tasks';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#2252bc';
+const DEFAULT_UNREAD = '#0b00d1';
 
 type AssignedFilter = 'all' | 'mail' | 'tasks';
 
@@ -111,7 +111,7 @@ export function AssignedWorkList({
               )}
             >
               {item.id === 'mail' ? (
-                <span className="size-1.5 rounded-full bg-[#2252bc]" />
+                <span className="size-1.5 rounded-full bg-[#0b00d1]" />
               ) : null}
               {item.id === 'tasks' ? (
                 <span className="size-1.5 rounded-full bg-[#e6b325]" />
@@ -165,7 +165,7 @@ function AssignedMailRow({
     <li
       className={cn(
         'border-b border-border last:border-b-0',
-        unread && 'bg-[color-mix(in_srgb,#2252bc_8%,transparent)]'
+        unread && 'bg-[color-mix(in_srgb,#0b00d1_8%,transparent)]'
       )}
     >
       <Link

@@ -352,13 +352,13 @@ export function AgentCard({
         {agent.metrics.gaps.length > 0 ? (
           <div
             className={cn(
-              'mt-3 flex items-center justify-center gap-2 border border-[#2252bc]/30 bg-[#2252bc]/10 px-2.5 py-2',
+              'mt-3 flex items-center justify-center gap-2 border border-[#0b00d1]/30 bg-[#0b00d1]/10 px-2.5 py-2',
               dashboardRadiusClassName,
               compact && 'mt-2'
             )}
           >
-            <AlertCircleIcon className="size-3 shrink-0 text-[#2252bc]" />
-            <p className="line-clamp-2 text-center font-info text-[10px] leading-relaxed text-[#2252bc]">
+            <AlertCircleIcon className="size-3 shrink-0 text-[#0b00d1]" />
+            <p className="line-clamp-2 text-center font-info text-[10px] leading-relaxed text-[#0b00d1]">
               {agent.metrics.gaps[0]}
             </p>
           </div>

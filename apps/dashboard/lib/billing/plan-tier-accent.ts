@@ -7,7 +7,7 @@ export const PLAN_TIER_ACCENT: Record<PlanTier, string> = {
   /** Custom — Humaner orange */
   byo: '#f85919',
   /** Humaner — cobalt */
-  classic: '#2252bc',
+  classic: '#0b00d1',
   humaner: '#f85919'
 };
 

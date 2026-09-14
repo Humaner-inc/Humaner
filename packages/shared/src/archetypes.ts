@@ -3,7 +3,7 @@ export type PersonalityTone = "casual" | "corporate" | "efficient" | "custom";
 /** Solid persona discs — Humaner green, cobalt, orange, custom grey. */
 export const PERSONA_DISK: Record<PersonalityTone, string> = {
   casual: "#226342",
-  corporate: "#2252bc",
+  corporate: "#0b00d1",
   efficient: "#f85919",
   /** Unique on dark shells — light grey tile. */
   custom: "#F2F2F2",

@@ -72,7 +72,7 @@ export function calendarRange(
 export const DEFAULT_EVENT_COLOR = '#f85919';
 
 export const CALENDAR_EVENT_COLORS = [
-  '#2252bc',
+  '#0b00d1',
   '#226342',
   '#f85919',
   '#aa1f18',

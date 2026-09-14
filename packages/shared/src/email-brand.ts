@@ -7,7 +7,7 @@ export const EMAIL_COLORS = {
   border: "#eaeaea",
   muted: "#18181b",
   canvas: "#F2F2F2",
-  link: "#2252bc",
+  link: "#0b00d1",
 } as const;
 
 export const EMAIL_BODY_CLASS =
@@ -33,7 +33,7 @@ export const EMAIL_MUTED_CLASS = "text-[12px] leading-[24px] text-[#18181b]";
 export const EMAIL_MUTED_CENTER_CLASS =
   "text-center text-[14px] leading-[24px] text-[#18181b]";
 
-export const EMAIL_LINK_CLASS = "text-[#2252bc] no-underline";
+export const EMAIL_LINK_CLASS = "text-[#0b00d1] no-underline";
 
 export const EMAIL_HR_CLASS =
   "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";
