@@ -81,7 +81,7 @@
     --radius-modal: 24px;
     --radius-composer: 20px;
     --font-fellix: var(--font-geist-sans);
-    --font-the-seasons: var(--font-geist-sans);
+    --font-the-seasons: var(--font-comfortaa);
     --font-humaner-mono: var(--font-geist-mono);
 
     --chart-1: 180 13% 4.5%;
@@ -251,6 +251,7 @@
 
   .font-display {
     letter-spacing: -0.01em;
+    font-weight: 700;
   }
 }
 
@@ -278,12 +279,12 @@
     @apply font-info text-[10px] uppercase tracking-[0.08em] text-muted-foreground;
   }
 
-  /* Dashboard page titles — Geist Sans Regular */
+  /* Dashboard page titles — Comfortaa Bold */
   .page-title {
     @apply font-display text-2xl font-normal leading-none tracking-tight;
   }
 
-  /* Dashboard section titles — Geist Sans Regular */
+  /* Dashboard section titles — Comfortaa Bold */
   .section-title {
     @apply font-display text-base font-normal leading-none tracking-tight;
   }
@@ -1097,9 +1098,9 @@ input[type='password'],
   animation: frontier-load-glitch 0.16s steps(2) infinite;
 }
 
-/* Titles: Geist Sans Regular. Infos/banners: Geist Mono Light. */
+/* Titles: Comfortaa Bold. Infos/banners: Geist Mono Light. */
 .font-display {
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .font-info {

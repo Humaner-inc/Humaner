@@ -20,7 +20,12 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        display: [
+          "'Humaner Display Fallback'",
+          'var(--font-comfortaa)',
+          'system-ui',
+          'sans-serif'
+        ],
         mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
         info: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
         fellix: ['var(--font-geist-sans)', 'system-ui', 'sans-serif']

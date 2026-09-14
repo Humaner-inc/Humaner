@@ -8,7 +8,7 @@ import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/sonner';
 import { AppInfo } from '@/constants/app-info';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { fellix, humanerMono, theSeasons } from '@/lib/fonts';
+import { comfortaaBold, fellix, humanerMono } from '@/lib/fonts';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 const oss = isOssDeployment();
@@ -87,7 +87,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`size-full min-h-screen ${fellix.variable} ${theSeasons.variable} ${humanerMono.variable}`}
+      className={`size-full min-h-screen ${fellix.variable} ${comfortaaBold.variable} ${humanerMono.variable}`}
       suppressHydrationWarning
     >
       <body className="size-full font-sans">
