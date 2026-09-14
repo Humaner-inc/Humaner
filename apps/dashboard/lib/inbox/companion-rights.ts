@@ -60,6 +60,27 @@ export const COMPANION_INTEGRATION_IDS = [
 
 export type CompanionIntegrationId = (typeof COMPANION_INTEGRATION_IDS)[number];
 
+/** Workspace tools that only run when that connector is activated. */
+export const CONNECTOR_TOOL_INTEGRATION: Record<
+  string,
+  CompanionIntegrationId
+> = {
+  list_linear_issues: 'linear',
+  create_linear_issue: 'linear',
+  list_github_issues: 'github',
+  list_github_pull_requests: 'github',
+  create_github_issue: 'github',
+  list_stripe_invoices: 'stripe',
+  search_stripe_billing: 'stripe',
+  search_notion_pages: 'notion'
+};
+
+export function integrationForConnectorTool(
+  toolId: string
+): CompanionIntegrationId | undefined {
+  return CONNECTOR_TOOL_INTEGRATION[toolId];
+}
+
 export function isCompanionIntegrationId(
   value: string | null | undefined
 ): value is CompanionIntegrationId {

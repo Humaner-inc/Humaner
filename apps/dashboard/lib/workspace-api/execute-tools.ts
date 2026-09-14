@@ -18,6 +18,7 @@ import { CONNECT_APPS } from '@/lib/connect-apps';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
+import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import {
   composeMailboxMail,
   isMailboxAddress
@@ -471,6 +472,26 @@ async function executeListConnectors(
       })),
       connectPath: Routes.InboxSettings
     }
+  };
+}
+
+async function requireActivatedConnector(
+  name: string,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult | null> {
+  const integration = integrationForConnectorTool(name);
+  if (!integration) return null;
+
+  const { integrations } = await readCompanionWorkspaceRights(
+    context.organizationId
+  );
+  if (integrations.includes(integration)) {
+    return null;
+  }
+
+  return {
+    ok: false,
+    error: `${integration} is not connected. Activate it in Workspace Settings → Connect.`
   };
 }
 
@@ -1122,8 +1143,11 @@ export async function executeWorkspaceTool(
     case 'create_github_issue':
     case 'list_stripe_invoices':
     case 'search_stripe_billing':
-    case 'search_notion_pages':
+    case 'search_notion_pages': {
+      const blocked = await requireActivatedConnector(resolved, context);
+      if (blocked) return blocked;
       return executeConnectorTool(resolved, args, context);
+    }
     case 'request_teammate':
       return executeRequestTeammate(args, context);
     case 'list_tasks':

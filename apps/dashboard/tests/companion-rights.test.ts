@@ -4,6 +4,7 @@ import {
   companionAllows,
   deriveCompanionActionsFromAliases,
   expandAliasPolicy,
+  integrationForConnectorTool,
   normalizeCompanionActions,
   normalizeCompanionIntegrations
 } from '@/lib/inbox/companion-rights';
@@ -35,9 +36,23 @@ describe('companion workspace rights', () => {
     expect(companionAllows(['DRAFT', 'SEND'], 'ASSIGN')).toBe(false);
   });
 
-  it('keeps only Linear, Stripe, and GitHub', () => {
+  it('keeps Linear, Stripe, GitHub, and Notion in catalog order', () => {
     expect(
-      normalizeCompanionIntegrations(['notion', 'github', 'stripe', 'linear'])
-    ).toEqual(['linear', 'stripe', 'github']);
+      normalizeCompanionIntegrations([
+        'notion',
+        'github',
+        'stripe',
+        'linear',
+        'slack'
+      ])
+    ).toEqual(['linear', 'stripe', 'github', 'notion']);
+  });
+
+  it('maps connector tools to the activated integration', () => {
+    expect(integrationForConnectorTool('search_notion_pages')).toBe('notion');
+    expect(integrationForConnectorTool('list_github_pull_requests')).toBe(
+      'github'
+    );
+    expect(integrationForConnectorTool('list_connectors')).toBeUndefined();
   });
 });
