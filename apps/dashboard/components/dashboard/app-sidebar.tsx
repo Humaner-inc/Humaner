@@ -35,6 +35,7 @@ export type AppSidebarProps = {
   agentDeskOpenCount?: number;
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
+  showCompanionUpgrade?: boolean;
 };
 
 export function AppSidebar({
@@ -48,7 +49,8 @@ export function AppSidebar({
   handoffOpenCount = 0,
   agentDeskOpenCount = 0,
   mailInboxes = [],
-  companionHref
+  companionHref,
+  showCompanionUpgrade = false
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
@@ -92,6 +94,7 @@ export function AppSidebar({
             agentDeskOpenCount={agentDeskOpenCount}
             mailInboxes={mailInboxes}
             companionHref={companionHref}
+            showCompanionUpgrade={showCompanionUpgrade}
           />
         </ScrollArea>
       </SidebarContent>

@@ -11,11 +11,6 @@ const RICH_MAIL_BG_ATTR_RE = /\s(?:bgcolor|background)\s*=/i;
 const RICH_MAIL_BG_STYLE_RE =
   /style\s*=\s*["'][^"']*\bbackground(?:-color)?\s*:/i;
 
-/**
- * React-email / ESP preview text that should stay invisible.
- * When sanitize strips `display:none`, it leaks as a stray first line
- * (e.g. "Glad you're here." / "Redis") between the header and the design.
- */
 const PREVIEW_OPEN_RE = /<(div|span|p)\b([^>]*?)>/gi;
 const PREVIEW_ATTR_RE =
   /id\s*=\s*["']__react-email-preview["']|class\s*=\s*["'][^"']*(?:preheader|preview-text|previewtext|mcnPreviewText)[^"']*["']|display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|overflow\s*:\s*hidden|visibility\s*:\s*hidden|mso-hide/i;
@@ -214,7 +209,7 @@ export function stripMailPreviewBlocks(html: string): string {
     if (!range) continue;
     out = `${out.slice(0, range.start)}${out.slice(range.end)}`;
   }
-  // Raw preheader sitting in front of the first tag ("Redis", "Glad you're here.").
+
   return out.replace(/^\s*[^<\n\r]{1,80}\s*(?=<)/, '');
 }
 

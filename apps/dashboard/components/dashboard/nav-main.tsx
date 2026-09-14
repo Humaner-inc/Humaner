@@ -42,6 +42,7 @@ export type NavMainProps = SidebarGroupProps & {
   agentDeskOpenCount?: number;
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
+  showCompanionUpgrade?: boolean;
 };
 
 export function NavMain({
@@ -54,6 +55,7 @@ export function NavMain({
   agentDeskOpenCount = 0,
   mailInboxes = [],
   companionHref,
+  showCompanionUpgrade = false,
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
@@ -76,6 +78,7 @@ export function NavMain({
               unreadCount={inboxUnreadCount}
               inboxes={mailInboxes}
               companionHref={companionHref}
+              showCompanionUpgrade={showCompanionUpgrade}
               showMcp={isWorkspaceOwner(profile)}
             />
           </React.Suspense>

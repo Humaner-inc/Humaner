@@ -4,7 +4,11 @@ import { connection } from 'next/server';
 import { brand } from '@/brand.config';
 import { getVerticalConfig } from '@/services/training/verticals';
 import { isCreditsBillingModel } from '@humaner/shared/credits';
-import { getPlanCapabilities, getPlanForTier } from '@humaner/shared/plans';
+import {
+  getPlanCapabilities,
+  getPlanForTier,
+  isCloudFreePlan
+} from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
 import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
@@ -272,6 +276,9 @@ export async function DashboardSessionShell({
         mailInboxes={mailInboxes}
         agents={sidebarAgents}
         companionHref={copilotEnabled ? Routes.Knowledge : null}
+        showCompanionUpgrade={isCloudFreePlan(
+          userFromDb!.organization!.tier ?? 'free'
+        )}
       />
       <SidebarInset
         id="skip"
@@ -292,7 +299,10 @@ export async function DashboardSessionShell({
           }
         />
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <DashboardWorkspaceColumn profile={profile}>
+          <DashboardWorkspaceColumn
+            profile={profile}
+            orgTier={userFromDb!.organization!.tier ?? 'free'}
+          >
             {children}
           </DashboardWorkspaceColumn>
           <DashboardDockPanel

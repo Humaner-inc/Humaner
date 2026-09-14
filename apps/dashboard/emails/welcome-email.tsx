@@ -1,4 +1,8 @@
-import { EmailLayout, EmailText } from '@humaner/shared/email-ui';
+import {
+  EmailInlineLink,
+  EmailLayout,
+  EmailText
+} from '@humaner/shared/email-ui';
 import { getEmailXIconUrl, getXUrl } from '@humaner/shared/urls';
 import { Img, Link, Section, Text } from '@react-email/components';
 
@@ -11,22 +15,18 @@ export type WelcomeEmailData = {
 
 export const WelcomeEmail = (_data: WelcomeEmailData) => (
   <EmailLayout
-    preview="Glad you're here."
+    preview="Better inbox waiting for you"
     showUnsubscribe
   >
     <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
-    <EmailText>Glad you&apos;re here.</EmailText>
+    <EmailText>Ready for the inbox(ing)?</EmailText>
     <EmailText>
-      Hope this email sounds Human enouhg for you. (yes I left the typo on
-      purpose)
+      We want to give Mailing a new direction. Automation, but just the thing,
+      running tasks, managing teams and multi-inboxes effortlessly.
     </EmailText>
     <EmailText>
-      We want to give Customer Support the attention and the tools it deserves.{' '}
-      {AppInfo.APP_NAME} have one goal in mind: allowing developers to offer
-      exceptional support in the AI era.
-    </EmailText>
-    <EmailText>
-      Follow the onboarding and deploy your customer support in minutes.
+      Follow the onboarding and connect everything in seconds. You can customize
+      Companion behavior then, or use your own agent.
     </EmailText>
     <Section className="my-[24px]">
       <Text className="m-0 text-[14px] leading-[24px] text-[#0A0D0D]">
@@ -49,7 +49,11 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => (
       </Text>
     </Section>
     <EmailText>
-      Lovely day,
+      If you need onboarding or have any questions just reach to me at{' '}
+      <EmailInlineLink href="https://x.com/alexneyret">
+        @alexneyret
+      </EmailInlineLink>
+      . Fast, and happy emailing,
       <br />
       Alexandre
     </EmailText>

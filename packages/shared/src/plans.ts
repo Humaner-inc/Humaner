@@ -36,6 +36,9 @@ export type PlanCapabilities = {
   runbooks: boolean;
   copilot: boolean;
   hostedAgent: boolean;
+  tasks: boolean;
+  resources: boolean;
+  mcp: boolean;
 };
 
 export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
@@ -54,6 +57,9 @@ export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
   runbooks: false,
   copilot: false,
   hostedAgent: true,
+  tasks: true,
+  resources: true,
+  mcp: true,
 };
 
 /** Cloud Custom is not sold in Self-Host. */
@@ -72,6 +78,10 @@ export function getPlanCapabilities(
   _context?: PlanCapabilityContext,
 ): PlanCapabilities {
   return SELF_HOST_CAPABILITIES;
+}
+
+export function isCloudFreePlan(_tier: string): boolean {
+  return false;
 }
 
 export type PlanDefinition = {

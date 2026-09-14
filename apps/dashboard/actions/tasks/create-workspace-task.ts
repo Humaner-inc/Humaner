@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { requireOrganizationCapability } from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
@@ -15,6 +16,11 @@ export const createWorkspaceTask = pageActionClient('tasks')
   .schema(createWorkspaceTaskSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {
     const organizationId = session.user.organizationId;
+    await requireOrganizationCapability(
+      organizationId,
+      'tasks',
+      'Tasks are included on Inbox. Upgrade to create and manage tasks.'
+    );
 
     const agent = await prisma.agent.findFirst({
       where: { organizationId },

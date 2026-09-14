@@ -9,10 +9,12 @@ import { toast } from 'sonner';
 import { assignHandoffTicket } from '@/actions/handoff/assign-handoff-ticket';
 import { updateHandoffTicketStatus } from '@/actions/handoff/update-handoff-ticket-status';
 import { createWorkspaceTask } from '@/actions/tasks/create-workspace-task';
+import { deleteWorkspaceTask } from '@/actions/tasks/delete-workspace-task';
 import { AssigneePicker } from '@/components/dashboard/assignee-options';
 import { ticketStatusToGlyph } from '@/components/dashboard/desk/desk-ticket-preview-row';
 import { WorkspacePageShell } from '@/components/dashboard/workspace-page-shell';
 import { Button } from '@/components/ui/button';
+import { DeleteIconActionButton } from '@/components/ui/delete-action-button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -143,6 +145,16 @@ export function WorkspaceTasksBoard({
     }
   });
 
+  const { execute: deleteTask, isExecuting: isDeleting } = useAction(
+    deleteWorkspaceTask,
+    {
+      onSuccess: () => router.refresh(),
+      onError: ({ error }) => {
+        toast.error(error.serverError ?? "Couldn't delete the task");
+      }
+    }
+  );
+
   const grouped = {
     OPEN: tickets.filter((ticket) => ticket.status === 'OPEN'),
     IN_PROGRESS: tickets.filter((ticket) => ticket.status === 'IN_PROGRESS'),
@@ -241,9 +253,17 @@ export function WorkspaceTasksBoard({
                   key={ticket.id}
                   className="rounded-[12px] border border-border/50 bg-background px-3 py-2.5"
                 >
-                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                    {formatTicketRef(ticket.ticketNumber)}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {formatTicketRef(ticket.ticketNumber)}
+                    </p>
+                    <DeleteIconActionButton
+                      srLabel="Delete task"
+                      className="-mr-1.5 -mt-1 size-7"
+                      disabled={isDeleting}
+                      onClick={() => deleteTask({ id: ticket.id })}
+                    />
+                  </div>
                   <p className="mt-1 text-sm leading-snug">{ticket.subject}</p>
                   {ticket.summary && ticket.summary !== ticket.subject ? (
                     <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">

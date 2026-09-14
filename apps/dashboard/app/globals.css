@@ -511,6 +511,55 @@ input[type='password'],
   transition: background-color 99999s ease-out 0s;
 }
 
+/* Owner onboarding sits on login ink — keep dark fields so glyphs stay visible */
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:is(:focus, :not(:placeholder-shown)) {
+  background-color: rgb(242 242 242 / 0.08) !important;
+  border-color: rgb(242 242 242 / 0.14) !important;
+  color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:is(:focus, :not(:placeholder-shown))::placeholder {
+  color: rgb(242 242 242 / 0.35);
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:-webkit-autofill,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:-webkit-autofill:hover,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:-webkit-autofill:focus,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .onboarding-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #161a1a inset !important;
+  box-shadow: 0 0 0 1000px #161a1a inset !important;
+  -webkit-text-fill-color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
+}
+
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  .auth-input-adornment-slot,
+.onboarding-root[data-onboarding-appearance='light']
+  .onboarding-on-ink
+  .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
+  button {
+  color: #f2f2f2 !important;
+}
+
 .onboarding-root[data-onboarding-appearance='dark']
   .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
   .auth-input-adornment,
@@ -954,29 +1003,25 @@ input[type='password'],
 }
 
 .auth-hero-wheel {
-  --auth-wheel-radius: 8.75rem;
   --auth-wheel-dur: 700ms;
   --auth-wheel-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 6rem;
+  width: 6.5rem;
   height: 22rem;
-  perspective: 900px;
+  perspective: 1400px;
   perspective-origin: 50% 50%;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 18%,
-    #000 82%,
+    #000 14%,
+    #000 86%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 18%,
-    #000 82%,
+    #000 14%,
+    #000 86%,
     transparent 100%
   );
 }
@@ -998,29 +1043,56 @@ input[type='password'],
   white-space: nowrap;
 }
 
-.auth-hero-wheel__drum {
-  position: relative;
-  width: 6rem;
-  height: 6rem;
-  transform-style: preserve-3d;
-  transition: transform var(--auth-wheel-dur) var(--auth-wheel-ease);
-  will-change: transform;
-}
-
 .auth-hero-wheel__slot {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  opacity: 0.28;
-  transition: opacity var(--auth-wheel-dur) var(--auth-wheel-ease);
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: 6rem;
+  height: 6rem;
+  margin: -3rem 0 0 -3rem;
+  transform-style: preserve-3d;
+  opacity: 0;
+  transition:
+    transform var(--auth-wheel-dur) var(--auth-wheel-ease),
+    opacity var(--auth-wheel-dur) var(--auth-wheel-ease);
+  will-change: transform, opacity;
 }
 
-.auth-hero-wheel__slot.is-front {
+.auth-hero-wheel__slot[data-pos='front'] {
+  z-index: 5;
   opacity: 1;
+  transform: translateY(0) scale(1) rotateX(0deg);
+}
+
+.auth-hero-wheel__slot[data-pos='above'] {
+  z-index: 2;
+  opacity: 0.42;
+  transform: translateY(-6.35rem) scale(0.78) rotateX(14deg);
+}
+
+.auth-hero-wheel__slot[data-pos='below'] {
+  z-index: 2;
+  opacity: 0.42;
+  transform: translateY(6.35rem) scale(0.78) rotateX(-14deg);
+}
+
+.auth-hero-wheel__slot[data-pos='far-above'] {
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(-9.75rem) scale(0.62) rotateX(22deg);
+}
+
+.auth-hero-wheel__slot[data-pos='far-below'] {
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(9.75rem) scale(0.62) rotateX(-22deg);
+}
+
+.auth-hero-wheel__slot[data-pos='hidden'] {
+  z-index: 0;
+  opacity: 0;
+  transform: scale(0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1032,7 +1104,6 @@ input[type='password'],
     animation: none;
   }
 
-  .auth-hero-wheel__drum,
   .auth-hero-wheel__slot {
     transition: none;
   }
@@ -1220,6 +1291,297 @@ input[type='password'],
 @media (prefers-reduced-motion: reduce) {
   .t-icon-swap .t-icon {
     transition: none !important;
+  }
+}
+
+.onboarding-shift-icon {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f2f2f2;
+  opacity: 0;
+  animation-duration: 17.5s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-iteration-count: infinite;
+}
+
+.onboarding-glass-orb {
+  position: relative;
+  display: flex;
+  width: 4.75rem;
+  height: 4.75rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background:
+    radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.26), transparent 40%),
+    radial-gradient(circle at 70% 88%, rgb(0 26 252 / 0.22), transparent 52%),
+    linear-gradient(165deg, #2a2e2e 0%, #121414 58%, #0c0e0e 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    inset 0 -12px 20px rgb(0 0 0 / 0.38),
+    0 10px 22px rgb(0 0 0 / 0.32);
+}
+
+.onboarding-glass-orb::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 7% 14% auto;
+  height: 42%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgb(255 255 255 / 0.38),
+    transparent 72%
+  );
+}
+
+.onboarding-glass-orb::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto 18% 10%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgb(255 255 255 / 0.08),
+    transparent 70%
+  );
+}
+
+.onboarding-glass-orb svg {
+  position: relative;
+  z-index: 1;
+}
+
+.onboarding-shift-icon:nth-child(1) {
+  animation-name: onboarding-shift-left-top;
+}
+.onboarding-shift-icon:nth-child(2) {
+  animation-name: onboarding-shift-top-bottom;
+}
+.onboarding-shift-icon:nth-child(3) {
+  animation-name: onboarding-shift-bottom-right;
+}
+.onboarding-shift-icon:nth-child(4) {
+  animation-name: onboarding-shift-right-left;
+}
+.onboarding-shift-icon:nth-child(5) {
+  animation-name: onboarding-shift-left-right;
+}
+
+@keyframes onboarding-shift-left-top {
+  0% {
+    opacity: 0;
+    transform: translateX(-110%);
+  }
+  4%,
+  14% {
+    opacity: 1;
+    transform: translate(0);
+  }
+  19%,
+  100% {
+    opacity: 0;
+    transform: translateY(-110%);
+  }
+}
+
+@keyframes onboarding-shift-top-bottom {
+  0%,
+  19% {
+    opacity: 0;
+    transform: translateY(-110%);
+  }
+  24%,
+  34% {
+    opacity: 1;
+    transform: translate(0);
+  }
+  39%,
+  100% {
+    opacity: 0;
+    transform: translateY(110%);
+  }
+}
+
+@keyframes onboarding-shift-bottom-right {
+  0%,
+  39% {
+    opacity: 0;
+    transform: translateY(110%);
+  }
+  44%,
+  54% {
+    opacity: 1;
+    transform: translate(0);
+  }
+  59%,
+  100% {
+    opacity: 0;
+    transform: translateX(110%);
+  }
+}
+
+@keyframes onboarding-shift-right-left {
+  0%,
+  59% {
+    opacity: 0;
+    transform: translateX(110%);
+  }
+  64%,
+  74% {
+    opacity: 1;
+    transform: translate(0);
+  }
+  79%,
+  100% {
+    opacity: 0;
+    transform: translateX(-110%);
+  }
+}
+
+@keyframes onboarding-shift-left-right {
+  0%,
+  79% {
+    opacity: 0;
+    transform: translateX(-110%);
+  }
+  84%,
+  94% {
+    opacity: 1;
+    transform: translate(0);
+  }
+  99%,
+  100% {
+    opacity: 0;
+    transform: translateX(110%);
+  }
+}
+
+@keyframes onboarding-interval-shine {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+.onboarding-interval-shine {
+  background-image: linear-gradient(
+    90deg,
+    rgb(242 242 242 / 0.4) 0%,
+    rgb(242 242 242 / 0.4) 38%,
+    rgb(242 242 242 / 0.95) 50%,
+    rgb(242 242 242 / 0.4) 62%,
+    rgb(242 242 242 / 0.4) 100%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: onboarding-interval-shine 2.6s ease-in-out infinite;
+}
+
+.onboarding-send-plane {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f2f2f2;
+  animation: onboarding-send-plane 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes onboarding-send-plane {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translate(-42px, -48px) scale(0.5) rotate(-24deg);
+  }
+}
+
+.onboarding-type-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.8em;
+  margin-left: 1px;
+  vertical-align: -0.05em;
+  background: #f2f2f2;
+  animation: onboarding-type-caret 0.9s step-end infinite;
+}
+
+@keyframes onboarding-type-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.onboarding-companion-mark {
+  -webkit-mask: url('/companion.svg') center / contain no-repeat;
+  mask: url('/companion.svg') center / contain no-repeat;
+  animation: onboarding-companion-bob 2.8s ease-in-out infinite;
+}
+
+@keyframes onboarding-companion-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.onboarding-provider-list {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 2.75rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 2.75rem),
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-shift-icon,
+  .onboarding-send-plane,
+  .onboarding-companion-mark,
+  .onboarding-type-caret,
+  .onboarding-interval-shine {
+    animation: none;
+  }
+
+  .onboarding-interval-shine {
+    background-image: none;
+    color: rgb(242 242 242 / 0.45);
+  }
+
+  .onboarding-shift-icon {
+    opacity: 0;
+    transform: none;
+  }
+  .onboarding-shift-icon:nth-child(1) {
+    opacity: 1;
   }
 }
 

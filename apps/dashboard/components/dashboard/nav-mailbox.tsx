@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CompanionMark } from '@humaner/shared/companion-icon';
 import { PlusIcon } from '@humaner/shared/icons';
@@ -28,7 +29,7 @@ import {
   SidebarNavLink,
   SidebarNavTree
 } from '@/components/dashboard/sidebar-nav-tree';
-import { SidebarGroup } from '@/components/ui/sidebar';
+import { SidebarGroup, useSidebar } from '@/components/ui/sidebar';
 import { isInboxLocked } from '@/constants/inbox-nav-items';
 import {
   getActiveMailboxFolder,
@@ -102,18 +103,22 @@ export function NavMailbox({
   unreadCount = 0,
   inboxes = [],
   companionHref = null,
+  showCompanionUpgrade = false,
   showMcp = false
 }: {
   orgTier: string;
   unreadCount?: number;
   inboxes?: MailInboxOption[];
   companionHref?: string | null;
+  showCompanionUpgrade?: boolean;
   showMcp?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
   const { toggleDock, activeMode } = useDashboardDock();
   const searchParams = useSearchParams();
   const { openCompose } = useComposeMail();
+  const { state } = useSidebar();
+  const collapsed = state === 'collapsed';
   const locked = isInboxLocked(orgTier);
   const mailboxes = React.useMemo(() => groupMailInboxes(inboxes), [inboxes]);
   const mailboxParam = searchParams.get('mailbox');
@@ -242,7 +247,24 @@ export function NavMailbox({
           })}
         </SidebarNavTree>
 
-        {companionHref ? (
+        {showCompanionUpgrade ? (
+          <Link
+            href={Routes.Billing}
+            title="Try Companion"
+            className={cn(
+              'mx-0.5 flex h-8 items-center justify-center gap-2 border border-sidebar-border bg-transparent font-fellix text-xs text-sidebar-foreground/70 transition-colors hover:bg-muted/30 hover:text-sidebar-foreground',
+              collapsed
+                ? 'w-[calc(100%-0.25rem)] rounded-full px-0'
+                : 'rounded-full px-3'
+            )}
+          >
+            <CompanionMark
+              size={14}
+              className="size-3.5 shrink-0"
+            />
+            {collapsed ? null : <span>Try Companion</span>}
+          </Link>
+        ) : companionHref ? (
           <SidebarNavLink
             href={companionHref}
             label="Companion"

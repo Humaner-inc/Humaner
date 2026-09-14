@@ -94,7 +94,9 @@ export function OrganizationDetailsCard({
         router.refresh();
       }
     } else {
-      toast.error("Couldn't update organization details");
+      toast.error(
+        result?.serverError ?? "Couldn't update organization details"
+      );
     }
   };
   return (

@@ -12,14 +12,7 @@ import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
 
 export default async function InboxArchivePage(): Promise<React.JSX.Element> {
-  const overviewPromise = getInboxOverview();
-  const listPromise = Promise.all([
-    getMailThreads({ archived: true }),
-    getMailTags(),
-    getOrganizationMembers()
-  ]);
-
-  const overview = await overviewPromise;
+  const overview = await getInboxOverview();
 
   if (!overview || overview.locked) {
     return <InboxUpgradeEmptyState />;
@@ -29,7 +22,11 @@ export default async function InboxArchivePage(): Promise<React.JSX.Element> {
     return <InboxOptionalEmptyState />;
   }
 
-  const [threads, tags, members] = await listPromise;
+  const [threads, tags, members] = await Promise.all([
+    getMailThreads({ archived: true }),
+    getMailTags(),
+    getOrganizationMembers()
+  ]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-5">

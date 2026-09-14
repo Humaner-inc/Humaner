@@ -23,6 +23,7 @@ export type SidebarRendererProps = {
   agentDeskOpenCount?: number;
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
+  showCompanionUpgrade?: boolean;
 };
 
 export function SidebarRenderer({
@@ -36,7 +37,8 @@ export function SidebarRenderer({
   handoffOpenCount = 0,
   agentDeskOpenCount = 0,
   mailInboxes = [],
-  companionHref
+  companionHref,
+  showCompanionUpgrade = false
 }: SidebarRendererProps): React.JSX.Element {
   return (
     <>
@@ -52,6 +54,7 @@ export function SidebarRenderer({
         agentDeskOpenCount={agentDeskOpenCount}
         mailInboxes={mailInboxes}
         companionHref={companionHref}
+        showCompanionUpgrade={showCompanionUpgrade}
       />
       <SidebarOverlayBackdrop />
       <SidebarEdgeToggle />

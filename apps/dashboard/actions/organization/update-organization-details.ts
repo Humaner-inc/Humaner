@@ -7,6 +7,10 @@ import { Routes } from '@/constants/routes';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import {
+  assertWorkspaceNameAvailable,
+  rememberWorkspaceName
+} from '@/lib/onboarding/workspace-name-registry';
+import {
   getDefaultWidgetAccent,
   HUMANER_DEFAULT_ACCENT
 } from '@/lib/urls/extract-brand-accent-color';
@@ -80,6 +84,11 @@ export const updateOrganizationDetails = ownerActionClient
       }
     }
 
+    await assertWorkspaceNameAvailable({
+      name: nextName,
+      excludeOrganizationId: session.user.organizationId
+    });
+
     await prisma.organization.update({
       where: { id: session.user.organizationId },
       data: {
@@ -96,6 +105,10 @@ export const updateOrganizationDetails = ownerActionClient
         id: true
       }
     });
+
+    if (organization.name !== nextName) {
+      rememberWorkspaceName(nextName);
+    }
 
     revalidateTag(
       Caching.createOrganizationTag(

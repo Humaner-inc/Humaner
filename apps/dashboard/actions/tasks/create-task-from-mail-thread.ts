@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { pageActionClientAny } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
+import { requireOrganizationCapability } from '@/lib/billing/capabilities';
 import { createTaskFromMailThread } from '@/lib/inbox/create-task-from-thread';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
@@ -18,6 +19,11 @@ export const createTaskFromMailThreadAction = pageActionClientAny(
   .schema(z.object({ threadId: z.string().uuid() }))
   .action(async ({ parsedInput, ctx: { session } }) => {
     const organizationId = session.user.organizationId;
+    await requireOrganizationCapability(
+      organizationId,
+      'tasks',
+      'Tasks are included on Inbox. Upgrade to create and manage tasks.'
+    );
 
     try {
       const ticket = await createTaskFromMailThread({

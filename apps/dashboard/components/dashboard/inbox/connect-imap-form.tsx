@@ -838,7 +838,7 @@ export function ConnectImapForm({
     <FeatureIntroEmpty
       icon={<MailIcon strokeWidth={1.25} />}
       title="Connect mailbox"
-      description="Simply sign in using your provider. Inbox is optional, connect when you want shared support and automation inside Humaner."
+      description="Simply sign in using your provider(s) to display your inbox(ex) within Humaner."
       example={`You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`}
       className="h-full min-h-0 border-0 bg-transparent"
     >

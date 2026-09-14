@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { unstable_cache as cache, revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { WorkspaceRole } from '@prisma/client';
 
 import {
@@ -10,7 +9,6 @@ import {
   OrganizationCacheKey
 } from '@/data/caching';
 import { dedupedAuth } from '@/lib/auth';
-import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { createOrganizationMembership } from '@/lib/auth/workspace-membership';
 import { prisma } from '@/lib/db/prisma';
@@ -103,7 +101,7 @@ async function loadOrganizationMembers(
 export async function getOrganizationMembers(): Promise<MemberDto[]> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
-    return redirect(getLoginRedirect());
+    return [];
   }
 
   const organizationId = session.user.organizationId;

@@ -5,6 +5,7 @@ import * as React from 'react';
 import { CompanionComposer } from '@/components/dashboard/ask-humaner/companion-composer';
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
+import { PlanFeatureLock } from '@/components/dashboard/plan-feature-lock';
 import {
   COMPANION_DOCK_OFFSET,
   COMPANION_DOCK_OFFSET_VAR,
@@ -15,9 +16,11 @@ import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export function DashboardWorkspaceColumn({
   profile,
+  orgTier,
   children
 }: {
   profile: ProfileDto;
+  orgTier: string;
   children: React.ReactNode;
 }): React.JSX.Element {
   const chat = useHumanerChatOptional();
@@ -56,9 +59,11 @@ export function DashboardWorkspaceColumn({
         )}
       >
         <PageAccessGate profile={profile}>
-          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-            {children}
-          </div>
+          <PlanFeatureLock orgTier={orgTier}>
+            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+              {children}
+            </div>
+          </PlanFeatureLock>
         </PageAccessGate>
       </div>
       {composerMounted ? (

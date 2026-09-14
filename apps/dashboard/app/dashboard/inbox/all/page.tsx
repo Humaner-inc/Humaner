@@ -49,11 +49,6 @@ async function InboxAllPageContent({
   }>;
 }): Promise<React.JSX.Element> {
   await connection();
-  const overviewPromise = getInboxOverview();
-  const inboxesPromise = getMailInboxes();
-  const tagsPromise = getMailTags();
-  const membersPromise = getOrganizationMembers();
-
   const [
     {
       mailbox: mailboxParam,
@@ -63,7 +58,7 @@ async function InboxAllPageContent({
       compose: composeParam
     },
     overview
-  ] = await Promise.all([searchParams, overviewPromise]);
+  ] = await Promise.all([searchParams, getInboxOverview()]);
   const activeFilter = parseFilter(filterParam);
   const autoCompose = composeParam === '1' || composeParam === 'true';
 
@@ -87,9 +82,9 @@ async function InboxAllPageContent({
   }
 
   const [inboxes, tags, members] = await Promise.all([
-    inboxesPromise,
-    tagsPromise,
-    membersPromise
+    getMailInboxes(),
+    getMailTags(),
+    getOrganizationMembers()
   ]);
 
   const mailboxes = groupMailInboxes(inboxes);
