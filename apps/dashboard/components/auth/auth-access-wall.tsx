@@ -82,7 +82,7 @@ export function AuthAccessWall(): React.JSX.Element {
           <div className="flex justify-center">
             <span
               className={cn(
-                'relative flex size-14 items-center justify-center overflow-hidden border border-white/[0.12] bg-[#0b00d1] text-[#F2F2F2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_24px_48px_-28px_rgb(11_0_209_/_0.55)] sm:size-16',
+                'relative flex size-14 items-center justify-center overflow-hidden border border-white/[0.12] bg-[#001afc] text-[#F2F2F2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_24px_48px_-28px_rgb(0_26_252_/_0.55)] sm:size-16',
                 brandAngleSurfaceClassName('rounded-xl')
               )}
               aria-hidden

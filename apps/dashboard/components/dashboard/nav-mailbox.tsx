@@ -69,7 +69,7 @@ function InboxCountIcon({
       className={cn(
         'flex h-4 min-w-4 shrink-0 items-center justify-center font-mono text-[10px] leading-none tabular-nums',
         active
-          ? 'text-[#0b00d1]'
+          ? 'text-[#001afc]'
           : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground'
       )}
       aria-label={`${count} unread`}
@@ -254,7 +254,7 @@ export function NavMailbox({
                 className={cn(
                   'size-4 shrink-0 transition-colors',
                   companionActive
-                    ? 'text-[#0b00d1]'
+                    ? 'text-[#001afc]'
                     : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground'
                 )}
               />

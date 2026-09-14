@@ -1,4 +1,5 @@
-export const SENSITIVE_MASK_CHAR = "\u25AA";
+/** Circular bullet — matches password `disc` masking in the dashboard. */
+export const SENSITIVE_MASK_CHAR = "\u2022";
 
 /** Default visible prefix when masking Humaner API keys (`hu_` + start of secret). */
 export const API_KEY_MASK_VISIBLE_CHARS = 10;

@@ -14,7 +14,7 @@ import {
   RateLimitExceededError
 } from '@/lib/validation/exceptions';
 
-const syncInboxLimiter = rateLimit({ intervalInMs: 5 * 60 * 1000 });
+const syncInboxLimiter = rateLimit({ intervalInMs: 60 * 1000 });
 
 export const syncInboxNow = pageActionClient('inbox')
   .metadata({ actionName: 'syncInboxNow' })
@@ -29,7 +29,7 @@ export const syncInboxNow = pageActionClient('inbox')
     try {
       distributedAttempts = await incrementRateLimit(
         `rate-limit:mailbox-sync:${organizationId}`,
-        5 * 60
+        60
       );
     } catch {
       // Fall back to the local limiter if Redis is temporarily unavailable.
@@ -37,8 +37,9 @@ export const syncInboxNow = pageActionClient('inbox')
 
     const locallyRateLimited =
       distributedAttempts === 0 &&
-      syncInboxLimiter.check(2, `mailbox-sync:${organizationId}`).isRateLimited;
-    if (distributedAttempts > 2 || locallyRateLimited) {
+      syncInboxLimiter.check(11, `mailbox-sync:${organizationId}`)
+        .isRateLimited;
+    if (distributedAttempts > 10 || locallyRateLimited) {
       throw new RateLimitExceededError();
     }
 

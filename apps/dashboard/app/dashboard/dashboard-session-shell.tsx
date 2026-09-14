@@ -21,7 +21,7 @@ import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-conne
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { agentPersonaRoute, Routes } from '@/constants/routes';
+import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task-proposals';
@@ -31,12 +31,10 @@ import {
   getMailInboxes,
   getMailUnreadCount
 } from '@/data/inbox/get-mail-threads';
-import { getWorkspaceKnowledgeAgent } from '@/data/knowledge/get-workspace-knowledge';
 import { getDashboardNotifications } from '@/data/notifications/get-dashboard-notifications';
 import { getTeamWorkspaceFeed } from '@/data/team/get-team-workspace';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
-import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import {
@@ -163,7 +161,6 @@ export async function DashboardSessionShell({
     inboxUnreadCount,
     handoffOpenCounts,
     mailInboxes,
-    workspaceCompanion,
     teamFeed,
     taskProposals
   ] = await Promise.all([
@@ -177,7 +174,6 @@ export async function DashboardSessionShell({
       ? getHandoffOpenCounts()
       : Promise.resolve({ humanOpen: 0, agentOpen: 0 }),
     oss || !canInbox ? Promise.resolve([]) : getMailInboxes(),
-    getWorkspaceKnowledgeAgent(session.user.organizationId),
     oss || !canInbox
       ? Promise.resolve({ notes: [], messages: [] })
       : getTeamWorkspaceFeed(),
@@ -226,12 +222,6 @@ export async function DashboardSessionShell({
       : {})
   };
 
-  const companionAvatarUrl = workspaceCompanion
-    ? resolveAgentAvatarSrc(
-        workspaceCompanion.image,
-        workspaceCompanion.character
-      )
-    : undefined;
   const companionOrganizationName =
     userFromDb!.organization!.name?.trim() || 'Workspace';
   const companionOrganizationLogoUrl = brand.logo;
@@ -248,6 +238,11 @@ export async function DashboardSessionShell({
   const copilotEnabled = getPlanCapabilities(organization.tier, {
     frontierBetaEnabled: organization.frontierBetaEnabled
   }).copilot;
+
+  // Companion mirrors the persona the workspace configured on its primary
+  // (oldest) agent. getAgents() orders desc, so that's the last item.
+  const companionCharacter =
+    agents.length > 0 ? agents[agents.length - 1].character : undefined;
 
   const sidebarAgents = agents.map((agent) => ({
     id: agent.id,
@@ -270,9 +265,7 @@ export async function DashboardSessionShell({
         agentDeskOpenCount={handoffOpenCounts.agentOpen}
         mailInboxes={mailInboxes}
         agents={sidebarAgents}
-        companionHref={
-          workspaceCompanion ? agentPersonaRoute(workspaceCompanion.id) : null
-        }
+        companionHref={copilotEnabled ? Routes.Knowledge : null}
       />
       <SidebarInset
         id="skip"
@@ -332,16 +325,13 @@ export async function DashboardSessionShell({
                 teamMembers={notificationTeamMembers}
                 currentUserId={notificationCurrentUserId}
               >
-                {!isOssDeployment() &&
-                copilotEnabled &&
-                workspaceCompanion?.publicId ? (
+                {!isOssDeployment() && copilotEnabled ? (
                   <HumanerChatProvider
-                    agentPublicId={workspaceCompanion.publicId}
-                    agentAvatarUrl={companionAvatarUrl}
+                    companionScope={session.user.organizationId}
+                    companionCharacter={companionCharacter}
                     organizationName={companionOrganizationName}
                     organizationLogoUrl={companionOrganizationLogoUrl}
                     widgetColor={ASK_HUMANER_ACCENT}
-                    companionCharacter={workspaceCompanion.character}
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}

@@ -1,5 +1,5 @@
 export const HUMANER_NAV_COLORS = {
-  info: '#0b00d1',
+  info: '#001afc',
   warning: '#f85919',
   success: '#226342',
   destructive: '#aa1f18',

@@ -9,7 +9,7 @@
     /*
      * Neutrals (light → dark among lights): #fcf4ec · #F2F2F2 · #eaeaea
      * Neutrals (dark → light among darks):  #0A0D0D · #18181b · #1c1c1e
-     * Accent #e0e1df. Status: info #0b00d1 · warning #f85919 ·
+     * Accent #e0e1df. Status: info #001afc · warning #f85919 ·
      * destructive #aa1f18 · success #226342.
      */
     /* #fcf4ec */
@@ -51,8 +51,8 @@
     /* #aa1f18 */
     --destructive: 3 75% 38%;
     --destructive-foreground: 0 0% 100%;
-    /* #0b00d1 */
-    --info: 243 100% 41%;
+    /* #001afc */
+    --info: 234 100% 49%;
     --info-foreground: 0 0% 100%;
     /* #f85919 */
     --warning: 17 94% 53.5%;
@@ -153,7 +153,7 @@
 
     --destructive: 3 75% 38%;
     --destructive-foreground: 0 0% 100%;
-    --info: 243 100% 41%;
+    --info: 234 100% 49%;
     --info-foreground: 0 0% 100%;
     --warning: 17 94% 53.5%;
     --warning-foreground: 180 13% 4.5%;
@@ -205,7 +205,7 @@
   }
 
   ::selection {
-    background-color: rgb(11 0 209 / 0.28);
+    background-color: rgb(0 26 252 / 0.28);
     color: inherit;
   }
 
@@ -389,7 +389,7 @@ input[type='number'] {
 
 input[type='password'],
 .input-sensitive-mask {
-  -webkit-text-security: square !important;
+  -webkit-text-security: disc !important;
 }
 
 /* OTP paste highlight */
@@ -572,18 +572,18 @@ input[type='password'],
 }
 
 .onboarding-root:not([data-onboarding-appearance='acme']) .highlighted-text-field {
-  --highlighted-field-accent-selection: rgb(11 0 209 / 0.35);
+  --highlighted-field-accent-selection: rgb(0 26 252 / 0.35);
 }
 
 .onboarding-root:not([data-onboarding-appearance='acme'])
   :is(input, textarea)::selection {
-  background-color: #0b00d1;
+  background-color: #001afc;
   color: #ffffff;
 }
 
 .onboarding-root:not([data-onboarding-appearance='acme'])
   :is(input, textarea)::-moz-selection {
-  background-color: #0b00d1;
+  background-color: #001afc;
   color: #ffffff;
 }
 
@@ -1076,7 +1076,7 @@ input[type='password'],
     transform: translate(-1px, 0);
     text-shadow:
       1px 0 #e0e1df,
-      -1px 0 #0b00d1;
+      -1px 0 #001afc;
   }
   36% {
     opacity: 1;
@@ -1266,7 +1266,7 @@ input[type='password'],
   font-weight: 600;
 }
 .mail-structured-body a {
-  color: #0b00d1;
+  color: #001afc;
   text-decoration: underline;
   text-underline-offset: 2px;
 }

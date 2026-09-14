@@ -33,7 +33,7 @@ export function useHumanerChatOptional(): HumanerChatContextValue | null {
 }
 
 export type HumanerChatProviderProps = {
-  agentPublicId: string;
+  companionScope: string;
   agentAvatarUrl?: string;
   organizationName?: string;
   organizationLogoUrl?: string;

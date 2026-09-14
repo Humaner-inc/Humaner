@@ -1,5 +1,4 @@
 import { Routes } from '@/constants/routes';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   HUMANER_NAV_COLORS,
   type HumanerNavColor
@@ -195,7 +194,10 @@ export function getActiveWorkspaceDrawerItem(
   ) {
     return 'resources';
   }
-  if (!isOssDeployment() && /^\/agents\/(?!new(?:\/|$))[^/]+/.test(pathname)) {
+  if (
+    pathname.startsWith(Routes.Knowledge) ||
+    pathname.startsWith('/knowledge')
+  ) {
     return 'companion';
   }
   return null;

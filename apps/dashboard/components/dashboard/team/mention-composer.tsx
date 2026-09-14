@@ -171,7 +171,7 @@ export function MentionBody({
         return isMention ? (
           <span
             key={`${part}-${index}`}
-            className="font-medium text-[#0b00d1]"
+            className="font-medium text-[#001afc]"
           >
             {part}
           </span>

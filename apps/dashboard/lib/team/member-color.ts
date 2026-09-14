@@ -1,5 +1,5 @@
 const PALETTE = [
-  '#0b00d1',
+  '#001afc',
   '#f85919',
   '#2f9e8f',
   '#c45c9a',

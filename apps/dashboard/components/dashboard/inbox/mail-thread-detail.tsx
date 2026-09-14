@@ -82,10 +82,10 @@ type Suggestion = { label: string; draft: string };
 type SendPhase = 'idle' | 'sending' | 'success';
 
 const accentSoftBg =
-  'bg-[color-mix(in_srgb,var(--accent-color,#0b00d1)_10%,transparent)]';
+  'bg-[color-mix(in_srgb,var(--accent-color,#001afc)_10%,transparent)]';
 
 const outboundCardBg =
-  'bg-[color-mix(in_srgb,var(--accent-color,#0b00d1)_14%,transparent)]';
+  'bg-[color-mix(in_srgb,var(--accent-color,#001afc)_14%,transparent)]';
 const inboundCardBg = 'bg-muted/70 dark:bg-white/[0.055]';
 
 const engravedBarClassName = cn(
@@ -290,7 +290,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
                     className={cn(
                       'ml-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em]',
                       outbound
-                        ? 'text-[color:var(--accent-color,#0b00d1)]'
+                        ? 'text-[color:var(--accent-color,#001afc)]'
                         : 'text-muted-foreground'
                     )}
                   >
@@ -865,7 +865,7 @@ export function MailThreadDetail({
           {thread.isUnread ? (
             <span
               className="mr-1 size-1.5 rounded-full"
-              style={{ backgroundColor: thread.tag?.color ?? '#0b00d1' }}
+              style={{ backgroundColor: thread.tag?.color ?? '#001afc' }}
               title="Unread"
             />
           ) : null}
@@ -978,7 +978,7 @@ export function MailThreadDetail({
             <FileTextIcon className="size-4" />
             <span className="sr-only">Notes</span>
             {noteCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-[#0b00d1] font-mono text-[9px] text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-[#001afc] font-mono text-[9px] text-white">
                 {noteCount > 9 ? '9+' : noteCount}
               </span>
             ) : null}
@@ -1097,7 +1097,7 @@ export function MailThreadDetail({
                           <p className="mt-1 text-xs text-muted-foreground">
                             To:{' '}
                             <span
-                              style={{ color: 'var(--accent-color, #0b00d1)' }}
+                              style={{ color: 'var(--accent-color, #001afc)' }}
                             >
                               {toName}
                             </span>
@@ -1151,7 +1151,7 @@ export function MailThreadDetail({
                                       active
                                         ? {
                                             backgroundColor:
-                                              'color-mix(in srgb, var(--accent-color, #0b00d1) 28%, transparent)'
+                                              'color-mix(in srgb, var(--accent-color, #001afc) 28%, transparent)'
                                           }
                                         : undefined
                                     }
@@ -1165,7 +1165,7 @@ export function MailThreadDetail({
                                     <CheckIcon
                                       className="size-3.5 shrink-0"
                                       style={{
-                                        color: 'var(--accent-color, #0b00d1)'
+                                        color: 'var(--accent-color, #001afc)'
                                       }}
                                     />
                                   ) : null}

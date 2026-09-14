@@ -8,7 +8,7 @@ import { getInboxAutoSuggestReplies } from '@/data/inbox/inbox-auto-suggest';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
 /** Brand cobalt — inbox accents (cube, hovers, selection). */
-const INBOX_ACCENT = '#0b00d1';
+const INBOX_ACCENT = '#001afc';
 
 function InboxLayoutFallback(): React.JSX.Element {
   return (

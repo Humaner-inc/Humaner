@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 const TILE = {
   fg: '#F2F2F2',
-  cobalt: '#0b00d1',
+  cobalt: '#001afc',
   orange: '#f85919',
   ink: '#0A0D0D',
   surface: 'rgb(242 242 242 / 0.08)'

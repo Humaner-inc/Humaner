@@ -27,7 +27,7 @@ function ResourcesHeader({
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex items-start gap-3.5">
-        <PresentationPageMark className="bg-[#0b00d1] text-[#fcf4ec]">
+        <PresentationPageMark className="bg-[#001afc] text-[#fcf4ec]">
           <Books
             className="size-6"
             weight="duotone"
@@ -66,7 +66,7 @@ async function ResourcesPageContent(): Promise<React.JSX.Element> {
       <SectionPage width="xl">
         <div className="space-y-8">
           <header className="flex items-start gap-3.5">
-            <PresentationPageMark className="bg-[#0b00d1] text-[#fcf4ec]">
+            <PresentationPageMark className="bg-[#001afc] text-[#fcf4ec]">
               <Books
                 className="size-6"
                 weight="duotone"

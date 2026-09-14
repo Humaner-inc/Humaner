@@ -68,7 +68,7 @@ export function InboxDomainSwitcher({
         >
           <span className="truncate">{label}</span>
           {active && active.unreadCount > 0 ? (
-            <span className="shrink-0 tabular-nums text-[#0b00d1]">
+            <span className="shrink-0 tabular-nums text-[#001afc]">
               {formatUnreadCount(active.unreadCount)}
             </span>
           ) : null}
