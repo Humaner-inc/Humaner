@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { NextRequest } from 'next/server';
 import { getPlanCapabilities } from '@humaner/shared/plans';
+import type { IndustryType } from '@prisma/client';
 
 import { apiKeyHasScope, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
 import { verifyApiKey } from '@/lib/auth/api-keys';
@@ -18,6 +19,19 @@ export type WorkspaceToolContext = {
   apiKeyId: string | null;
   actorUserId: string;
   allowSend: boolean;
+};
+
+/** Read-only context for Hybrid RAG over MCP — no actor, no send. */
+export type IntelligenceMcpContext = {
+  organizationId: string;
+  apiKeyId: string | null;
+  industry: IndustryType | null;
+};
+
+export type IntelligenceMcpAuthSuccess = {
+  ok: true;
+  allowOrigin: string | null;
+  context: IntelligenceMcpContext;
 };
 
 export type WorkspaceAuthSuccess = {
@@ -44,7 +58,9 @@ function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
 
 function keyCanUseMcp(scopes: readonly string[]): boolean {
   return (
-    apiKeyHasScope(scopes, 'mailbox') || apiKeyHasScope(scopes, 'calendar')
+    apiKeyHasScope(scopes, 'mailbox') ||
+    apiKeyHasScope(scopes, 'calendar') ||
+    apiKeyHasScope(scopes, 'intelligence')
   );
 }
 
@@ -80,7 +96,8 @@ export async function authorizeMcpClient(
     return {
       ok: false,
       status: 403,
-      message: 'This API key does not have Mailbox or Calendar access.',
+      message:
+        'This API key does not have Mailbox, Calendar, or Intelligence access.',
       allowOrigin,
       organizationId: verified.organizationId,
       apiKeyId: verified.id
@@ -150,6 +167,90 @@ export async function authorizeMcpClient(
       apiKeyId: verified.id,
       actorUserId,
       allowSend: true
+    }
+  };
+}
+
+/**
+ * Authorize a Hybrid RAG call over MCP. Requires the `intelligence` scope and
+ * returns a read-only org context — retrieval only, no actor or send rights.
+ */
+export async function authorizeMcpIntelligence(
+  request: NextRequest
+): Promise<IntelligenceMcpAuthSuccess | WorkspaceAuthFailure> {
+  const allowOrigin = request.headers.get('origin');
+  const bearer = extractBearerToken(request);
+  if (!bearer) {
+    return {
+      ok: false,
+      status: 401,
+      message: 'Intelligence tools require an API key.',
+      allowOrigin
+    };
+  }
+
+  const verified = await verifyApiKey(bearer);
+  if (!verified.success) {
+    return {
+      ok: false,
+      status: 401,
+      message: 'Invalid API key.',
+      allowOrigin
+    };
+  }
+
+  if (!apiKeyHasScope(verified.scopes, 'intelligence')) {
+    return {
+      ok: false,
+      status: 403,
+      message: 'This API key does not have Intelligence access.',
+      allowOrigin,
+      organizationId: verified.organizationId,
+      apiKeyId: verified.id
+    };
+  }
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: verified.organizationId },
+    select: {
+      id: true,
+      tier: true,
+      frontierBetaEnabled: true,
+      industry: true
+    }
+  });
+  if (!organization) {
+    return {
+      ok: false,
+      status: 403,
+      message: 'Workspace not found.',
+      allowOrigin,
+      organizationId: verified.organizationId,
+      apiKeyId: verified.id
+    };
+  }
+
+  const capabilities = getPlanCapabilities(organization.tier, {
+    frontierBetaEnabled: organization.frontierBetaEnabled
+  });
+  if (!capabilities.apiAccess) {
+    return {
+      ok: false,
+      status: 403,
+      message: 'API access is not available on this plan.',
+      allowOrigin,
+      organizationId: organization.id,
+      apiKeyId: verified.id
+    };
+  }
+
+  return {
+    ok: true,
+    allowOrigin,
+    context: {
+      organizationId: organization.id,
+      apiKeyId: verified.id,
+      industry: organization.industry
     }
   };
 }

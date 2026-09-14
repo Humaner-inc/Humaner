@@ -91,15 +91,33 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
   {
     name: 'send_mail',
     description:
-      'Reply on a thread. Requires the alias Companion policy to be send, or a human actor.',
+      'Send mail. Reply when threadId is set. Compose a new email when to, subject, and body are set (no thread required). Workspace Companion send must be on. If several aliases or inboxes exist, omit aliasId first — the tool returns them so you can ask which one with ##FORK## buttons, then call again with aliasId or from.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
       properties: {
         threadId: { type: 'string', format: 'uuid' },
-        body: { type: 'string', minLength: 1, maxLength: 8000 }
+        to: {
+          type: 'string',
+          description: 'Recipient for a new email. Required when composing.'
+        },
+        subject: {
+          type: 'string',
+          description: 'Subject for a new email. Required when composing.'
+        },
+        body: { type: 'string', minLength: 1, maxLength: 8000 },
+        aliasId: {
+          type: 'string',
+          format: 'uuid',
+          description: 'Mailbox alias to send a new email from.'
+        },
+        from: {
+          type: 'string',
+          description:
+            'Alias address to send a new email from, if aliasId is unknown.'
+        }
       },
-      required: ['threadId', 'body']
+      required: ['body']
     }
   },
   {
@@ -227,17 +245,19 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
   },
   {
     name: 'create_calendar_event',
-    description: 'Create a hosted calendar event.',
+    description:
+      'Create a hosted calendar event now. Pass startsAt as ISO, or when as a phrase like "this Saturday at 2pm".',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
       properties: {
         title: { type: 'string', minLength: 1, maxLength: 255 },
         startsAt: { type: 'string' },
+        when: { type: 'string' },
         endsAt: { type: 'string' },
         description: { type: 'string', maxLength: 8000 }
       },
-      required: ['title', 'startsAt']
+      required: ['title']
     }
   }
 ];

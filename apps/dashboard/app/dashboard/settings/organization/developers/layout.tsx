@@ -2,8 +2,10 @@ import * as React from 'react';
 import { type Metadata } from 'next';
 
 import { McpIcon } from '@/components/brand/mcp-icon';
+import { McpIntelligenceToggle } from '@/components/dashboard/settings/organization/developers/mcp-intelligence-toggle';
 import { McpServerConfigPanel } from '@/components/dashboard/settings/organization/developers/mcp-server-config-panel';
 import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
+import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { cn, createTitle } from '@/lib/utils';
 
@@ -17,11 +19,13 @@ export type DevelopersLayoutProps = {
   mcpLogs: React.ReactNode;
 };
 
-export default function DevelopersLayout({
+export default async function DevelopersLayout({
   apiKeys,
   webhooks,
   mcpLogs
-}: DevelopersLayoutProps): React.JSX.Element {
+}: DevelopersLayoutProps): Promise<React.JSX.Element> {
+  const mcpIntelligenceEnabled = await getMcpIntelligenceEnabled();
+
   return (
     <div className="space-y-6">
       <header className="flex items-center gap-3.5">
@@ -35,8 +39,9 @@ export default function DevelopersLayout({
       </header>
 
       <section className={cn(dashboardSurfaceClassName, 'overflow-hidden')}>
-        <div className="px-5 py-5 sm:px-6">
+        <div className="space-y-4 px-5 py-5 sm:px-6">
           <McpServerConfigPanel />
+          <McpIntelligenceToggle enabled={mcpIntelligenceEnabled} />
         </div>
 
         <div className="border-t border-border/40" />

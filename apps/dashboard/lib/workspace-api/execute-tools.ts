@@ -11,9 +11,14 @@ import {
   readCompanionWorkspaceRights,
   workspaceAllowsCompanionAction
 } from '@/data/inbox/companion-rights';
+import { parseCalendarWhen } from '@/lib/calendar/parse-calendar-when';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
+import {
+  composeMailboxMail,
+  isMailboxAddress
+} from '@/lib/inbox/compose-mailbox-mail';
 import { createTaskFromMailThread } from '@/lib/inbox/create-task-from-thread';
 import {
   mailThreadAccessWhere,
@@ -314,39 +319,145 @@ async function executeSuggestReply(
   return { ok: true, data: { suggestions } };
 }
 
+async function listSendableAliases(
+  context: WorkspaceToolContext
+): Promise<Array<{ id: string; address: string; mailbox: string }>> {
+  const scope = await resolveMailAliasScope({
+    userId: context.actorUserId,
+    organizationId: context.organizationId
+  });
+  if (scope.type === 'ids' && scope.aliasIds.length === 0) {
+    return [];
+  }
+
+  const aliases = await prisma.mailAlias.findMany({
+    where: {
+      organizationId: context.organizationId,
+      enabled: true,
+      ...(scope.type === 'ids' ? { id: { in: scope.aliasIds } } : {})
+    },
+    select: {
+      id: true,
+      address: true,
+      connection: { select: { email: true } }
+    },
+    orderBy: { address: 'asc' }
+  });
+
+  return aliases.map((alias) => ({
+    id: alias.id,
+    address: alias.address,
+    mailbox: alias.connection.email
+  }));
+}
+
 async function executeSendMail(
   args: Record<string, unknown>,
   context: WorkspaceToolContext
 ): Promise<WorkspaceToolResult> {
   const threadId = asString(args.threadId);
   const body = asString(args.body);
-  if (!threadId || !body) {
-    return { ok: false, error: 'threadId and body are required.' };
+  if (!body) {
+    return { ok: false, error: 'body is required.' };
   }
 
-  const access = await actorMailAccess(context);
-  const visible = await prisma.mailThread.findFirst({
-    where: { id: threadId, ...access },
-    select: { id: true }
-  });
-  if (!visible) return { ok: false, error: 'Thread not found.' };
+  if (threadId) {
+    const access = await actorMailAccess(context);
+    const visible = await prisma.mailThread.findFirst({
+      where: { id: threadId, ...access },
+      select: { id: true }
+    });
+    if (!visible) return { ok: false, error: 'Thread not found.' };
 
-  const allowed = await aliasAllowsCompanionSend(
-    context.organizationId,
-    threadId
-  );
-  if (!allowed) {
+    const allowed = await aliasAllowsCompanionSend(
+      context.organizationId,
+      threadId
+    );
+    if (!allowed) {
+      return {
+        ok: false,
+        error:
+          'Companion send is off for this workspace. Turn it on in Workspace Settings → Companion, or draft for approval.'
+      };
+    }
+
+    try {
+      const sent = await sendMailThreadReply({
+        threadId,
+        organizationId: context.organizationId,
+        body
+      });
+      return { ok: true, data: sent };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : 'Could not send.'
+      };
+    }
+  }
+
+  return executeComposeMail(args, context, body);
+}
+
+async function executeComposeMail(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext,
+  body: string
+): Promise<WorkspaceToolResult> {
+  const to = asString(args.to);
+  const subject = asString(args.subject);
+  if (!to || !subject) {
     return {
       ok: false,
       error:
-        'Companion send is off for this workspace. Turn it on in Workspace Settings → Companion, or draft for approval.'
+        'Pass threadId to reply, or to + subject + body to send a new email.'
+    };
+  }
+  if (!isMailboxAddress(to)) {
+    return { ok: false, error: 'to must be a valid email address.' };
+  }
+
+  const canSend = await workspaceAllowsCompanionAction(
+    context.organizationId,
+    'SEND'
+  );
+  if (!canSend) {
+    return {
+      ok: false,
+      error:
+        'Companion send is off for this workspace. Turn it on in Workspace Settings → Companion.'
+    };
+  }
+
+  const aliases = await listSendableAliases(context);
+  if (aliases.length === 0) {
+    return { ok: false, error: 'No mailbox alias is available to send from.' };
+  }
+
+  const aliasId = asString(args.aliasId);
+  const from = asString(args.from).toLowerCase();
+  const selected = aliasId
+    ? aliases.find((alias) => alias.id === aliasId)
+    : from
+      ? aliases.find((alias) => alias.address.toLowerCase() === from)
+      : aliases.length === 1
+        ? aliases[0]
+        : undefined;
+
+  if (!selected) {
+    return {
+      ok: true,
+      data: { needsAlias: true, aliases }
     };
   }
 
   try {
-    const sent = await sendMailThreadReply({
-      threadId,
+    const sent = await composeMailboxMail({
       organizationId: context.organizationId,
+      actorUserId: context.actorUserId,
+      aliasId: selected.id,
+      to,
+      subject,
       body
     });
     return { ok: true, data: sent };
@@ -764,24 +875,22 @@ async function executeCreateCalendar(
   context: WorkspaceToolContext
 ): Promise<WorkspaceToolResult> {
   const title = asString(args.title);
-  const startsAt = asString(args.startsAt)
-    ? new Date(asString(args.startsAt))
-    : null;
+  const startsAtRaw = asString(args.startsAt) || asString(args.when);
+  const startsAt = startsAtRaw ? parseCalendarWhen(startsAtRaw) : null;
   const endsAt = asString(args.endsAt)
-    ? new Date(asString(args.endsAt))
+    ? parseCalendarWhen(asString(args.endsAt))
     : startsAt
       ? new Date(startsAt.getTime() + 60 * 60 * 1000)
       : null;
   const description = asString(args.description);
 
   if (!title || !startsAt || !endsAt) {
-    return { ok: false, error: 'title and a valid startsAt are required.' };
+    return {
+      ok: false,
+      error: 'title and a valid startsAt or when are required.'
+    };
   }
-  if (
-    Number.isNaN(startsAt.getTime()) ||
-    Number.isNaN(endsAt.getTime()) ||
-    endsAt <= startsAt
-  ) {
+  if (endsAt <= startsAt) {
     return { ok: false, error: 'Event times are invalid.' };
   }
 

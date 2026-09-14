@@ -9,8 +9,6 @@ import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 import { motion, useReducedMotion } from 'motion/react';
 
 import { useAuthTheme } from '@/components/auth/auth-theme-context';
-import { brandAngleSurfaceClassName } from '@/lib/dashboard/brand-angle-styles';
-import { cn } from '@/lib/utils';
 
 const TILE = {
   fg: '#F2F2F2',
@@ -184,10 +182,7 @@ function FeatureTileView({ item }: { item: FeatureTile }): React.JSX.Element {
 
   return (
     <div
-      className={cn(
-        'relative flex size-20 items-center justify-center overflow-hidden border border-white/[0.1] sm:size-24',
-        brandAngleSurfaceClassName('rounded-xl')
-      )}
+      className="relative flex size-20 items-center justify-center overflow-hidden rounded-xl border border-white/[0.1] sm:size-24"
       style={{
         backgroundColor: item.fill,
         color: item.ink

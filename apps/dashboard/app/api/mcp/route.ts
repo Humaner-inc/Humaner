@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { readMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import {
   logMcpRequest,
   type McpLogActor
@@ -11,10 +12,16 @@ import {
 } from '@/lib/developers/mcp-http';
 import {
   authorizeMcpClient,
+  authorizeMcpIntelligence,
   authorizeWorkspaceRequest
 } from '@/lib/workspace-api/authorize';
 import { WORKSPACE_TOOLS } from '@/lib/workspace-api/catalog';
 import { executeWorkspaceTool } from '@/lib/workspace-api/execute-tools';
+import {
+  executeMcpIntelligenceTool,
+  MCP_INTELLIGENCE_TOOLS,
+  resolveMcpIntelligenceToolName
+} from '@/lib/workspace-api/intelligence-mcp';
 
 type JsonRpcRequest = {
   jsonrpc?: string;
@@ -231,6 +238,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   if (method === 'tools/list') {
+    // Hybrid RAG is only advertised when the workspace handed the intelligence
+    // layer to MCP (Companion is hidden in that mode).
+    const intelligenceOn = await readMcpIntelligenceEnabled(
+      handshake.context.organizationId
+    );
+    const listedTools = intelligenceOn
+      ? [...WORKSPACE_TOOLS, ...MCP_INTELLIGENCE_TOOLS]
+      : [...WORKSPACE_TOOLS];
     recordMcpLog(startedAt, actorFromAuth(handshake), {
       method,
       status: 200
@@ -238,7 +253,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return rpcResult(
       id,
       {
-        tools: WORKSPACE_TOOLS.map((tool) => ({
+        tools: listedTools.map((tool) => ({
           name: tool.name,
           description: tool.description,
           inputSchema: tool.inputSchema
@@ -255,6 +270,88 @@ export async function POST(request: NextRequest): Promise<Response> {
       params.arguments && typeof params.arguments === 'object'
         ? (params.arguments as Record<string, unknown>)
         : {};
+
+    // Hybrid RAG is read-only and org-scoped — separate scope from mailbox.
+    if (resolveMcpIntelligenceToolName(name)) {
+      const intel = await authorizeMcpIntelligence(request);
+      const intelActor: McpLogActor | null = intel.ok
+        ? {
+            organizationId: intel.context.organizationId,
+            apiKeyId: intel.context.apiKeyId
+          }
+        : intel.organizationId
+          ? {
+              organizationId: intel.organizationId,
+              apiKeyId: intel.apiKeyId ?? null
+            }
+          : null;
+
+      if (!intel.ok) {
+        recordMcpLog(startedAt, intelActor, {
+          method,
+          tool: name,
+          status: intel.status,
+          errorMessage: intel.message
+        });
+        return rpcError(
+          id,
+          -32001,
+          intel.message,
+          intel.allowOrigin,
+          intel.status
+        );
+      }
+
+      const intelligenceOn = await readMcpIntelligenceEnabled(
+        intel.context.organizationId
+      );
+      if (!intelligenceOn) {
+        const disabledMessage =
+          'Intelligence over MCP is off. Enable it in Settings → MCP (this hides Companion).';
+        recordMcpLog(startedAt, intelActor, {
+          method,
+          tool: name,
+          status: 403,
+          errorMessage: disabledMessage
+        });
+        return rpcError(id, -32001, disabledMessage, intel.allowOrigin, 403);
+      }
+
+      const result = await executeMcpIntelligenceTool(
+        name,
+        args,
+        intel.context
+      );
+      if (!result.ok) {
+        recordMcpLog(startedAt, intelActor, {
+          method,
+          tool: name,
+          status: 400,
+          errorMessage: result.error ?? 'Tool failed.'
+        });
+        return rpcResult(
+          id,
+          {
+            isError: true,
+            content: [{ type: 'text', text: result.error ?? 'Tool failed.' }]
+          },
+          intel.allowOrigin
+        );
+      }
+
+      recordMcpLog(startedAt, intelActor, {
+        method,
+        tool: name,
+        status: 200
+      });
+      return rpcResult(
+        id,
+        {
+          content: [{ type: 'text', text: JSON.stringify(result.data) }]
+        },
+        intel.allowOrigin
+      );
+    }
 
     const auth = await authorizeWorkspaceRequest({ request, tool: name });
     const actor: McpLogActor | null = auth.ok

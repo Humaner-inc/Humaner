@@ -26,6 +26,7 @@ import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task-proposals';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
+import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import {
   getMailInboxes,
@@ -162,7 +163,8 @@ export async function DashboardSessionShell({
     handoffOpenCounts,
     mailInboxes,
     teamFeed,
-    taskProposals
+    taskProposals,
+    mcpIntelligenceEnabled
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -181,7 +183,8 @@ export async function DashboardSessionShell({
       ? Promise.resolve([])
       : notificationsPromise.then((result) =>
           getCompanionTaskProposals(result.items)
-        )
+        ),
+    oss ? Promise.resolve(false) : getMcpIntelligenceEnabled()
   ]);
   const {
     items: notifications,
@@ -235,9 +238,12 @@ export async function DashboardSessionShell({
       ? organization.verticalTopics
       : (industryVertical?.commonTopics ?? [])
   );
-  const copilotEnabled = getPlanCapabilities(organization.tier, {
-    frontierBetaEnabled: organization.frontierBetaEnabled
-  }).copilot;
+  // MCP intelligence and Companion are mutually exclusive: when a workspace
+  // hands the intelligence layer to its own agent over MCP, hide Companion.
+  const copilotEnabled =
+    getPlanCapabilities(organization.tier, {
+      frontierBetaEnabled: organization.frontierBetaEnabled
+    }).copilot && !mcpIntelligenceEnabled;
 
   // Companion mirrors the persona the workspace configured on its primary
   // (oldest) agent. getAgents() orders desc, so that's the last item.

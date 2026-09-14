@@ -242,6 +242,10 @@ model Organization {
   calendarMailAutomation     Boolean                  @default(false)
   /// When true, opening an unread inbound thread drafts reply suggestions automatically.
   inboxAutoSuggestReplies    Boolean                  @default(true)
+  /// Intelligence layer location. false = Companion (native, in-app assistant).
+  /// true = external agents over MCP: Companion is hidden and the MCP
+  /// `search_knowledge` (Hybrid RAG) tool is enabled. Mutually exclusive.
+  mcpIntelligenceEnabled     Boolean                  @default(false)
   /// Workspace Companion mail rights: DRAFT, ASSIGN, SEND. Empty inherits alias policies.
   companionActions           String[]                 @default([])
   agents                     Agent[]
