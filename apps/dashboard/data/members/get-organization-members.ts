@@ -75,7 +75,8 @@ async function loadOrganizationMembers(
           name: true,
           email: true,
           role: true,
-          lastLogin: true
+          lastLogin: true,
+          timeZone: true
         }
       }
     },
@@ -92,6 +93,7 @@ async function loadOrganizationMembers(
     role: membership.user.role,
     workspaceRole: membership.workspaceRole,
     allowedPages: membership.allowedPages,
+    timeZone: membership.user.timeZone,
     dateAdded: membership.createdAt,
     lastLogin: membership.user.lastLogin ?? undefined
   }));

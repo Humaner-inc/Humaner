@@ -8,6 +8,7 @@ export type MemberDto = {
   role: Role;
   workspaceRole: WorkspaceRole;
   allowedPages: string[];
+  timeZone?: string | null;
   dateAdded: Date;
   lastLogin?: Date;
 };

@@ -4,14 +4,17 @@ import { suggestMailReplies } from '@/services/inbox/suggest-mail-replies';
 import {
   HandoffTicketStatus,
   HandoffTicketUrgency,
+  InvitationStatus,
   MailThreadStatus
 } from '@prisma/client';
 
+import { Routes } from '@/constants/routes';
 import {
   readCompanionWorkspaceRights,
   workspaceAllowsCompanionAction
 } from '@/data/inbox/companion-rights';
 import { parseCalendarWhen } from '@/lib/calendar/parse-calendar-when';
+import { CONNECT_APPS } from '@/lib/connect-apps';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
@@ -34,6 +37,7 @@ import {
   aliasAllowsCompanionSend,
   sendMailThreadReply
 } from '@/lib/inbox/send-mail-thread-reply';
+import { loadTeamProfileRefs } from '@/lib/team/load-team-profile-refs';
 import { resolveProfileAssignee } from '@/lib/team/resolve-profile-assignee';
 import { inferRoutingTopics } from '@/lib/team/routing-topics';
 import type { WorkspaceToolContext } from '@/lib/workspace-api/authorize';
@@ -41,6 +45,7 @@ import {
   resolveWorkspaceToolName,
   type WorkspaceToolName
 } from '@/lib/workspace-api/catalog';
+import { executeConnectorTool } from '@/lib/workspace-api/connectors';
 
 export type WorkspaceToolResult = {
   ok: boolean;
@@ -349,6 +354,124 @@ async function listSendableAliases(
     address: alias.address,
     mailbox: alias.connection.email
   }));
+}
+
+async function executeListMailAliases(
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const aliases = await listSendableAliases(context);
+  return { ok: true, data: { aliases } };
+}
+
+async function executeListTeamMembers(
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const [memberships, invitations, profiles, load, rights] = await Promise.all([
+    prisma.organizationMembership.findMany({
+      where: { organizationId: context.organizationId },
+      select: {
+        workspaceRole: true,
+        allowedPages: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            timeZone: true
+          }
+        }
+      },
+      orderBy: { user: { name: 'asc' } }
+    }),
+    prisma.invitation.findMany({
+      where: {
+        organizationId: context.organizationId,
+        status: InvitationStatus.PENDING
+      },
+      select: {
+        email: true,
+        allowedPages: true,
+        lastSentAt: true
+      },
+      orderBy: { email: 'asc' }
+    }),
+    prisma.teamMemberProfile.findMany({
+      where: { organizationId: context.organizationId },
+      select: {
+        userId: true,
+        role: true,
+        knowledgeAreas: true,
+        maxConcurrent: true
+      }
+    }),
+    loadTeamProfileRefs(context.organizationId),
+    readCompanionWorkspaceRights(context.organizationId)
+  ]);
+
+  const loadByUser = new Map(load.map((profile) => [profile.userId, profile]));
+  const profileByUser = new Map(
+    profiles.map((profile) => [profile.userId, profile])
+  );
+
+  return {
+    ok: true,
+    data: {
+      memberCount: memberships.length,
+      pendingInviteCount: invitations.length,
+      companionActions: rights.actions,
+      integrations: rights.integrations,
+      members: memberships.map((membership) => {
+        const profile = profileByUser.get(membership.user.id);
+        const capacity = loadByUser.get(membership.user.id);
+        return {
+          id: membership.user.id,
+          name: membership.user.name,
+          email: membership.user.email,
+          timeZone: membership.user.timeZone,
+          workspaceRole: membership.workspaceRole,
+          allowedPages: membership.allowedPages,
+          profile: profile
+            ? {
+                role: profile.role,
+                knowledgeAreas: profile.knowledgeAreas,
+                assigned: capacity?.currentTickets ?? 0,
+                maxConcurrent: profile.maxConcurrent
+              }
+            : null
+        };
+      }),
+      pendingInvitations: invitations.map((invite) => ({
+        email: invite.email,
+        allowedPages: invite.allowedPages,
+        lastSentAt: invite.lastSentAt
+      })),
+      membersPath: Routes.Members
+    }
+  };
+}
+
+async function executeListConnectors(
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const { integrations } = await readCompanionWorkspaceRights(
+    context.organizationId
+  );
+  const connected = new Set<string>(integrations);
+
+  return {
+    ok: true,
+    data: {
+      connectors: CONNECT_APPS.map((app) => ({
+        id: app.id,
+        name: app.name,
+        description: app.description,
+        category: app.category,
+        connected: connected.has(app.id),
+        status: app.status === 'coming_soon' ? 'coming_soon' : 'available'
+      })),
+      connectPath: Routes.InboxSettings
+    }
+  };
 }
 
 async function executeSendMail(
@@ -876,9 +999,12 @@ async function executeCreateCalendar(
 ): Promise<WorkspaceToolResult> {
   const title = asString(args.title);
   const startsAtRaw = asString(args.startsAt) || asString(args.when);
-  const startsAt = startsAtRaw ? parseCalendarWhen(startsAtRaw) : null;
+  const timeZone = asString(args.timeZone) || context.timeZone;
+  const startsAt = startsAtRaw
+    ? parseCalendarWhen(startsAtRaw, new Date(), timeZone)
+    : null;
   const endsAt = asString(args.endsAt)
-    ? parseCalendarWhen(asString(args.endsAt))
+    ? parseCalendarWhen(asString(args.endsAt), new Date(), timeZone)
     : startsAt
       ? new Date(startsAt.getTime() + 60 * 60 * 1000)
       : null;
@@ -919,6 +1045,45 @@ async function executeCreateCalendar(
   };
 }
 
+const TEAMMATE_REQUEST_TOPICS: Record<string, string[]> = {
+  linear: ['linear'],
+  github: ['github'],
+  stripe: ['stripe', 'billing'],
+  notion: ['notion'],
+  inbox: ['inbox']
+};
+
+async function executeRequestTeammate(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const summary = asString(args.summary);
+  if (!summary) return { ok: false, error: 'summary is required.' };
+
+  const connector = asString(args.connector) || 'inbox';
+  const topics = TEAMMATE_REQUEST_TOPICS[connector] ?? ['inbox'];
+  const threadId = asString(args.threadId);
+  const assigneeId = asString(args.assigneeId);
+  const details = asString(args.details);
+
+  if (threadId) {
+    return executeCreateTaskFromThread(
+      { threadId, assigneeId: assigneeId || undefined, topics },
+      context
+    );
+  }
+
+  return executeCreateTask(
+    {
+      subject: summary,
+      summary: details || summary,
+      assigneeId: assigneeId || undefined,
+      topics
+    },
+    context
+  );
+}
+
 export async function executeWorkspaceTool(
   name: string,
   args: Record<string, unknown>,
@@ -934,6 +1099,8 @@ export async function executeWorkspaceTool(
       return executeReadThread(args, context);
     case 'search_mail_threads':
       return executeSearchThreads(args, context);
+    case 'list_mail_aliases':
+      return executeListMailAliases(context);
     case 'suggest_mail_reply':
       return executeSuggestReply(args, context);
     case 'send_mail':
@@ -944,6 +1111,21 @@ export async function executeWorkspaceTool(
       return executeTag(args, context);
     case 'add_mail_thread_note':
       return executeAddNote(args, context);
+    case 'list_team_members':
+      return executeListTeamMembers(context);
+    case 'list_connectors':
+      return executeListConnectors(context);
+    case 'list_linear_issues':
+    case 'create_linear_issue':
+    case 'list_github_issues':
+    case 'list_github_pull_requests':
+    case 'create_github_issue':
+    case 'list_stripe_invoices':
+    case 'search_stripe_billing':
+    case 'search_notion_pages':
+      return executeConnectorTool(resolved, args, context);
+    case 'request_teammate':
+      return executeRequestTeammate(args, context);
     case 'list_tasks':
       return executeListTasks(args, context);
     case 'create_task':

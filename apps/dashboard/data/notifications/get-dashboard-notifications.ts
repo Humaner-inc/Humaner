@@ -278,7 +278,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             title: `${plan.name} message quota`,
             emphasis: 'exhausted',
             description:
-              'Free messages for this period are used up. Upgrade to keep agents responding.',
+              'Free messages for this period are used up. Upgrade to keep Companion running.',
             href: Routes.Billing,
             severity: 'critical',
             createdAt: now.toISOString()
@@ -289,7 +289,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             kind: 'billing',
             title: 'Credits used up',
             emphasis: formatCreditUsd(0),
-            description: `${formatCreditUsd(creditsUsedCents)} used this period. Add credits to keep agents responding.`,
+            description: `${formatCreditUsd(creditsUsedCents)} used this period. Add credits to keep Companion running.`,
             href: Routes.Billing,
             severity: 'critical',
             createdAt: now.toISOString()

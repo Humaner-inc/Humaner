@@ -26,7 +26,8 @@ export async function getPreferences(): Promise<PreferencesDto> {
       const userFromDb = await prisma.user.findFirst({
         where: { id: session.user.id },
         select: {
-          locale: true
+          locale: true,
+          timeZone: true
         }
       });
       if (!userFromDb) {
@@ -34,7 +35,8 @@ export async function getPreferences(): Promise<PreferencesDto> {
       }
 
       const response: PreferencesDto = {
-        locale: userFromDb.locale
+        locale: userFromDb.locale,
+        timeZone: userFromDb.timeZone
       };
 
       return response;

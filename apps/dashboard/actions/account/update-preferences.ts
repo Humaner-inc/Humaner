@@ -1,8 +1,9 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { authActionClient } from '@/actions/safe-action';
+import { Routes } from '@/constants/routes';
 import { Caching, OrganizationCacheKey, UserCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import { updatePreferencesSchema } from '@/schemas/account/update-preferences-schema';
@@ -14,7 +15,8 @@ export const updatePreferences = authActionClient
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        locale: parsedInput.locale
+        locale: parsedInput.locale,
+        timeZone: parsedInput.timeZone
       },
       select: {
         id: true // SELECT NONE
@@ -26,10 +28,15 @@ export const updatePreferences = authActionClient
       'max'
     );
     revalidateTag(
+      Caching.createUserTag(UserCacheKey.Profile, session.user.id),
+      'max'
+    );
+    revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Members,
         session.user.organizationId
       ),
       'max'
     );
+    revalidatePath(Routes.OrganizationTeam);
   });

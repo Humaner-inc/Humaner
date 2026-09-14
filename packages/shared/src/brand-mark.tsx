@@ -4,7 +4,7 @@ import type { ImgHTMLAttributes, JSX } from "react";
 export const HUMANER_ICON_PATH = "/favicon.svg";
 /** Light surfaces and mail — dark ink brandmark. */
 export const HUMANER_ICON_BLACK_PATH = "/brandmark-dark.svg";
-/** Brandmark on light chrome — emails and light theme. */
+/** Brandmark on light chrome — light theme. */
 export const HUMANER_BRANDMARK_PATH = "/brandmark-dark.svg";
 /** Full brand logo. */
 export const HUMANER_LOGO_PATH = "/logo-black.png";

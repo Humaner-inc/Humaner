@@ -33,7 +33,8 @@ export async function getProfile(): Promise<ProfileDto> {
           role: true,
           workspaceRole: true,
           allowedPages: true,
-          locale: true
+          locale: true,
+          timeZone: true
         }
       });
       if (!userFromDb) {
@@ -48,7 +49,8 @@ export async function getProfile(): Promise<ProfileDto> {
         role: userFromDb.role,
         workspaceRole: userFromDb.workspaceRole,
         allowedPages: userFromDb.allowedPages,
-        locale: userFromDb.locale
+        locale: userFromDb.locale,
+        timeZone: userFromDb.timeZone
       };
 
       return response;

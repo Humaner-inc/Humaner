@@ -1,5 +1,7 @@
 /** Humaner raw email template — original waitlist / transactional design. */
 
+import { RADIUS_CTA_PRIMARY_PX } from "./radius";
+
 /** Neutrals aligned with dashboard palette (widget surfaces stay separate). */
 export const EMAIL_COLORS = {
   foreground: "#0A0D0D",
@@ -8,7 +10,10 @@ export const EMAIL_COLORS = {
   muted: "#18181b",
   canvas: "#F2F2F2",
   link: "#001afc",
+  button: "#001afc",
 } as const;
+
+export const EMAIL_BUTTON_RADIUS_PX = RADIUS_CTA_PRIMARY_PX;
 
 export const EMAIL_BODY_CLASS =
   "m-auto bg-[#ffffff] px-2 font-sans text-[#0A0D0D]";
@@ -39,7 +44,7 @@ export const EMAIL_HR_CLASS =
   "mx-0 my-[26px] w-full border border-solid border-[#eaeaea]";
 
 export const EMAIL_BUTTON_PRIMARY_CLASS =
-  "rounded-none bg-[#0A0D0D] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
+  "rounded-[16px] bg-[#001afc] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline";
 
 export const EMAIL_BUTTON_SECTION_CLASS = "my-[32px] text-center";
 

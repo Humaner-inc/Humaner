@@ -22,10 +22,10 @@ const PREVIEW_ATTR_RE =
 
 /** Localhost / relative app asset URLs that break when the mail is viewed later. */
 const BROKEN_APP_ASSET_SRC_RE =
-  /(?:https?:)?\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/(?:humaner-email|x-email|brandmark-dark|logo-black)\.(?:png|svg))/gi;
+  /(?:https?:)?\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/(?:humaner-email|x-email|brandmark-dark|brandmark_blue|logo-black)\.(?:png|svg))/gi;
 
 const RELATIVE_APP_ASSET_SRC_RE =
-  /(?:src|href)=(["'])(\/(?:humaner-email|x-email)\.png|\/(?:brandmark-dark|logo-black)\.(?:png|svg))\1/gi;
+  /(?:src|href)=(["'])(\/(?:humaner-email|x-email)\.png|\/(?:brandmark-dark|brandmark_blue|logo-black)\.(?:png|svg))\1/gi;
 
 function normalizeComparable(value: string): string {
   return value.replace(/\s+/g, ' ').trim().toLowerCase();

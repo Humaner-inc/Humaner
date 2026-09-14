@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { timeZoneSchema } from '@/schemas/account/time-zone-schema';
+
 export const updatePreferencesSchema = z.object({
   locale: z
     .string({
@@ -9,6 +11,7 @@ export const updatePreferencesSchema = z.object({
     .max(8, 'Maximum 8 characters allowed.')
     .optional()
     .or(z.literal('')),
+  timeZone: timeZoneSchema,
   theme: z.literal('light')
 });
 

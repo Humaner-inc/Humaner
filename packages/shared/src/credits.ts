@@ -2,7 +2,7 @@
  * Humaner credits wallet — published overage and the cost audit behind it.
  *
  * overage = LLM + wrappers + infra + polarTake + margin
- * Public rate: $0.07 / agent reply (7 cents).
+ * Public rate: $0.07 / Companion reply (7 cents).
  */
 
 /** Claude Sonnet 5 list rates (USD / million tokens), Aug 2026 standard. */

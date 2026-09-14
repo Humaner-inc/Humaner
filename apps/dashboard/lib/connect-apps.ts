@@ -61,7 +61,7 @@ export const CONNECT_APPS: Array<ConnectApp & { id: ConnectAppId }> = [
     name: 'Notion',
     description: 'Pages as context for Companion or your agent.',
     logoDomain: 'notion.so',
-    status: 'coming_soon',
+    status: 'connect',
     category: 'knowledge'
   }
 ];

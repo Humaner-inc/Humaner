@@ -54,7 +54,8 @@ export function deriveCompanionActionsFromAliases(
 export const COMPANION_INTEGRATION_IDS = [
   'linear',
   'stripe',
-  'github'
+  'github',
+  'notion'
 ] as const;
 
 export type CompanionIntegrationId = (typeof COMPANION_INTEGRATION_IDS)[number];
@@ -62,7 +63,12 @@ export type CompanionIntegrationId = (typeof COMPANION_INTEGRATION_IDS)[number];
 export function isCompanionIntegrationId(
   value: string | null | undefined
 ): value is CompanionIntegrationId {
-  return value === 'linear' || value === 'stripe' || value === 'github';
+  return (
+    value === 'linear' ||
+    value === 'stripe' ||
+    value === 'github' ||
+    value === 'notion'
+  );
 }
 
 export function normalizeCompanionIntegrations(

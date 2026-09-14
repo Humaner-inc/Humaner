@@ -34,7 +34,14 @@ const isSelfHostBuild =
 const nextConfig = {
   // Docker / self-host: emit standalone server bundle
   ...(isSelfHostBuild ? { output: 'standalone' } : {}),
-  transpilePackages: ['@humaner/shared', 'lucide-animated', 'ldrs'],
+  transpilePackages: [
+    '@humaner/shared',
+    'lucide-animated',
+    'ldrs',
+    'react-globe.gl',
+    'globe.gl',
+    'three-globe'
+  ],
   // Prefer skills/runtime on hot paths; full package stays external on the server.
   serverExternalPackages: ['@humaner/customer-support-skills'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
@@ -262,6 +269,16 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: '/training',
+        destination: '/knowledge',
+        permanent: true
+      },
+      {
+        source: '/dashboard/training',
+        destination: '/knowledge',
+        permanent: true
+      },
+      {
         source: '/dashboard/:path*',
         destination: '/:path*',
         permanent: true
@@ -381,10 +398,6 @@ const nextConfig = {
       {
         source: '/human-desk/:path*',
         destination: '/dashboard/human-desk/:path*'
-      },
-      {
-        source: '/training',
-        destination: '/dashboard/training'
       },
       {
         source: '/admin/:path*',

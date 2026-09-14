@@ -69,6 +69,21 @@ export const VERCEL_CONNECT_APPS: Record<
       'Set VERCEL_CONNECT_GITHUB_UID and VERCEL_CONNECT_GITHUB_WEBHOOK.',
       'Link Production, Preview, and Development to the dashboard project.'
     ]
+  },
+  notion: {
+    id: 'notion',
+    name: 'Notion',
+    envKey: 'VERCEL_CONNECT_NOTION_UID',
+    createCommand: 'vercel connect create notion --name humaner',
+    attachCommand: 'vercel connect attach $VERCEL_CONNECT_NOTION_UID',
+    setup: [
+      'App name: Humaner.',
+      'Install Vercel’s Notion connector for the workspace.',
+      'No trigger forwarding.',
+      'Set VERCEL_CONNECT_NOTION_UID.',
+      'Authorize as a user so Companion can search pages in that workspace.',
+      'Link Production, Preview, and Development to the dashboard project.'
+    ]
   }
 };
 

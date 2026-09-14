@@ -10,8 +10,16 @@ describe('Workspace mailbox catalog', () => {
     expect(WORKSPACE_TOOL_NAMES).toEqual(
       expect.arrayContaining([
         'list_mail_threads',
+        'list_mail_aliases',
         'suggest_mail_reply',
         'send_mail',
+        'list_team_members',
+        'list_connectors',
+        'list_linear_issues',
+        'create_github_issue',
+        'list_stripe_invoices',
+        'search_notion_pages',
+        'request_teammate',
         'list_tasks',
         'create_task',
         'create_task_from_mail_thread',

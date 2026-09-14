@@ -31,8 +31,8 @@ export const HUMANER_BRANDMARK_PATH = "/brandmark-dark.svg";
 /** Full brand logo. */
 export const HUMANER_LOGO_PATH = "/logo-black.png";
 
-/** Mail header uses the light-theme brandmark. */
-export const EMAIL_LOGO_PATH = "/brandmark-dark.svg";
+/** Mail header — cobalt brandmark (2× vector so clients stay sharp at 80px). */
+export const EMAIL_LOGO_PATH = "/brandmark_blue.svg";
 
 /** X / Twitter mark for transactional email (same glyph as landing footer). */
 export const EMAIL_X_ICON_PATH = "/x-email.png";
@@ -141,6 +141,11 @@ export function getHumanerGithubRepoUrl(): string {
 
 export function getIntoMarkdownGithubUrl(): string {
   return "https://github.com/Humaner-inc/into-markdown";
+}
+
+/** Mailbox skill pack Companion and MCP agents share. */
+export function getInboxSkillsGithubUrl(): string {
+  return "https://github.com/Humaner-inc/Inbox-skills";
 }
 
 export function getXUrl(): string {

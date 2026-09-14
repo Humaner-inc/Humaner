@@ -18,6 +18,7 @@ import * as React from "react";
 import {
   EMAIL_BODY_CLASS,
   EMAIL_BUTTON_PRIMARY_CLASS,
+  EMAIL_BUTTON_RADIUS_PX,
   EMAIL_BUTTON_SECTION_CLASS,
   EMAIL_COLORS,
   EMAIL_CONTAINER_CLASS,
@@ -207,7 +208,11 @@ export function EmailButton({
       <Button
         className={EMAIL_BUTTON_PRIMARY_CLASS}
         href={href}
-        style={{ borderRadius: 0 }}
+        style={{
+          backgroundColor: EMAIL_COLORS.button,
+          borderRadius: EMAIL_BUTTON_RADIUS_PX,
+          color: "#ffffff",
+        }}
       >
         {children}
       </Button>

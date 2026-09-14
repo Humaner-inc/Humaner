@@ -6,6 +6,7 @@ import type { IndustryType } from '@prisma/client';
 
 import { apiKeyHasScope, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
 import { verifyApiKey } from '@/lib/auth/api-keys';
+import { resolveIanaTimeZone } from '@/lib/calendar/parse-calendar-when';
 import { prisma } from '@/lib/db/prisma';
 import { extractBearerToken } from '@/lib/security/authorize-public-agent-request';
 import {
@@ -19,6 +20,8 @@ export type WorkspaceToolContext = {
   apiKeyId: string | null;
   actorUserId: string;
   allowSend: boolean;
+  /** IANA timezone for calendar phrases, e.g. Europe/Paris. */
+  timeZone?: string;
 };
 
 /** Read-only context for Hybrid RAG over MCP — no actor, no send. */
@@ -62,6 +65,33 @@ function keyCanUseMcp(scopes: readonly string[]): boolean {
     apiKeyHasScope(scopes, 'calendar') ||
     apiKeyHasScope(scopes, 'intelligence')
   );
+}
+
+async function resolveWorkspaceActor(
+  organizationId: string,
+  ownerId: string | null
+): Promise<{ actorUserId: string; timeZone?: string } | null> {
+  const actorUserId =
+    ownerId ??
+    (
+      await prisma.organizationMembership.findFirst({
+        where: { organizationId },
+        select: { userId: true },
+        orderBy: { createdAt: 'asc' }
+      })
+    )?.userId;
+  if (!actorUserId) {
+    return null;
+  }
+  const actor = await prisma.user.findFirst({
+    where: { id: actorUserId },
+    select: { timeZone: true }
+  });
+  const timeZone = resolveIanaTimeZone(actor?.timeZone) ?? undefined;
+  return {
+    actorUserId,
+    ...(timeZone ? { timeZone } : {})
+  };
 }
 
 /**
@@ -138,17 +168,12 @@ export async function authorizeMcpClient(
     };
   }
 
-  const actorUserId =
-    organization.ownerId ??
-    (
-      await prisma.organizationMembership.findFirst({
-        where: { organizationId: organization.id },
-        select: { userId: true },
-        orderBy: { createdAt: 'asc' }
-      })
-    )?.userId;
+  const actor = await resolveWorkspaceActor(
+    organization.id,
+    organization.ownerId
+  );
 
-  if (!actorUserId) {
+  if (!actor) {
     return {
       ok: false,
       status: 403,
@@ -165,8 +190,9 @@ export async function authorizeMcpClient(
     context: {
       organizationId: organization.id,
       apiKeyId: verified.id,
-      actorUserId,
-      allowSend: true
+      actorUserId: actor.actorUserId,
+      allowSend: true,
+      ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
     }
   };
 }
@@ -339,17 +365,12 @@ export async function authorizeWorkspaceRequest(input: {
     };
   }
 
-  const actorUserId =
-    organization.ownerId ??
-    (
-      await prisma.organizationMembership.findFirst({
-        where: { organizationId: organization.id },
-        select: { userId: true },
-        orderBy: { createdAt: 'asc' }
-      })
-    )?.userId;
+  const actor = await resolveWorkspaceActor(
+    organization.id,
+    organization.ownerId
+  );
 
-  if (!actorUserId) {
+  if (!actor) {
     return {
       ok: false,
       status: 403,
@@ -366,8 +387,9 @@ export async function authorizeWorkspaceRequest(input: {
     context: {
       organizationId: organization.id,
       apiKeyId: verified.id,
-      actorUserId,
-      allowSend: true
+      actorUserId: actor.actorUserId,
+      allowSend: true,
+      ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
     }
   };
 }

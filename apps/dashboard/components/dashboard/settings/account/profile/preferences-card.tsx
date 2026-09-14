@@ -5,6 +5,7 @@ import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { updatePreferences } from '@/actions/account/update-preferences';
+import { TimeZoneSelect } from '@/components/dashboard/settings/account/profile/time-zone-select';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -49,6 +50,7 @@ export function PreferencesCard({
     mode: 'onSubmit',
     defaultValues: {
       locale: preferences.locale,
+      timeZone: preferences.timeZone,
       theme: 'light' as const
     }
   });
@@ -111,6 +113,27 @@ export function PreferencesCard({
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={methods.control}
+              name="timeZone"
+              render={({ field }) => (
+                <FormItem className="flex w-full flex-col">
+                  <FormLabel>Timezone</FormLabel>
+                  <FormDescription>
+                    Companion uses this when it talks about time or books the
+                    calendar.
+                  </FormDescription>
+                  <FormControl>
+                    <TimeZoneSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={methods.formState.isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

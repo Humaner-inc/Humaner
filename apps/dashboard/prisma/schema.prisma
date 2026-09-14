@@ -333,6 +333,8 @@ model User {
   allowedPages                 String[]                 @default([])
   phone                        String?                  @db.VarChar(32)
   locale                       String                   @default("en-US") @db.VarChar(8)
+  /// IANA timezone for Companion and SLA clocks, e.g. Europe/Paris.
+  timeZone                     String?                  @db.VarChar(64)
   completedOnboarding          Boolean                  @default(false)
   enabledContactsNotifications Boolean                  @default(false)
   enabledInboxNotifications    Boolean                  @default(false)
