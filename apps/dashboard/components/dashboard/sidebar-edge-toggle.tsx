@@ -7,9 +7,14 @@ import { ChevronsRightLeftIcon } from '@/components/ui/chevrons-right-left-icon'
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
-export function SidebarEdgeToggle(): React.JSX.Element {
+export function SidebarEdgeToggle(): React.JSX.Element | null {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
+
+  // Full-page mobile has no sidebar edge to sit on; the top bar owns the toggle.
+  if (sidebar.isMobileFullPage) {
+    return null;
+  }
 
   return (
     <button

@@ -41,6 +41,10 @@ import {
 import { loadTeamProfileRefs } from '@/lib/team/load-team-profile-refs';
 import { resolveProfileAssignee } from '@/lib/team/resolve-profile-assignee';
 import { inferRoutingTopics } from '@/lib/team/routing-topics';
+import {
+  UNTRUSTED_MAIL_GUARD,
+  wrapUntrustedMailBody
+} from '@/lib/untrusted-content';
 import type { WorkspaceToolContext } from '@/lib/workspace-api/authorize';
 import {
   resolveWorkspaceToolName,
@@ -53,6 +57,9 @@ export type WorkspaceToolResult = {
   data?: unknown;
   error?: string;
 };
+
+/** Mail bodies handed to a model are truncated, then delimited as untrusted. */
+const MAX_TOOL_BODY_CHARS = 4000;
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
@@ -214,6 +221,7 @@ async function executeReadThread(
       }),
       suggestedAssigneeId,
       handoffTicketId: thread.handoffTicketId,
+      contentGuard: UNTRUSTED_MAIL_GUARD,
       notes: thread.notes.map((note) => ({
         id: note.id,
         body: note.body,
@@ -224,7 +232,7 @@ async function executeReadThread(
         id: message.id,
         direction: message.direction,
         fromAddress: message.fromAddress,
-        bodyText: message.bodyText?.slice(0, 4000) ?? null,
+        bodyText: wrapUntrustedMailBody(message.bodyText, MAX_TOOL_BODY_CHARS),
         sentAt: message.sentAt.toISOString()
       }))
     }
