@@ -28,9 +28,11 @@ export function useMediaQuery(
   const getWin = useCallbackRef(getWindow);
   const [value, setValue] = React.useState(() => ({
     media: query,
-    matches: !ssr
-      ? (getWin() ?? window).matchMedia?.(query)?.matches
-      : !!fallback
+    // `ssr: false` still prerenders on the server, where `window` is absent.
+    matches:
+      !ssr && typeof window !== 'undefined'
+        ? (getWin() ?? window).matchMedia?.(query)?.matches
+        : !!fallback
   }));
 
   React.useEffect(() => {
