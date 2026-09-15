@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { readMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
+import { readCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
 import {
   logMcpRequest,
   type McpLogActor
@@ -10,6 +11,7 @@ import {
   mcpCorsHeaders,
   negotiateMcpProtocolVersion
 } from '@/lib/developers/mcp-http';
+import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import {
   authorizeMcpClient,
   authorizeMcpIntelligence,
@@ -239,13 +241,20 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   if (method === 'tools/list') {
     // Hybrid RAG is only advertised when the workspace handed the intelligence
-    // layer to MCP (Companion is hidden in that mode).
-    const intelligenceOn = await readMcpIntelligenceEnabled(
-      handshake.context.organizationId
-    );
+    // layer to MCP (Companion is hidden in that mode). Connector tools follow
+    // the same rule as Companion: an app that is not activated is not listed,
+    // so a client never sees a tool whose every call would be refused.
+    const [intelligenceOn, { integrations }] = await Promise.all([
+      readMcpIntelligenceEnabled(handshake.context.organizationId),
+      readCompanionWorkspaceRights(handshake.context.organizationId)
+    ]);
+    const availableWorkspaceTools = WORKSPACE_TOOLS.filter((tool) => {
+      const integration = integrationForConnectorTool(tool.name);
+      return !integration || integrations.includes(integration);
+    });
     const listedTools = intelligenceOn
-      ? [...WORKSPACE_TOOLS, ...MCP_INTELLIGENCE_TOOLS]
-      : [...WORKSPACE_TOOLS];
+      ? [...availableWorkspaceTools, ...MCP_INTELLIGENCE_TOOLS]
+      : [...availableWorkspaceTools];
     recordMcpLog(startedAt, actorFromAuth(handshake), {
       method,
       status: 200
