@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { XIcon } from '@humaner/shared/icons';
 
 import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
 import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
@@ -8,6 +9,7 @@ import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
@@ -63,7 +65,7 @@ export function AppSidebar({
       className="bg-sidebar/95 backdrop-blur-xl"
     >
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
-        <div className="flex size-full min-w-0 items-center justify-center overflow-hidden">
+        <div className="relative flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
             <HumanerLogoImage
               width={32}
@@ -77,6 +79,18 @@ export function AppSidebar({
               wordmarkClassName="truncate text-center font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
             />
           )}
+          {sidebar.isMobileFullPage ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 size-9 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+              onClick={() => sidebar.setOpen(false)}
+              aria-label="Close navigation"
+            >
+              <XIcon className="size-4" />
+            </Button>
+          ) : null}
         </div>
       </SidebarHeader>
       <SidebarContent className="min-h-0 overflow-hidden">

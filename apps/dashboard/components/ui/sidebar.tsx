@@ -37,6 +37,8 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '4rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 const MOBILE_BREAKPOINT = 1024;
+/** Below this the sidebar and the page each take the whole screen, never both. */
+const MOBILE_FULL_PAGE_BREAKPOINT = 768;
 export const SIDEBAR_AUTO_COLLAPSE_BREAKPOINT = 1280;
 
 type SidebarContext = {
@@ -46,6 +48,7 @@ type SidebarContext = {
   openMobile: boolean;
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
+  isMobileFullPage: boolean;
   desktopUp: boolean;
   isOverlayExpanded: boolean;
   toggleSidebar: () => void;
@@ -88,6 +91,10 @@ const SidebarProvider = React.forwardRef<
       ssr: true,
       fallback: false
     });
+    const isMobileFullPage = useMediaQuery(
+      `(max-width: ${MOBILE_FULL_PAGE_BREAKPOINT - 1}px)`,
+      { ssr: true, fallback: false }
+    );
     const desktopUp = useMediaQuery(
       `(min-width: ${SIDEBAR_AUTO_COLLAPSE_BREAKPOINT}px)`,
       { ssr: true, fallback: true }
@@ -147,7 +154,9 @@ const SidebarProvider = React.forwardRef<
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? 'expanded' : 'collapsed';
-    const isOverlayExpanded = open && (isMobile || !desktopUp);
+    // Full-page mobile covers the app itself, so it never dims content behind it.
+    const isOverlayExpanded =
+      open && !isMobileFullPage && (isMobile || !desktopUp);
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
@@ -155,6 +164,7 @@ const SidebarProvider = React.forwardRef<
         open,
         setOpen,
         isMobile,
+        isMobileFullPage,
         desktopUp,
         isOverlayExpanded,
         openMobile,
@@ -166,6 +176,7 @@ const SidebarProvider = React.forwardRef<
         open,
         setOpen,
         isMobile,
+        isMobileFullPage,
         desktopUp,
         isOverlayExpanded,
         openMobile,
@@ -220,14 +231,27 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
     ref
   ) => {
     const pathname = usePathname();
-    const { isMobile, state, openMobile, setOpenMobile, isOverlayExpanded } =
-      useSidebar();
+    const {
+      isMobile,
+      isMobileFullPage,
+      state,
+      openMobile,
+      setOpen,
+      setOpenMobile,
+      isOverlayExpanded
+    } = useSidebar();
     const isIconCollapsible = collapsible === 'icon';
     const isExpanded = state === 'expanded';
 
     React.useEffect(() => {
       setOpenMobile(false);
     }, [pathname, setOpenMobile]);
+
+    // Picking a destination hands the screen back to the page, like Mail.
+    React.useEffect(() => {
+      if (!isMobileFullPage) return;
+      setOpen(false);
+    }, [pathname, isMobileFullPage, setOpen]);
 
     if (collapsible === 'none') {
       return (
@@ -252,6 +276,39 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
         side === 'left'
           ? 'border-r border-sidebar-border'
           : 'border-l border-sidebar-border';
+
+      // Mobile shows one surface at a time: the whole nav, or the whole page.
+      if (isMobileFullPage) {
+        return (
+          <div
+            ref={ref}
+            className="group contents"
+            data-state={state}
+            data-collapsible=""
+            data-variant={variant}
+            data-side={side}
+            data-mobile-full-page="true"
+          >
+            {isExpanded ? (
+              <div
+                className={cn(
+                  // Above the full-screen mobile dock panel so nav always wins.
+                  'fixed inset-0 z-[60] flex h-dvh w-full',
+                  className
+                )}
+                {...props}
+              >
+                <div
+                  data-sidebar="sidebar"
+                  className="flex size-full flex-col bg-sidebar"
+                >
+                  {children}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        );
+      }
 
       if (isOverlayExpanded) {
         return (

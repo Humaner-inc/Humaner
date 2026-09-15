@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { BellIcon, InfoIcon, MessageCircleIcon } from '@humaner/shared/icons';
 
+import { DashboardMobileNavTitle } from '@/components/dashboard/dashboard-mobile-nav-title';
 import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { useDockNotifications } from '@/components/dashboard/dock/dock-notifications-context';
 import { NavUser } from '@/components/dashboard/nav-user';
@@ -56,6 +57,7 @@ export function DashboardTopNav({
         className
       )}
     >
+      <DashboardMobileNavTitle />
       <Button
         type="button"
         variant="ghost"
