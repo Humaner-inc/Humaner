@@ -10,7 +10,7 @@ import {
 import { getHumanerAgentPublicId } from '@/lib/humaner-agent';
 
 /** Runtime tier for the landing-page Humaner visitor support agent. */
-export const HUMANER_SUPPORT_MEMORY_TIER: PlanTier = 'humaner';
+export const HUMANER_SUPPORT_MEMORY_TIER: PlanTier = 'classic';
 
 export function isHumanerSupportAgent(
   publicId: string | null | undefined

@@ -36,13 +36,16 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => {
         Follow the onboarding and connect everything in seconds. You can
         customize Companion behavior then, or use your own agent.
       </EmailText>
+      <EmailText>
+        Inbox puts ${VIRAL_BETA_STARTER_CREDIT_USD} in Companion credits when
+        you launch the workspace. Follow{' '}
+        <EmailInlineLink href={getXFollowUrl()}>@usehumaner</EmailInlineLink>{' '}
+        for another ${VIRAL_BETA_X_FOLLOW_CREDIT_USD}. That extra amount is not
+        added until you follow.
+      </EmailText>
       {earlyAccess ? (
         <EmailText>
-          Early Access puts ${VIRAL_BETA_STARTER_CREDIT_USD} in Companion
-          credits when you launch the workspace. Follow{' '}
-          <EmailInlineLink href={getXFollowUrl()}>@usehumaner</EmailInlineLink>{' '}
-          for another ${VIRAL_BETA_X_FOLLOW_CREDIT_USD}. That extra amount is
-          not added until you follow.
+          Early Access keeps Inbox free — one mailbox, one seat, every tool.
         </EmailText>
       ) : null}
       <Section className="my-[24px]">

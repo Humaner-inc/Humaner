@@ -1,13 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { formatCreditUsd } from '@humaner/shared/credits';
-import {
-  formatPlanIncludedMessages,
-  getEffectivePlan,
-  isOperatorOwnedQuotaPlan,
-  normalizePlanTier,
-  OPERATOR_OWNED_QUOTA_LABEL
-} from '@humaner/shared/plans';
+import { getEffectivePlan, normalizePlanTier } from '@humaner/shared/plans';
 import type { IndustryType, TargetAudience } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
@@ -96,23 +90,19 @@ export function DashboardOverviewStrip({
                 >
                   <span style={{ color: tierAccent }}>{plan.name}</span>
                 </HintLabel>
-                {isOperatorOwnedQuotaPlan(plan) &&
-                formatPlanIncludedMessages(plan) ===
-                  OPERATOR_OWNED_QUOTA_LABEL ? null : (
-                  <>
-                    <span
-                      aria-hidden
-                      className="inline-flex size-[1em] items-center justify-center leading-none text-border"
-                    >
-                      ·
-                    </span>
-                    <span className="tabular-nums leading-none">
-                      {creditsRemainingCents != null
-                        ? `${formatCreditUsd(creditsRemainingCents)} remaining`
-                        : 'Credits'}
-                    </span>
-                  </>
-                )}
+                <>
+                  <span
+                    aria-hidden
+                    className="inline-flex size-[1em] items-center justify-center leading-none text-border"
+                  >
+                    ·
+                  </span>
+                  <span className="tabular-nums leading-none">
+                    {creditsRemainingCents != null
+                      ? `${formatCreditUsd(creditsRemainingCents)} remaining`
+                      : 'Credits'}
+                  </span>
+                </>
               </>
             )}
             {industryLabel ? (

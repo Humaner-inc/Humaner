@@ -1,19 +1,25 @@
-import { getEffectivePlan } from '@humaner/shared/plans';
+import { getEffectivePlan, type PlanAddOns } from '@humaner/shared/plans';
 
-/** Connected mailboxes (provider logins) included on the plan. Aliases are free. */
+/**
+ * Connected mailboxes (provider logins) the workspace may hold: what the plan
+ * includes plus any purchased mailbox add-ons. Redirect aliases are free and
+ * never counted.
+ */
 export function getMailboxInboxLimit(
   orgTier: string,
-  includedMessages?: number | null
+  includedMessages?: number | null,
+  addOns?: PlanAddOns
 ): number {
-  return getEffectivePlan(orgTier, includedMessages).mailboxAliases;
+  return getEffectivePlan(orgTier, includedMessages, addOns).mailboxAliases;
 }
 
 /** @deprecated Use getMailboxInboxLimit — aliases no longer consume quota. */
 export function getMailboxAliasLimit(
   orgTier: string,
-  includedMessages?: number | null
+  includedMessages?: number | null,
+  addOns?: PlanAddOns
 ): number {
-  return getMailboxInboxLimit(orgTier, includedMessages);
+  return getMailboxInboxLimit(orgTier, includedMessages, addOns);
 }
 
 export function canUseCollaborativeMailbox(orgTier: string): boolean {

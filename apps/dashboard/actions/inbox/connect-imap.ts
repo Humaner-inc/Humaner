@@ -60,6 +60,8 @@ export const connectImap = ownerActionClient
       select: {
         tier: true,
         includedMessages: true,
+        extraSeats: true,
+        extraMailboxes: true,
         completedOnboarding: true,
         _count: { select: { mailboxConnections: true } }
       }
@@ -71,13 +73,12 @@ export const connectImap = ownerActionClient
 
     const inboxLimit = getMailboxAliasLimit(
       organization.tier,
-      organization.includedMessages
+      organization.includedMessages,
+      organization
     );
     const onboardingConnect = !organization.completedOnboarding;
     if (!onboardingConnect && inboxLimit <= 0) {
-      throw new PreConditionError(
-        'Collaborative mailbox requires Custom or Humaner'
-      );
+      throw new PreConditionError('Connecting a mailbox requires Inbox.');
     }
 
     const effectiveLimit = onboardingConnect
@@ -115,7 +116,7 @@ export const connectImap = ownerActionClient
     const remaining = effectiveLimit - organization._count.mailboxConnections;
     if (remaining <= 0) {
       throw new ValidationError(
-        `This plan allows ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
+        `Your plan covers ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free; add a mailbox from Billing to connect another.`
       );
     }
 
@@ -179,7 +180,7 @@ export const connectImap = ownerActionClient
 
           if (currentConnectionCount >= effectiveLimit) {
             throw new ValidationError(
-              `This plan allows ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
+              `Your plan covers ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free; add a mailbox from Billing to connect another.`
             );
           }
 

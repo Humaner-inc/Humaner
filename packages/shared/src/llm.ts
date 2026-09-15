@@ -9,9 +9,7 @@ export type LlmConfig = {
 
 const OUTPUT_TOKEN_CAPS: Record<PlanTier, number> = {
   free: 512,
-  byo: 768,
   classic: 2_048,
-  humaner: 2_048,
 };
 
 export function getLlmConfigForTier(tier: string): LlmConfig {

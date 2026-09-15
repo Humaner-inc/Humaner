@@ -9,7 +9,9 @@ import { AUTH_ACCESS_CODE_LENGTH } from '@/lib/auth/access-code-constants';
 export const VIRAL_BETA_INBOX_FREE_UNTIL = new Date('2026-09-29T23:59:59.999Z');
 
 export const VIRAL_BETA_SHARE_CODE_COUNT = 2;
+/** $10 of the $20 Inbox Companion grant, applied when the workspace launches. */
 export const VIRAL_BETA_STARTER_CREDIT_CENTS = 1_000;
+/** $10 more when the owner follows @usehumaner — stays after Early Access. */
 export const VIRAL_BETA_X_FOLLOW_CREDIT_CENTS = 1_000;
 export const VIRAL_BETA_STARTER_CREDIT_USD =
   VIRAL_BETA_STARTER_CREDIT_CENTS / 100;

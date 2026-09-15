@@ -62,13 +62,6 @@ export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
   mcp: true,
 };
 
-/** Cloud Custom is not sold in Self-Host. */
-export const CUSTOM_PLAN_COMING_SOON = false;
-
-export function isPlanComingSoon(_tier: string): boolean {
-  return false;
-}
-
 export type PlanCapabilityContext = {
   frontierBetaEnabled?: boolean | null;
 };
