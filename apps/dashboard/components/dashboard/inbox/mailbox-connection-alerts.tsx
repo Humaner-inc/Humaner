@@ -15,9 +15,10 @@ const MAX_ERROR_CHARS = 160;
 /** What the teammate has to do, per provider, to bring the mailbox back. */
 function alertHeadline(alert: MailConnectionAlert): string {
   if (alert.status === 'NEEDS_REAUTH') {
-    return alert.provider === 'GMAIL'
-      ? 'Google access expired — reconnect this mailbox.'
-      : 'The mail password stopped working — update the credentials.';
+    if (alert.provider === 'IMAP') {
+      return 'The mail password stopped working — update the credentials.';
+    }
+    return 'The provider revoked access — reconnect this mailbox.';
   }
   if (alert.status === 'DISCONNECTED') {
     return 'This mailbox is disconnected, so nothing is syncing.';
@@ -26,9 +27,12 @@ function alertHeadline(alert: MailConnectionAlert): string {
 }
 
 export function MailboxConnectionAlerts({
-  alerts
+  alerts,
+  canManage
 }: {
   alerts: MailConnectionAlert[];
+  /** Only the workspace owner can fix a connection, so only they see details. */
+  canManage: boolean;
 }): React.JSX.Element | null {
   const pathname = usePathname();
 
@@ -37,6 +41,22 @@ export function MailboxConnectionAlerts({
   }
 
   const onProvidersPage = pathname?.startsWith(Routes.InboxProviders) ?? false;
+
+  // A teammate cannot reconnect anything, so they get the fact and nothing else
+  // — no mailbox addresses, no provider error text.
+  if (!canManage) {
+    return (
+      <div className="flex shrink-0 items-center gap-3 border-b border-amber-500/25 bg-amber-500/[0.07] px-5 py-3 text-xs text-muted-foreground sm:px-6">
+        <TriangleAlertIcon
+          className="size-4 shrink-0 text-amber-600"
+          strokeWidth={1.5}
+        />
+        {alerts.length === 1
+          ? 'A mailbox stopped syncing. Ask the workspace owner to reconnect it.'
+          : `${alerts.length} mailboxes stopped syncing. Ask the workspace owner to reconnect them.`}
+      </div>
+    );
+  }
 
   return (
     <div className="shrink-0 border-b border-amber-500/25 bg-amber-500/[0.07] px-5 py-3 sm:px-6">

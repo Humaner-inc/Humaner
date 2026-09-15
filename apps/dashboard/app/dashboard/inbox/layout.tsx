@@ -42,7 +42,10 @@ async function InboxLayoutBody({
         className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
         style={{ '--accent-color': INBOX_ACCENT } as React.CSSProperties}
       >
-        <MailboxConnectionAlerts alerts={overview?.connectionAlerts ?? []} />
+        <MailboxConnectionAlerts
+          alerts={overview?.connectionAlerts ?? []}
+          canManage={overview?.canManageProviders ?? false}
+        />
         {children}
       </div>
     </InboxPreferencesProvider>
