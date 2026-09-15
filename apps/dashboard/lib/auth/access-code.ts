@@ -3,13 +3,17 @@ import 'server-only';
 import { timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
 
-import { AUTH_ACCESS_CODE_LENGTH } from '@/lib/auth/access-code-constants';
+import {
+  AUTH_ACCESS_CODE_LENGTH,
+  resolveAuthAccessCode
+} from '@/lib/auth/access-code-constants';
 import { AuthCookies } from '@/lib/auth/cookies';
+import {
+  consumeUnusedViralBetaAccessCode,
+  rememberSubmittedAccessCode
+} from '@/lib/auth/viral-beta';
 
 export { AUTH_ACCESS_CODE_LENGTH } from '@/lib/auth/access-code-constants';
-
-/** Default invite code while the gate is on. Override with AUTH_ACCESS_CODE. */
-const DEFAULT_AUTH_ACCESS_CODE = 'earlyaccess';
 
 const ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const ACCESS_COOKIE_VALUE = '1';
@@ -25,30 +29,39 @@ function safeEqual(a: string, b: string): boolean {
 
 /**
  * Gate is on unless AUTH_ACCESS_GATE=off.
- * Code: AUTH_ACCESS_CODE (must be 11 chars) or default `earlyaccess`.
+ * Reusable seed: AUTH_ACCESS_CODE (11 chars) or default `earlyaccess`.
+ * Generated one-time share codes are stored in the database.
  */
 export function isAuthAccessGateEnabled(): boolean {
   return process.env.AUTH_ACCESS_GATE !== 'off';
 }
 
 export function getExpectedAuthAccessCode(): string {
-  const fromEnv = process.env.AUTH_ACCESS_CODE?.trim();
-  if (fromEnv && fromEnv.length === AUTH_ACCESS_CODE_LENGTH) {
-    return fromEnv;
-  }
-  return DEFAULT_AUTH_ACCESS_CODE;
+  return resolveAuthAccessCode();
 }
 
 export function normalizeAuthAccessCode(raw: string): string {
   return raw.trim();
 }
 
-export function isValidAuthAccessCode(raw: string): boolean {
+export async function redeemAuthAccessCode(raw: string): Promise<boolean> {
   const code = normalizeAuthAccessCode(raw);
   if (code.length !== AUTH_ACCESS_CODE_LENGTH) {
     return false;
   }
-  return safeEqual(code, getExpectedAuthAccessCode());
+
+  const genesis = getExpectedAuthAccessCode();
+  if (safeEqual(code, genesis)) {
+    await rememberSubmittedAccessCode(code);
+    return true;
+  }
+
+  const consumed = await consumeUnusedViralBetaAccessCode(code, genesis);
+  if (!consumed) {
+    return false;
+  }
+  await rememberSubmittedAccessCode(code);
+  return true;
 }
 
 export async function hasAuthAccessUnlock(): Promise<boolean> {

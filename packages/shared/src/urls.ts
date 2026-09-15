@@ -152,6 +152,10 @@ export function getXUrl(): string {
   return "https://x.com/usehumaner";
 }
 
+export function getXFollowUrl(): string {
+  return "https://x.com/intent/follow?screen_name=usehumaner";
+}
+
 /** Prefilled compose — the user can edit or write anything. */
 export function getXComposeUrl(text: string): string {
   return `https://x.com/intent/post?text=${encodeURIComponent(text)}`;

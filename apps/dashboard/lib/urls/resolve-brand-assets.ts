@@ -13,6 +13,7 @@ export type ResolvedBrandAssets = {
   accentColor: string | null;
   brandColors: string[];
   canonicalUrl: string | null;
+  description: string | null;
 };
 
 /**
@@ -38,7 +39,8 @@ export async function resolveBrandAssets(
       faviconUrl: metadata.faviconUrl,
       accentColor: metadata.accentColor,
       brandColors: metadata.brandColors,
-      canonicalUrl: metadata.canonicalUrl
+      canonicalUrl: metadata.canonicalUrl,
+      description: metadata.description
     };
   }
 
@@ -50,7 +52,8 @@ export async function resolveBrandAssets(
       faviconUrl: metadata.faviconUrl,
       accentColor: metadata.accentColor,
       brandColors: metadata.brandColors,
-      canonicalUrl: metadata.canonicalUrl
+      canonicalUrl: metadata.canonicalUrl,
+      description: metadata.description
     };
   }
 
@@ -61,6 +64,7 @@ export async function resolveBrandAssets(
     faviconUrl: null,
     accentColor: metadata.accentColor,
     brandColors: metadata.brandColors,
-    canonicalUrl: metadata.canonicalUrl
+    canonicalUrl: metadata.canonicalUrl,
+    description: metadata.description
   };
 }

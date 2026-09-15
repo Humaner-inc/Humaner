@@ -101,10 +101,9 @@ export function AuthAccessWall(): React.JSX.Element {
               />
             </span>
           </div>
-          <h1 className={authPageTitleClassName}>Invite only</h1>
+          <h1 className={authPageTitleClassName}>Early Access</h1>
           <p className={authMutedTextClassName}>
-            Log in and sign up are on invitation only. Enter your access code to
-            continue. (hint: it's 11 caracters)
+            Enter your access code to join. Each shared code works once.
           </p>
         </div>
 

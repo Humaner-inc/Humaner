@@ -31,11 +31,13 @@ export const signUp = actionClient
   .metadata({ actionName: 'signUp' })
   .schema(signUpSchema)
   .action(async ({ parsedInput }) => {
-    await requireAuthAccessUnlock();
-
     const normalizedEmail = parsedInput.email.toLowerCase();
     const intent = parsedInput.intent ?? 'business_owner';
     const invitationId = parsedInput.invitationId?.trim() || undefined;
+
+    if (!(intent === 'team_member' && invitationId)) {
+      await requireAuthAccessUnlock();
+    }
 
     const existingUser = await prisma.user.findFirst({
       where: { email: normalizedEmail },

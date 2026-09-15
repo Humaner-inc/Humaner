@@ -15,3 +15,26 @@ export function getPathname(): string | null {
 
   return pathname;
 }
+
+export function getSearchParam(name: string): string | null {
+  const store = workUnitAsyncStorage.getStore();
+  if (!store || store.type !== 'request') {
+    return null;
+  }
+
+  const url = store.url;
+  if (url instanceof URL) {
+    return url.searchParams.get(name);
+  }
+  if (typeof url === 'object' && url && 'searchParams' in url) {
+    const params = (url as { searchParams?: URLSearchParams }).searchParams;
+    return params?.get(name) ?? null;
+  }
+  if (typeof url === 'object' && url && 'search' in url) {
+    const search = String((url as { search?: string }).search ?? '');
+    return new URLSearchParams(
+      search.startsWith('?') ? search.slice(1) : search
+    ).get(name);
+  }
+  return null;
+}

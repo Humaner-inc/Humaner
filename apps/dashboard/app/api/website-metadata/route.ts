@@ -31,7 +31,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       faviconUrl: null,
       accentColor: null,
       brandColors: [],
-      canonicalUrl: null
+      canonicalUrl: null,
+      description: null
     });
   }
 }

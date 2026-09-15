@@ -52,6 +52,9 @@ export class AuthCookies {
   /** Temporary early-access unlock for /auth/login and /auth/signup. */
   public static AuthAccessUnlock = 'humaner.auth-access';
 
+  /** Unique viral-beta code submitted at the wall (to attach the redeemer). */
+  public static AuthAccessCode = 'humaner.auth-access-code';
+
   public static sessionCookieOptions(expires?: Date): {
     httpOnly: true;
     secure: boolean;

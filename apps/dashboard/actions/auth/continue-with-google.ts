@@ -5,7 +5,10 @@ import { cookies } from 'next/headers';
 import { actionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
-import { requireAuthAccessUnlock } from '@/lib/auth/access-code';
+import {
+  grantAuthAccessUnlock,
+  requireAuthAccessUnlock
+} from '@/lib/auth/access-code';
 import {
   getSafeAuthCallbackUrl,
   toOAuthSignInRedirect
@@ -16,9 +19,12 @@ import { IdentityProvider } from '@/types/identity-provider';
 export const continueWithGoogle = actionClient
   .metadata({ actionName: 'continueWithGoogle' })
   .action(async () => {
-    await requireAuthAccessUnlock();
-
     const cookieStore = await cookies();
+    if (cookieStore.get(AuthCookies.SignUpInvitationId)?.value) {
+      await grantAuthAccessUnlock();
+    } else {
+      await requireAuthAccessUnlock();
+    }
     const fallbackRedirect = getSafeAuthCallbackUrl(
       cookieStore.get(AuthCookies.CallbackUrl)?.value,
       Routes.Home

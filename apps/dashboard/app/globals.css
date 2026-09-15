@@ -1562,6 +1562,21 @@ input[type='password'],
   );
 }
 
+.onboarding-mail-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 58%,
+    transparent 100%
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
   .onboarding-shift-icon,
   .onboarding-send-plane,

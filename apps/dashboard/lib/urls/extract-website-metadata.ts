@@ -15,6 +15,8 @@ export type WebsiteMetadata = {
   brandColors: string[];
   /** Live origin after same-site redirects (apex → www). */
   canonicalUrl: string | null;
+  /** og/twitter/meta description from the homepage. */
+  description: string | null;
 };
 
 const FETCH_TIMEOUT_MS = 8_000;
@@ -47,6 +49,14 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&nbsp;/g, ' ');
+}
+
+function cleanDescription(raw: string): string | null {
+  const text = decodeHtmlEntities(raw).replace(/\s+/g, ' ').trim();
+  if (!text) {
+    return null;
+  }
+  return text.slice(0, 280);
 }
 
 function cleanBusinessName(raw: string): string {
@@ -215,7 +225,8 @@ export async function extractWebsiteMetadata(
         faviconUrl: resolveAssetUrl(finalUrl, '/favicon.ico'),
         accentColor: null,
         brandColors: [],
-        canonicalUrl: finalUrl.origin
+        canonicalUrl: finalUrl.origin,
+        description: null
       };
     }
 
@@ -231,13 +242,20 @@ export async function extractWebsiteMetadata(
 
     const brandColors = extractBrandColorPalette(html);
     const accentColor = extractBrandAccentColor(html) ?? brandColors[0] ?? null;
+    const description = cleanDescription(
+      readMetaContent(html, 'og:description') ??
+        readMetaContent(html, 'twitter:description') ??
+        readMetaContent(html, 'description') ??
+        ''
+    );
 
     return {
       businessName,
       faviconUrl: readFaviconUrl(html, finalUrl),
       accentColor,
       brandColors,
-      canonicalUrl: finalUrl.origin
+      canonicalUrl: finalUrl.origin,
+      description
     };
   } catch (error) {
     console.error('[extractWebsiteMetadata] fetch failed', {
@@ -249,7 +267,8 @@ export async function extractWebsiteMetadata(
       faviconUrl: resolveAssetUrl(pageUrl, '/favicon.ico'),
       accentColor: null,
       brandColors: [],
-      canonicalUrl: null
+      canonicalUrl: null,
+      description: null
     };
   }
 }

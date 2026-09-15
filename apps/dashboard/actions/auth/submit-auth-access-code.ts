@@ -6,7 +6,7 @@ import { actionClient } from '@/actions/safe-action';
 import {
   grantAuthAccessUnlock,
   isAuthAccessGateEnabled,
-  isValidAuthAccessCode
+  redeemAuthAccessCode
 } from '@/lib/auth/access-code';
 import { submitAuthAccessCodeSchema } from '@/schemas/auth/submit-auth-access-code-schema';
 
@@ -18,10 +18,10 @@ export const submitAuthAccessCode = actionClient
       return { unlocked: true as const };
     }
 
-    if (!isValidAuthAccessCode(parsedInput.code)) {
+    if (!(await redeemAuthAccessCode(parsedInput.code))) {
       returnValidationErrors(submitAuthAccessCodeSchema, {
         code: {
-          _errors: ['That code is not valid.']
+          _errors: ['That code is not valid or has already been used.']
         }
       });
     }

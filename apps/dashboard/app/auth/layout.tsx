@@ -2,6 +2,8 @@ import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
+import { InvitationStatus } from '@prisma/client';
+import { validate as uuidValidate } from 'uuid';
 
 import { AuthAccessWall } from '@/components/auth/auth-access-wall';
 import { AuthLayoutFrame } from '@/components/auth/auth-layout-frame';
@@ -15,7 +17,7 @@ import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
-import { getPathname } from '@/lib/network/get-pathname';
+import { getPathname, getSearchParam } from '@/lib/network/get-pathname';
 
 export const metadata: Metadata = {
   ...createPageMetadata(Routes.Login, 'Log in'),
@@ -49,6 +51,21 @@ function isMfaChallengeRoute(): boolean {
 function isLoginOrSignUpRoute(): boolean {
   const pathname = getPathname();
   return pathname === Routes.Login || pathname === Routes.SignUp;
+}
+
+async function hasPendingInvitationSignup(): Promise<boolean> {
+  if (getPathname() !== Routes.SignUp) {
+    return false;
+  }
+  const token = getSearchParam('invitation');
+  if (!token || !uuidValidate(token)) {
+    return false;
+  }
+  const invitation = await prisma.invitation.findFirst({
+    where: { token, status: InvitationStatus.PENDING },
+    select: { id: true }
+  });
+  return Boolean(invitation);
 }
 
 async function getAuthenticatedRedirect(userId: string): Promise<string> {
@@ -93,7 +110,8 @@ async function AuthSessionGate({
   if (
     isLoginOrSignUpRoute() &&
     isAuthAccessGateEnabled() &&
-    !(await hasAuthAccessUnlock())
+    !(await hasAuthAccessUnlock()) &&
+    !(await hasPendingInvitationSignup())
   ) {
     return (
       <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>

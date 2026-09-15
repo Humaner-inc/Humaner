@@ -7,6 +7,7 @@ import {
 import { Role } from '@prisma/client';
 
 import { isAdmin } from '@/lib/auth/permissions';
+import { isViralBetaActive } from '@/lib/auth/viral-beta-constants';
 import { prisma } from '@/lib/db/prisma';
 
 /** Unlimited agent slots when plan limits are bypassed. */
@@ -28,6 +29,16 @@ export async function organizationBypassesPlanLimits(
   });
 
   return adminCount > 0;
+}
+
+export async function organizationHasViralBetaSeats(
+  organizationId: string
+): Promise<boolean> {
+  const organization = await prisma.organization.findFirst({
+    where: { id: organizationId },
+    select: { owner: { select: { viralBetaExpiresAt: true } } }
+  });
+  return isViralBetaActive(organization?.owner?.viralBetaExpiresAt);
 }
 
 export function getEffectiveAgentLimit(

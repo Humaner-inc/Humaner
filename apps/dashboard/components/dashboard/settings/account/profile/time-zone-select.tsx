@@ -40,7 +40,7 @@ export function TimeZoneSelect({
       <SelectTrigger className={triggerClassName ?? 'h-9 w-full max-w-64'}>
         <SelectValue placeholder="Timezone" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent collisionPadding={16}>
         {allowUnset ? <SelectItem value={UNSET}>Not set</SelectItem> : null}
         {options.map((zone) => (
           <SelectItem

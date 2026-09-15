@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { STARTER_CREDIT_USD } from '@humaner/shared/credits';
 import { MailIcon } from '@humaner/shared/icons';
 import { SealCheckIcon } from '@phosphor-icons/react/dist/ssr/SealCheck';
 import { toast } from 'sonner';
@@ -76,7 +75,7 @@ export function InboxConnectPromptGate({
           </DialogTitle>
           <DialogDescription>
             {isCredits
-              ? `$${STARTER_CREDIT_USD} just landed into your wallet to help you get started.`
+              ? 'Credits just landed into your wallet to help you get started.'
               : 'You can link your mails right away to manage all your support in one place.'}
           </DialogDescription>
         </DialogHeader>
