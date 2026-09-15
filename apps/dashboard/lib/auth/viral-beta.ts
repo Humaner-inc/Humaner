@@ -1,23 +1,19 @@
 import 'server-only';
 
 import { cookies } from 'next/headers';
-import { getPlanCapabilities } from '@humaner/shared/plans';
-import { getDefaultIncludedMessagesForTier } from '@humaner/shared/pricing-volume';
 import { WorkspaceRole } from '@prisma/client';
 
 import { resolveAuthAccessCode } from '@/lib/auth/access-code-constants';
 import { AuthCookies } from '@/lib/auth/cookies';
 import {
   generateViralBetaAccessCode,
-  isViralBetaActive,
   isViralBetaCodeFormat,
   VIRAL_BETA_INBOX_FREE_UNTIL,
   VIRAL_BETA_SHARE_CODE_COUNT
 } from '@/lib/auth/viral-beta-constants';
-import { syncAccountTierWithin } from '@/lib/billing/billing';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
+import { PreConditionError } from '@/lib/validation/exceptions';
 
 export { generateViralBetaAccessCode } from '@/lib/auth/viral-beta-constants';
 
@@ -140,90 +136,6 @@ export async function issueViralBetaShareCodesForOwner(
   }
 
   return [...existing.map((row) => row.code), ...created];
-}
-
-export async function expireViralBetaIfNeeded(
-  ownerId: string,
-  now: Date = new Date()
-): Promise<boolean> {
-  if (isOssDeployment()) {
-    return false;
-  }
-
-  const owner = await prisma.user.findFirst({
-    where: { id: ownerId },
-    select: {
-      id: true,
-      tier: true,
-      billingModel: true,
-      viralBetaExpiresAt: true,
-      frontierBetaEnabled: true,
-      creditBalanceCents: true,
-      starterCreditGrantedAt: true,
-      polarCustomerId: true
-    }
-  });
-  if (!owner) {
-    throw new NotFoundError('Account not found');
-  }
-  if (!owner.viralBetaExpiresAt) {
-    return false;
-  }
-  if (isViralBetaActive(owner.viralBetaExpiresAt, now)) {
-    return false;
-  }
-  if (owner.billingModel === 'subscription' || owner.tier !== 'classic') {
-    return false;
-  }
-
-  const includedMessages = getDefaultIncludedMessagesForTier('free');
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: owner.id },
-      data: {
-        tier: 'free',
-        includedMessages
-      }
-    });
-    await syncAccountTierWithin(tx, owner.id, {
-      tier: 'free',
-      messages: includedMessages,
-      frontierBetaEnabled: owner.frontierBetaEnabled,
-      billingModel: owner.billingModel,
-      creditBalanceCents: owner.creditBalanceCents,
-      starterCreditGrantedAt: owner.starterCreditGrantedAt,
-      polarCustomerId: owner.polarCustomerId,
-      capabilities: getPlanCapabilities('free')
-    });
-  });
-
-  return true;
-}
-
-export async function expireDueViralBetaOwners(
-  now: Date = new Date()
-): Promise<number> {
-  if (isOssDeployment()) {
-    return 0;
-  }
-
-  const owners = await prisma.user.findMany({
-    where: {
-      viralBetaExpiresAt: { lte: now },
-      tier: 'classic',
-      billingModel: 'credits'
-    },
-    select: { id: true },
-    take: 200
-  });
-
-  let expired = 0;
-  for (const owner of owners) {
-    if (await expireViralBetaIfNeeded(owner.id, now)) {
-      expired += 1;
-    }
-  }
-  return expired;
 }
 
 export function viralBetaInboxExpiresAt(): Date {

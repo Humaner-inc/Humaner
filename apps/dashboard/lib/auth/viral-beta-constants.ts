@@ -1,6 +1,11 @@
 import { AUTH_ACCESS_CODE_LENGTH } from '@/lib/auth/access-code-constants';
 
-/** Inbox is free for beta owners through the end of 29 Sep 2026 (two weeks from 15 Sep). */
+/**
+ * Anyone who starts Inbox through the end of 29 Sep 2026 keeps it without the
+ * monthly charge — one mailbox, one seat, every tool. After that the plan is
+ * $20/mo. The date closes the offer to new workspaces; it never takes the plan
+ * away from a workspace that already has it.
+ */
 export const VIRAL_BETA_INBOX_FREE_UNTIL = new Date('2026-09-29T23:59:59.999Z');
 
 export const VIRAL_BETA_SHARE_CODE_COUNT = 2;
@@ -30,6 +35,20 @@ export function isViralBetaActive(
     return false;
   }
   return expires.getTime() > now.getTime();
+}
+
+/**
+ * An account that took Inbox during Early Access and keeps it unpaid. Credits
+ * and add-on seats or mailboxes are still bought like anyone else's, so this
+ * only answers "does this account owe the $20 monthly".
+ */
+export function isGrandfatheredInboxAccount(account: {
+  viralBetaExpiresAt: Date | string | null | undefined;
+  billingModel?: string | null;
+}): boolean {
+  return (
+    Boolean(account.viralBetaExpiresAt) && account.billingModel === 'credits'
+  );
 }
 
 export function formatViralBetaInboxFreeUntil(

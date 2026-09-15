@@ -47,7 +47,6 @@ import {
   requirePathAccessFromHeaders
 } from '@/lib/auth/require-workspace-access';
 import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
-import { expireViralBetaIfNeeded } from '@/lib/auth/viral-beta';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
@@ -97,18 +96,6 @@ export async function DashboardSessionShell({
   });
 
   const oss = isOssDeployment();
-
-  if (
-    !oss &&
-    userFromDb?.workspaceRole === WorkspaceRole.OWNER &&
-    userFromDb.viralBetaExpiresAt
-  ) {
-    try {
-      await expireViralBetaIfNeeded(session.user.id);
-    } catch {
-      // Expiry is also handled by the billing reconcile cron.
-    }
-  }
 
   if (!checkSession(session)) {
     if (!oss && !userFromDb?.completedOnboarding) {
