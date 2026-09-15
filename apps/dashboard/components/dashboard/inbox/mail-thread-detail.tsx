@@ -15,12 +15,15 @@ import { format } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { fetchMailMessageBodies } from '@/actions/inbox/get-mail-thread';
+import { blockMailSender } from '@/actions/inbox/manage-blocked-senders';
 import {
   applyMailThreadTag,
   archiveMailThread,
   assignMailThread,
   deleteMailThread,
-  markMailThreadRead
+  markMailThreadRead,
+  moveMailThreadFolder
 } from '@/actions/inbox/manage-mail-thread';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
@@ -33,6 +36,7 @@ import {
   COMPANION_ASSIGNEE_PERSON
 } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
+import { BlockMailSenderDialog } from '@/components/dashboard/inbox/block-mail-sender-dialog';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import {
   DeleteMailThreadsDialog,
@@ -181,6 +185,32 @@ function shouldAutoSuggest(
   return last?.direction === 'INBOUND';
 }
 
+function SuggestedReplySkeleton({
+  widths
+}: {
+  widths: readonly [string, string];
+}): React.JSX.Element {
+  return (
+    <li className="flex items-start gap-3 px-1 py-2">
+      <span className="mt-0.5 size-6 shrink-0 animate-pulse rounded-lg bg-[#0a0d0d]/[0.08] dark:bg-white/[0.08]" />
+      <span className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
+        <span
+          className={cn(
+            'h-3 animate-pulse rounded bg-[#0a0d0d]/[0.08] dark:bg-white/[0.08]',
+            widths[0]
+          )}
+        />
+        <span
+          className={cn(
+            'h-3 animate-pulse rounded bg-[#0a0d0d]/[0.08] dark:bg-white/[0.08]',
+            widths[1]
+          )}
+        />
+      </span>
+    </li>
+  );
+}
+
 function mailSnippet(bodyText: string | null, bodyHtml: string | null): string {
   const raw =
     bodyText?.trim() || (bodyHtml ? htmlToPlainText(bodyHtml).trim() : '');
@@ -239,6 +269,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
 }): React.JSX.Element {
   const outbound = message.direction === 'OUTBOUND';
   const rich = isRichMailHtml(message.bodyHtml);
+  const missingBody = !message.bodyHtml && !message.bodyText;
   const { name: fromName, email: fromEmail } = parseMailAddress(
     message.fromAddress
   );
@@ -325,13 +356,17 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
 
         {expanded ? (
           <div className={cn(!rich && 'px-0.5')}>
-            <MailMessageBody
-              bodyHtml={message.bodyHtml}
-              bodyText={message.bodyText}
-              subject={subject}
-              className="mt-0"
-              eager
-            />
+            {missingBody ? (
+              <div className="mt-1 h-24 animate-pulse rounded-md bg-muted/40" />
+            ) : (
+              <MailMessageBody
+                bodyHtml={message.bodyHtml}
+                bodyText={message.bodyText}
+                subject={subject}
+                className="mt-0"
+                eager
+              />
+            )}
           </div>
         ) : null}
       </article>
@@ -372,7 +407,21 @@ export function MailThreadDetail({
   const { play } = useOnboardingSound();
   const [thread, setThread] = React.useState(threadProp);
   React.useEffect(() => {
-    setThread(threadProp);
+    setThread((current) => {
+      if (current.id !== threadProp.id) return threadProp;
+      const loadedById = new Map(
+        current.messages
+          .filter((message) => message.bodyHtml || message.bodyText)
+          .map((message) => [message.id, message])
+      );
+      if (loadedById.size === 0) return threadProp;
+      return {
+        ...threadProp,
+        messages: threadProp.messages.map(
+          (message) => loadedById.get(message.id) ?? message
+        )
+      };
+    });
   }, [threadProp]);
 
   const noteCount = thread.notes?.length ?? 0;
@@ -427,6 +476,49 @@ export function MailThreadDetail({
     });
   }, [lastMessageId]);
 
+  const loadingBodiesRef = React.useRef(new Set<string>());
+  const loadMessageBody = React.useCallback(
+    (messageId: string) => {
+      if (loadingBodiesRef.current.has(messageId)) return;
+      loadingBodiesRef.current.add(messageId);
+      void fetchMailMessageBodies({
+        threadId: thread.id,
+        messageIds: [messageId]
+      })
+        .then((result) => {
+          loadingBodiesRef.current.delete(messageId);
+          const rows = result?.data;
+          if (!rows?.length) return;
+          const byId = new Map(rows.map((row) => [row.id, row]));
+          setThread((current) => ({
+            ...current,
+            messages: current.messages.map((message) => {
+              const row = byId.get(message.id);
+              return row
+                ? {
+                    ...message,
+                    bodyHtml: row.bodyHtml,
+                    bodyText: row.bodyText
+                  }
+                : message;
+            })
+          }));
+        })
+        .catch(() => {
+          loadingBodiesRef.current.delete(messageId);
+        });
+    },
+    [thread.id]
+  );
+
+  React.useEffect(() => {
+    for (const message of thread.messages) {
+      if (!expandedIds.has(message.id)) continue;
+      if (message.bodyHtml || message.bodyText) continue;
+      loadMessageBody(message.id);
+    }
+  }, [expandedIds, loadMessageBody, thread.messages]);
+
   const applicableTags = tagsForAlias(tags, thread.aliasId);
   const sendIconRef = React.useRef<SendIconHandle>(null);
   const successTimerRef = React.useRef<number | null>(null);
@@ -445,8 +537,12 @@ export function MailThreadDetail({
   const [sendPhase, setSendPhase] = React.useState<SendPhase>('idle');
   const markedReadRef = React.useRef(false);
   const isArchived = Boolean(thread.archivedAt);
+  const folder = thread.folder;
+  const inTrash = folder === 'TRASH';
+  const inSpam = folder === 'SPAM';
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
+  const [blockOpen, setBlockOpen] = React.useState(false);
 
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
@@ -499,9 +595,7 @@ export function MailThreadDetail({
     }
   });
 
-  const { execute: markRead } = useAction(markMailThreadRead, {
-    onSuccess: () => router.refresh()
-  });
+  const { execute: markRead } = useAction(markMailThreadRead);
 
   const { execute: runArchive } = useAction(archiveMailThread, {
     onSuccess: () => router.refresh(),
@@ -509,9 +603,23 @@ export function MailThreadDetail({
       toast.error(error.serverError || 'Could not archive')
   });
 
+  const { execute: runMove } = useAction(moveMailThreadFolder, {
+    onSuccess: () => router.refresh(),
+    onError: ({ error }) => toast.error(error.serverError || 'Could not move')
+  });
+
+  const { execute: runBlock } = useAction(blockMailSender, {
+    onSuccess: ({ data }) => {
+      toast.success(data?.email ? `Blocked ${data.email}` : 'Sender blocked');
+      router.refresh();
+    },
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not block sender')
+  });
+
   const { execute: runDelete } = useAction(deleteMailThread, {
     onSuccess: () => {
-      toast.success('Deleted 1');
+      toast.success(inTrash ? 'Deleted 1' : 'Moved to Trash');
       router.refresh();
     },
     onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
@@ -532,6 +640,27 @@ export function MailThreadDetail({
     removeAndClose();
     toast.success(archive ? 'Archived' : 'Moved to inbox');
     runArchive({ threadId: thread.id, archive });
+  };
+
+  const handleMoveFolder = (next: 'INBOX' | 'SPAM'): void => {
+    removeAndClose();
+    toast.success(
+      next === 'SPAM'
+        ? 'Marked as spam'
+        : inTrash
+          ? 'Restored'
+          : 'Moved to inbox'
+    );
+    runMove({ threadId: thread.id, folder: next });
+  };
+
+  const handleBlock = (): void => {
+    setBlockOpen(true);
+  };
+
+  const confirmBlock = (): void => {
+    removeAndClose();
+    runBlock({ threadId: thread.id });
   };
 
   const handleDelete = (): void => {
@@ -627,12 +756,13 @@ export function MailThreadDetail({
   }, [composerOpen]);
 
   React.useEffect(() => {
+    if (embedded) return;
     if (!thread.isUnread || markedReadRef.current) return;
     markedReadRef.current = true;
     onPatched?.({ isUnread: false });
     markRead({ threadId: thread.id, isUnread: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thread.id]);
+  }, [embedded, thread.id]);
 
   React.useEffect(() => {
     if (!suggesting) return;
@@ -905,7 +1035,15 @@ export function MailThreadDetail({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {isArchived ? (
+              {inTrash ? (
+                <DropdownMenuItem onSelect={() => handleMoveFolder('INBOX')}>
+                  Restore
+                </DropdownMenuItem>
+              ) : inSpam ? (
+                <DropdownMenuItem onSelect={() => handleMoveFolder('INBOX')}>
+                  Not spam
+                </DropdownMenuItem>
+              ) : isArchived ? (
                 <DropdownMenuItem onSelect={() => handleArchive(false)}>
                   Move to inbox
                 </DropdownMenuItem>
@@ -914,6 +1052,16 @@ export function MailThreadDetail({
                   Archive
                 </DropdownMenuItem>
               )}
+              {!inSpam && !inTrash && folder !== 'SENT' ? (
+                <DropdownMenuItem onSelect={() => handleMoveFolder('SPAM')}>
+                  Report spam
+                </DropdownMenuItem>
+              ) : null}
+              {folder !== 'SENT' && !inTrash ? (
+                <DropdownMenuItem onSelect={handleBlock}>
+                  Block sender
+                </DropdownMenuItem>
+              ) : null}
               <AssigneeMenuItems
                 members={members}
                 value={assignValue}
@@ -1001,7 +1149,7 @@ export function MailThreadDetail({
             variant="ghost"
             size="icon"
             className="size-8 rounded-lg text-destructive hover:text-destructive"
-            title="Delete"
+            title={inTrash ? 'Delete forever' : 'Move to Trash'}
             onClick={() => {
               requestMailDelete(
                 skipDeleteWarning,
@@ -1054,20 +1202,38 @@ export function MailThreadDetail({
 
               {suggesting ? (
                 <article className="w-full rounded-lg bg-[#fcf4ec] px-5 py-4 dark:bg-[#0A0D0D]">
-                  {suggestionsLoading ? (
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-2.5">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
                         <CompanionIcon
                           active
                           size={20}
                           character={companionCharacter}
-                          state="thinking"
+                          state={suggestionsLoading ? 'thinking' : 'enter'}
                           className="size-5"
                         />
-                        <p className="text-sm text-muted-foreground">
-                          Suggesting replies
+                        <p className="truncate font-fellix text-sm font-medium">
+                          Suggested reply
                         </p>
                       </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        To:{' '}
+                        <span style={{ color: 'var(--accent-color, #001afc)' }}>
+                          {toName}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-4 font-mono"
+                        disabled={loadingSuggestions}
+                        onClick={suggestAgain}
+                      >
+                        Suggest again
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -1078,105 +1244,62 @@ export function MailThreadDetail({
                         Cancel
                       </Button>
                     </div>
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <CompanionIcon
-                              active
-                              size={20}
-                              character={companionCharacter}
-                              state="enter"
-                              className="size-5"
-                            />
-                            <p className="truncate font-fellix text-sm font-medium">
-                              Suggested reply
-                            </p>
-                          </div>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            To:{' '}
-                            <span
-                              style={{ color: 'var(--accent-color, #001afc)' }}
-                            >
-                              {toName}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-9 px-4 font-mono"
-                            disabled={loadingSuggestions}
-                            onClick={suggestAgain}
-                          >
-                            Suggest again
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-9 px-4 font-mono"
-                            onClick={discardSuggestions}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
+                  </div>
 
-                      {suggestionsReady ? (
-                        <ul className="mt-3 space-y-1">
-                          {suggestions.map((suggestion, index) => {
-                            const active = selectedIndex === index;
-                            return (
-                              <li key={`${suggestion.label}-${index}`}>
-                                <button
-                                  type="button"
-                                  onClick={() => pickSuggestion(index)}
-                                  className={cn(
-                                    'flex w-full items-center gap-3 rounded-lg px-1 py-2.5 text-left text-sm transition-colors',
-                                    active ? accentSoftBg : 'hover:bg-muted/60'
-                                  )}
-                                >
-                                  <span
-                                    className={cn(
-                                      'flex size-6 shrink-0 items-center justify-center rounded-lg font-mono text-[11px]',
-                                      active
-                                        ? 'text-foreground'
-                                        : 'bg-muted text-muted-foreground'
-                                    )}
-                                    style={
-                                      active
-                                        ? {
-                                            backgroundColor:
-                                              'color-mix(in srgb, var(--accent-color, #001afc) 28%, transparent)'
-                                          }
-                                        : undefined
-                                    }
-                                  >
-                                    {index + 1}
-                                  </span>
-                                  <span className="min-w-0 flex-1 truncate">
-                                    {suggestion.label}
-                                  </span>
-                                  {active ? (
-                                    <CheckIcon
-                                      className="size-3.5 shrink-0"
-                                      style={{
-                                        color: 'var(--accent-color, #001afc)'
-                                      }}
-                                    />
-                                  ) : null}
-                                </button>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      ) : null}
-                    </>
-                  )}
+                  {suggestionsLoading ? (
+                    <ul className="mt-3">
+                      <SuggestedReplySkeleton widths={['w-[88%]', 'w-[62%]']} />
+                      <SuggestedReplySkeleton widths={['w-[94%]', 'w-[48%]']} />
+                    </ul>
+                  ) : suggestionsReady ? (
+                    <ul className="mt-3 space-y-1">
+                      {suggestions.map((suggestion, index) => {
+                        const active = selectedIndex === index;
+                        return (
+                          <li key={`${suggestion.label}-${index}`}>
+                            <button
+                              type="button"
+                              onClick={() => pickSuggestion(index)}
+                              className={cn(
+                                'flex w-full items-center gap-3 rounded-lg px-1 py-2.5 text-left text-sm transition-colors',
+                                active ? accentSoftBg : 'hover:bg-muted/60'
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  'flex size-6 shrink-0 items-center justify-center rounded-lg font-mono text-[11px]',
+                                  active
+                                    ? 'text-foreground'
+                                    : 'bg-muted text-muted-foreground'
+                                )}
+                                style={
+                                  active
+                                    ? {
+                                        backgroundColor:
+                                          'color-mix(in srgb, var(--accent-color, #001afc) 28%, transparent)'
+                                      }
+                                    : undefined
+                                }
+                              >
+                                {index + 1}
+                              </span>
+                              <span className="min-w-0 flex-1 truncate">
+                                {suggestion.label}
+                              </span>
+                              {active ? (
+                                <CheckIcon
+                                  className="size-3.5 shrink-0"
+                                  style={{
+                                    color: 'var(--accent-color, #001afc)'
+                                  }}
+                                />
+                              ) : null}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
                 </article>
               ) : null}
 
@@ -1310,11 +1433,18 @@ export function MailThreadDetail({
       <DeleteMailThreadsDialog
         open={deleteOpen}
         count={1}
+        mode={inTrash ? 'forever' : 'trash'}
         onOpenChange={setDeleteOpen}
         onConfirm={() => {
           setSkipDeleteWarning(readSkipDeleteWarning());
           handleDelete();
         }}
+      />
+      <BlockMailSenderDialog
+        open={blockOpen}
+        sender={senderEmail}
+        onOpenChange={setBlockOpen}
+        onConfirm={confirmBlock}
       />
     </div>
   );

@@ -169,6 +169,7 @@ export async function composeMailboxMail(input: {
       subject: input.subject,
       status: MailThreadStatus.OPEN,
       isUnread: false,
+      folder: 'SENT',
       lastMessageAt: sentAt,
       assigneeKind: 'HUMAN',
       assigneeId: input.actorUserId,
@@ -189,6 +190,7 @@ export async function composeMailboxMail(input: {
 
   revalidatePath(Routes.InboxAll);
   revalidatePath(Routes.InboxAssigned);
+  revalidatePath(Routes.InboxSent);
   revalidatePath(inboxThreadRoute(thread.id));
 
   return {

@@ -2,7 +2,6 @@ import * as React from 'react';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { brand } from '@/brand.config';
-import { getVerticalConfig } from '@/services/training/verticals';
 import { isCreditsBillingModel } from '@humaner/shared/credits';
 import {
   getPlanCapabilities,
@@ -10,7 +9,6 @@ import {
   isCloudFreePlan
 } from '@humaner/shared/plans';
 import { getPrivacyUrl } from '@humaner/shared/urls';
-import { pickSuggestedTopics } from '@humaner/shared/widget-suggested-topics';
 import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
@@ -32,6 +30,7 @@ import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
+import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
 import {
   getMailInboxes,
   getMailUnreadCount
@@ -40,6 +39,7 @@ import { getDashboardNotifications } from '@/data/notifications/get-dashboard-no
 import { getTeamWorkspaceFeed } from '@/data/team/get-team-workspace';
 import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switcher-data';
 import { OrgModeProvider } from '@/hooks/use-org-mode';
+import { COMPANION_STARTER_TOPICS } from '@/lib/ask-humaner/companion-starter-topics';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import {
@@ -88,7 +88,6 @@ export async function DashboardSessionShell({
           frontierBetaEnabled: true,
           accentColor: true,
           name: true,
-          verticalTopics: true,
           _count: {
             select: { mailboxConnections: true }
           }
@@ -184,7 +183,8 @@ export async function DashboardSessionShell({
     mailInboxes,
     teamFeed,
     taskProposals,
-    mcpIntelligenceEnabled
+    mcpIntelligenceEnabled,
+    companionRights
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -204,7 +204,14 @@ export async function DashboardSessionShell({
       : notificationsPromise.then((result) =>
           getCompanionTaskProposals(result.items)
         ),
-    oss ? Promise.resolve(false) : getMcpIntelligenceEnabled()
+    oss ? Promise.resolve(false) : getMcpIntelligenceEnabled(),
+    oss
+      ? Promise.resolve({
+          actions: ['DRAFT' as const],
+          integrations: [],
+          actionSuggestions: true
+        })
+      : getCompanionWorkspaceRights()
   ]);
   const {
     items: notifications,
@@ -250,14 +257,9 @@ export async function DashboardSessionShell({
   const companionOrganizationLogoUrl = brand.logo;
 
   const organization = userFromDb!.organization!;
-  const industryVertical = organization.industry
-    ? getVerticalConfig(organization.industry)
-    : null;
-  const askHumanerSuggestedTopics = pickSuggestedTopics(
-    organization.verticalTopics.length > 0
-      ? organization.verticalTopics
-      : (industryVertical?.commonTopics ?? [])
-  );
+  const askHumanerSuggestedTopics = companionRights.actionSuggestions
+    ? [...COMPANION_STARTER_TOPICS]
+    : [];
   // MCP intelligence and Companion are mutually exclusive: when a workspace
   // hands the intelligence layer to its own agent over MCP, hide Companion.
   const copilotEnabled =
@@ -367,6 +369,7 @@ export async function DashboardSessionShell({
                     dashboardVisitorId={dashboardVisitorId}
                     visitorMetadata={visitorMetadata}
                     suggestedTopics={askHumanerSuggestedTopics}
+                    actionSuggestionsEnabled={companionRights.actionSuggestions}
                     taskProposals={taskProposals}
                   >
                     {dashboardShell}

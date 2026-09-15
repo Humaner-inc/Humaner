@@ -10,11 +10,13 @@ import {
   InboxSettingsTabs,
   type WorkspaceSettingsTab
 } from '@/components/dashboard/inbox/inbox-settings-tabs';
+import { MailBlockList } from '@/components/dashboard/inbox/mail-block-list';
 import { WorkspaceConnectApps } from '@/components/dashboard/inbox/workspace-connect-apps';
 import { WorkspaceSettingsIntro } from '@/components/dashboard/inbox/workspace-settings-intro';
 import { buttonVariants } from '@/components/ui/button';
 import { Routes } from '@/constants/routes';
 import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
+import { getBlockedSenders } from '@/data/inbox/get-blocked-senders';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getMailAliases } from '@/data/inbox/get-mail-aliases';
 import { cn } from '@/lib/utils';
@@ -39,9 +41,10 @@ export default async function InboxSettingsPage({
     return <InboxUpgradeEmptyState />;
   }
 
-  const [aliases, rights] = await Promise.all([
+  const [aliases, rights, blockedSenders] = await Promise.all([
     getMailAliases(),
-    getCompanionWorkspaceRights()
+    getCompanionWorkspaceRights(),
+    getBlockedSenders()
   ]);
 
   const mailboxes = new Map<
@@ -69,9 +72,9 @@ export default async function InboxSettingsPage({
 
   const intro =
     tab === 'companion'
-      ? 'What Companion may draft, assign, or send across every inbox.'
+      ? 'What Companion may draft, assign, or send, and whether action chips appear above the composer.'
       : tab === 'inbox'
-        ? `Humaner detect aliases for your inbox so you can use them while sending emails.`
+        ? `Humaner detect aliases for your inbox so you can use them while sending emails. Block senders to file their mail to Spam.`
         : overview.canManageProviders
           ? 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate.'
           : 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate. Only the workspace owner can change this.';
@@ -112,54 +115,64 @@ export default async function InboxSettingsPage({
         <CompanionWorkspaceSettings
           actions={rights.actions}
           autoSuggestReplies={overview.autoSuggestReplies}
+          actionSuggestions={rights.actionSuggestions}
           canManage={overview.canManageProviders}
-        />
-      ) : !overview.hasConnections ? (
-        <InboxOptionalEmptyState
-          title="Connect an inbox first"
-          description="Aliases live on a connected mailbox. Humaner does not create them."
         />
       ) : (
         <div className="space-y-4">
-          {[...mailboxes.values()].map((mailbox) => (
-            <section
-              key={`${mailbox.providerName}-${mailbox.email}`}
-              className="overflow-hidden rounded-md border"
-            >
-              <div className="border-b bg-muted/30 px-4 py-2.5">
-                <p className="font-mono text-sm font-medium">{mailbox.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  {mailbox.providerName} · inbox
-                </p>
-              </div>
-              <ul className="divide-y">
-                {mailbox.aliases.map((alias) => {
-                  const isLogin =
-                    alias.address.toLowerCase() === mailbox.email.toLowerCase();
-                  return (
-                    <li
-                      key={alias.id}
-                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-                    >
-                      <div>
-                        <p className="font-mono text-sm font-medium">
-                          {alias.address}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {isLogin ? 'Mailbox login' : 'Sending alias'} ·{' '}
-                          {alias.memberCount} member
-                          {alias.memberCount === 1 ? '' : 's'}
-                        </p>
-                      </div>
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {alias.enabled ? 'Active' : 'Disabled'}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+          {!overview.hasConnections ? (
+            <InboxOptionalEmptyState
+              title="Connect an inbox first"
+              description="Aliases live on a connected mailbox. Humaner does not create them."
+            />
+          ) : (
+            [...mailboxes.values()].map((mailbox) => (
+              <section
+                key={`${mailbox.providerName}-${mailbox.email}`}
+                className="overflow-hidden rounded-md border"
+              >
+                <div className="border-b bg-muted/30 px-4 py-2.5">
+                  <p className="font-mono text-sm font-medium">
+                    {mailbox.email}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {mailbox.providerName} · inbox
+                  </p>
+                </div>
+                <ul className="divide-y">
+                  {mailbox.aliases.map((alias) => {
+                    const isLogin =
+                      alias.address.toLowerCase() ===
+                      mailbox.email.toLowerCase();
+                    return (
+                      <li
+                        key={alias.id}
+                        className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                      >
+                        <div>
+                          <p className="font-mono text-sm font-medium">
+                            {alias.address}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {isLogin ? 'Mailbox login' : 'Sending alias'} ·{' '}
+                            {alias.memberCount} member
+                            {alias.memberCount === 1 ? '' : 's'}
+                          </p>
+                        </div>
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {alias.enabled ? 'Active' : 'Disabled'}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))
+          )}
+          <MailBlockList
+            senders={blockedSenders}
+            canManage={overview.canManageProviders}
+          />
         </div>
       )}
     </div>

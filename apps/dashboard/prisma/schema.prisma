@@ -248,6 +248,8 @@ model Organization {
   mcpIntelligenceEnabled     Boolean                  @default(false)
   /// Workspace Companion mail rights: DRAFT, ASSIGN, SEND. Empty inherits alias policies.
   companionActions           String[]                 @default([])
+  /// When true, Companion shows starter and follow-up action chips.
+  companionActionSuggestions Boolean                  @default(true)
   agents                     Agent[]
   agentIntegrations          AgentIntegration[]
   apiKeys                    ApiKey[]
@@ -259,6 +261,7 @@ model Organization {
   mailAliases                MailAlias[]
   mailThreads                MailThread[]
   mailTags                   MailTag[]
+  mailBlockedSenders         MailBlockedSender[]
   memberships                OrganizationMembership[]
   joinRequests               WorkspaceJoinRequest[]
   teamMemberProfiles         TeamMemberProfile[]
@@ -1036,6 +1039,13 @@ enum MailMessageDirection {
   OUTBOUND @map("outbound")
 }
 
+enum MailThreadFolder {
+  INBOX @map("inbox")
+  SENT  @map("sent")
+  SPAM  @map("spam")
+  TRASH @map("trash")
+}
+
 enum MailAssigneeKind {
   UNASSIGNED @map("unassigned")
   HUMAN      @map("human")
@@ -1133,6 +1143,7 @@ model MailThread {
   subject          String           @db.VarChar(998)
   status           MailThreadStatus @default(OPEN)
   isUnread         Boolean          @default(true)
+  folder           MailThreadFolder @default(INBOX)
   archivedAt       DateTime?
   assigneeKind     MailAssigneeKind @default(UNASSIGNED)
   assigneeId       String?          @db.Uuid
@@ -1153,6 +1164,7 @@ model MailThread {
   @@unique([aliasId, providerThreadId], map: "UQ_MailThread_alias_providerThread")
   @@index([organizationId, status, lastMessageAt], map: "IX_MailThread_org_status_last")
   @@index([organizationId, isUnread, archivedAt], map: "IX_MailThread_org_unread_archived")
+  @@index([organizationId, folder, archivedAt], map: "IX_MailThread_org_folder_archived")
   @@index([assigneeId], map: "IX_MailThread_assigneeId")
   @@index([assigneeKind], map: "IX_MailThread_assigneeKind")
   @@index([handoffTicketId], map: "IX_MailThread_handoffTicketId")
@@ -1176,6 +1188,18 @@ model MailTag {
 
   @@index([organizationId], map: "IX_MailTag_organizationId")
   @@index([organizationId, aliasId], map: "IX_MailTag_organizationId_aliasId")
+}
+
+/// Workspace block list — inbound mail from these addresses is filed to Spam.
+model MailBlockedSender {
+  id             String       @id(map: "PK_MailBlockedSender") @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  email          String       @db.VarChar(255)
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, email], map: "UQ_MailBlockedSender_org_email")
+  @@index([organizationId], map: "IX_MailBlockedSender_organizationId")
 }
 
 model MailThreadTag {

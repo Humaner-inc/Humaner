@@ -19,6 +19,7 @@ export async function loadAssignedWorkByUser(
         assigneeId: { not: null },
         assigneeKind: 'HUMAN',
         archivedAt: null,
+        folder: { in: ['INBOX', 'SENT'] },
         status: { in: ['OPEN', 'PENDING'] }
       },
       _count: { id: true }

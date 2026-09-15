@@ -14,6 +14,11 @@ import {
   rewriteMailAssetUrls,
   stripMailPreviewBlocks
 } from '@/lib/inbox/mail-body-display';
+import {
+  folderForNewThread,
+  inboundThreadPatch,
+  loadBlockedSenderSet
+} from '@/lib/inbox/mail-thread-folder';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
@@ -404,6 +409,7 @@ async function persistMessages(
   messages: ParsedSyncMessage[]
 ): Promise<number> {
   let imported = 0;
+  const blocked = await loadBlockedSenderSet(connection.organizationId);
 
   for (const message of messages) {
     let importedInboundThreadId: string | null = null;
@@ -425,12 +431,17 @@ async function persistMessages(
           providerThreadId: message.providerThreadId,
           subject: message.subject,
           lastMessageAt: message.sentAt,
-          isUnread: isInbound
+          isUnread: isInbound,
+          folder: folderForNewThread({
+            direction: message.direction,
+            fromAddress: message.fromAddress,
+            blocked
+          })
         },
         update: {
           subject: message.subject
         },
-        select: { id: true, lastMessageAt: true }
+        select: { id: true, lastMessageAt: true, folder: true }
       });
 
       const existing = await tx.mailMessage.findUnique({
@@ -467,7 +478,11 @@ async function persistMessages(
           data: {
             ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
             ...(isInbound
-              ? { isUnread: true, archivedAt: null }
+              ? inboundThreadPatch({
+                  currentFolder: thread.folder,
+                  fromAddress: message.fromAddress,
+                  blocked
+                })
               : { isUnread: false })
           }
         });

@@ -3,7 +3,10 @@
 import { z } from 'zod';
 
 import { authActionClient } from '@/actions/safe-action';
-import { getMailThread } from '@/data/inbox/get-mail-threads';
+import {
+  getMailMessageBodies,
+  getMailThread
+} from '@/data/inbox/get-mail-threads';
 import { NotFoundError } from '@/lib/validation/exceptions';
 
 export const fetchMailThread = authActionClient
@@ -19,4 +22,16 @@ export const fetchMailThread = authActionClient
       throw new NotFoundError('Thread not found');
     }
     return thread;
+  });
+
+export const fetchMailMessageBodies = authActionClient
+  .metadata({ actionName: 'fetchMailMessageBodies' })
+  .schema(
+    z.object({
+      threadId: z.string().uuid(),
+      messageIds: z.array(z.string().uuid()).min(1).max(20)
+    })
+  )
+  .action(async ({ parsedInput }) => {
+    return getMailMessageBodies(parsedInput.threadId, parsedInput.messageIds);
   });

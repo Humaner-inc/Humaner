@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { cache } from 'react';
 import { after } from 'next/server';
 
 import { dedupedAuth } from '@/lib/auth';
@@ -16,6 +17,11 @@ import {
   getMailProviderById,
   MAIL_PROVIDERS
 } from '@/lib/inbox/mail-providers';
+import {
+  INBOX_ACTIVE_WHERE,
+  mailThreadListWhere,
+  type MailListFolder
+} from '@/lib/inbox/mail-thread-folder';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 
 export type MailTagItem = {
@@ -52,6 +58,7 @@ export type MailThreadDetail = {
   aliasId: string;
   lastMessageAt: string;
   isUnread: boolean;
+  folder: string;
   archivedAt: string | null;
   assigneeKind: string;
   assigneeId: string | null;
@@ -95,9 +102,31 @@ export type MailSendAlias = {
   displayName: string | null;
 };
 
+const MAIL_THREAD_MESSAGE_CAP = 80;
+const MAIL_THREAD_OPEN_BODIES = 2;
+
+const mailMessageHeaderSelect = {
+  id: true,
+  direction: true,
+  fromAddress: true,
+  toAddresses: true,
+  ccAddresses: true,
+  sentAt: true
+} as const;
+
 function previewText(value: string | null): string | null {
   if (!value) return null;
   return value.replace(/\s+/g, ' ').trim().slice(0, 180) || null;
+}
+
+function compactMailBodies(message: {
+  bodyHtml: string | null;
+  bodyText: string | null;
+}): { bodyHtml: string | null; bodyText: string | null } {
+  if (message.bodyHtml) {
+    return { bodyHtml: message.bodyHtml, bodyText: null };
+  }
+  return { bodyHtml: null, bodyText: message.bodyText };
 }
 
 function parseFromDisplay(fromAddress: string | null): {
@@ -164,7 +193,7 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
       where: {
         organizationId,
         isUnread: true,
-        archivedAt: null,
+        ...INBOX_ACTIVE_WHERE,
         alias: aliasWhere
       },
       select: {
@@ -225,7 +254,7 @@ export async function getMailUnreadCount(): Promise<number> {
     where: {
       organizationId,
       isUnread: true,
-      archivedAt: null,
+      ...INBOX_ACTIVE_WHERE,
       ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
     },
     select: {
@@ -244,7 +273,7 @@ export async function getMailUnreadCount(): Promise<number> {
 
 export async function getMailThreads(options?: {
   assignedToCurrentUser?: boolean;
-  archived?: boolean;
+  folder?: MailListFolder;
   aliasId?: string | null;
   connectionId?: string | null;
   unreadOnly?: boolean;
@@ -257,7 +286,7 @@ export async function getMailThreads(options?: {
   const organizationId = session.user.organizationId;
   if (!organizationId) return [];
 
-  const archived = options?.archived === true;
+  const folder = options?.folder ?? 'inbox';
   const scope = await resolveMailAliasScope({
     userId: session.user.id,
     organizationId
@@ -283,12 +312,18 @@ export async function getMailThreads(options?: {
   const threads = await prisma.mailThread.findMany({
     where: {
       organizationId,
-      archivedAt: archived ? { not: null } : null,
+      ...(assignedToCurrentUser
+        ? {
+            assigneeId: session.user.id,
+            archivedAt: null,
+            folder: { in: ['INBOX', 'SENT'] }
+          }
+        : mailThreadListWhere(folder)),
       ...(options?.unreadOnly ? { isUnread: true } : {}),
       ...(options?.status ? { status: options.status } : {}),
       ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
       ...(assignedToCurrentUser
-        ? { assigneeId: session.user.id }
+        ? {}
         : options?.connectionId
           ? {
               alias: {
@@ -395,137 +430,201 @@ export async function getMailThreads(options?: {
   return mapped;
 }
 
-export async function getMailThread(
-  threadId: string
-): Promise<MailThreadDetail | null> {
-  const session = await requireInboxReadSession();
-  if (!session) return null;
+export const getMailThread = cache(
+  async (threadId: string): Promise<MailThreadDetail | null> => {
+    const session = await requireInboxReadSession();
+    if (!session) return null;
 
-  const organizationId = session.user.organizationId;
-  if (!organizationId) return null;
+    const organizationId = session.user.organizationId;
+    if (!organizationId) return null;
 
-  const scope = await resolveMailAliasScope({
-    userId: session.user.id,
-    organizationId
-  });
-  const scopedAliasIds = aliasIdFilter(scope);
+    const scope = await resolveMailAliasScope({
+      userId: session.user.id,
+      organizationId
+    });
+    const scopedAliasIds = aliasIdFilter(scope);
+    const threadAccess = mailThreadAccessWhere({
+      organizationId,
+      userId: session.user.id,
+      scope
+    });
+    const messageWhere = {
+      threadId,
+      thread: threadAccess
+    };
 
-  const thread = await prisma.mailThread.findFirst({
-    where: {
-      id: threadId,
-      ...mailThreadAccessWhere({
-        organizationId,
-        userId: session.user.id,
-        scope
-      })
-    },
-    select: {
-      id: true,
-      subject: true,
-      status: true,
-      isUnread: true,
-      archivedAt: true,
-      assigneeKind: true,
-      assigneeId: true,
-      handoffTicketId: true,
-      handoffTicket: { select: { ticketNumber: true } },
-      sharedNoteDraft: true,
-      lastMessageAt: true,
-      alias: {
+    const [thread, latestBodies, olderHeaders] = await Promise.all([
+      prisma.mailThread.findFirst({
+        where: {
+          id: threadId,
+          ...threadAccess
+        },
         select: {
           id: true,
-          address: true,
-          connection: {
+          subject: true,
+          status: true,
+          isUnread: true,
+          folder: true,
+          archivedAt: true,
+          assigneeKind: true,
+          assigneeId: true,
+          handoffTicketId: true,
+          handoffTicket: { select: { ticketNumber: true } },
+          sharedNoteDraft: true,
+          lastMessageAt: true,
+          alias: {
             select: {
-              aliases: {
-                where: {
-                  enabled: true,
-                  ...(scopedAliasIds ? { id: scopedAliasIds } : {})
-                },
-                orderBy: { address: 'asc' },
-                select: { id: true, address: true, displayName: true }
+              id: true,
+              address: true,
+              connection: {
+                select: {
+                  aliases: {
+                    where: {
+                      enabled: true,
+                      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+                    },
+                    orderBy: { address: 'asc' },
+                    select: { id: true, address: true, displayName: true }
+                  }
+                }
+              }
+            }
+          },
+          notes: {
+            orderBy: { createdAt: 'asc' },
+            take: 40,
+            select: {
+              id: true,
+              body: true,
+              authorId: true,
+              createdAt: true,
+              author: { select: { name: true } }
+            }
+          },
+          tags: {
+            take: 1,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              tag: {
+                select: { id: true, name: true, color: true, aliasId: true }
               }
             }
           }
         }
-      },
-      notes: {
-        orderBy: { createdAt: 'asc' },
-        take: 40,
+      }),
+      prisma.mailMessage.findMany({
+        where: messageWhere,
+        orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+        take: MAIL_THREAD_OPEN_BODIES,
         select: {
-          id: true,
-          body: true,
-          authorId: true,
-          createdAt: true,
-          author: { select: { name: true } }
-        }
-      },
-      tags: {
-        take: 1,
-        orderBy: { createdAt: 'asc' },
-        select: {
-          tag: {
-            select: { id: true, name: true, color: true, aliasId: true }
-          }
-        }
-      },
-      messages: {
-        orderBy: { sentAt: 'asc' },
-        take: 80,
-        select: {
-          id: true,
-          direction: true,
-          fromAddress: true,
-          toAddresses: true,
-          ccAddresses: true,
+          ...mailMessageHeaderSelect,
           bodyText: true,
-          bodyHtml: true,
-          sentAt: true
+          bodyHtml: true
         }
-      }
-    }
-  });
+      }),
+      prisma.mailMessage.findMany({
+        where: messageWhere,
+        orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+        skip: MAIL_THREAD_OPEN_BODIES,
+        take: MAIL_THREAD_MESSAGE_CAP - MAIL_THREAD_OPEN_BODIES,
+        select: mailMessageHeaderSelect
+      })
+    ]);
 
-  if (!thread) return null;
+    if (!thread) return null;
 
-  const sendAliases = thread.alias.connection.aliases;
-  const latest = thread.messages[thread.messages.length - 1];
-  const awaitingReply = latest?.direction === 'INBOUND';
-
-  return {
-    id: thread.id,
-    subject: thread.subject,
-    status: thread.status,
-    aliasAddress: thread.alias.address,
-    aliasId: thread.alias.id,
-    lastMessageAt: thread.lastMessageAt.toISOString(),
-    isUnread: Boolean(thread.isUnread && awaitingReply),
-    archivedAt: thread.archivedAt?.toISOString() ?? null,
-    assigneeKind: thread.assigneeKind,
-    assigneeId: thread.assigneeId,
-    handoffTicketId: thread.handoffTicketId,
-    handoffTicketNumber: thread.handoffTicket?.ticketNumber ?? null,
-    sharedNoteDraft: thread.sharedNoteDraft,
-    notes: thread.notes.map((note) => ({
-      id: note.id,
-      body: note.body,
-      authorId: note.authorId,
-      authorName: note.author.name,
-      createdAt: note.createdAt.toISOString()
-    })),
-    tag: thread.tags[0]?.tag ?? null,
-    sendAliases,
-    messages: thread.messages.map((message) => ({
+    const olderMessages = olderHeaders.toReversed().map((message) => ({
       id: message.id,
       direction: message.direction,
       fromAddress: message.fromAddress,
       toAddresses: message.toAddresses,
       ccAddresses: message.ccAddresses,
-      bodyText: message.bodyText,
-      bodyHtml: message.bodyHtml,
+      bodyText: null,
+      bodyHtml: null,
       sentAt: message.sentAt.toISOString()
-    }))
-  };
+    }));
+    const openMessages = latestBodies.toReversed().map((message) => {
+      const bodies = compactMailBodies(message);
+      return {
+        id: message.id,
+        direction: message.direction,
+        fromAddress: message.fromAddress,
+        toAddresses: message.toAddresses,
+        ccAddresses: message.ccAddresses,
+        bodyText: bodies.bodyText,
+        bodyHtml: bodies.bodyHtml,
+        sentAt: message.sentAt.toISOString()
+      };
+    });
+    const messages = [...olderMessages, ...openMessages];
+    const latest = messages[messages.length - 1];
+    const awaitingReply = latest?.direction === 'INBOUND';
+
+    return {
+      id: thread.id,
+      subject: thread.subject,
+      status: thread.status,
+      aliasAddress: thread.alias.address,
+      aliasId: thread.alias.id,
+      lastMessageAt: thread.lastMessageAt.toISOString(),
+      isUnread: Boolean(thread.isUnread && awaitingReply),
+      folder: thread.folder,
+      archivedAt: thread.archivedAt?.toISOString() ?? null,
+      assigneeKind: thread.assigneeKind,
+      assigneeId: thread.assigneeId,
+      handoffTicketId: thread.handoffTicketId,
+      handoffTicketNumber: thread.handoffTicket?.ticketNumber ?? null,
+      sharedNoteDraft: thread.sharedNoteDraft,
+      notes: thread.notes.map((note) => ({
+        id: note.id,
+        body: note.body,
+        authorId: note.authorId,
+        authorName: note.author.name,
+        createdAt: note.createdAt.toISOString()
+      })),
+      tag: thread.tags[0]?.tag ?? null,
+      sendAliases: thread.alias.connection.aliases,
+      messages
+    };
+  }
+);
+
+export async function getMailMessageBodies(
+  threadId: string,
+  messageIds: string[]
+): Promise<
+  Array<{ id: string; bodyText: string | null; bodyHtml: string | null }>
+> {
+  if (messageIds.length === 0) return [];
+
+  const session = await requireInboxReadSession();
+  if (!session) return [];
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) return [];
+
+  const scope = await resolveMailAliasScope({
+    userId: session.user.id,
+    organizationId
+  });
+
+  const rows = await prisma.mailMessage.findMany({
+    where: {
+      id: { in: messageIds },
+      threadId,
+      thread: mailThreadAccessWhere({
+        organizationId,
+        userId: session.user.id,
+        scope
+      })
+    },
+    select: { id: true, bodyText: true, bodyHtml: true }
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    ...compactMailBodies(row)
+  }));
 }
 
 export async function getMailTags(): Promise<MailTagItem[]> {

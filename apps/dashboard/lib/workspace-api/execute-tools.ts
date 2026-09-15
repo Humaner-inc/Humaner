@@ -101,6 +101,7 @@ async function executeListThreads(
     where: {
       ...access,
       archivedAt: null,
+      folder: 'INBOX',
       ...(unreadOnly ? { isUnread: true } : {}),
       ...(status ? { status } : {})
     },

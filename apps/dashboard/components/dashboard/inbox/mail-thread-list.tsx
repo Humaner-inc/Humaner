@@ -12,7 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
-import { fetchMailThread } from '@/actions/inbox/get-mail-thread';
+import { blockMailSender } from '@/actions/inbox/manage-blocked-senders';
 import {
   applyMailThreadTag,
   archiveMailThread,
@@ -21,10 +21,13 @@ import {
   bulkArchiveMailThreads,
   bulkAssignMailThreads,
   bulkDeleteMailThreads,
-  markMailThreadRead
+  bulkMoveMailThreads,
+  markMailThreadRead,
+  moveMailThreadFolder
 } from '@/actions/inbox/manage-mail-thread';
 import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
+import { BlockMailSenderDialog } from '@/components/dashboard/inbox/block-mail-sender-dialog';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailPanel } from '@/components/dashboard/inbox/compose-mail-panel';
 import {
@@ -61,6 +64,7 @@ import type {
 } from '@/data/inbox/get-mail-threads';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
+import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
 import {
   OPEN_THREAD_NOTES_EVENT,
   readOpenThreadNotesDetail
@@ -111,6 +115,48 @@ function stopRowEvent(event: React.SyntheticEvent): void {
   event.stopPropagation();
 }
 
+function OpeningThreadPane({
+  thread
+}: {
+  thread: MailThreadListItem;
+}): React.JSX.Element {
+  const domain = senderDomain(thread.fromAddress);
+  const label = senderLabel(thread);
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      <header className="flex shrink-0 items-start gap-3 border-b border-border px-5 py-4">
+        <Avatar className="size-9 shrink-0 rounded-md">
+          {domain ? (
+            <AvatarImage
+              src={getLogoUrl(domain, 64, true)}
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          ) : null}
+          <AvatarFallback className="rounded-md text-[11px] font-medium">
+            {getInitials(label)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <h1 className="min-w-0 truncate font-display text-lg font-normal tracking-tight">
+            {thread.subject || '(no subject)'}
+          </h1>
+          <p className="mt-0.5 truncate font-info text-xs text-muted-foreground">
+            {label}
+          </p>
+        </div>
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <p className="whitespace-pre-wrap text-sm leading-6 text-foreground/80">
+          {thread.preview || 'Opening conversation…'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export type MailListSelectionApi = {
   selectMode: boolean;
   selectedCount: number;
@@ -121,11 +167,13 @@ export type MailListSelectionApi = {
   clearSelection: () => void;
   askDeleteSelected: () => void;
   archiveSelected: () => void;
+  spamSelected: () => void;
+  restoreSelected: () => void;
   assignSelected: (assigneeId: string | null) => void;
   tagSelected: (tagId: string | null) => void;
   tags: MailTagItem[];
   members: AssigneePerson[];
-  archivedView: boolean;
+  folderView: MailListFolder;
 };
 
 export function MailThreadList({
@@ -133,6 +181,7 @@ export function MailThreadList({
   tags = [],
   members = [],
   archivedView = false,
+  folderView = 'inbox',
   selectionHeader,
   listChrome,
   variant = 'card'
@@ -141,6 +190,7 @@ export function MailThreadList({
   tags?: MailTagItem[];
   members?: AssigneePerson[];
   archivedView?: boolean;
+  folderView?: MailListFolder;
   selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
   /** Extra chrome above the thread rows (title, filters) — desk triage sidebar. */
   listChrome?: React.ReactNode;
@@ -149,6 +199,11 @@ export function MailThreadList({
 }): React.JSX.Element {
   const router = useRouter();
   const isDesk = variant === 'desk';
+  const view: MailListFolder =
+    folderView ?? (archivedView ? 'archive' : 'inbox');
+  const inTrash = view === 'trash';
+  const inSpam = view === 'spam';
+  const inArchive = view === 'archive';
   const dock = useDashboardDockOptional();
   const { composeOpen, composeInPanel, closeCompose } = useComposeMail();
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
@@ -173,6 +228,8 @@ export function MailThreadList({
   const [deleteIds, setDeleteIds] = React.useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
+  const [blockOpen, setBlockOpen] = React.useState(false);
+  const [blockThreadId, setBlockThreadId] = React.useState<string | null>(null);
   type ThreadOverride = {
     removed?: boolean;
     isUnread?: boolean;
@@ -271,10 +328,13 @@ export function MailThreadList({
   const requestThread = React.useCallback(
     (threadId: string) => {
       prefetchingRef.current.add(threadId);
-      void fetchMailThread({ threadId })
-        .then((result) => {
+      void fetch(`/api/dashboard/inbox/threads/${threadId}`, {
+        cache: 'no-store',
+        credentials: 'same-origin'
+      })
+        .then(async (response) => {
           prefetchingRef.current.delete(threadId);
-          if (!result?.data) {
+          if (!response.ok) {
             if (threadId === activeThreadIdRef.current) {
               setPaneLoading(false);
               setPaneThread(null);
@@ -282,7 +342,8 @@ export function MailThreadList({
             }
             return;
           }
-          applyThreadDetail(threadId, result.data);
+          const data = (await response.json()) as MailThreadDetailDto;
+          applyThreadDetail(threadId, data);
         })
         .catch(() => {
           prefetchingRef.current.delete(threadId);
@@ -297,15 +358,21 @@ export function MailThreadList({
 
   const prefetchThread = React.useCallback(
     (threadId: string) => {
+      if (
+        typeof window !== 'undefined' &&
+        !window.matchMedia('(min-width: 768px)').matches
+      ) {
+        router.prefetch(inboxThreadRoute(threadId));
+        return;
+      }
       if (detailCacheRef.current.has(threadId)) return;
       if (prefetchingRef.current.has(threadId)) return;
       requestThread(threadId);
     },
-    [requestThread]
+    [requestThread, router]
   );
 
   const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
-    onSuccess: () => router.refresh(),
     onError: ({ error, input }) => {
       patchThreads([input.threadId], { isUnread: true });
       toast.error(error.serverError || 'Could not update read state');
@@ -338,7 +405,6 @@ export function MailThreadList({
         setPaneLoading(false);
         return;
       }
-      setPaneThread(null);
       setPaneLoading(true);
       if (prefetchingRef.current.has(threadId)) return;
       requestThread(threadId);
@@ -526,7 +592,11 @@ export function MailThreadList({
       clearSelection();
       setDeleteOpen(false);
       setDeleteIds([]);
-      toast.success(`Deleted ${data?.count ?? 0}`);
+      toast.success(
+        inTrash
+          ? `Deleted ${data?.count ?? 0}`
+          : `Moved ${data?.count ?? 0} to Trash`
+      );
       refreshInBackground();
     },
     onError: ({ error, input }) => {
@@ -558,6 +628,36 @@ export function MailThreadList({
     onError: ({ error, input }) => {
       restoreThreads([input.threadId]);
       toast.error(error.serverError || 'Could not archive');
+    }
+  });
+
+  const { execute: runBulkMove } = useAction(bulkMoveMailThreads, {
+    onSuccess: () => {
+      clearSelection();
+      refreshInBackground();
+    },
+    onError: ({ error, input }) => {
+      restoreThreads(input.threadIds);
+      toast.error(error.serverError || 'Could not move threads');
+    }
+  });
+
+  const { execute: runRowMove } = useAction(moveMailThreadFolder, {
+    onSuccess: () => refreshInBackground(),
+    onError: ({ error, input }) => {
+      restoreThreads([input.threadId]);
+      toast.error(error.serverError || 'Could not move thread');
+    }
+  });
+
+  const { execute: runBlock } = useAction(blockMailSender, {
+    onSuccess: ({ data }) => {
+      toast.success(data?.email ? `Blocked ${data.email}` : 'Sender blocked');
+      refreshInBackground();
+    },
+    onError: ({ error, input }) => {
+      if (input.threadId) restoreThreads([input.threadId]);
+      toast.error(error.serverError || 'Could not block sender');
     }
   });
 
@@ -610,12 +710,29 @@ export function MailThreadList({
       const ids = selectedList;
       removeThreads(ids);
       toast.success(
-        archivedView ? `Moved ${ids.length} to inbox` : `Archived ${ids.length}`
+        inArchive ? `Moved ${ids.length} to inbox` : `Archived ${ids.length}`
       );
       runBulkArchive({
         threadIds: ids,
-        archive: !archivedView
+        archive: !inArchive
       });
+    },
+    spamSelected: () => {
+      const ids = selectedList;
+      removeThreads(ids);
+      toast.success(
+        inSpam ? `Moved ${ids.length} to inbox` : `Marked ${ids.length} as spam`
+      );
+      runBulkMove({
+        threadIds: ids,
+        folder: inSpam ? 'INBOX' : 'SPAM'
+      });
+    },
+    restoreSelected: () => {
+      const ids = selectedList;
+      removeThreads(ids);
+      toast.success(`Moved ${ids.length} to inbox`);
+      runBulkMove({ threadIds: ids, folder: 'INBOX' });
     },
     assignSelected: (assigneeId) => {
       const memberName =
@@ -638,7 +755,7 @@ export function MailThreadList({
     },
     tags: selectableTags,
     members,
-    archivedView
+    folderView: view
   };
 
   const selectionActive = selectMode || selectedIds.size > 0;
@@ -650,7 +767,8 @@ export function MailThreadList({
         thread={thread}
         tags={tags}
         members={members}
-        archivedView={archivedView}
+        archivedView={inArchive}
+        folderView={view}
         previewActive={activeThreadId === thread.id}
         showCheckboxes={selectionActive}
         selected={selectedIds.has(thread.id)}
@@ -663,6 +781,21 @@ export function MailThreadList({
           removeThreads([thread.id]);
           toast.success(archive ? 'Archived' : 'Moved to inbox');
           runRowArchive({ threadId: thread.id, archive });
+        }}
+        onMoveFolder={(folder) => {
+          removeThreads([thread.id]);
+          toast.success(
+            folder === 'SPAM'
+              ? 'Marked as spam'
+              : folder === 'TRASH'
+                ? 'Moved to Trash'
+                : 'Moved to inbox'
+          );
+          runRowMove({ threadId: thread.id, folder });
+        }}
+        onBlock={() => {
+          setBlockThreadId(thread.id);
+          setBlockOpen(true);
         }}
         onAssign={(assigneeId) => {
           const memberName =
@@ -764,6 +897,10 @@ export function MailThreadList({
     paneThread != null &&
     activeThreadId != null &&
     paneThread.id === activeThreadId;
+  const openingThread =
+    !paneMatches && activeThreadId
+      ? threads.find((thread) => thread.id === activeThreadId)
+      : undefined;
 
   const readingPane = showComposePanel ? (
     <ComposeMailPanel />
@@ -800,6 +937,8 @@ export function MailThreadList({
             );
           }}
         />
+      ) : openingThread ? (
+        <OpeningThreadPane thread={openingThread} />
       ) : paneLoading || activeThreadId ? (
         <div className="flex h-full items-center justify-center gap-2.5 p-6 text-sm text-muted-foreground">
           <SkillzCubeLoader />
@@ -914,10 +1053,15 @@ export function MailThreadList({
     </div>
   );
 
+  const blockThread = displayThreads.find(
+    (thread) => thread.id === blockThreadId
+  );
+
   const deleteDialog = (
     <DeleteMailThreadsDialog
       open={deleteOpen}
       count={deleteIds.length}
+      mode={inTrash ? 'forever' : 'trash'}
       onOpenChange={(open) => {
         setDeleteOpen(open);
         if (!open) setDeleteIds([]);
@@ -933,11 +1077,31 @@ export function MailThreadList({
     />
   );
 
+  const blockDialog = (
+    <BlockMailSenderDialog
+      open={blockOpen}
+      sender={blockThread?.fromAddress}
+      onOpenChange={(open) => {
+        setBlockOpen(open);
+        if (!open) setBlockThreadId(null);
+      }}
+      onConfirm={() => {
+        const threadId = blockThreadId;
+        setBlockOpen(false);
+        setBlockThreadId(null);
+        if (!threadId) return;
+        removeThreads([threadId]);
+        runBlock({ threadId });
+      }}
+    />
+  );
+
   if (isDesk) {
     return (
       <>
         <div className="flex h-full min-h-0 overflow-hidden">{split}</div>
         {deleteDialog}
+        {blockDialog}
       </>
     );
   }
@@ -952,6 +1116,7 @@ export function MailThreadList({
 
       {split}
       {deleteDialog}
+      {blockDialog}
     </div>
   );
 }
@@ -1024,15 +1189,51 @@ function MailBulkActionBar({
           />
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-8 font-mono text-[10px]"
-        onClick={selection.archiveSelected}
-      >
-        {selection.archivedView ? 'Move to inbox' : 'Archive'}
-      </Button>
+      {selection.folderView === 'trash' ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 font-mono text-[10px]"
+          onClick={selection.restoreSelected}
+        >
+          Restore
+        </Button>
+      ) : selection.folderView === 'spam' ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 font-mono text-[10px]"
+          onClick={selection.spamSelected}
+        >
+          Not spam
+        </Button>
+      ) : (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 font-mono text-[10px]"
+            onClick={selection.archiveSelected}
+          >
+            {selection.folderView === 'archive' ? 'Move to inbox' : 'Archive'}
+          </Button>
+          {selection.folderView !== 'archive' &&
+          selection.folderView !== 'sent' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 font-mono text-[10px]"
+              onClick={selection.spamSelected}
+            >
+              Spam
+            </Button>
+          ) : null}
+        </>
+      )}
       <Button
         type="button"
         variant="outline"
@@ -1040,7 +1241,7 @@ function MailBulkActionBar({
         className={INBOX_BULK_DELETE_BUTTON_CLASS}
         onClick={selection.askDeleteSelected}
       >
-        Delete
+        {selection.folderView === 'trash' ? 'Delete forever' : 'Delete'}
       </Button>
     </div>
   );
@@ -1051,6 +1252,7 @@ function MailThreadRow({
   tags,
   members,
   archivedView,
+  folderView,
   previewActive,
   showCheckboxes,
   selected,
@@ -1060,6 +1262,8 @@ function MailThreadRow({
   onPrefetch,
   onAskDelete,
   onArchive,
+  onMoveFolder,
+  onBlock,
   onAssign,
   onTag,
   onMarkRead
@@ -1068,6 +1272,7 @@ function MailThreadRow({
   tags: MailTagItem[];
   members: AssigneePerson[];
   archivedView: boolean;
+  folderView: MailListFolder;
   previewActive: boolean;
   showCheckboxes: boolean;
   selected: boolean;
@@ -1077,6 +1282,8 @@ function MailThreadRow({
   onPrefetch: () => void;
   onAskDelete: () => void;
   onArchive: (archive: boolean) => void;
+  onMoveFolder: (folder: 'INBOX' | 'SPAM' | 'TRASH') => void;
+  onBlock: () => void;
   onAssign: (assigneeId: string | null) => void;
   onTag: (tagId: string | null) => void;
   onMarkRead: () => void;
@@ -1148,6 +1355,7 @@ function MailThreadRow({
         onFocus={onPrefetch}
         onPointerDown={(event) => {
           if (showCheckboxes || event.button !== 0) return;
+          onPrefetch();
           cancelLongPress();
           longPressTimerRef.current = window.setTimeout(() => {
             longPressTimerRef.current = null;
@@ -1288,7 +1496,15 @@ function MailThreadRow({
               align="end"
               onCloseAutoFocus={(event) => event.preventDefault()}
             >
-              {archivedView ? (
+              {folderView === 'trash' ? (
+                <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
+                  Restore
+                </DropdownMenuItem>
+              ) : folderView === 'spam' ? (
+                <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
+                  Not spam
+                </DropdownMenuItem>
+              ) : archivedView ? (
                 <DropdownMenuItem onSelect={() => onArchive(false)}>
                   Move to inbox
                 </DropdownMenuItem>
@@ -1297,6 +1513,18 @@ function MailThreadRow({
                   Archive
                 </DropdownMenuItem>
               )}
+              {folderView !== 'spam' &&
+              folderView !== 'trash' &&
+              folderView !== 'sent' ? (
+                <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
+                  Report spam
+                </DropdownMenuItem>
+              ) : null}
+              {folderView !== 'sent' && folderView !== 'trash' ? (
+                <DropdownMenuItem onSelect={onBlock}>
+                  Block sender
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <UserPlus2Icon className="mr-2 size-4" />
@@ -1340,6 +1568,7 @@ function MailThreadRow({
               >
                 <Trash2Icon className="mr-2 size-4" />
                 Delete
+                {folderView === 'trash' ? ' forever' : ''}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -14,9 +14,14 @@ export function getAppUrl(): string {
   );
 }
 
-/** Public id of the platform Humaner assistant (org guide, product help). */
+/**
+ * Public id of the platform Humaner support agent.
+ * Landing Companion does not send this; dashboard APIs resolve it server-side.
+ * Prefer `HUMANER_AGENT_ID` (server-only). `NEXT_PUBLIC_*` remains a fallback.
+ */
 export function getHumanerAgentPublicId(): string | undefined {
   const id =
+    process.env.HUMANER_AGENT_ID?.trim() ||
     process.env.NEXT_PUBLIC_HUMANER_AGENT_ID?.trim() ||
     process.env.NEXT_PUBLIC_DEMO_AGENT_ID?.trim();
   return id || undefined;

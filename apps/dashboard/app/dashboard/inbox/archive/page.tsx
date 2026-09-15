@@ -23,7 +23,7 @@ export default async function InboxArchivePage(): Promise<React.JSX.Element> {
   }
 
   const [threads, tags, members] = await Promise.all([
-    getMailThreads({ archived: true }),
+    getMailThreads({ folder: 'archive' }),
     getMailTags(),
     getOrganizationMembers()
   ]);
@@ -43,7 +43,7 @@ export default async function InboxArchivePage(): Promise<React.JSX.Element> {
             threads={threads}
             tags={tags}
             members={members.map(toAssigneePerson)}
-            archivedView
+            folderView="archive"
           />
         ) : (
           <InboxOptionalEmptyState

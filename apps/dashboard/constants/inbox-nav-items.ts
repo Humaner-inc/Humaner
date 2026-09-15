@@ -6,7 +6,10 @@ import { Routes } from '@/constants/routes';
 export type InboxNavTabId =
   | 'all'
   | 'assigned'
+  | 'sent'
   | 'archive'
+  | 'spam'
+  | 'trash'
   | 'aliases'
   | 'providers'
   | 'tags';
@@ -30,9 +33,24 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
     href: Routes.InboxAssigned
   },
   {
+    id: 'sent',
+    label: 'Sent',
+    href: Routes.InboxSent
+  },
+  {
     id: 'archive',
     label: 'Archive',
     href: Routes.InboxArchive
+  },
+  {
+    id: 'spam',
+    label: 'Spam',
+    href: Routes.InboxSpam
+  },
+  {
+    id: 'trash',
+    label: 'Trash',
+    href: Routes.InboxTrash
   },
   {
     id: 'aliases',
@@ -53,7 +71,10 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
 
 export function getActiveInboxTab(pathname: string): InboxNavTabId | null {
   if (pathname.startsWith(Routes.InboxAssigned)) return 'assigned';
+  if (pathname.startsWith(Routes.InboxSent)) return 'sent';
   if (pathname.startsWith(Routes.InboxArchive)) return 'archive';
+  if (pathname.startsWith(Routes.InboxSpam)) return 'spam';
+  if (pathname.startsWith(Routes.InboxTrash)) return 'trash';
   if (
     pathname.startsWith(Routes.InboxAliases) ||
     pathname.startsWith(Routes.InboxSettings)

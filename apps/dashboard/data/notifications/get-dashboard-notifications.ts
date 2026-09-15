@@ -86,7 +86,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const [
     organization,
-    agentCount,
     memberCount,
     handoffTickets,
     expiringApiKeys,
@@ -108,10 +107,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
         }
       }
     }),
-    oss
-      ? Promise.resolve(0)
-      : prisma.agent.count({ where: { organizationId } }),
-    oss ? Promise.resolve(0) : prisma.user.count({ where: { organizationId } }),
+    prisma.user.count({ where: { organizationId } }),
     prisma.handoffTicket.findMany({
       where: {
         organizationId,
@@ -208,6 +204,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             organizationId,
             isUnread: true,
             archivedAt: null,
+            folder: 'INBOX',
             status: { in: ['OPEN', 'PENDING'] },
             aliasId: aliasIdFilter(mailScope)
           },
@@ -233,6 +230,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             organizationId,
             assigneeId: userId,
             archivedAt: null,
+            folder: { in: ['INBOX', 'SENT'] },
             status: { in: ['OPEN', 'PENDING'] }
           },
           select: {
@@ -304,19 +302,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
           description: `${formatCreditUsd(creditsUsedCents)} used this period. Add credits or turn on auto-reload.`,
           href: Routes.Billing,
           severity: 'warning',
-          createdAt: now.toISOString()
-        });
-      }
-
-      if (agentCount >= plan.agents) {
-        items.push({
-          id: 'plan-agents-limit',
-          kind: 'billing',
-          title: 'Agent limit reached',
-          emphasis: `${agentCount}/${plan.agents} agents`,
-          description: `${plan.name} includes ${plan.agents} ${plan.agents === 1 ? 'agent' : 'agents'}. Upgrade to add more.`,
-          href: Routes.Billing,
-          severity: agentCount > plan.agents ? 'critical' : 'warning',
           createdAt: now.toISOString()
         });
       }

@@ -17,17 +17,28 @@ import {
 export type CompanionWorkspaceRights = {
   actions: CompanionAction[];
   integrations: CompanionIntegrationId[];
+  actionSuggestions: boolean;
 };
 
-async function readStoredCompanionActions(
+type StoredCompanionSettings = {
+  companionActions: string[];
+  companionActionSuggestions: boolean | null;
+};
+
+async function readStoredCompanionSettings(
   organizationId: string
-): Promise<string[]> {
-  const rows = await prisma.$queryRaw<Array<{ companionActions: string[] }>>`
-    SELECT "companionActions"
+): Promise<StoredCompanionSettings> {
+  const rows = await prisma.$queryRaw<StoredCompanionSettings[]>`
+    SELECT "companionActions", "companionActionSuggestions"
     FROM "Organization"
     WHERE id = ${organizationId}::uuid
   `;
-  return rows[0]?.companionActions ?? [];
+  return (
+    rows[0] ?? {
+      companionActions: [],
+      companionActionSuggestions: true
+    }
+  );
 }
 
 async function readAliasPolicies(
@@ -43,15 +54,15 @@ async function readAliasPolicies(
 export async function readCompanionWorkspaceRights(
   organizationId: string
 ): Promise<CompanionWorkspaceRights> {
-  const [storedActions, organization] = await Promise.all([
-    readStoredCompanionActions(organizationId),
+  const [stored, organization] = await Promise.all([
+    readStoredCompanionSettings(organizationId),
     prisma.organization.findUnique({
       where: { id: organizationId },
       select: { onboardingIntegrations: true }
     })
   ]);
 
-  const normalized = normalizeCompanionActions(storedActions);
+  const normalized = normalizeCompanionActions(stored.companionActions);
   const actions =
     normalized.length > 0
       ? normalized
@@ -63,7 +74,8 @@ export async function readCompanionWorkspaceRights(
     actions,
     integrations: normalizeCompanionIntegrations(
       organization?.onboardingIntegrations
-    )
+    ),
+    actionSuggestions: stored.companionActionSuggestions !== false
   };
 }
 
@@ -83,6 +95,17 @@ export async function writeCompanionActions(
   );
 
   return next;
+}
+
+export async function writeCompanionActionSuggestions(
+  organizationId: string,
+  enabled: boolean
+): Promise<void> {
+  await prisma.$executeRaw`
+    UPDATE "Organization"
+    SET "companionActionSuggestions" = ${enabled}
+    WHERE id = ${organizationId}::uuid
+  `;
 }
 
 export async function writeCompanionIntegrations(
@@ -111,7 +134,7 @@ export const getCompanionWorkspaceRights = cache(
   async (): Promise<CompanionWorkspaceRights> => {
     const session = await dedupedAuth();
     if (!checkSession(session) || !session.user.organizationId) {
-      return { actions: ['DRAFT'], integrations: [] };
+      return { actions: ['DRAFT'], integrations: [], actionSuggestions: true };
     }
     return readCompanionWorkspaceRights(session.user.organizationId);
   }

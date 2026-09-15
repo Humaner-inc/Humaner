@@ -74,15 +74,28 @@ export const getCompanionTaskProposals = cache(
     const workspaceNotifications = oss
       ? notifications.filter((item) => item.kind !== 'mail')
       : notifications;
-    const hasWorkspaceWork = tasks.length > 0 || events.length > 0;
+    const liveNotifications = workspaceNotifications.filter(
+      (item) => !item.id.startsWith('demo-')
+    );
+    const actionableNotifications = liveNotifications.filter(
+      (item) =>
+        item.kind === 'mail' ||
+        item.kind === 'mention' ||
+        item.kind === 'task' ||
+        item.kind === 'ticket'
+    );
+    const hasWorkspaceWork =
+      tasks.length > 0 ||
+      events.length > 0 ||
+      actionableNotifications.length > 0;
+
+    if (!hasWorkspaceWork) {
+      return [];
+    }
 
     return collectCompanionTaskProposals(
       {
-        notifications: hasWorkspaceWork
-          ? workspaceNotifications.filter(
-              (item) => !item.id.startsWith('demo-')
-            )
-          : workspaceNotifications,
+        notifications: actionableNotifications,
         tasks: tasks.map((task) => ({
           id: task.id,
           ticketNumber: task.ticketNumber,

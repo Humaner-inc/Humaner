@@ -453,8 +453,23 @@ export function InboxListHeader({
                 disabled={selection.selectedCount === 0}
                 onClick={selection.archiveSelected}
               >
-                {selection.archivedView ? 'Move to inbox' : 'Archive'}
+                {selection.folderView === 'archive'
+                  ? 'Move to inbox'
+                  : 'Archive'}
               </Button>
+              {selection.folderView !== 'sent' &&
+              selection.folderView !== 'archive' ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 font-mono text-[10px]"
+                  disabled={selection.selectedCount === 0}
+                  onClick={selection.spamSelected}
+                >
+                  Spam
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="outline"

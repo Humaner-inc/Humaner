@@ -11,9 +11,12 @@ import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
 import { ChatCircle } from '@phosphor-icons/react/dist/ssr/ChatCircle';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
+import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
+import { Prohibit } from '@phosphor-icons/react/dist/ssr/Prohibit';
 import { SquaresFour } from '@phosphor-icons/react/dist/ssr/SquaresFour';
 import { Tag } from '@phosphor-icons/react/dist/ssr/Tag';
+import { Trash } from '@phosphor-icons/react/dist/ssr/Trash';
 import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
 import { User } from '@phosphor-icons/react/dist/ssr/User';
 import { Users } from '@phosphor-icons/react/dist/ssr/Users';
@@ -83,7 +86,10 @@ function InboxCountIcon({
 const FOLDER_ICONS: Record<MailboxFolderId, typeof Tray> = {
   inbox: Tray,
   drafts: NotePencil,
+  sent: PaperPlaneTilt,
   archive: Archive,
+  spam: Prohibit,
+  trash: Trash,
   tags: Tag
 };
 

@@ -40,15 +40,18 @@ export function writeSkipDeleteWarning(skip: boolean): void {
 export function DeleteMailThreadsDialog({
   open,
   count,
+  mode = 'trash',
   onOpenChange,
   onConfirm
 }: {
   open: boolean;
   count: number;
+  mode?: 'trash' | 'forever';
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 }): React.JSX.Element {
   const [dontShowAgain, setDontShowAgain] = React.useState(false);
+  const forever = mode === 'forever';
 
   React.useEffect(() => {
     if (open) setDontShowAgain(false);
@@ -62,13 +65,14 @@ export function DeleteMailThreadsDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Delete{' '}
-            {count === 1 ? 'this conversation' : `${count} conversations`}?
+            {forever ? 'Delete' : 'Move'}{' '}
+            {count === 1 ? 'this conversation' : `${count} conversations`}
+            {forever ? '?' : ' to Trash?'}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This removes {count === 1 ? 'it' : 'them'} from Humaner and deletes{' '}
-            {count === 1 ? 'the messages' : 'their messages'} from your mailbox
-            (Trash when available).
+            {forever
+              ? `This removes ${count === 1 ? 'it' : 'them'} from Humaner and deletes ${count === 1 ? 'the messages' : 'their messages'} from your mailbox (Trash when available).`
+              : `You can restore ${count === 1 ? 'it' : 'them'} from Trash. Delete again to remove ${count === 1 ? 'it' : 'them'} from the mailbox.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex items-center gap-2 py-1">
@@ -93,7 +97,7 @@ export function DeleteMailThreadsDialog({
               onConfirm();
             }}
           >
-            Delete
+            {forever ? 'Delete forever' : 'Move to Trash'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

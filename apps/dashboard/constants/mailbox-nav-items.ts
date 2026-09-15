@@ -4,7 +4,14 @@ import {
   type HumanerNavColor
 } from '@/lib/humaner-nav-colors';
 
-export type MailboxFolderId = 'inbox' | 'drafts' | 'archive' | 'tags';
+export type MailboxFolderId =
+  | 'inbox'
+  | 'drafts'
+  | 'sent'
+  | 'archive'
+  | 'spam'
+  | 'trash'
+  | 'tags';
 
 export type MailboxWorkspaceId = 'providers';
 
@@ -54,10 +61,28 @@ export const MAILBOX_FOLDER_ITEMS: MailboxFolderItem[] = [
     color: HUMANER_NAV_COLORS.warning
   },
   {
+    id: 'sent',
+    label: 'Sent',
+    href: Routes.InboxSent,
+    color: HUMANER_NAV_COLORS.info
+  },
+  {
     id: 'archive',
     label: 'Archive',
     href: Routes.InboxArchive,
     color: HUMANER_NAV_COLORS.foreground
+  },
+  {
+    id: 'spam',
+    label: 'Spam',
+    href: Routes.InboxSpam,
+    color: HUMANER_NAV_COLORS.warning
+  },
+  {
+    id: 'trash',
+    label: 'Trash',
+    href: Routes.InboxTrash,
+    color: HUMANER_NAV_COLORS.destructive
   },
   {
     id: 'tags',
@@ -128,7 +153,10 @@ export function mailboxAliasHref(aliasId: string): string {
 
 export function isPerInboxMailboxPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.InboxDrafts)) return true;
+  if (pathname.startsWith(Routes.InboxSent)) return true;
   if (pathname.startsWith(Routes.InboxArchive)) return true;
+  if (pathname.startsWith(Routes.InboxSpam)) return true;
+  if (pathname.startsWith(Routes.InboxTrash)) return true;
   if (pathname.startsWith(Routes.InboxTags)) return true;
   if (pathname.startsWith('/inbox/threads')) return true;
   if (pathname === Routes.Inbox || pathname.startsWith(Routes.InboxAll)) {
@@ -141,7 +169,10 @@ export function getActiveMailboxFolder(
   pathname: string
 ): MailboxFolderId | null {
   if (pathname.startsWith(Routes.InboxDrafts)) return 'drafts';
+  if (pathname.startsWith(Routes.InboxSent)) return 'sent';
   if (pathname.startsWith(Routes.InboxArchive)) return 'archive';
+  if (pathname.startsWith(Routes.InboxSpam)) return 'spam';
+  if (pathname.startsWith(Routes.InboxTrash)) return 'trash';
   if (pathname.startsWith(Routes.InboxTags)) return 'tags';
   if (
     pathname === Routes.Inbox ||
