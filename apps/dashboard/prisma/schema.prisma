@@ -250,6 +250,8 @@ model Organization {
   companionActions           String[]                 @default([])
   /// When true, Companion shows starter and follow-up action chips.
   companionActionSuggestions Boolean                  @default(true)
+  /// How long mail stays in Trash before the daily purge deletes it.
+  trashRetention             MailTrashRetention       @default(THREE_MONTHS)
   agents                     Agent[]
   agentIntegrations          AgentIntegration[]
   apiKeys                    ApiKey[]
@@ -1046,6 +1048,12 @@ enum MailThreadFolder {
   TRASH @map("trash")
 }
 
+enum MailTrashRetention {
+  WEEK         @map("week")
+  MONTH        @map("month")
+  THREE_MONTHS @map("three_months")
+}
+
 enum MailAssigneeKind {
   UNASSIGNED @map("unassigned")
   HUMAN      @map("human")
@@ -1145,6 +1153,8 @@ model MailThread {
   isUnread         Boolean          @default(true)
   folder           MailThreadFolder @default(INBOX)
   archivedAt       DateTime?
+  /// Set when the thread is moved to Trash; cleared when it leaves.
+  trashedAt        DateTime?
   assigneeKind     MailAssigneeKind @default(UNASSIGNED)
   assigneeId       String?          @db.Uuid
   assignee         User?            @relation(fields: [assigneeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
@@ -1165,6 +1175,7 @@ model MailThread {
   @@index([organizationId, status, lastMessageAt], map: "IX_MailThread_org_status_last")
   @@index([organizationId, isUnread, archivedAt], map: "IX_MailThread_org_unread_archived")
   @@index([organizationId, folder, archivedAt], map: "IX_MailThread_org_folder_archived")
+  @@index([organizationId, folder, trashedAt], map: "IX_MailThread_org_folder_trashedAt")
   @@index([assigneeId], map: "IX_MailThread_assigneeId")
   @@index([assigneeKind], map: "IX_MailThread_assigneeKind")
   @@index([handoffTicketId], map: "IX_MailThread_handoffTicketId")

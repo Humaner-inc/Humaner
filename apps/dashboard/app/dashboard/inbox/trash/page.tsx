@@ -12,9 +12,9 @@ export default async function InboxTrashPage({
     <InboxMailFolderScreen
       folder="trash"
       title="Trash"
-      description="Deleted conversations. Delete again to remove them from the mailbox."
+      description="Deleted conversations. Auto-empties after the interval you pick."
       emptyTitle="Trash is empty"
-      emptyDescription="Deleted conversations will appear here."
+      emptyDescription="Deleted conversations will appear here until auto-empty or you empty the bin."
       mailbox={mailbox}
     />
   );

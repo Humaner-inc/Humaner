@@ -11,7 +11,10 @@ import {
   mailThreadAccessWhere,
   resolveMailAliasScope
 } from '@/lib/inbox/mail-alias-scope';
-import { extractMailAddress } from '@/lib/inbox/mail-thread-folder';
+import {
+  extractMailAddress,
+  mailFolderWriteData
+} from '@/lib/inbox/mail-thread-folder';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 
 function isMailboxAddress(value: string): boolean {
@@ -65,7 +68,7 @@ async function moveSenderThreadsToSpam(
 
   await prisma.mailThread.updateMany({
     where: { id: { in: threadIds }, organizationId },
-    data: { folder: MailThreadFolder.SPAM, archivedAt: null }
+    data: mailFolderWriteData(MailThreadFolder.SPAM)
   });
 
   return threadIds.length;

@@ -4,6 +4,7 @@ import { purgeExpiredAuditLogs } from '@/lib/audit/purge-expired-audit-logs';
 import { purgeExpiredHandoffTickets } from '@/lib/data-retention/purge-expired-handoff-tickets';
 import { purgeExpiredMessageEmbeddings } from '@/lib/data-retention/purge-expired-message-embeddings';
 import { purgeExpiredMessages } from '@/lib/data-retention/purge-expired-messages';
+import { purgeExpiredTrash } from '@/lib/data-retention/purge-expired-trash';
 import { verifyCronSecret } from '@/lib/security/verify-cron-secret';
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -11,10 +12,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [messages, tickets, auditLogs] = await Promise.all([
+  const [messages, tickets, auditLogs, trash] = await Promise.all([
     purgeExpiredMessages(),
     purgeExpiredHandoffTickets(),
-    purgeExpiredAuditLogs()
+    purgeExpiredAuditLogs(),
+    purgeExpiredTrash()
   ]);
 
   // After the message purge so it never touches rows that were about to be deleted.
@@ -22,6 +24,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   return NextResponse.json({
     messages,
+    trash,
     messageEmbeddings,
     tickets,
     auditLogs

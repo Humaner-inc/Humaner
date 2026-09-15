@@ -9,7 +9,6 @@ import { authActionClient } from '@/actions/safe-action';
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
-import { deleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
 import {
   aliasIdFilter,
   mailThreadAccessWhere,
@@ -20,6 +19,12 @@ import {
   COMPANION_ASSIGNEE,
   parseMailAssigneeInput
 } from '@/lib/inbox/mail-assignee';
+import { mailFolderWriteData } from '@/lib/inbox/mail-thread-folder';
+import {
+  listTrashThreadIds,
+  permanentlyDeleteMailThreads,
+  TRASH_DELETE_BATCH_SIZE
+} from '@/lib/inbox/permanently-delete-mail-threads';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import {
   NotFoundError,
@@ -118,7 +123,11 @@ export const archiveMailThread = authActionClient
       where: { id: parsedInput.threadId },
       data: parsedInput.archive
         ? { archivedAt: new Date() }
-        : { archivedAt: null, folder: MailThreadFolder.INBOX }
+        : {
+            archivedAt: null,
+            folder: MailThreadFolder.INBOX,
+            trashedAt: null
+          }
     });
 
     revalidateMailPaths(parsedInput.threadId);
@@ -140,7 +149,7 @@ export const deleteMailThread = authActionClient
 
     if (thread.folder === MailThreadFolder.TRASH) {
       try {
-        await deleteImapMessagesForThreads(
+        await permanentlyDeleteMailThreads(
           [parsedInput.threadId],
           organizationId
         );
@@ -151,17 +160,10 @@ export const deleteMailThread = authActionClient
             : 'Could not delete messages from the mailbox'
         );
       }
-
-      await prisma.mailThread.delete({
-        where: { id: parsedInput.threadId }
-      });
     } else {
       await prisma.mailThread.update({
         where: { id: parsedInput.threadId },
-        data: {
-          folder: MailThreadFolder.TRASH,
-          archivedAt: null
-        }
+        data: mailFolderWriteData(MailThreadFolder.TRASH)
       });
     }
 
@@ -191,10 +193,7 @@ export const moveMailThreadFolder = authActionClient
 
     await prisma.mailThread.update({
       where: { id: parsedInput.threadId },
-      data: {
-        folder: parsedInput.folder,
-        archivedAt: null
-      }
+      data: mailFolderWriteData(parsedInput.folder)
     });
 
     revalidateMailPaths(parsedInput.threadId);
@@ -359,7 +358,11 @@ export const bulkArchiveMailThreads = authActionClient
       where: { id: { in: threadIds }, organizationId },
       data: parsedInput.archive
         ? { archivedAt: new Date() }
-        : { archivedAt: null, folder: MailThreadFolder.INBOX }
+        : {
+            archivedAt: null,
+            folder: MailThreadFolder.INBOX,
+            trashedAt: null
+          }
     });
 
     revalidateMailListPaths();
@@ -387,10 +390,7 @@ export const bulkMoveMailThreads = authActionClient
 
     await prisma.mailThread.updateMany({
       where: { id: { in: threadIds }, organizationId },
-      data: {
-        folder: parsedInput.folder,
-        archivedAt: null
-      }
+      data: mailFolderWriteData(parsedInput.folder)
     });
 
     revalidateMailListPaths();
@@ -423,13 +423,13 @@ export const bulkDeleteMailThreads = authActionClient
     if (moveIds.length > 0) {
       await prisma.mailThread.updateMany({
         where: { id: { in: moveIds }, organizationId },
-        data: { folder: MailThreadFolder.TRASH, archivedAt: null }
+        data: mailFolderWriteData(MailThreadFolder.TRASH)
       });
     }
 
     if (trashIds.length > 0) {
       try {
-        await deleteImapMessagesForThreads(trashIds, organizationId);
+        await permanentlyDeleteMailThreads(trashIds, organizationId);
       } catch (error) {
         throw new PreConditionError(
           error instanceof Error
@@ -437,10 +437,6 @@ export const bulkDeleteMailThreads = authActionClient
             : 'Could not delete messages from the mailbox'
         );
       }
-
-      await prisma.mailThread.deleteMany({
-        where: { id: { in: trashIds }, organizationId }
-      });
     }
 
     revalidateMailListPaths();
@@ -543,4 +539,54 @@ export const bulkApplyMailThreadTag = authActionClient
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
+  });
+
+const MAX_EMPTY_TRASH_BATCHES = 200;
+
+export const emptyTrash = authActionClient
+  .metadata({ actionName: 'emptyTrash' })
+  .schema(
+    z.object({
+      connectionId: z.string().uuid().nullable().optional()
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const scope = await resolveMailAliasScope({
+      userId: session.user.id,
+      organizationId
+    });
+    const accessWhere = mailThreadAccessWhere({
+      organizationId,
+      userId: session.user.id,
+      scope
+    });
+
+    let count = 0;
+
+    for (let batch = 0; batch < MAX_EMPTY_TRASH_BATCHES; batch += 1) {
+      const threadIds = await listTrashThreadIds({
+        accessWhere,
+        connectionId: parsedInput.connectionId,
+        take: TRASH_DELETE_BATCH_SIZE
+      });
+      if (threadIds.length === 0) break;
+
+      try {
+        count += await permanentlyDeleteMailThreads(threadIds, organizationId);
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not delete messages from the mailbox'
+        );
+      }
+
+      if (threadIds.length < TRASH_DELETE_BATCH_SIZE) break;
+    }
+
+    revalidateMailListPaths();
+    return { success: true, count };
   });

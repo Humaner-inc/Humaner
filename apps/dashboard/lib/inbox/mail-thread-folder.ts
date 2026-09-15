@@ -61,6 +61,21 @@ function blockedHas(blocked: Set<string>, email: string): boolean {
   return email.length > 0 && blocked.has(email);
 }
 
+export function mailFolderWriteData(
+  folder: MailThreadFolder,
+  now = new Date()
+): {
+  folder: MailThreadFolder;
+  archivedAt: null;
+  trashedAt: Date | null;
+} {
+  return {
+    folder,
+    archivedAt: null,
+    trashedAt: folder === MailThreadFolder.TRASH ? now : null
+  };
+}
+
 export function inboundThreadPatch(input: {
   currentFolder: MailThreadFolder;
   fromAddress: string;
@@ -68,11 +83,17 @@ export function inboundThreadPatch(input: {
 }): {
   folder?: MailThreadFolder;
   archivedAt?: Date | null;
+  trashedAt?: Date | null;
   isUnread: true;
 } {
   const email = extractMailAddress(input.fromAddress);
   if (blockedHas(input.blocked, email)) {
-    return { folder: MailThreadFolder.SPAM, isUnread: true };
+    return {
+      folder: MailThreadFolder.SPAM,
+      archivedAt: null,
+      trashedAt: null,
+      isUnread: true
+    };
   }
   if (
     input.currentFolder === MailThreadFolder.SPAM ||
@@ -83,6 +104,7 @@ export function inboundThreadPatch(input: {
   return {
     folder: MailThreadFolder.INBOX,
     archivedAt: null,
+    trashedAt: null,
     isUnread: true
   };
 }

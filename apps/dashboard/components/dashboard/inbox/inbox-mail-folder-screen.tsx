@@ -6,6 +6,7 @@ import {
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
+import { TrashFolderToolbar } from '@/components/dashboard/inbox/trash-folder-toolbar';
 import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
@@ -54,6 +55,20 @@ export async function InboxMailFolderScreen({
     getOrganizationMembers()
   ]);
 
+  const listChrome =
+    folder === 'trash' ? (
+      <TrashFolderToolbar
+        retention={overview.trashRetention}
+        mailbox={mailbox ?? null}
+        canEmpty={threads.length > 0}
+      />
+    ) : (
+      <div className="px-4 py-3">
+        <h1 className="page-title">{title}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+    );
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <PullToRefreshInbox className="min-h-0 flex-1">
@@ -64,22 +79,22 @@ export async function InboxMailFolderScreen({
             tags={tags}
             members={members.map(toAssigneePerson)}
             folderView={folder}
-            listChrome={
-              <div className="px-4 py-3">
-                <h1 className="page-title">{title}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {description}
-                </p>
-              </div>
-            }
+            listChrome={listChrome}
           />
         ) : (
-          <div className="p-6 md:p-8">
-            <InboxOptionalEmptyState
-              title={emptyTitle}
-              description={emptyDescription}
-              showConnect={false}
-            />
+          <div className="flex h-full min-h-0 flex-1 flex-col">
+            {folder === 'trash' ? (
+              <div className="shrink-0 border-b border-border/50">
+                {listChrome}
+              </div>
+            ) : null}
+            <div className="p-6 md:p-8">
+              <InboxOptionalEmptyState
+                title={emptyTitle}
+                description={emptyDescription}
+                showConnect={false}
+              />
+            </div>
           </div>
         )}
       </PullToRefreshInbox>
