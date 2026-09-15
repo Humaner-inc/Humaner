@@ -19,6 +19,7 @@ import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
 import { getBlockedSenders } from '@/data/inbox/get-blocked-senders';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getMailAliases } from '@/data/inbox/get-mail-aliases';
+import { normalizeCompanionIntegrations } from '@/lib/inbox/companion-rights';
 import { cn } from '@/lib/utils';
 
 function resolveWorkspaceTab(value: string | undefined): WorkspaceSettingsTab {
@@ -30,10 +31,14 @@ function resolveWorkspaceTab(value: string | undefined): WorkspaceSettingsTab {
 export default async function InboxSettingsPage({
   searchParams
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; apps?: string }>;
 }): Promise<React.JSX.Element> {
   const params = await searchParams;
   const tab = resolveWorkspaceTab(params.tab);
+  // Apps picked during onboarding still need their OAuth grant.
+  const pendingApps = normalizeCompanionIntegrations(
+    params.apps?.split(',') ?? []
+  );
 
   const overview = await getInboxOverview();
 
@@ -110,6 +115,7 @@ export default async function InboxSettingsPage({
         <WorkspaceConnectApps
           integrations={rights.integrations}
           canManage={overview.canManageProviders}
+          pending={pendingApps}
         />
       ) : tab === 'companion' ? (
         <CompanionWorkspaceSettings

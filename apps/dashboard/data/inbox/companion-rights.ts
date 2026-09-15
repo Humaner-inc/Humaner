@@ -7,6 +7,7 @@ import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import {
   deriveCompanionActionsFromAliases,
+  isCompanionIntegrationId,
   normalizeCompanionActions,
   normalizeCompanionIntegrations,
   type CompanionAction,
@@ -114,9 +115,19 @@ export async function writeCompanionIntegrations(
 ): Promise<CompanionIntegrationId[]> {
   const next = normalizeCompanionIntegrations(integrations);
 
+  // The column also holds the embed / API channel ids picked during onboarding,
+  // which handoff routing reads. Only replace the connector part.
+  const organization = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { onboardingIntegrations: true }
+  });
+  const otherIds = (organization?.onboardingIntegrations ?? []).filter(
+    (id) => !isCompanionIntegrationId(id)
+  );
+
   await prisma.organization.update({
     where: { id: organizationId },
-    data: { onboardingIntegrations: next }
+    data: { onboardingIntegrations: [...otherIds, ...next] }
   });
 
   return next;
