@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 
 import { InboxPreferencesProvider } from '@/components/dashboard/inbox/inbox-preferences-context';
+import { MailboxConnectionAlerts } from '@/components/dashboard/inbox/mailbox-connection-alerts';
 import { Routes } from '@/constants/routes';
+import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getInboxAutoSuggestReplies } from '@/data/inbox/inbox-auto-suggest';
 import { isOssDeployment } from '@/lib/deployment-mode';
 
@@ -29,7 +31,10 @@ async function InboxLayoutBody({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   await connection();
-  const autoSuggestReplies = await getInboxAutoSuggestReplies();
+  const [autoSuggestReplies, overview] = await Promise.all([
+    getInboxAutoSuggestReplies(),
+    getInboxOverview()
+  ]);
 
   return (
     <InboxPreferencesProvider autoSuggestReplies={autoSuggestReplies}>
@@ -37,6 +42,7 @@ async function InboxLayoutBody({
         className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
         style={{ '--accent-color': INBOX_ACCENT } as React.CSSProperties}
       >
+        <MailboxConnectionAlerts alerts={overview?.connectionAlerts ?? []} />
         {children}
       </div>
     </InboxPreferencesProvider>

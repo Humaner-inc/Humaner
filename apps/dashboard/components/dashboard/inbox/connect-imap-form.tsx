@@ -69,6 +69,30 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
+const CONNECTION_STATUS_LABELS: Record<string, string> = {
+  NEEDS_REAUTH: 'Reconnect',
+  ERROR: 'Sync failed',
+  DISCONNECTED: 'Disconnected'
+};
+
+/** Only rendered for a mailbox that stopped working — active ones stay quiet. */
+function ConnectionStatusChip({
+  status
+}: {
+  status: string;
+}): React.JSX.Element | null {
+  const label = CONNECTION_STATUS_LABELS[status];
+  if (!label) {
+    return null;
+  }
+
+  return (
+    <span className="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-400">
+      {label}
+    </span>
+  );
+}
+
 export function ConnectImapForm({
   inboxLimit,
   connectionCount,
@@ -418,6 +442,7 @@ export function ConnectImapForm({
                   <span className="min-w-0 truncate font-mono text-xs">
                     {connection.email}
                   </span>
+                  <ConnectionStatusChip status={connection.status} />
                   <Button
                     type="button"
                     variant="ghost"
@@ -524,6 +549,7 @@ export function ConnectImapForm({
                     <span className="min-w-0 truncate font-mono text-xs">
                       {connection.email}
                     </span>
+                    <ConnectionStatusChip status={connection.status} />
                     <div className="flex shrink-0 items-center gap-1">
                       <Button
                         type="button"

@@ -649,6 +649,8 @@ export type ConnectedMailboxItem = {
   logoDomain: string;
   aliasCount: number;
   status: string;
+  /** Why sync or send last failed — shown next to a broken connection. */
+  lastError: string | null;
   lastSyncedAt: string | null;
 };
 
@@ -747,6 +749,7 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       email: true,
       providerPresetId: true,
       status: true,
+      lastError: true,
       lastSyncedAt: true,
       imapHost: true,
       smtpHost: true,
@@ -769,6 +772,7 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       logoDomain: provider.logoDomain,
       aliasCount: connection._count.aliases,
       status: connection.status,
+      lastError: connection.lastError,
       lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null
     };
   });
