@@ -3,11 +3,17 @@ import 'server-only';
 import { LLM_MODELS } from '@humaner/shared/plans';
 
 import { getAnthropicClient, isAnthropicConfigured } from '@/lib/llm/anthropic';
+import {
+  UNTRUSTED_MAIL_GUARD,
+  wrapUntrustedMailBody
+} from '@/lib/untrusted-content';
 
 export type MailReplySuggestion = {
   label: string;
   draft: string;
 };
+
+const MAX_PROMPT_BODY_CHARS = 2500;
 
 type SuggestMailRepliesInput = {
   subject: string;
@@ -184,7 +190,9 @@ Rules:
 - Exactly 3 suggestions.
 - Labels MUST reflect THIS email's concrete ask/theme (subject + body). Good: "Book a demo with Albin", "Send Enterprise pricing", "Help finish Polar signup". Bad: "Acknowledge and help", "Ask a clarifying question", "Polite decline".
 - Include a distinctive noun from the email in each label when possible.
-- Labels max 8 words. Drafts concise, human, brand-safe. No markdown.`,
+- Labels max 8 words. Drafts concise, human, brand-safe. No markdown.
+
+${UNTRUSTED_MAIL_GUARD}`,
       messages: [
         {
           role: 'user',
@@ -193,7 +201,7 @@ Rules:
             `From: ${input.fromAddress}`,
             `Reply-as alias: ${input.aliasAddress}`,
             '',
-            input.bodyText.slice(0, 2500)
+            wrapUntrustedMailBody(input.bodyText, MAX_PROMPT_BODY_CHARS) ?? ''
           ].join('\n')
         }
       ]
