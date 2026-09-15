@@ -81,6 +81,22 @@ export function integrationForConnectorTool(
   return CONNECTOR_TOOL_INTEGRATION[toolId];
 }
 
+/**
+ * Why a connector tool may not run yet, or null when it may. Companion, MCP,
+ * and REST all reach the same handlers, so the refusal lives here rather than
+ * in one caller.
+ */
+export function connectorActivationError(
+  toolId: string,
+  integrations: readonly CompanionIntegrationId[]
+): string | null {
+  const integration = integrationForConnectorTool(toolId);
+  if (!integration || integrations.includes(integration)) {
+    return null;
+  }
+  return `${integration} is not connected. Activate it in Workspace Settings → Connect.`;
+}
+
 export function isCompanionIntegrationId(
   value: string | null | undefined
 ): value is CompanionIntegrationId {

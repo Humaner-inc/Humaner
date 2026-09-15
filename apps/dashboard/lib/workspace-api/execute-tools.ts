@@ -18,7 +18,10 @@ import { CONNECT_APPS } from '@/lib/connect-apps';
 import { prisma } from '@/lib/db/prisma';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
-import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
+import {
+  connectorActivationError,
+  integrationForConnectorTool
+} from '@/lib/inbox/companion-rights';
 import {
   composeMailboxMail,
   isMailboxAddress
@@ -488,20 +491,13 @@ async function requireActivatedConnector(
   name: string,
   context: WorkspaceToolContext
 ): Promise<WorkspaceToolResult | null> {
-  const integration = integrationForConnectorTool(name);
-  if (!integration) return null;
+  if (!integrationForConnectorTool(name)) return null;
 
   const { integrations } = await readCompanionWorkspaceRights(
     context.organizationId
   );
-  if (integrations.includes(integration)) {
-    return null;
-  }
-
-  return {
-    ok: false,
-    error: `${integration} is not connected. Activate it in Workspace Settings → Connect.`
-  };
+  const error = connectorActivationError(name, integrations);
+  return error ? { ok: false, error } : null;
 }
 
 async function executeSendMail(
