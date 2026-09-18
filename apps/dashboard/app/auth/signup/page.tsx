@@ -5,6 +5,7 @@ import { createSearchParamsCache, parseAsString } from 'nuqs/server';
 import { validate as uuidValidate } from 'uuid';
 
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
+import { SeedOnboardingDraft } from '@/components/auth/sign-up/seed-onboarding-draft';
 import { SignUpCard } from '@/components/auth/sign-up/sign-up-card';
 import { prisma } from '@/lib/db/prisma';
 import { createTitle } from '@/lib/utils';
@@ -14,7 +15,10 @@ import type { NextPageProps } from '@/types/next-page-props';
 const searchParamsCache = createSearchParamsCache({
   intent: parseAsString.withDefault(''),
   invitation: parseAsString.withDefault(''),
-  email: parseAsString.withDefault('')
+  email: parseAsString.withDefault(''),
+  workspace: parseAsString.withDefault(''),
+  website: parseAsString.withDefault(''),
+  tz: parseAsString.withDefault('')
 });
 
 export const metadata: Metadata = {
@@ -27,7 +31,10 @@ async function SignUpPageContent({
   const {
     intent: intentParam,
     invitation: invitationToken,
-    email: emailParam
+    email: emailParam,
+    workspace: workspaceParam,
+    website: websiteParam,
+    tz: timeZoneParam
   } = await searchParamsCache.parse(searchParams);
 
   let initialIntent: SignUpIntent =
@@ -65,6 +72,13 @@ async function SignUpPageContent({
       showLogo={false}
       maxWidth="sm"
     >
+      {invitationId ? null : (
+        <SeedOnboardingDraft
+          organizationName={workspaceParam || undefined}
+          website={websiteParam || undefined}
+          timeZone={timeZoneParam || undefined}
+        />
+      )}
       <SignUpCard
         initialIntent={initialIntent}
         invitationId={invitationId}

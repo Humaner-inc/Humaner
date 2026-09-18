@@ -53,10 +53,15 @@ export function getEmailXIconUrl(): string {
 export function getDashboardSignUpUrl(options?: {
   plan?: string;
   messages?: number;
+  workspace?: string;
+  website?: string;
+  timeZone?: string;
+  mailbox?: string;
 }): string {
   const base = `${getAppUrl()}/auth/signup`;
-  if (!options?.plan) return base;
-  const params = new URLSearchParams({ plan: options.plan });
+  if (!options) return base;
+  const params = new URLSearchParams();
+  if (options.plan) params.set("plan", options.plan);
   if (
     options.messages != null &&
     Number.isFinite(options.messages) &&
@@ -64,7 +69,20 @@ export function getDashboardSignUpUrl(options?: {
   ) {
     params.set("messages", String(Math.floor(options.messages)));
   }
-  return `${base}?${params.toString()}`;
+  if (options.workspace?.trim()) {
+    params.set("workspace", options.workspace.trim());
+  }
+  if (options.website?.trim()) {
+    params.set("website", options.website.trim());
+  }
+  if (options.timeZone?.trim()) {
+    params.set("tz", options.timeZone.trim());
+  }
+  if (options.mailbox?.trim()) {
+    params.set("mailbox", options.mailbox.trim());
+  }
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 export function getDashboardLoginUrl(): string {
@@ -106,7 +124,7 @@ export function getDpaUrl(): string {
 }
 
 export function getSecurityUrl(): string {
-  return `${getLandingUrl()}/#security`;
+  return `${getLandingUrl()}/security`;
 }
 
 export function getContactUrl(): string {
