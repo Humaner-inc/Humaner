@@ -54,6 +54,25 @@ export const authConfig = {
   },
   callbacks,
   events,
+  // Surface the real cause of OAuth failures. Auth.js otherwise collapses
+  // callback/adapter exceptions into a generic `?error=Configuration`, which
+  // the UI renders as "Unknown error" with no server-side trace.
+  logger: {
+    error(error: Error) {
+      console.error('[auth] error', {
+        name: error?.name,
+        message: error?.message,
+        cause: (error as { cause?: unknown })?.cause,
+        stack: error?.stack
+      });
+    },
+    warn(code: string) {
+      console.warn('[auth] warn', code);
+    },
+    debug() {
+      // Auth.js calls this in development; keep production logs to error/warn.
+    }
+  },
   jwt: {
     maxAge: session.maxAge,
     // Opaque DB session token only — see encodeDatabaseSessionToken.

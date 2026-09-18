@@ -34,6 +34,35 @@ export const authErrorMessages: Record<AuthErrorCode, string> = {
     'An account with this email already exists. Sign in with your original method, then connect GitHub from Settings → Security.'
 };
 
+/**
+ * Auth.js v5 only ever forwards a small set of built-in codes (or a provider
+ * `code`) to the error page: `Configuration`, `AccessDenied`, `Verification`,
+ * plus OAuth sign-in/callback codes. Without these, every real OAuth failure
+ * collapses to "Unknown error" and hides what actually broke.
+ */
+const authjsBuiltinErrorMessages: Record<string, string> = {
+  configuration:
+    'Sign-in is temporarily unavailable due to a server configuration issue. Please try again later.',
+  accessdenied:
+    'Access was denied. Your email may be unverified, or you cancelled the sign-in on the provider.',
+  verification:
+    'This sign-in link is no longer valid — it may have expired or already been used. Request a new one.',
+  default: 'Something went wrong while signing you in. Please try again.',
+  // OAuth-specific sign-in / callback codes (next-auth may surface any of these).
+  oauthsignin: 'Could not start sign-in with your provider. Please try again.',
+  oauthcallback:
+    'Sign-in with your provider failed on the callback. Please try again.',
+  oauthcallbackerror:
+    'Sign-in with your provider failed on the callback. Please try again.',
+  oauthcreateaccount:
+    'We could not create your account from your provider profile. Please try again.',
+  oauthaccountnotlinked: authErrorMessages[AuthErrorCode.OAuthAccountNotLinked],
+  callback: 'Sign-in could not be completed. Please try again.',
+  callbackrouteerror: 'Sign-in could not be completed. Please try again.',
+  sessionrequired: 'Please sign in to continue.',
+  credentialssignin: authErrorMessages[AuthErrorCode.IncorrectEmailOrPassword]
+};
+
 /** Resolve Auth.js / app error query values into a user-facing message. */
 export function resolveAuthErrorMessage(
   error: string | null | undefined
@@ -43,6 +72,10 @@ export function resolveAuthErrorMessage(
   }
   if (error in authErrorMessages) {
     return authErrorMessages[error as AuthErrorCode];
+  }
+  const builtin = authjsBuiltinErrorMessages[error.toLowerCase()];
+  if (builtin) {
+    return builtin;
   }
   return authErrorMessages[AuthErrorCode.UnknownError];
 }

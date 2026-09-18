@@ -2,20 +2,32 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import {
+  expireParentDomainSessionSetCookies,
   expireSessionChunkSetCookies,
   isOpaqueSessionToken,
-  sanitizeSessionCookieHeader
+  sanitizeSessionCookieHeader,
+  SESSION_COOKIE_BASE_NAMES
 } from '@/lib/auth/session-cookie-header';
 import { isProtectedAppPath } from '@/lib/routes/public-pathname';
 
-function getSessionCookieName(request: NextRequest): string {
-  const isSecure = request.nextUrl.protocol === 'https:';
-  return isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token';
+function requestIsHttps(request: NextRequest): boolean {
+  const forwarded = request.headers.get('x-forwarded-proto');
+  if (forwarded) {
+    return forwarded.split(',')[0]?.trim() === 'https';
+  }
+  if (request.nextUrl.protocol === 'https:') {
+    return true;
+  }
+  const host = (
+    request.headers.get('x-forwarded-host') ?? request.nextUrl.hostname
+  ).toLowerCase();
+  return host === 'humaner.io' || host.endsWith('.humaner.io');
 }
 
 function getCallbackCookieName(request: NextRequest): string {
-  const isSecure = request.nextUrl.protocol === 'https:';
-  return isSecure ? '__Secure-authjs.callback-url' : 'authjs.callback-url';
+  return requestIsHttps(request)
+    ? '__Secure-authjs.callback-url'
+    : 'authjs.callback-url';
 }
 
 function sharedCookieDomain(hostname: string): string | undefined {
@@ -42,6 +54,32 @@ function isRscNavigationRequest(request: NextRequest): boolean {
     request.headers.get('Next-Router-Prefetch') === '1' ||
     request.headers.has('Next-Router-State-Tree')
   );
+}
+
+function isAuthJsRoute(pathname: string): boolean {
+  return pathname === '/api/auth' || pathname.startsWith('/api/auth/');
+}
+
+/**
+ * Cookie presence must not depend solely on `headers.get('cookie')` — Next.js
+ * proxy can omit that header while still exposing values on `request.cookies`.
+ * v1.1 bounced every login because the sanitizer then saw an empty header.
+ */
+function hasOpaqueSessionCookie(
+  request: NextRequest,
+  sanitizedToken: string | null
+): boolean {
+  if (sanitizedToken && isOpaqueSessionToken(sanitizedToken)) {
+    return true;
+  }
+  for (const name of SESSION_COOKIE_BASE_NAMES) {
+    for (const cookie of request.cookies.getAll(name)) {
+      if (cookie.value && isOpaqueSessionToken(cookie.value)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -104,19 +142,39 @@ function expirePoisonedSessionCookies(
   response: NextResponse,
   droppedChunkNames: string[]
 ): NextResponse {
-  if (droppedChunkNames.length === 0) {
-    return response;
-  }
-
-  const sessionCookieName = getSessionCookieName(request);
-  const isSecure = request.nextUrl.protocol === 'https:';
+  const isSecure = requestIsHttps(request);
   const domain = sharedCookieDomain(request.nextUrl.hostname);
 
-  for (const header of expireSessionChunkSetCookies(sessionCookieName, {
-    secure: isSecure,
-    domain
-  })) {
-    response.headers.append('Set-Cookie', header);
+  if (droppedChunkNames.length > 0) {
+    const chunkBases = new Set<string>(SESSION_COOKIE_BASE_NAMES);
+    for (const name of droppedChunkNames) {
+      const base = SESSION_COOKIE_BASE_NAMES.find((candidate) =>
+        name.startsWith(`${candidate}.`)
+      );
+      if (base) {
+        chunkBases.add(base);
+      }
+    }
+    for (const base of chunkBases) {
+      for (const header of expireSessionChunkSetCookies(base, {
+        secure: isSecure,
+        domain
+      })) {
+        response.headers.append('Set-Cookie', header);
+      }
+    }
+  }
+
+  // Always drop leftover Domain=.humaner.io session cookies. cookies().set()
+  // cannot emit two Set-Cookie headers for the same name, so login cannot
+  // clear the parent-domain copy itself — this is the production cleanup.
+  if (domain) {
+    for (const header of expireParentDomainSessionSetCookies({
+      secure: isSecure,
+      domain
+    })) {
+      response.headers.append('Set-Cookie', header);
+    }
   }
 
   return response;
@@ -124,21 +182,28 @@ function expirePoisonedSessionCookies(
 
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
-  const sessionCookieName = getSessionCookieName(request);
+  const rawCookieHeader = request.headers.get('cookie');
   const sanitized = sanitizeSessionCookieHeader(
-    request.headers.get('cookie'),
-    sessionCookieName
+    rawCookieHeader,
+    SESSION_COOKIE_BASE_NAMES
   );
   const requestHeaders = new Headers(request.headers);
-  if (sanitized.cookieHeader !== request.headers.get('cookie')) {
+  // Never rewrite cookies on Auth.js routes — CSRF / PKCE / state live there.
+  // Also never delete a Cookie header we could not read (Next may omit it).
+  if (
+    !isAuthJsRoute(pathname) &&
+    rawCookieHeader &&
+    sanitized.cookieHeader !== rawCookieHeader
+  ) {
     if (sanitized.cookieHeader) {
       requestHeaders.set('cookie', sanitized.cookieHeader);
     } else {
       requestHeaders.delete('cookie');
     }
   }
-  const hasSessionCookie = Boolean(
-    sanitized.sessionToken && isOpaqueSessionToken(sanitized.sessionToken)
+  const hasSessionCookie = hasOpaqueSessionCookie(
+    request,
+    sanitized.sessionToken
   );
   const expire = (response: NextResponse): NextResponse =>
     expirePoisonedSessionCookies(
@@ -188,7 +253,7 @@ export function proxy(request: NextRequest): NextResponse {
     const response = NextResponse.redirect(loginUrl);
     // Persist for TOTP / recovery / OAuth — query alone is not enough once
     // the user leaves /auth/login for the MFA challenge.
-    const isSecure = request.nextUrl.protocol === 'https:';
+    const isSecure = requestIsHttps(request);
     response.cookies.set({
       name: getCallbackCookieName(request),
       value: callbackPath,
@@ -237,8 +302,8 @@ export const config = {
     '/admin/:path*',
     '/workspace',
     '/dashboard/:path*',
-    // Strip leftover JWT session chunks so Auth.js does not join them
-    // onto the UUID token (login bounce to /auth/login?callbackUrl=…).
+    // Expire leftover parent-domain / JWT session cookies on auth pages.
+    // Do not rewrite the incoming Cookie header on /api/auth (CSRF / PKCE).
     '/auth/:path*',
     '/api/auth/:path*',
     // Cookie presence gate for authenticated dashboard APIs (routes still validate session).

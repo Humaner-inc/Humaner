@@ -108,7 +108,9 @@ export const callbacks = {
     }
 
     if (account.provider === OAuthIdentityProvider.Google) {
-      if (!profile.email_verified) {
+      // Reject only an explicit false — some Google profile payloads omit
+      // `email_verified` even for verified Workspace accounts.
+      if (profile.email_verified === false) {
         return `${Routes.AuthError}?error=${AuthErrorCode.UnverifiedEmail}`;
       }
     }

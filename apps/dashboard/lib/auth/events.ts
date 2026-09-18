@@ -105,22 +105,26 @@ export const events = {
         select: { organizationId: true, email: true }
       });
       if (orgUser?.organizationId) {
-        const { recordAuditEvent } = await import(
-          '@/lib/audit/record-audit-event'
-        );
-        await recordAuditEvent({
-          organizationId: orgUser.organizationId,
-          eventType: 'user.login',
-          actorId: user.id,
-          actorEmail: orgUser.email ?? user.email,
-          resourceType: 'user',
-          resourceId: user.id,
-          metadata: {
-            provider: account?.provider ?? 'credentials',
-            isNewUser: Boolean(isNewUser)
-          },
-          captureIp: true
-        });
+        try {
+          const { recordAuditEvent } = await import(
+            '@/lib/audit/record-audit-event'
+          );
+          await recordAuditEvent({
+            organizationId: orgUser.organizationId,
+            eventType: 'user.login',
+            actorId: user.id,
+            actorEmail: orgUser.email ?? user.email,
+            resourceType: 'user',
+            resourceId: user.id,
+            metadata: {
+              provider: account?.provider ?? 'credentials',
+              isNewUser: Boolean(isNewUser)
+            },
+            captureIp: true
+          });
+        } catch (error) {
+          console.error('[auth] failed to record login audit', error);
+        }
       }
 
       if (
@@ -128,13 +132,25 @@ export const events = {
         account?.provider === OAuthIdentityProvider.GitHub
       ) {
         // Normalize cookie after OAuth — custom jwt.encode used to return ''
-        // and wipe the DB session cookie Auth.js just minted.
-        await reassertSessionCookieForUser(user.id);
-        await ensureOAuthProfileImage(
-          user,
-          account.provider,
-          profile as unknown as Record<string, unknown> | undefined
-        );
+        // and wipe the DB session cookie Auth.js just minted. Must not throw:
+        // Auth.js maps event exceptions to ?error=Configuration (Unknown error).
+        try {
+          await reassertSessionCookieForUser(user.id);
+        } catch (error) {
+          console.error(
+            '[auth] failed to reassert OAuth session cookie',
+            error
+          );
+        }
+        try {
+          await ensureOAuthProfileImage(
+            user,
+            account.provider,
+            profile as unknown as Record<string, unknown> | undefined
+          );
+        } catch (error) {
+          console.error('[auth] failed to copy OAuth profile image', error);
+        }
       }
 
       if (isNewUser && user.email) {
