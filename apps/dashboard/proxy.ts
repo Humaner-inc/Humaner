@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import {
-  expireParentDomainSessionSetCookies,
+  expireHostOnlySessionSetCookies,
   expireSessionChunkSetCookies,
   isOpaqueSessionToken,
   sanitizeSessionCookieHeader,
@@ -140,7 +140,8 @@ function isOssBlockedPath(pathname: string): boolean {
 function expirePoisonedSessionCookies(
   request: NextRequest,
   response: NextResponse,
-  droppedChunkNames: string[]
+  droppedChunkNames: string[],
+  hadDuplicateSessionValues: boolean
 ): NextResponse {
   const isSecure = requestIsHttps(request);
   const domain = sharedCookieDomain(request.nextUrl.hostname);
@@ -165,13 +166,14 @@ function expirePoisonedSessionCookies(
     }
   }
 
-  // Always drop leftover Domain=.humaner.io session cookies. cookies().set()
-  // cannot emit two Set-Cookie headers for the same name, so login cannot
-  // clear the parent-domain copy itself — this is the production cleanup.
-  if (domain) {
-    for (const header of expireParentDomainSessionSetCookies({
-      secure: isSecure,
-      domain
+  // A duplicate base cookie means a stale host-only copy is shadowing the
+  // canonical parent-domain session. Expire the host-only copy (no Domain=)
+  // so the next request carries only the valid parent-domain cookie. This is
+  // done here because cookies().set() cannot emit a same-name cookie in two
+  // scopes — only headers.append can.
+  if (hadDuplicateSessionValues) {
+    for (const header of expireHostOnlySessionSetCookies({
+      secure: isSecure
     })) {
       response.headers.append('Set-Cookie', header);
     }
@@ -209,7 +211,8 @@ export function proxy(request: NextRequest): NextResponse {
     expirePoisonedSessionCookies(
       request,
       response,
-      sanitized.droppedChunkNames
+      sanitized.droppedChunkNames,
+      sanitized.hadDuplicateSessionValues
     );
 
   if (pathname === '/favicon.ico') {

@@ -32,9 +32,10 @@ function expiredCookieOptions(domain?: string): {
 }
 
 /**
- * Clear host-only session cookies, including Auth.js chunks.
- * Parent-domain copies and leftover chunks are expired in middleware
- * (`headers.append`) because `cookies().set()` is keyed by name.
+ * Clear the session cookie in every scope (host-only + parent-domain) and its
+ * Auth.js JWT chunk leftovers. `cookies().set()` is keyed by name only, so the
+ * final `set()` per name wins — writeSessionCookie re-sets the canonical name
+ * right after, which is why login still lands a valid cookie.
  */
 export async function clearSessionCookies(): Promise<void> {
   const cookieStore = await cookies();
@@ -45,31 +46,31 @@ export async function clearSessionCookies(): Promise<void> {
   ];
 
   for (const name of names) {
+    // Host-only copy (Auth.js / older host-only deploys).
     cookieStore.set(name, '', expiredCookieOptions());
+    // Parent-domain copy — the canonical scope in production.
+    if (AuthCookies.domain) {
+      cookieStore.set(name, '', expiredCookieOptions(AuthCookies.domain));
+    }
   }
 }
 
 /**
- * Write the canonical host-only database session cookie.
- * Do not delete the canonical name first — a Max-Age=0 and a new value
- * for the same name can race, and leftover JWT chunks are stripped in
- * middleware before Auth.js concatenates them.
+ * Write the canonical parent-domain database session cookie after clearing
+ * leftovers. Parent-domain keeps a single shared scope across app.humaner.io
+ * and humaner.io so a fresh login overwrites (never shadows) the old cookie.
  */
 export async function writeSessionCookie(
   sessionToken: string,
   expires: Date
 ): Promise<void> {
+  await clearSessionCookies();
+
   const cookieStore = await cookies();
-  const base = AuthCookies.SessionToken;
-
-  for (const index of SESSION_COOKIE_CHUNK_INDEXES) {
-    cookieStore.set(`${base}.${index}`, '', expiredCookieOptions());
-  }
-
   cookieStore.set({
-    name: base,
+    name: AuthCookies.SessionToken,
     value: sessionToken,
-    ...AuthCookies.hostOnlyCookieOptions(expires)
+    ...AuthCookies.sessionCookieOptions(expires)
   });
 }
 

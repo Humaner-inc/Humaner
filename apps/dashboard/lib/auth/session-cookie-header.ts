@@ -211,3 +211,18 @@ export function expireParentDomainSessionSetCookies(options: {
     expireParentDomainSessionSetCookie(name, options)
   );
 }
+
+/**
+ * Expire the stale *host-only* copy of the session cookie for every known
+ * name. The canonical session cookie is parent-domain (`.humaner.io`), so a
+ * host-only copy is a leftover from an earlier host-only deploy. A `Set-Cookie`
+ * without a `Domain=` attribute only removes the host-only cookie, leaving the
+ * canonical parent-domain cookie intact.
+ */
+export function expireHostOnlySessionSetCookies(options: {
+  secure: boolean;
+}): string[] {
+  return SESSION_COOKIE_BASE_NAMES.map((name) =>
+    expireCookieSetCookie(name, { secure: options.secure })
+  );
+}

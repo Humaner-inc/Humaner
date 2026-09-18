@@ -49,7 +49,10 @@ export const authConfig = {
   cookies: {
     sessionToken: {
       name: AuthCookies.SessionToken,
-      options: AuthCookies.hostOnlyCookieOptions()
+      // Parent-domain (`.humaner.io`) session cookie — the scheme that worked
+      // at 1.0. Every write path uses the same scope so a fresh login always
+      // overwrites the previous cookie instead of leaving a shadow copy.
+      options: AuthCookies.sessionCookieOptions()
     }
   },
   callbacks,

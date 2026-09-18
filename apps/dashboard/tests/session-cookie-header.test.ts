@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  expireHostOnlySessionSetCookies,
   expireParentDomainSessionSetCookie,
   expireParentDomainSessionSetCookies,
   expireSessionChunkSetCookies,
@@ -136,5 +137,12 @@ describe('session cookie helpers', () => {
           header.includes('Domain=.humaner.io') && header.includes('Max-Age=0')
       )
     ).toBe(true);
+  });
+
+  it('expires host-only leftovers without a Domain attribute', () => {
+    const headers = expireHostOnlySessionSetCookies({ secure: true });
+    expect(headers).toHaveLength(SESSION_COOKIE_BASE_NAMES.length);
+    expect(headers.every((header) => !header.includes('Domain='))).toBe(true);
+    expect(headers.every((header) => header.includes('Max-Age=0'))).toBe(true);
   });
 });
