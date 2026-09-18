@@ -1,27 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import {
-  expireHostOnlySessionSetCookies,
-  expireSessionChunkSetCookies,
-  isOpaqueSessionToken,
-  sanitizeSessionCookieHeader,
-  SESSION_COOKIE_BASE_NAMES
-} from '@/lib/auth/session-cookie-header';
 import { isProtectedAppPath } from '@/lib/routes/public-pathname';
+
+const SESSION_COOKIE_NAMES = [
+  '__Secure-authjs.session-token',
+  'authjs.session-token'
+] as const;
 
 function requestIsHttps(request: NextRequest): boolean {
   const forwarded = request.headers.get('x-forwarded-proto');
   if (forwarded) {
     return forwarded.split(',')[0]?.trim() === 'https';
   }
-  if (request.nextUrl.protocol === 'https:') {
-    return true;
-  }
-  const host = (
-    request.headers.get('x-forwarded-host') ?? request.nextUrl.hostname
-  ).toLowerCase();
-  return host === 'humaner.io' || host.endsWith('.humaner.io');
+  return request.nextUrl.protocol === 'https:';
 }
 
 function getCallbackCookieName(request: NextRequest): string {
@@ -41,6 +33,33 @@ function sharedCookieDomain(hostname: string): string | undefined {
   return undefined;
 }
 
+/**
+ * Same gate as 062be0aa (working): any session cookie or Auth.js chunk counts.
+ * Do not require a UUID — that bounce is what broke login after v1.1.
+ */
+function hasSessionCookie(request: NextRequest): boolean {
+  for (const cookieName of SESSION_COOKIE_NAMES) {
+    if (request.cookies.get(cookieName)?.value) {
+      return true;
+    }
+    if (request.cookies.get(`${cookieName}.0`)?.value) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Default app homes — unsigned visitors should see /auth/login, not a bounce URL. */
+function isDefaultSignedInHome(pathname: string): boolean {
+  return (
+    pathname === '/' ||
+    pathname === '/inbox' ||
+    pathname === '/inbox/all' ||
+    pathname === '/organization' ||
+    pathname === '/organization/overview'
+  );
+}
+
 function isOssDeploymentRequest(): boolean {
   return (
     process.env.NEXT_PUBLIC_DEPLOYMENT_MODE?.trim().toLowerCase() === 'oss'
@@ -54,32 +73,6 @@ function isRscNavigationRequest(request: NextRequest): boolean {
     request.headers.get('Next-Router-Prefetch') === '1' ||
     request.headers.has('Next-Router-State-Tree')
   );
-}
-
-function isAuthJsRoute(pathname: string): boolean {
-  return pathname === '/api/auth' || pathname.startsWith('/api/auth/');
-}
-
-/**
- * Cookie presence must not depend solely on `headers.get('cookie')` — Next.js
- * proxy can omit that header while still exposing values on `request.cookies`.
- * v1.1 bounced every login because the sanitizer then saw an empty header.
- */
-function hasOpaqueSessionCookie(
-  request: NextRequest,
-  sanitizedToken: string | null
-): boolean {
-  if (sanitizedToken && isOpaqueSessionToken(sanitizedToken)) {
-    return true;
-  }
-  for (const name of SESSION_COOKIE_BASE_NAMES) {
-    for (const cookie of request.cookies.getAll(name)) {
-      if (cookie.value && isOpaqueSessionToken(cookie.value)) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 /**
@@ -137,83 +130,8 @@ function isOssBlockedPath(pathname: string): boolean {
   });
 }
 
-function expirePoisonedSessionCookies(
-  request: NextRequest,
-  response: NextResponse,
-  droppedChunkNames: string[],
-  hadDuplicateSessionValues: boolean
-): NextResponse {
-  const isSecure = requestIsHttps(request);
-  const domain = sharedCookieDomain(request.nextUrl.hostname);
-
-  if (droppedChunkNames.length > 0) {
-    const chunkBases = new Set<string>(SESSION_COOKIE_BASE_NAMES);
-    for (const name of droppedChunkNames) {
-      const base = SESSION_COOKIE_BASE_NAMES.find((candidate) =>
-        name.startsWith(`${candidate}.`)
-      );
-      if (base) {
-        chunkBases.add(base);
-      }
-    }
-    for (const base of chunkBases) {
-      for (const header of expireSessionChunkSetCookies(base, {
-        secure: isSecure,
-        domain
-      })) {
-        response.headers.append('Set-Cookie', header);
-      }
-    }
-  }
-
-  // A duplicate base cookie means a stale host-only copy is shadowing the
-  // canonical parent-domain session. Expire the host-only copy (no Domain=)
-  // so the next request carries only the valid parent-domain cookie. This is
-  // done here because cookies().set() cannot emit a same-name cookie in two
-  // scopes — only headers.append can.
-  if (hadDuplicateSessionValues) {
-    for (const header of expireHostOnlySessionSetCookies({
-      secure: isSecure
-    })) {
-      response.headers.append('Set-Cookie', header);
-    }
-  }
-
-  return response;
-}
-
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
-  const rawCookieHeader = request.headers.get('cookie');
-  const sanitized = sanitizeSessionCookieHeader(
-    rawCookieHeader,
-    SESSION_COOKIE_BASE_NAMES
-  );
-  const requestHeaders = new Headers(request.headers);
-  // Never rewrite cookies on Auth.js routes — CSRF / PKCE / state live there.
-  // Also never delete a Cookie header we could not read (Next may omit it).
-  if (
-    !isAuthJsRoute(pathname) &&
-    rawCookieHeader &&
-    sanitized.cookieHeader !== rawCookieHeader
-  ) {
-    if (sanitized.cookieHeader) {
-      requestHeaders.set('cookie', sanitized.cookieHeader);
-    } else {
-      requestHeaders.delete('cookie');
-    }
-  }
-  const hasSessionCookie = hasOpaqueSessionCookie(
-    request,
-    sanitized.sessionToken
-  );
-  const expire = (response: NextResponse): NextResponse =>
-    expirePoisonedSessionCookies(
-      request,
-      response,
-      sanitized.droppedChunkNames,
-      sanitized.hadDuplicateSessionValues
-    );
 
   if (pathname === '/favicon.ico') {
     return NextResponse.rewrite(new URL('/favicon.svg', request.url));
@@ -224,12 +142,10 @@ export function proxy(request: NextRequest): NextResponse {
   // full document navigations.
   if (isOssDeploymentRequest() && isOssBlockedPath(pathname)) {
     if (isRscNavigationRequest(request)) {
-      return expire(
-        NextResponse.rewrite(new URL('/dashboard/home', request.url))
-      );
+      return NextResponse.rewrite(new URL('/dashboard/home', request.url));
     }
-    return expire(
-      NextResponse.redirect(new URL('/organization/overview', request.url))
+    return NextResponse.redirect(
+      new URL('/organization/overview', request.url)
     );
   }
 
@@ -238,7 +154,11 @@ export function proxy(request: NextRequest): NextResponse {
   // "An unexpected response was received from the server."
   const isServerAction = request.headers.has('next-action');
 
-  if (isProtectedAppPath(pathname) && !isServerAction && !hasSessionCookie) {
+  if (
+    isProtectedAppPath(pathname) &&
+    !isServerAction &&
+    !hasSessionCookie(request)
+  ) {
     // Dashboard API polls (e.g. /api/dashboard/desk/open-count) must not
     // redirect to login or poison the Auth.js callback cookie — that sent
     // users to raw JSON after sign-in.
@@ -249,34 +169,37 @@ export function proxy(request: NextRequest): NextResponse {
       return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', callbackPath);
+    const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    const persistCallback = !isDefaultSignedInHome(pathname);
+
+    if (persistCallback) {
+      loginUrl.searchParams.set('callbackUrl', callbackPath);
+    }
 
     const response = NextResponse.redirect(loginUrl);
-    // Persist for TOTP / recovery / OAuth — query alone is not enough once
-    // the user leaves /auth/login for the MFA challenge.
-    const isSecure = requestIsHttps(request);
-    response.cookies.set({
-      name: getCallbackCookieName(request),
-      value: callbackPath,
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: 'lax',
-      path: '/',
-      ...(sharedCookieDomain(request.nextUrl.hostname)
-        ? { domain: sharedCookieDomain(request.nextUrl.hostname) }
-        : {})
-    });
-    return expire(response);
+    if (persistCallback) {
+      const isSecure = requestIsHttps(request);
+      response.cookies.set({
+        name: getCallbackCookieName(request),
+        value: callbackPath,
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        path: '/',
+        ...(sharedCookieDomain(request.nextUrl.hostname)
+          ? { domain: sharedCookieDomain(request.nextUrl.hostname) }
+          : {})
+      });
+    }
+    return response;
   }
 
+  const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-pathname', pathname);
-  return expire(
-    NextResponse.next({
-      request: { headers: requestHeaders }
-    })
-  );
+  return NextResponse.next({
+    request: { headers: requestHeaders }
+  });
 }
 
 export const config = {
@@ -305,10 +228,6 @@ export const config = {
     '/admin/:path*',
     '/workspace',
     '/dashboard/:path*',
-    // Expire leftover parent-domain / JWT session cookies on auth pages.
-    // Do not rewrite the incoming Cookie header on /api/auth (CSRF / PKCE).
-    '/auth/:path*',
-    '/api/auth/:path*',
     // Cookie presence gate for authenticated dashboard APIs (routes still validate session).
     '/api/dashboard/:path*'
   ]

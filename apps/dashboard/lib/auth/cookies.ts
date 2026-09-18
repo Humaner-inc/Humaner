@@ -2,12 +2,6 @@ import { getBaseUrl } from '@/lib/urls/get-base-url';
 
 const secure = new URL(getBaseUrl()).protocol === 'https:';
 
-/**
- * Parent-domain cookie for non-session flags (early access, Gmail prompt)
- * so marketing (humaner.io) and app (app.humaner.io) can share them.
- * The Auth.js session token itself is host-only — a Domain=.humaner.io copy
- * plus leftover JWT chunks made Auth.js join an invalid token.
- */
 function resolveSharedCookieDomain(): string | undefined {
   try {
     const host = new URL(getBaseUrl()).hostname.toLowerCase();
@@ -56,23 +50,6 @@ export class AuthCookies {
 
   /** Unique viral-beta code submitted at the wall (to attach the redeemer). */
   public static AuthAccessCode = 'humaner.auth-access-code';
-
-  /** Host-only — used for the Auth.js session token. */
-  public static hostOnlyCookieOptions(expires?: Date): {
-    httpOnly: true;
-    secure: boolean;
-    sameSite: 'lax';
-    path: '/';
-    expires?: Date;
-  } {
-    return {
-      httpOnly: true,
-      secure: AuthCookies.isSecure,
-      sameSite: 'lax',
-      path: '/',
-      ...(expires ? { expires } : {})
-    };
-  }
 
   public static sessionCookieOptions(expires?: Date): {
     httpOnly: true;

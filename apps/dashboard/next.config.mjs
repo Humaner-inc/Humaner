@@ -151,7 +151,9 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: signedInHome,
+        // Cloud: send unsigned visitors straight to login (no /inbox/all bounce).
+        // Signed-in users on /auth/login are redirected home by the auth layout.
+        destination: isSelfHostBuild ? signedInHome : '/auth/login',
         permanent: false
       },
       {
