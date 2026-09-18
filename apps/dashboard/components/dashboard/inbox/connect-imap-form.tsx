@@ -510,6 +510,15 @@ export function ConnectImapForm({
                 {providerConnections.length === 1 ? '' : 'es'} connected — add
                 another below.
               </p>
+            ) : selectedProvider.appPasswordUrl ? (
+              <a
+                href={selectedProvider.appPasswordUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="truncate text-xs text-muted-foreground underline decoration-foreground/20 underline-offset-4 hover:text-foreground"
+              >
+                {selectedProvider.setupNote ?? 'Create an app password'}
+              </a>
             ) : selectedProvider.setupNote ? (
               <p className="truncate text-xs text-muted-foreground">
                 {selectedProvider.setupNote}

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { CheckIcon, MailIcon, SearchIcon } from '@humaner/shared/icons';
+import { MAIL_CONNECT_KIND_BADGE } from '@humaner/shared/mail-providers';
 
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import { Input } from '@/components/ui/input';
@@ -190,12 +191,11 @@ function ProviderListItem({
             className="size-3.5 shrink-0 text-emerald-600"
             aria-label="Connected"
           />
-        ) : null}
-        {disabled && provider.unavailableLabel ? (
+        ) : (
           <span className="shrink-0 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-            {provider.unavailableLabel}
+            {MAIL_CONNECT_KIND_BADGE[provider.connect]}
           </span>
-        ) : null}
+        )}
       </button>
     </li>
   );
