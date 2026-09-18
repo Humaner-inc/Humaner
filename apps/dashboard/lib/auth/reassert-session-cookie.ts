@@ -8,10 +8,8 @@ import {
   generateSessionToken,
   getSessionExpiryFromNow
 } from '@/lib/auth/session';
+import { SESSION_COOKIE_CHUNK_INDEXES } from '@/lib/auth/session-cookie-header';
 import { prisma } from '@/lib/db/prisma';
-
-/** Auth.js may leave chunked JWT leftovers (`name.0`, `name.1`, …). */
-const SESSION_COOKIE_CHUNK_INDEXES = [0, 1, 2, 3, 4] as const;
 
 function expiredCookieOptions(domain?: string): {
   httpOnly: true;
@@ -34,8 +32,9 @@ function expiredCookieOptions(domain?: string): {
 }
 
 /**
- * Clear host-only + shared-domain session cookies, including Auth.js chunks.
- * Chunk leftovers + a fresh UUID cookie join into a corrupt session token.
+ * Clear host-only session cookies, including Auth.js chunks.
+ * Parent-domain copies and leftover chunks are expired in middleware
+ * (`headers.append`) because `cookies().set()` is keyed by name.
  */
 export async function clearSessionCookies(): Promise<void> {
   const cookieStore = await cookies();
@@ -46,26 +45,31 @@ export async function clearSessionCookies(): Promise<void> {
   ];
 
   for (const name of names) {
-    // Host-only (no Domain) — Auth.js / older deploys may have written these.
     cookieStore.set(name, '', expiredCookieOptions());
-    if (AuthCookies.domain) {
-      cookieStore.set(name, '', expiredCookieOptions(AuthCookies.domain));
-    }
   }
 }
 
-/** Write the canonical database session cookie after clearing leftovers. */
+/**
+ * Write the canonical host-only database session cookie.
+ * Do not delete the canonical name first — a Max-Age=0 and a new value
+ * for the same name can race, and leftover JWT chunks are stripped in
+ * middleware before Auth.js concatenates them.
+ */
 export async function writeSessionCookie(
   sessionToken: string,
   expires: Date
 ): Promise<void> {
-  await clearSessionCookies();
-
   const cookieStore = await cookies();
+  const base = AuthCookies.SessionToken;
+
+  for (const index of SESSION_COOKIE_CHUNK_INDEXES) {
+    cookieStore.set(`${base}.${index}`, '', expiredCookieOptions());
+  }
+
   cookieStore.set({
-    name: AuthCookies.SessionToken,
+    name: base,
     value: sessionToken,
-    ...AuthCookies.sessionCookieOptions(expires)
+    ...AuthCookies.hostOnlyCookieOptions(expires)
   });
 }
 

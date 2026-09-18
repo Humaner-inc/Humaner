@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import {
+  expireSessionChunkSetCookies,
+  isOpaqueSessionToken,
+  sanitizeSessionCookieHeader
+} from '@/lib/auth/session-cookie-header';
 import { isProtectedAppPath } from '@/lib/routes/public-pathname';
 
 function getSessionCookieName(request: NextRequest): string {
@@ -22,15 +27,6 @@ function sharedCookieDomain(hostname: string): string | undefined {
     return '.humaner.io';
   }
   return undefined;
-}
-
-/** Auth.js may chunk large session cookies as `<name>.0`, `<name>.1`, … */
-function hasSessionCookie(request: NextRequest): boolean {
-  const cookieName = getSessionCookieName(request);
-  if (request.cookies.get(cookieName)?.value) {
-    return true;
-  }
-  return Boolean(request.cookies.get(`${cookieName}.0`)?.value);
 }
 
 function isOssDeploymentRequest(): boolean {
@@ -103,8 +99,53 @@ function isOssBlockedPath(pathname: string): boolean {
   });
 }
 
+function expirePoisonedSessionCookies(
+  request: NextRequest,
+  response: NextResponse,
+  droppedChunkNames: string[]
+): NextResponse {
+  if (droppedChunkNames.length === 0) {
+    return response;
+  }
+
+  const sessionCookieName = getSessionCookieName(request);
+  const isSecure = request.nextUrl.protocol === 'https:';
+  const domain = sharedCookieDomain(request.nextUrl.hostname);
+
+  for (const header of expireSessionChunkSetCookies(sessionCookieName, {
+    secure: isSecure,
+    domain
+  })) {
+    response.headers.append('Set-Cookie', header);
+  }
+
+  return response;
+}
+
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
+  const sessionCookieName = getSessionCookieName(request);
+  const sanitized = sanitizeSessionCookieHeader(
+    request.headers.get('cookie'),
+    sessionCookieName
+  );
+  const requestHeaders = new Headers(request.headers);
+  if (sanitized.cookieHeader !== request.headers.get('cookie')) {
+    if (sanitized.cookieHeader) {
+      requestHeaders.set('cookie', sanitized.cookieHeader);
+    } else {
+      requestHeaders.delete('cookie');
+    }
+  }
+  const hasSessionCookie = Boolean(
+    sanitized.sessionToken && isOpaqueSessionToken(sanitized.sessionToken)
+  );
+  const expire = (response: NextResponse): NextResponse =>
+    expirePoisonedSessionCookies(
+      request,
+      response,
+      sanitized.droppedChunkNames
+    );
 
   if (pathname === '/favicon.ico') {
     return NextResponse.rewrite(new URL('/favicon.svg', request.url));
@@ -115,10 +156,12 @@ export function proxy(request: NextRequest): NextResponse {
   // full document navigations.
   if (isOssDeploymentRequest() && isOssBlockedPath(pathname)) {
     if (isRscNavigationRequest(request)) {
-      return NextResponse.rewrite(new URL('/dashboard/home', request.url));
+      return expire(
+        NextResponse.rewrite(new URL('/dashboard/home', request.url))
+      );
     }
-    return NextResponse.redirect(
-      new URL('/organization/overview', request.url)
+    return expire(
+      NextResponse.redirect(new URL('/organization/overview', request.url))
     );
   }
 
@@ -127,11 +170,7 @@ export function proxy(request: NextRequest): NextResponse {
   // "An unexpected response was received from the server."
   const isServerAction = request.headers.has('next-action');
 
-  if (
-    isProtectedAppPath(pathname) &&
-    !isServerAction &&
-    !hasSessionCookie(request)
-  ) {
+  if (isProtectedAppPath(pathname) && !isServerAction && !hasSessionCookie) {
     // Dashboard API polls (e.g. /api/dashboard/desk/open-count) must not
     // redirect to login or poison the Auth.js callback cookie — that sent
     // users to raw JSON after sign-in.
@@ -161,14 +200,15 @@ export function proxy(request: NextRequest): NextResponse {
         ? { domain: sharedCookieDomain(request.nextUrl.hostname) }
         : {})
     });
-    return response;
+    return expire(response);
   }
 
-  const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-pathname', pathname);
-  return NextResponse.next({
-    request: { headers: requestHeaders }
-  });
+  return expire(
+    NextResponse.next({
+      request: { headers: requestHeaders }
+    })
+  );
 }
 
 export const config = {
@@ -197,6 +237,10 @@ export const config = {
     '/admin/:path*',
     '/workspace',
     '/dashboard/:path*',
+    // Strip leftover JWT session chunks so Auth.js does not join them
+    // onto the UUID token (login bounce to /auth/login?callbackUrl=…).
+    '/auth/:path*',
+    '/api/auth/:path*',
     // Cookie presence gate for authenticated dashboard APIs (routes still validate session).
     '/api/dashboard/:path*'
   ]

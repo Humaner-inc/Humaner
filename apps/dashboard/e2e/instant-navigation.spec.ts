@@ -61,8 +61,16 @@ test.describe('Dashboard instant navigation', () => {
     await instant(page, async () => {
       await page.getByRole('link', { name: 'Forgot your password?' }).click();
       await page.waitForURL((url) => url.pathname === '/auth/forgot-password');
+      await expect(page.getByRole('heading', { level: 1 })).toContainText(
+        'Humaner'
+      );
       await expect(
-        page.getByRole('heading', { name: 'Forgot your password?' })
+        page.getByText(
+          "Forgot your password? We'll send a reset link to your email."
+        )
+      ).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: 'Send instructions' })
       ).toBeVisible();
     });
   });

@@ -132,7 +132,7 @@ export function getContactUrl(): string {
 }
 
 export function getFreeToolsUrl(): string {
-  return `${getLandingUrl()}/free-tools`;
+  return getIntoMarkdownUrl();
 }
 
 export function getPricingUrl(): string {

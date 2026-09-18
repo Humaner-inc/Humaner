@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { type Metadata } from 'next';
 
-import { AuthContainer } from '@/components/auth/auth-container';
+import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
 import { ForgotPasswordCard } from '@/components/auth/forgot-password/forgot-password-card';
 import { createTitle } from '@/lib/utils';
 
@@ -11,8 +11,11 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage(): React.JSX.Element {
   return (
-    <AuthContainer maxWidth="sm">
+    <AuthOnboardingCardShell
+      showLogo={false}
+      maxWidth="sm"
+    >
       <ForgotPasswordCard />
-    </AuthContainer>
+    </AuthOnboardingCardShell>
   );
 }

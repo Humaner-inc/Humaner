@@ -32,8 +32,7 @@ export const logIn = actionClient
 
     const cookieStore = await cookies();
     const fallbackRedirect = getSafeAuthCallbackUrl(
-      cookieStore.get(AuthCookies.CallbackUrl)?.value,
-      Routes.Home
+      cookieStore.get(AuthCookies.CallbackUrl)?.value
     );
 
     try {

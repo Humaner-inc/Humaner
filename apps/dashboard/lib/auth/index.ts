@@ -49,7 +49,7 @@ export const authConfig = {
   cookies: {
     sessionToken: {
       name: AuthCookies.SessionToken,
-      options: AuthCookies.sessionCookieOptions()
+      options: AuthCookies.hostOnlyCookieOptions()
     }
   },
   callbacks,

@@ -5,7 +5,6 @@ import { CredentialsSignin } from 'next-auth';
 import { returnValidationErrors } from 'next-safe-action';
 
 import { actionClient } from '@/actions/safe-action';
-import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
 import {
   getSafeAuthCallbackUrl,
@@ -23,8 +22,7 @@ export const submitTotpCode = actionClient
   .action(async ({ parsedInput }) => {
     const cookieStore = await cookies();
     const fallbackRedirect = getSafeAuthCallbackUrl(
-      cookieStore.get(AuthCookies.CallbackUrl)?.value,
-      Routes.Home
+      cookieStore.get(AuthCookies.CallbackUrl)?.value
     );
 
     try {

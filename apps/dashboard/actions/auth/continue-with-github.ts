@@ -3,7 +3,6 @@
 import { cookies } from 'next/headers';
 
 import { actionClient } from '@/actions/safe-action';
-import { Routes } from '@/constants/routes';
 import { signIn } from '@/lib/auth';
 import {
   grantAuthAccessUnlock,
@@ -26,8 +25,7 @@ export const continueWithGitHub = actionClient
       await requireAuthAccessUnlock();
     }
     const fallbackRedirect = getSafeAuthCallbackUrl(
-      cookieStore.get(AuthCookies.CallbackUrl)?.value,
-      Routes.Home
+      cookieStore.get(AuthCookies.CallbackUrl)?.value
     );
 
     // Must use redirect: false inside Safe Actions — Auth.js redirect() is
