@@ -339,7 +339,10 @@ export async function DashboardSessionShell({
         ) : null}
         <SidebarProvider>
           <OrgRealtimeBridge />
-          <ComposeMailProvider inboxes={mailInboxes}>
+          <ComposeMailProvider
+            inboxes={mailInboxes}
+            workspaceId={session.user.organizationId ?? ''}
+          >
             <DashboardDockProvider>
               <DockNotificationsProvider
                 notifications={notifications}

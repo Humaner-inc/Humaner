@@ -6,7 +6,9 @@ import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
 import { composeMail } from '@/actions/inbox/compose-mail';
+import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { Button } from '@/components/ui/button';
+import { SaveIcon } from '@/components/ui/save-icon';
 import {
   Select,
   SelectContent,
@@ -24,14 +26,26 @@ import { cn } from '@/lib/utils';
 const COMPOSE_FIELD_CLASS =
   'w-full border-0 border-b border-border bg-transparent px-0 py-2 text-sm shadow-none outline-none ring-0 placeholder:text-muted-foreground/60 focus-visible:border-foreground focus-visible:ring-0';
 
+export type ComposeMailFormValues = {
+  aliasId: string;
+  to: string;
+  subject: string;
+  body: string;
+  threadId?: string;
+};
+
 export function ComposeMailForm({
   inboxes,
   defaultAliasId = null,
   initialTo = '',
   initialSubject = '',
   initialBody = '',
+  threadId,
+  confirmClose = false,
   onSent,
   onCancel,
+  onDraft,
+  onDirtyChange,
   className
 }: {
   inboxes: MailInboxOption[];
@@ -39,8 +53,12 @@ export function ComposeMailForm({
   initialTo?: string;
   initialSubject?: string;
   initialBody?: string;
+  threadId?: string;
+  confirmClose?: boolean;
   onSent?: () => void;
   onCancel?: () => void;
+  onDraft?: (values: ComposeMailFormValues) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   className?: string;
 }): React.JSX.Element {
   const router = useRouter();
@@ -63,19 +81,51 @@ export function ComposeMailForm({
     setBody(initialBody);
   }, [initialTo, initialSubject, initialBody]);
 
-  const { execute, isExecuting } = useAction(composeMail, {
-    onSuccess: () => {
-      toast.success('Email sent');
-      sendIconRef.current?.stopAnimation();
-      onSent?.();
-      router.refresh();
-    },
-    onError: ({ error }) => {
-      sendIconRef.current?.stopAnimation();
-      toast.error(error.serverError || 'Could not send email');
-    }
-  });
+  const dirty =
+    to !== initialTo ||
+    subject !== initialSubject ||
+    body !== initialBody ||
+    (defaultAliasId != null && aliasId !== defaultAliasId);
 
+  React.useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  const finishSend = (): void => {
+    sendIconRef.current?.stopAnimation();
+    onSent?.();
+    router.refresh();
+  };
+
+  const { execute: executeCompose, isExecuting: isComposing } = useAction(
+    composeMail,
+    {
+      onSuccess: () => {
+        toast.success('Email sent');
+        finishSend();
+      },
+      onError: ({ error }) => {
+        sendIconRef.current?.stopAnimation();
+        toast.error(error.serverError || 'Could not send email');
+      }
+    }
+  );
+
+  const { execute: executeReply, isExecuting: isReplying } = useAction(
+    replyMailThread,
+    {
+      onSuccess: () => {
+        toast.success('Reply sent');
+        finishSend();
+      },
+      onError: ({ error }) => {
+        sendIconRef.current?.stopAnimation();
+        toast.error(error.serverError || 'Could not send reply');
+      }
+    }
+  );
+
+  const isExecuting = isComposing || isReplying;
   const mailboxGroups = React.useMemo(
     () => groupMailInboxes(inboxes),
     [inboxes]
@@ -87,22 +137,43 @@ export function ComposeMailForm({
       : selectedInbox.address
     : null;
 
-  const canSend =
-    Boolean(aliasId) &&
-    to.trim().length > 0 &&
-    subject.trim().length > 0 &&
-    body.trim().length > 0 &&
-    !isExecuting;
+  const values: ComposeMailFormValues = {
+    aliasId,
+    to: to.trim(),
+    subject: subject.trim(),
+    body: body.trim(),
+    ...(threadId ? { threadId } : {})
+  };
+
+  const canSend = threadId
+    ? Boolean(values.body) && !isExecuting
+    : Boolean(aliasId) &&
+      values.to.length > 0 &&
+      values.subject.length > 0 &&
+      values.body.length > 0 &&
+      !isExecuting;
 
   const handleSend = (): void => {
     if (!canSend) return;
     sendIconRef.current?.startAnimation();
-    execute({
+    if (threadId) {
+      executeReply({
+        threadId,
+        ...(aliasId ? { aliasId } : {}),
+        body: values.body
+      });
+      return;
+    }
+    executeCompose({
       aliasId,
-      to: to.trim(),
-      subject: subject.trim(),
-      body: body.trim()
+      to: values.to,
+      subject: values.subject,
+      body: values.body
     });
+  };
+
+  const handleDraft = (): void => {
+    onDraft?.(values);
   };
 
   return (
@@ -180,7 +251,22 @@ export function ComposeMailForm({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {onCancel ? (
+          {onDraft ? (
+            <Button
+              type="button"
+              variant={confirmClose ? 'default' : 'outline'}
+              size="sm"
+              className="h-9 px-4 font-mono"
+              disabled={isExecuting}
+              onClick={handleDraft}
+            >
+              <span className="inline-flex items-center gap-2">
+                <SaveIcon size={15} />
+                Draft
+              </span>
+            </Button>
+          ) : null}
+          {onCancel && (confirmClose || !onDraft) ? (
             <Button
               type="button"
               variant="outline"
@@ -189,7 +275,7 @@ export function ComposeMailForm({
               disabled={isExecuting}
               onClick={onCancel}
             >
-              Cancel
+              {confirmClose ? 'Discard' : 'Cancel'}
             </Button>
           ) : null}
           <Button
@@ -208,6 +294,11 @@ export function ComposeMailForm({
           </Button>
         </div>
       </div>
+      {confirmClose ? (
+        <p className="font-mono text-[11px] text-muted-foreground">
+          Save this as a draft or discard it.
+        </p>
+      ) : null}
     </form>
   );
 }

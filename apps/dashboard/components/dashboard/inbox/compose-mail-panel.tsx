@@ -1,9 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
 
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailForm } from '@/components/dashboard/inbox/compose-mail-form';
+import {
+  clearComposeDraft,
+  composeDraftHasContent,
+  saveComposeDraft
+} from '@/lib/inbox/compose-draft-storage';
 import { cn } from '@/lib/utils';
 
 export function ComposeMailPanel({
@@ -11,8 +17,11 @@ export function ComposeMailPanel({
 }: {
   className?: string;
 }): React.JSX.Element {
-  const { inboxes, defaultAliasId, draft, closeCompose } = useComposeMail();
+  const { inboxes, defaultAliasId, draft, workspaceId, closeCompose } =
+    useComposeMail();
   const [revealed, setRevealed] = React.useState(false);
+  const [dirty, setDirty] = React.useState(false);
+  const [confirmClose, setConfirmClose] = React.useState(false);
 
   React.useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -20,6 +29,14 @@ export function ComposeMailPanel({
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  const requestClose = (): void => {
+    if (dirty && !confirmClose) {
+      setConfirmClose(true);
+      return;
+    }
+    closeCompose();
+  };
 
   return (
     <div
@@ -35,7 +52,7 @@ export function ComposeMailPanel({
         </p>
         <button
           type="button"
-          onClick={closeCompose}
+          onClick={requestClose}
           className="font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         >
           Close
@@ -48,7 +65,20 @@ export function ComposeMailPanel({
         initialTo={draft?.to}
         initialSubject={draft?.subject}
         initialBody={draft?.body}
-        onSent={closeCompose}
+        confirmClose={confirmClose}
+        onDirtyChange={setDirty}
+        onSent={() => {
+          clearComposeDraft(workspaceId);
+          closeCompose();
+        }}
+        onCancel={closeCompose}
+        onDraft={(values) => {
+          if (composeDraftHasContent(values)) {
+            saveComposeDraft(workspaceId, values);
+            toast.success('Draft saved');
+          }
+          closeCompose();
+        }}
         className="px-5 py-5"
       />
     </div>

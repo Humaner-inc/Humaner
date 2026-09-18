@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ComposeMailDialog } from '@/components/dashboard/inbox/compose-mail-dialog';
 import { Routes } from '@/constants/routes';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
+import { loadComposeDraft } from '@/lib/inbox/compose-draft-storage';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type ComposeMailDraft = {
@@ -13,10 +14,12 @@ export type ComposeMailDraft = {
   subject?: string;
   body?: string;
   title?: string;
+  aliasId?: string;
 };
 
 type ComposeMailContextValue = {
   inboxes: MailInboxOption[];
+  workspaceId: string;
   composeOpen: boolean;
   composeInPanel: boolean;
   defaultAliasId: string | null;
@@ -43,9 +46,11 @@ function inboxHostsCompose(pathname: string): boolean {
 
 export function ComposeMailProvider({
   inboxes,
+  workspaceId,
   children
 }: {
   inboxes: MailInboxOption[];
+  workspaceId: string;
   children: React.ReactNode;
 }): React.JSX.Element {
   const pathname = usePathname();
@@ -58,11 +63,23 @@ export function ComposeMailProvider({
 
   const openCompose = React.useCallback(
     (aliasId?: string | null, nextDraft?: ComposeMailDraft | null) => {
-      setDefaultAliasId(aliasId ?? null);
-      setDraft(nextDraft ?? null);
+      const stored = nextDraft ? null : loadComposeDraft(workspaceId);
+      setDefaultAliasId(aliasId ?? stored?.aliasId ?? null);
+      setDraft(
+        nextDraft ??
+          (stored
+            ? {
+                to: stored.to,
+                subject: stored.subject,
+                body: stored.body,
+                aliasId: stored.aliasId,
+                title: 'Draft'
+              }
+            : null)
+      );
       setOpen(true);
     },
-    []
+    [workspaceId]
   );
 
   const closeCompose = React.useCallback(() => {
@@ -73,6 +90,7 @@ export function ComposeMailProvider({
   const value = React.useMemo(
     () => ({
       inboxes,
+      workspaceId,
       composeOpen: open,
       composeInPanel,
       defaultAliasId,
@@ -82,6 +100,7 @@ export function ComposeMailProvider({
     }),
     [
       inboxes,
+      workspaceId,
       open,
       composeInPanel,
       defaultAliasId,
@@ -99,6 +118,7 @@ export function ComposeMailProvider({
           open={open}
           onOpenChange={setOpen}
           inboxes={inboxes}
+          workspaceId={workspaceId}
           defaultAliasId={defaultAliasId}
           draft={draft}
         />
@@ -113,4 +133,8 @@ export function useComposeMail(): ComposeMailContextValue {
     throw new Error('useComposeMail must be used within ComposeMailProvider');
   }
   return context;
+}
+
+export function useComposeMailOptional(): ComposeMailContextValue | null {
+  return React.useContext(ComposeMailContext);
 }

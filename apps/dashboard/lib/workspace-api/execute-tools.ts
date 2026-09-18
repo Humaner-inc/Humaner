@@ -334,7 +334,17 @@ async function executeSuggestReply(
     bodyText: latest?.bodyText ?? ''
   });
 
-  return { ok: true, data: { suggestions } };
+  return {
+    ok: true,
+    data: {
+      suggestions,
+      subject: thread.subject,
+      from: thread.alias.address,
+      ...(latest?.direction === 'INBOUND' && latest.fromAddress
+        ? { to: latest.fromAddress }
+        : {})
+    }
+  };
 }
 
 async function listSendableAliases(
