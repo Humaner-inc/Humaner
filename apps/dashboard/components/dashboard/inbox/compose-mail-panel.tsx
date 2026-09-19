@@ -1,15 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { toast } from 'sonner';
 
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailForm } from '@/components/dashboard/inbox/compose-mail-form';
-import {
-  clearComposeDraft,
-  composeDraftHasContent,
-  saveComposeDraft
-} from '@/lib/inbox/compose-draft-storage';
+import { clearComposeDraft } from '@/lib/inbox/compose-draft-storage';
 import { cn } from '@/lib/utils';
 
 export function ComposeMailPanel({
@@ -65,6 +60,7 @@ export function ComposeMailPanel({
         initialTo={draft?.to}
         initialSubject={draft?.subject}
         initialBody={draft?.body}
+        initialDraftThreadId={draft?.draftThreadId}
         confirmClose={confirmClose}
         onDirtyChange={setDirty}
         onSent={() => {
@@ -72,11 +68,8 @@ export function ComposeMailPanel({
           closeCompose();
         }}
         onCancel={closeCompose}
-        onDraft={(values) => {
-          if (composeDraftHasContent(values)) {
-            saveComposeDraft(workspaceId, values);
-            toast.success('Draft saved');
-          }
+        onDraft={() => {
+          clearComposeDraft(workspaceId);
           closeCompose();
         }}
         className="px-5 py-5"

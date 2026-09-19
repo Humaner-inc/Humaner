@@ -1,36 +1,17 @@
 import 'server-only';
 
-import { MailThreadFolder, type Prisma } from '@prisma/client';
+import { MailThreadFolder } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
+import { mailThreadListWhere } from '@/lib/inbox/mail-thread-folder-shared';
 
 export type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
+export { mailThreadListWhere } from '@/lib/inbox/mail-thread-folder-shared';
 
 export function extractMailAddress(value: string): string {
   const trimmed = value.trim();
   const bracketed = trimmed.match(/<([^<>]+)>/);
   return (bracketed?.[1] ?? trimmed).trim().toLowerCase();
-}
-
-export function mailThreadListWhere(
-  folder: MailListFolder
-): Prisma.MailThreadWhereInput {
-  switch (folder) {
-    case 'sent':
-      return { folder: MailThreadFolder.SENT, archivedAt: null };
-    case 'spam':
-      return { folder: MailThreadFolder.SPAM };
-    case 'trash':
-      return { folder: MailThreadFolder.TRASH };
-    case 'archive':
-      return {
-        archivedAt: { not: null },
-        folder: { in: [MailThreadFolder.INBOX, MailThreadFolder.SENT] }
-      };
-    default:
-      return { folder: MailThreadFolder.INBOX, archivedAt: null };
-  }
 }
 
 export const INBOX_ACTIVE_WHERE = mailThreadListWhere('inbox');
@@ -97,7 +78,8 @@ export function inboundThreadPatch(input: {
   }
   if (
     input.currentFolder === MailThreadFolder.SPAM ||
-    input.currentFolder === MailThreadFolder.TRASH
+    input.currentFolder === MailThreadFolder.TRASH ||
+    input.currentFolder === MailThreadFolder.DRAFT
   ) {
     return { isUnread: true };
   }

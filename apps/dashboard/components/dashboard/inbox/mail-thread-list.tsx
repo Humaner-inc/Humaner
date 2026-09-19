@@ -204,6 +204,7 @@ export function MailThreadList({
   const inTrash = view === 'trash';
   const inSpam = view === 'spam';
   const inArchive = view === 'archive';
+  const inDrafts = view === 'drafts';
   const dock = useDashboardDockOptional();
   const { composeOpen, composeInPanel, closeCompose } = useComposeMail();
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
@@ -710,7 +711,11 @@ export function MailThreadList({
       const ids = selectedList;
       removeThreads(ids);
       toast.success(
-        inArchive ? `Moved ${ids.length} to inbox` : `Archived ${ids.length}`
+        inArchive
+          ? `Moved ${ids.length} to inbox`
+          : inDrafts
+            ? `Removed ${ids.length} from drafts`
+            : `Archived ${ids.length}`
       );
       runBulkArchive({
         threadIds: ids,
@@ -1211,17 +1216,20 @@ function MailBulkActionBar({
         </Button>
       ) : (
         <>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 font-mono text-[10px]"
-            onClick={selection.archiveSelected}
-          >
-            {selection.folderView === 'archive' ? 'Move to inbox' : 'Archive'}
-          </Button>
+          {selection.folderView !== 'drafts' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 font-mono text-[10px]"
+              onClick={selection.archiveSelected}
+            >
+              {selection.folderView === 'archive' ? 'Move to inbox' : 'Archive'}
+            </Button>
+          ) : null}
           {selection.folderView !== 'archive' &&
-          selection.folderView !== 'sent' ? (
+          selection.folderView !== 'sent' &&
+          selection.folderView !== 'drafts' ? (
             <Button
               type="button"
               variant="outline"
@@ -1504,7 +1512,7 @@ function MailThreadRow({
                 <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
                   Not spam
                 </DropdownMenuItem>
-              ) : archivedView ? (
+              ) : folderView === 'drafts' ? null : archivedView ? (
                 <DropdownMenuItem onSelect={() => onArchive(false)}>
                   Move to inbox
                 </DropdownMenuItem>
@@ -1515,12 +1523,15 @@ function MailThreadRow({
               )}
               {folderView !== 'spam' &&
               folderView !== 'trash' &&
-              folderView !== 'sent' ? (
+              folderView !== 'sent' &&
+              folderView !== 'drafts' ? (
                 <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
                   Report spam
                 </DropdownMenuItem>
               ) : null}
-              {folderView !== 'sent' && folderView !== 'trash' ? (
+              {folderView !== 'sent' &&
+              folderView !== 'trash' &&
+              folderView !== 'drafts' ? (
                 <DropdownMenuItem onSelect={onBlock}>
                   Block sender
                 </DropdownMenuItem>

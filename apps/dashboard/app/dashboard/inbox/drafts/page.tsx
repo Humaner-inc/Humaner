@@ -1,15 +1,21 @@
 import * as React from 'react';
 
-import { InboxOptionalEmptyState } from '@/components/dashboard/inbox/inbox-empty-state';
+import { InboxMailFolderScreen } from '@/components/dashboard/inbox/inbox-mail-folder-screen';
 
-export default function InboxDraftsPage(): React.JSX.Element {
+export default async function InboxDraftsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ mailbox?: string }>;
+}): Promise<React.JSX.Element> {
+  const { mailbox } = await searchParams;
   return (
-    <div className="p-6 md:p-8">
-      <InboxOptionalEmptyState
-        title="No drafts"
-        description="Compose from an alias. Unsent mail will land here."
-        showConnect={false}
-      />
-    </div>
+    <InboxMailFolderScreen
+      folder="drafts"
+      title="Drafts"
+      description="Unsent mail from this workspace."
+      emptyTitle="No drafts"
+      emptyDescription="Compose from an alias. Unsent mail will land here."
+      mailbox={mailbox}
+    />
   );
 }

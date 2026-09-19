@@ -32,7 +32,7 @@ export function WorkspacePageShell({
     >
       <header className="shrink-0 border-b border-border/60 px-5 py-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="min-w-0">
+          <div className="hidden min-w-0 md:block">
             <h1 className="page-title">{title}</h1>
             {description ? (
               <p className="mt-1 max-w-xl text-sm text-muted-foreground">
@@ -41,7 +41,9 @@ export function WorkspacePageShell({
             ) : null}
           </div>
           {actions ? (
-            <div className="flex flex-wrap items-center gap-2">{actions}</div>
+            <div className="flex flex-wrap items-center gap-2 md:ml-auto">
+              {actions}
+            </div>
           ) : null}
         </div>
         {toolbar ? <div className="mt-4">{toolbar}</div> : null}

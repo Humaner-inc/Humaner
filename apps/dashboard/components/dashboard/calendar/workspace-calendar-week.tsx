@@ -16,19 +16,26 @@ import {
   CalendarToolbar,
   TOOLBAR_BUTTON
 } from '@/components/dashboard/calendar/calendar-toolbar';
+import {
+  EVENT_PICKER_SURFACE,
+  EventDateTimeChip
+} from '@/components/dashboard/calendar/event-datetime-chip';
+import {
+  QUICK_CREATE_BODY_CLASS,
+  QUICK_CREATE_CHIP_CLASS,
+  QUICK_CREATE_TITLE_CLASS,
+  QuickCreateDialogContent,
+  QuickCreateFooter
+} from '@/components/dashboard/quick-create-dialog';
 import { WorkspacePageShell } from '@/components/dashboard/workspace-page-shell';
 import { Button } from '@/components/ui/button';
 import { ColorPicker } from '@/components/ui/color-picker';
+import { Dialog } from '@/components/ui/dialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
 import type {
   CalendarConnectionItem,
   CalendarEventItem,
@@ -635,153 +642,169 @@ export function WorkspaceCalendarWeek({
           if (!open) setDraft(null);
         }}
       >
-        <DialogContent className="rounded-lg sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{draft?.id ? 'Event' : 'New event'}</DialogTitle>
-          </DialogHeader>
+        <QuickCreateDialogContent
+          title={draft?.id ? 'Event' : 'New event'}
+          description={
+            draft?.id ? 'Edit this calendar event.' : 'Create a calendar event.'
+          }
+        >
           {draft ? (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="cal-title">Title</Label>
-                <Input
-                  id="cal-title"
-                  value={draft.title}
-                  onChange={(event) =>
+            <div className="flex min-h-0 flex-1 flex-col px-5 pt-4">
+              <input
+                id="cal-title"
+                value={draft.title}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current
+                      ? { ...current, title: event.target.value }
+                      : current
+                  )
+                }
+                className={cn(QUICK_CREATE_TITLE_CLASS, 'py-1')}
+                placeholder="Event title"
+              />
+              <textarea
+                id="cal-notes"
+                value={draft.description}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current
+                      ? { ...current, description: event.target.value }
+                      : current
+                  )
+                }
+                rows={3}
+                className={cn(QUICK_CREATE_BODY_CLASS, 'mt-1')}
+                placeholder="Add notes…"
+              />
+              <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                <EventDateTimeChip
+                  label="Starts"
+                  value={draft.startsAt}
+                  onChange={(startsAt) =>
                     setDraft((current) =>
-                      current
-                        ? { ...current, title: event.target.value }
-                        : current
+                      current ? { ...current, startsAt } : current
                     )
                   }
-                  className="rounded-lg"
-                  placeholder="1:1, standup, customer call…"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="cal-start">Starts</Label>
-                  <Input
-                    id="cal-start"
-                    type="datetime-local"
-                    value={draft.startsAt}
-                    onChange={(event) =>
-                      setDraft((current) =>
-                        current
-                          ? { ...current, startsAt: event.target.value }
-                          : current
-                      )
-                    }
-                    className="rounded-lg font-mono text-xs"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="cal-end">Ends</Label>
-                  <Input
-                    id="cal-end"
-                    type="datetime-local"
-                    value={draft.endsAt}
-                    onChange={(event) =>
-                      setDraft((current) =>
-                        current
-                          ? { ...current, endsAt: event.target.value }
-                          : current
-                      )
-                    }
-                    className="rounded-lg font-mono text-xs"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Color</Label>
-                <div className="flex flex-wrap items-center gap-2">
-                  <ColorPicker
-                    value={draft.color}
-                    onChange={(color) =>
-                      setDraft((current) =>
-                        current ? { ...current, color } : current
-                      )
-                    }
-                    className="size-7 rounded-lg border"
-                    title="Open full palette"
-                  />
-                  {CALENDAR_EVENT_COLORS.map((preset) => (
+                <EventDateTimeChip
+                  label="Ends"
+                  value={draft.endsAt}
+                  onChange={(endsAt) =>
+                    setDraft((current) =>
+                      current ? { ...current, endsAt } : current
+                    )
+                  }
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
                     <button
-                      key={preset}
                       type="button"
-                      onClick={() =>
-                        setDraft((current) =>
-                          current ? { ...current, color: preset } : current
-                        )
-                      }
-                      className="size-7 rounded-lg ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      style={{
-                        backgroundColor: preset,
-                        boxShadow:
-                          draft.color === preset
-                            ? `0 0 0 2px ${preset}`
-                            : undefined
-                      }}
-                      aria-label={preset}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cal-notes">Notes</Label>
-                <Textarea
-                  id="cal-notes"
-                  value={draft.description}
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current
-                        ? { ...current, description: event.target.value }
-                        : current
-                    )
-                  }
-                  rows={3}
-                  className="rounded-lg"
-                  placeholder="Agenda, link, or context…"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Busy</Label>
-                <div className="max-h-36 space-y-1 overflow-y-auto border border-border/60 p-2">
-                  {teamMembers.map((member) => {
-                    const checked = draft.attendeeIds.includes(member.id);
-                    return (
-                      <label
-                        key={member.id}
-                        className="flex cursor-pointer items-center gap-2 px-1 py-1 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => {
-                            setDraft((current) => {
-                              if (!current) return current;
-                              const next = checked
-                                ? current.attendeeIds.filter(
-                                    (id) => id !== member.id
-                                  )
-                                : [...current.attendeeIds, member.id];
-                              return { ...current, attendeeIds: next };
-                            });
+                      className={QUICK_CREATE_CHIP_CLASS}
+                    >
+                      <span
+                        className="size-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: draft.color }}
+                      />
+                      Color
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className={cn(EVENT_PICKER_SURFACE, 'space-y-2')}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ColorPicker
+                        value={draft.color}
+                        onChange={(color) =>
+                          setDraft((current) =>
+                            current ? { ...current, color } : current
+                          )
+                        }
+                        className="size-7 rounded-lg border"
+                        title="Open full palette"
+                      />
+                      {CALENDAR_EVENT_COLORS.map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() =>
+                            setDraft((current) =>
+                              current ? { ...current, color: preset } : current
+                            )
+                          }
+                          className="size-7 rounded-lg ring-offset-background transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          style={{
+                            backgroundColor: preset,
+                            boxShadow:
+                              draft.color === preset
+                                ? `0 0 0 2px ${preset}`
+                                : undefined
                           }}
+                          aria-label={preset}
                         />
-                        <span className="truncate">{member.name}</span>
-                      </label>
-                    );
-                  })}
-                </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={QUICK_CREATE_CHIP_CLASS}
+                    >
+                      {draft.attendeeIds.length > 0
+                        ? `${draft.attendeeIds.length} busy`
+                        : 'Busy'}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className={cn(
+                      EVENT_PICKER_SURFACE,
+                      'max-h-56 w-56 overflow-y-auto p-1'
+                    )}
+                  >
+                    {teamMembers.map((member) => {
+                      const checked = draft.attendeeIds.includes(member.id);
+                      return (
+                        <label
+                          key={member.id}
+                          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-accent"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              setDraft((current) => {
+                                if (!current) return current;
+                                const next = checked
+                                  ? current.attendeeIds.filter(
+                                      (id) => id !== member.id
+                                    )
+                                  : [...current.attendeeIds, member.id];
+                                return { ...current, attendeeIds: next };
+                              });
+                            }}
+                          />
+                          <span className="truncate">{member.name}</span>
+                        </label>
+                      );
+                    })}
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           ) : null}
-          <DialogFooter className="gap-2 sm:justify-between">
+          <QuickCreateFooter
+            className={draft?.id ? 'justify-between' : undefined}
+          >
             {draft?.id ? (
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-lg font-mono text-destructive"
+                size="sm"
+                className="h-8 px-3 font-mono text-destructive"
                 disabled={pending}
                 onClick={() => {
                   if (draft.id) removeEvent({ id: draft.id });
@@ -789,9 +812,7 @@ export function WorkspaceCalendarWeek({
               >
                 Delete
               </Button>
-            ) : (
-              <span />
-            )}
+            ) : null}
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -810,11 +831,11 @@ export function WorkspaceCalendarWeek({
                 disabled={pending}
                 onClick={submitDraft}
               >
-                {draft?.id ? 'Save' : 'Create'}
+                {draft?.id ? 'Save' : 'Create event'}
               </Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
+          </QuickCreateFooter>
+        </QuickCreateDialogContent>
       </Dialog>
     </>
   );

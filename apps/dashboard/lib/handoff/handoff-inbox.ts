@@ -52,6 +52,7 @@ export type HandoffInboxTicket = {
   liveChatTimedOut: boolean;
   assignee: HandoffInboxAssignee | null;
   assignedAt: string | null;
+  dueAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

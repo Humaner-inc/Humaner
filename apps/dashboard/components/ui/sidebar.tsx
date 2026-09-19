@@ -248,10 +248,13 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
     }, [pathname, setOpenMobile]);
 
     // Picking a destination hands the screen back to the page, like Mail.
+    // Depend on pathname only — setOpen's identity changes when `open` does,
+    // which would immediately close the nav after the expand control.
     React.useEffect(() => {
       if (!isMobileFullPage) return;
       setOpen(false);
-    }, [pathname, isMobileFullPage, setOpen]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
 
     if (collapsible === 'none') {
       return (

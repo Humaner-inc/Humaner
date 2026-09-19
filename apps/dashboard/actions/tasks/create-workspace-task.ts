@@ -61,7 +61,8 @@ export const createWorkspaceTask = pageActionClient('tasks')
       urgency: parsedInput.urgency ?? 'MEDIUM',
       routedTo: 'HUMAN',
       assigneeId: parsedInput.assigneeId,
-      assignedAt: parsedInput.assigneeId ? new Date() : null
+      assignedAt: parsedInput.assigneeId ? new Date() : null,
+      dueAt: parsedInput.dueAt ?? null
     });
 
     void publishOrgEvent(organizationId, {

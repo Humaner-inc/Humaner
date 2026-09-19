@@ -981,6 +981,7 @@ model HandoffTicket {
   assigneeId         String?              @db.Uuid
   assignee           User?                @relation(fields: [assigneeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   assignedAt         DateTime?
+  dueAt              DateTime?
   routedTo           HandoffRoutedTo?
   clusterId          String?              @db.Uuid
   runbookId          String?              @db.Uuid
@@ -1043,6 +1044,7 @@ enum MailMessageDirection {
 
 enum MailThreadFolder {
   INBOX @map("inbox")
+  DRAFT @map("draft")
   SENT  @map("sent")
   SPAM  @map("spam")
   TRASH @map("trash")

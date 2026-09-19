@@ -7,6 +7,13 @@ import { toast } from 'sonner';
 
 import { composeMail } from '@/actions/inbox/compose-mail';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
+import { saveMailDraft } from '@/actions/inbox/save-mail-draft';
+import {
+  QUICK_CREATE_BODY_CLASS,
+  QUICK_CREATE_CHIP_CLASS,
+  QUICK_CREATE_META_CLASS,
+  QUICK_CREATE_TITLE_CLASS
+} from '@/components/dashboard/quick-create-dialog';
 import { Button } from '@/components/ui/button';
 import { SaveIcon } from '@/components/ui/save-icon';
 import {
@@ -20,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
+import { composeDraftHasContent } from '@/lib/inbox/compose-draft';
 import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +40,7 @@ export type ComposeMailFormValues = {
   subject: string;
   body: string;
   threadId?: string;
+  draftThreadId?: string;
 };
 
 export function ComposeMailForm({
@@ -41,7 +50,9 @@ export function ComposeMailForm({
   initialSubject = '',
   initialBody = '',
   threadId,
+  initialDraftThreadId,
   confirmClose = false,
+  layout = 'default',
   onSent,
   onCancel,
   onDraft,
@@ -54,7 +65,9 @@ export function ComposeMailForm({
   initialSubject?: string;
   initialBody?: string;
   threadId?: string;
+  initialDraftThreadId?: string;
   confirmClose?: boolean;
+  layout?: 'default' | 'quick';
   onSent?: () => void;
   onCancel?: () => void;
   onDraft?: (values: ComposeMailFormValues) => void;
@@ -69,6 +82,9 @@ export function ComposeMailForm({
   const [to, setTo] = React.useState(initialTo);
   const [subject, setSubject] = React.useState(initialSubject);
   const [body, setBody] = React.useState(initialBody);
+  const [draftThreadId, setDraftThreadId] = React.useState(
+    initialDraftThreadId ?? ''
+  );
 
   React.useEffect(() => {
     if (!defaultAliasId) return;
@@ -79,7 +95,8 @@ export function ComposeMailForm({
     setTo(initialTo);
     setSubject(initialSubject);
     setBody(initialBody);
-  }, [initialTo, initialSubject, initialBody]);
+    setDraftThreadId(initialDraftThreadId ?? '');
+  }, [initialTo, initialSubject, initialBody, initialDraftThreadId]);
 
   const dirty =
     to !== initialTo ||
@@ -125,7 +142,31 @@ export function ComposeMailForm({
     }
   );
 
-  const isExecuting = isComposing || isReplying;
+  const { execute: executeSaveDraft, isExecuting: isSavingDraft } = useAction(
+    saveMailDraft,
+    {
+      onSuccess: ({ data }) => {
+        if (data?.threadId) {
+          setDraftThreadId(data.threadId);
+        }
+        toast.success('Draft saved');
+        onDraft?.({
+          aliasId,
+          to: to.trim(),
+          subject: subject.trim(),
+          body: body.trim(),
+          ...(threadId ? { threadId } : {}),
+          ...(data?.threadId ? { draftThreadId: data.threadId } : {})
+        });
+        router.refresh();
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError || 'Could not save draft');
+      }
+    }
+  );
+
+  const isExecuting = isComposing || isReplying || isSavingDraft;
   const mailboxGroups = React.useMemo(
     () => groupMailInboxes(inboxes),
     [inboxes]
@@ -142,7 +183,8 @@ export function ComposeMailForm({
     to: to.trim(),
     subject: subject.trim(),
     body: body.trim(),
-    ...(threadId ? { threadId } : {})
+    ...(threadId ? { threadId } : {}),
+    ...(draftThreadId ? { draftThreadId } : {})
   };
 
   const canSend = threadId
@@ -168,49 +210,92 @@ export function ComposeMailForm({
       aliasId,
       to: values.to,
       subject: values.subject,
-      body: values.body
+      body: values.body,
+      ...(draftThreadId ? { draftThreadId } : {})
     });
   };
 
   const handleDraft = (): void => {
-    onDraft?.(values);
+    if (!composeDraftHasContent(values)) {
+      onDraft?.(values);
+      return;
+    }
+    if (!aliasId) {
+      toast.error('Connect a mailbox to save a draft');
+      return;
+    }
+    executeSaveDraft({
+      aliasId,
+      to: values.to,
+      subject: values.subject,
+      body: values.body,
+      ...(draftThreadId ? { draftThreadId } : {})
+    });
   };
+
+  const isQuick = layout === 'quick';
 
   return (
     <form
-      className={cn('flex min-h-0 flex-1 flex-col gap-3', className)}
+      className={cn(
+        'flex min-h-0 flex-1 flex-col',
+        isQuick ? 'gap-0' : 'gap-3',
+        className
+      )}
       onSubmit={(event) => {
         event.preventDefault();
         handleSend();
       }}
     >
-      <input
-        id="compose-to"
-        type="email"
-        autoComplete="email"
-        placeholder="To"
-        value={to}
-        onChange={(event) => setTo(event.target.value)}
-        disabled={isExecuting}
-        className={COMPOSE_FIELD_CLASS}
-      />
-      <input
-        id="compose-subject"
-        placeholder="Subject"
-        value={subject}
-        onChange={(event) => setSubject(event.target.value)}
-        disabled={isExecuting}
-        className={COMPOSE_FIELD_CLASS}
-      />
-      <textarea
-        id="compose-body"
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
-        disabled={isExecuting}
-        placeholder="Write the message…"
-        className="min-h-32 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
-      />
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col',
+          isQuick ? 'gap-1 px-5 pt-4' : 'gap-3'
+        )}
+      >
+        <input
+          id="compose-to"
+          type="email"
+          autoComplete="email"
+          placeholder="To"
+          value={to}
+          onChange={(event) => setTo(event.target.value)}
+          disabled={isExecuting}
+          className={
+            isQuick
+              ? cn(QUICK_CREATE_META_CLASS, 'py-1.5')
+              : COMPOSE_FIELD_CLASS
+          }
+        />
+        <input
+          id="compose-subject"
+          placeholder="Subject"
+          value={subject}
+          onChange={(event) => setSubject(event.target.value)}
+          disabled={isExecuting}
+          className={
+            isQuick ? cn(QUICK_CREATE_TITLE_CLASS, 'py-1') : COMPOSE_FIELD_CLASS
+          }
+        />
+        <textarea
+          id="compose-body"
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          disabled={isExecuting}
+          placeholder="Write the message…"
+          className={
+            isQuick
+              ? cn(QUICK_CREATE_BODY_CLASS, 'min-h-32 flex-1')
+              : 'min-h-32 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground/60'
+          }
+        />
+      </div>
+      <div
+        className={cn(
+          'flex flex-wrap items-center justify-between gap-3',
+          isQuick && 'px-5 pb-4 pt-3'
+        )}
+      >
         <div className="min-w-0 flex-1">
           {inboxes.length > 1 ? (
             <Select
@@ -220,7 +305,14 @@ export function ComposeMailForm({
             >
               <SelectTrigger
                 id="compose-from"
-                className="h-8 w-auto max-w-full border-0 bg-transparent px-0 font-mono text-[11px] text-muted-foreground shadow-none focus:ring-0"
+                className={
+                  isQuick
+                    ? cn(
+                        QUICK_CREATE_CHIP_CLASS,
+                        'w-auto max-w-full shadow-none focus:ring-0 [&>svg]:size-3.5'
+                      )
+                    : 'h-8 w-auto max-w-full border-0 bg-transparent px-0 font-mono text-[11px] text-muted-foreground shadow-none focus:ring-0'
+                }
               >
                 <SelectValue placeholder="From" />
               </SelectTrigger>
@@ -256,13 +348,13 @@ export function ComposeMailForm({
               type="button"
               variant={confirmClose ? 'default' : 'outline'}
               size="sm"
-              className="h-9 px-4 font-mono"
+              className="h-8 px-3 font-mono"
               disabled={isExecuting}
               onClick={handleDraft}
             >
               <span className="inline-flex items-center gap-2">
                 <SaveIcon size={15} />
-                Draft
+                {isSavingDraft ? 'Saving…' : 'Draft'}
               </span>
             </Button>
           ) : null}
@@ -271,7 +363,7 @@ export function ComposeMailForm({
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 px-4 font-mono"
+              className="h-8 px-3 font-mono"
               disabled={isExecuting}
               onClick={onCancel}
             >
@@ -281,7 +373,7 @@ export function ComposeMailForm({
           <Button
             type="submit"
             size="sm"
-            className="h-9 min-w-[7.5rem] px-4 font-mono"
+            className="h-8 min-w-[6.5rem] px-3 font-mono"
             disabled={!canSend}
           >
             <span className="inline-flex items-center gap-2">
@@ -295,7 +387,12 @@ export function ComposeMailForm({
         </div>
       </div>
       {confirmClose ? (
-        <p className="font-mono text-[11px] text-muted-foreground">
+        <p
+          className={cn(
+            'font-mono text-[11px] text-muted-foreground',
+            isQuick && 'px-5 pb-3'
+          )}
+        >
           Save this as a draft or discard it.
         </p>
       ) : null}

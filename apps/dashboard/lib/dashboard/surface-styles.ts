@@ -28,6 +28,9 @@ export const dashboardChipRadiusClassName = radiusChipClassName;
 /** Modals and sheets (24px). */
 export const dashboardModalRadiusClassName = radiusModalClassName;
 
+/** Floating create cards — same grey as assignee / dropdown popovers. */
+export const dashboardQuickCreateClassName = `${dashboardModalRadiusClassName} border-border/50 bg-popover text-popover-foreground shadow-lg`;
+
 /** Photo, logo, and avatar tiles use the 12px surface radius. */
 export const dashboardPictureRadiusClassName = radiusSurfaceClassName;
 

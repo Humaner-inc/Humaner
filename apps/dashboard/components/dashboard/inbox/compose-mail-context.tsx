@@ -4,9 +4,8 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
 import { ComposeMailDialog } from '@/components/dashboard/inbox/compose-mail-dialog';
-import { Routes } from '@/constants/routes';
+import { isPerInboxMailboxPath } from '@/constants/mailbox-nav-items';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
-import { loadComposeDraft } from '@/lib/inbox/compose-draft-storage';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 export type ComposeMailDraft = {
@@ -15,6 +14,7 @@ export type ComposeMailDraft = {
   body?: string;
   title?: string;
   aliasId?: string;
+  draftThreadId?: string;
 };
 
 type ComposeMailContextValue = {
@@ -36,12 +36,7 @@ const ComposeMailContext = React.createContext<ComposeMailContextValue | null>(
 );
 
 function inboxHostsCompose(pathname: string): boolean {
-  const path = toPublicPathname(pathname);
-  return (
-    path === Routes.Inbox ||
-    path.startsWith(Routes.InboxAll) ||
-    path.startsWith('/inbox/threads')
-  );
+  return isPerInboxMailboxPath(toPublicPathname(pathname));
 }
 
 export function ComposeMailProvider({
@@ -63,23 +58,11 @@ export function ComposeMailProvider({
 
   const openCompose = React.useCallback(
     (aliasId?: string | null, nextDraft?: ComposeMailDraft | null) => {
-      const stored = nextDraft ? null : loadComposeDraft(workspaceId);
-      setDefaultAliasId(aliasId ?? stored?.aliasId ?? null);
-      setDraft(
-        nextDraft ??
-          (stored
-            ? {
-                to: stored.to,
-                subject: stored.subject,
-                body: stored.body,
-                aliasId: stored.aliasId,
-                title: 'Draft'
-              }
-            : null)
-      );
+      setDefaultAliasId(aliasId ?? nextDraft?.aliasId ?? null);
+      setDraft(nextDraft ?? null);
       setOpen(true);
     },
-    [workspaceId]
+    []
   );
 
   const closeCompose = React.useCallback(() => {

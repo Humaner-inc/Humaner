@@ -445,20 +445,23 @@ export function InboxListHeader({
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 font-mono text-[10px]"
-                disabled={selection.selectedCount === 0}
-                onClick={selection.archiveSelected}
-              >
-                {selection.folderView === 'archive'
-                  ? 'Move to inbox'
-                  : 'Archive'}
-              </Button>
+              {selection.folderView !== 'drafts' ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 font-mono text-[10px]"
+                  disabled={selection.selectedCount === 0}
+                  onClick={selection.archiveSelected}
+                >
+                  {selection.folderView === 'archive'
+                    ? 'Move to inbox'
+                    : 'Archive'}
+                </Button>
+              ) : null}
               {selection.folderView !== 'sent' &&
-              selection.folderView !== 'archive' ? (
+              selection.folderView !== 'archive' &&
+              selection.folderView !== 'drafts' ? (
                 <Button
                   type="button"
                   variant="outline"

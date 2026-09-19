@@ -83,6 +83,8 @@ export function SquircleLoader({
       className={className}
       style={{
         display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         width: size ?? "1em",
         height: size ?? "1em",
         ...style,

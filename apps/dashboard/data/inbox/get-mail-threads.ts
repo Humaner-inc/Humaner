@@ -363,6 +363,7 @@ export async function getMailThreads(options?: {
         take: 1,
         select: {
           fromAddress: true,
+          toAddresses: true,
           bodyText: true,
           direction: true,
           sentAt: true
@@ -373,7 +374,11 @@ export async function getMailThreads(options?: {
 
   const mapped = threads.map((thread) => {
     const latest = thread.messages[0];
-    const from = parseFromDisplay(latest?.fromAddress ?? null);
+    const from = parseFromDisplay(
+      latest?.direction === 'OUTBOUND'
+        ? (latest.toAddresses[0] ?? null)
+        : (latest?.fromAddress ?? null)
+    );
     // Prefer the latest message clock so the list never shows the first-email age
     // after a reply (thread.lastMessageAt can lag until the next sync write).
     const lastActivityAt =

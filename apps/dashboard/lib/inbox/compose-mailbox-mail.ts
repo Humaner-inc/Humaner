@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import {
   MailMessageDirection,
   MailProvider,
+  MailThreadFolder,
   MailThreadStatus
 } from '@prisma/client';
 
@@ -38,6 +39,7 @@ export async function composeMailboxMail(input: {
   to: string;
   subject: string;
   body: string;
+  draftThreadId?: string;
 }): Promise<ComposeMailboxMailResult> {
   const alias = await prisma.mailAlias.findFirst({
     where: {
@@ -161,36 +163,100 @@ export async function composeMailboxMail(input: {
   }
 
   const sentAt = new Date();
-  const thread = await prisma.mailThread.create({
-    data: {
-      organizationId: input.organizationId,
-      aliasId: alias.id,
-      providerThreadId,
-      subject: input.subject,
-      status: MailThreadStatus.OPEN,
-      isUnread: false,
-      folder: 'SENT',
-      lastMessageAt: sentAt,
-      assigneeKind: 'HUMAN',
-      assigneeId: input.actorUserId,
-      messages: {
-        create: {
-          providerMessageId: messageId.slice(0, 512),
-          direction: MailMessageDirection.OUTBOUND,
-          fromAddress,
-          toAddresses: [toAddress],
-          ccAddresses: [],
-          bodyText: input.body,
-          sentAt
-        }
-      }
-    },
-    select: { id: true }
-  });
+  const draft =
+    input.draftThreadId != null
+      ? await prisma.mailThread.findFirst({
+          where: {
+            id: input.draftThreadId,
+            organizationId: input.organizationId,
+            folder: MailThreadFolder.DRAFT
+          },
+          select: {
+            id: true,
+            messages: {
+              orderBy: { sentAt: 'desc' },
+              take: 1,
+              select: { id: true }
+            }
+          }
+        })
+      : null;
+
+  const thread = draft
+    ? await prisma.mailThread.update({
+        where: { id: draft.id },
+        data: {
+          aliasId: alias.id,
+          providerThreadId,
+          subject: input.subject,
+          status: MailThreadStatus.OPEN,
+          isUnread: false,
+          folder: MailThreadFolder.SENT,
+          archivedAt: null,
+          trashedAt: null,
+          lastMessageAt: sentAt,
+          assigneeKind: 'HUMAN',
+          assigneeId: input.actorUserId,
+          messages: draft.messages[0]
+            ? {
+                update: {
+                  where: { id: draft.messages[0].id },
+                  data: {
+                    providerMessageId: messageId.slice(0, 512),
+                    direction: MailMessageDirection.OUTBOUND,
+                    fromAddress,
+                    toAddresses: [toAddress],
+                    ccAddresses: [],
+                    bodyText: input.body,
+                    sentAt
+                  }
+                }
+              }
+            : {
+                create: {
+                  providerMessageId: messageId.slice(0, 512),
+                  direction: MailMessageDirection.OUTBOUND,
+                  fromAddress,
+                  toAddresses: [toAddress],
+                  ccAddresses: [],
+                  bodyText: input.body,
+                  sentAt
+                }
+              }
+        },
+        select: { id: true }
+      })
+    : await prisma.mailThread.create({
+        data: {
+          organizationId: input.organizationId,
+          aliasId: alias.id,
+          providerThreadId,
+          subject: input.subject,
+          status: MailThreadStatus.OPEN,
+          isUnread: false,
+          folder: MailThreadFolder.SENT,
+          lastMessageAt: sentAt,
+          assigneeKind: 'HUMAN',
+          assigneeId: input.actorUserId,
+          messages: {
+            create: {
+              providerMessageId: messageId.slice(0, 512),
+              direction: MailMessageDirection.OUTBOUND,
+              fromAddress,
+              toAddresses: [toAddress],
+              ccAddresses: [],
+              bodyText: input.body,
+              sentAt
+            }
+          }
+        },
+        select: { id: true }
+      });
 
   revalidatePath(Routes.InboxAll);
   revalidatePath(Routes.InboxAssigned);
   revalidatePath(Routes.InboxSent);
+  revalidatePath(Routes.InboxDrafts);
   revalidatePath(inboxThreadRoute(thread.id));
 
   return {

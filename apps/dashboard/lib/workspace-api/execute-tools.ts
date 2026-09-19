@@ -76,6 +76,13 @@ function asTopicList(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function parseDueAt(value: unknown): Date | null {
+  const raw = asString(value);
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 async function actorMailAccess(context: WorkspaceToolContext) {
   const scope = await resolveMailAliasScope({
     userId: context.actorUserId,
@@ -800,6 +807,7 @@ async function executeListTasks(
       subject: true,
       status: true,
       urgency: true,
+      dueAt: true,
       updatedAt: true,
       assignee: { select: { name: true } },
       mailThreads: { select: { id: true }, take: 1 }
@@ -816,6 +824,7 @@ async function executeListTasks(
         status: task.status,
         urgency: task.urgency,
         assignee: task.assignee?.name ?? null,
+        dueAt: task.dueAt?.toISOString() ?? null,
         threadId: task.mailThreads[0]?.id ?? null,
         updatedAt: task.updatedAt.toISOString()
       }))
@@ -889,7 +898,8 @@ async function executeCreateTask(
       : 'MEDIUM',
     routedTo: 'HUMAN',
     assigneeId,
-    assignedAt: assigneeId ? new Date() : null
+    assignedAt: assigneeId ? new Date() : null,
+    dueAt: parseDueAt(args.dueAt)
   });
 
   return {

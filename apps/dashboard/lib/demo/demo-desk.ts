@@ -89,6 +89,7 @@ function ticket(input: {
     liveChatTimedOut: false,
     assignee: input.assignee,
     assignedAt: input.assignee ? createdAt : null,
+    dueAt: null,
     createdAt,
     updatedAt: createdAt
   };

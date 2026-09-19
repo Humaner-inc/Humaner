@@ -14,7 +14,8 @@ export const composeMailSchema = z.object({
     .trim()
     .min(1, 'Add a subject')
     .max(998, 'Subject is too long'),
-  body: z.string().trim().min(1, 'Write a message before sending').max(50_000)
+  body: z.string().trim().min(1, 'Write a message before sending').max(50_000),
+  draftThreadId: z.string().uuid().optional()
 });
 
 export type ComposeMailInput = z.infer<typeof composeMailSchema>;

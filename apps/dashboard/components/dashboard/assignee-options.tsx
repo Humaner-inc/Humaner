@@ -80,7 +80,7 @@ export function AssigneeMenuItems({
         onSelect={() => onSelect(null)}
       >
         <AssigneeFaces people={[]} />
-        <span className="min-w-0 flex-1 truncate">Unassigned</span>
+        <span className="min-w-0 flex-1">Unassigned</span>
         {unassigned ? <CheckIcon className="size-3.5 text-primary" /> : null}
       </DropdownMenuItem>
       {includeCompanion ? (
@@ -89,7 +89,7 @@ export function AssigneeMenuItems({
           onSelect={() => onSelect(COMPANION_ASSIGNEE)}
         >
           <AssigneeFaces people={[COMPANION_ASSIGNEE_PERSON]} />
-          <span className="min-w-0 flex-1 truncate">Companion</span>
+          <span className="min-w-0 flex-1">Companion</span>
           {value === COMPANION_ASSIGNEE ? (
             <CheckIcon className="size-3.5 text-primary" />
           ) : null}
@@ -102,7 +102,7 @@ export function AssigneeMenuItems({
           onSelect={() => onSelect(member.id)}
         >
           <AssigneeFaces people={[member]} />
-          <span className="min-w-0 flex-1 truncate">
+          <span className="min-w-0 flex-1">
             {optionLabel(member, currentUserId)}
           </span>
           {value === member.id ? (
@@ -123,8 +123,10 @@ export function AssigneePicker({
   disabled,
   compact = false,
   align = 'end',
+  matchTrigger = false,
   triggerLabel,
-  className
+  className,
+  contentClassName
 }: {
   members: AssigneePerson[];
   value: string | null;
@@ -134,8 +136,10 @@ export function AssigneePicker({
   disabled?: boolean;
   compact?: boolean;
   align?: 'start' | 'end';
+  matchTrigger?: boolean;
   triggerLabel?: string;
   className?: string;
+  contentClassName?: string;
 }): React.JSX.Element {
   const selected =
     value === COMPANION_ASSIGNEE
@@ -170,16 +174,18 @@ export function AssigneePicker({
             person={selected}
             size={compact ? 20 : 24}
           />
-          <span className="min-w-0 max-w-24 truncate leading-none">
-            {label}
-          </span>
+          <span className="min-w-0 truncate leading-none">{label}</span>
           <ChevronDownIcon className="ml-auto size-3.5 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        matchTrigger
-        className={dashboardCtaRadiusClassName}
+        matchTrigger={matchTrigger}
+        className={cn(
+          dashboardCtaRadiusClassName,
+          !matchTrigger && 'min-w-56',
+          contentClassName
+        )}
         onClick={(event) => event.stopPropagation()}
       >
         <AssigneeMenuItems

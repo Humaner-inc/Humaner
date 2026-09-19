@@ -44,6 +44,7 @@ import {
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
+import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -554,9 +555,9 @@ export function MailThreadDetail({
       router.refresh();
       return;
     }
-    router.push(Routes.InboxAll);
+    router.push(folder === 'DRAFT' ? Routes.InboxDrafts : Routes.InboxAll);
     router.refresh();
-  }, [embedded, onClosed, router]);
+  }, [embedded, folder, onClosed, router]);
 
   const removeAndClose = React.useCallback(() => {
     onRemoved?.();
@@ -924,6 +925,16 @@ export function MailThreadDetail({
     assignValue === COMPANION_ASSIGNEE
       ? COMPANION_ASSIGNEE_PERSON
       : (members.find((member) => member.id === assignValue) ?? null);
+
+  if (thread.folder === 'DRAFT') {
+    return (
+      <MailDraftEditor
+        thread={thread}
+        onClosed={leaveOrClose}
+        onSent={removeAndClose}
+      />
+    );
+  }
 
   return (
     <div

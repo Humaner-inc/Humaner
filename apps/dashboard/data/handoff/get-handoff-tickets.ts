@@ -115,6 +115,7 @@ export async function getHandoffDeskData(
         loopError: true,
         liveChatTimedOut: true,
         assignedAt: true,
+        dueAt: true,
         createdAt: true,
         updatedAt: true,
         agent: { select: { name: true } },
@@ -270,6 +271,7 @@ export async function getHandoffDeskData(
           }
         : null,
       assignedAt: ticket.assignedAt?.toISOString() ?? null,
+      dueAt: ticket.dueAt?.toISOString() ?? null,
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString()
     };

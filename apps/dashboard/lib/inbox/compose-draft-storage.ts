@@ -68,12 +68,4 @@ export function clearComposeDraft(workspaceId: string): void {
   }
 }
 
-export function composeDraftHasContent(
-  draft: Pick<StoredComposeDraft, 'to' | 'subject' | 'body'>
-): boolean {
-  return (
-    draft.to.trim().length > 0 ||
-    draft.subject.trim().length > 0 ||
-    draft.body.trim().length > 0
-  );
-}
+export { composeDraftHasContent } from '@/lib/inbox/compose-draft';

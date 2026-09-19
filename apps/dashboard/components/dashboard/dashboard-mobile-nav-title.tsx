@@ -29,7 +29,7 @@ export function DashboardMobileNavTitle(): React.JSX.Element | null {
         aria-label="Show navigation"
       >
         <ChevronsLeftRightIcon
-          className="shrink-0 text-current"
+          className="pointer-events-none shrink-0 text-current"
           size={16}
         />
       </Button>

@@ -65,6 +65,7 @@ function revalidateMailPaths(threadId: string): void {
   revalidatePath(Routes.InboxSent);
   revalidatePath(Routes.InboxSpam);
   revalidatePath(Routes.InboxTrash);
+  revalidatePath(Routes.InboxDrafts);
   revalidatePath(inboxThreadRoute(threadId));
 }
 

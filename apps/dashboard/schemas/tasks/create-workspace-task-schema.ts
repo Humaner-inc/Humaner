@@ -15,7 +15,8 @@ export const createWorkspaceTaskSchema = z.object({
     .optional()
     .or(z.literal('')),
   assigneeId: z.string().uuid('A valid teammate is required.').nullable(),
-  urgency: z.nativeEnum(HandoffTicketUrgency).optional()
+  urgency: z.nativeEnum(HandoffTicketUrgency).optional(),
+  dueAt: z.coerce.date().optional().nullable()
 });
 
 export type CreateWorkspaceTaskSchema = z.infer<

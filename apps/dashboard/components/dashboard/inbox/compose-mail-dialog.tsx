@@ -1,22 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { toast } from 'sonner';
 
 import type { ComposeMailDraft } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailForm } from '@/components/dashboard/inbox/compose-mail-form';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { QuickCreateDialogContent } from '@/components/dashboard/quick-create-dialog';
+import { Dialog } from '@/components/ui/dialog';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
-import {
-  clearComposeDraft,
-  composeDraftHasContent,
-  saveComposeDraft
-} from '@/lib/inbox/compose-draft-storage';
+import { clearComposeDraft } from '@/lib/inbox/compose-draft-storage';
 
 export function ComposeMailDialog({
   open,
@@ -59,19 +50,20 @@ export function ComposeMailDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="flex max-h-[min(36rem,90vh)] flex-col gap-0 rounded-lg p-0 sm:max-w-lg">
-        <DialogHeader className="border-b border-border px-5 py-4">
-          <DialogTitle className="font-display text-lg font-normal tracking-tight">
-            {draft?.title ?? 'New message'}
-          </DialogTitle>
-        </DialogHeader>
+      <QuickCreateDialogContent
+        title={draft?.title ?? 'New message'}
+        description="Compose and send a new email."
+        className="max-h-[min(36rem,90vh)]"
+      >
         <ComposeMailForm
           key={`${draft?.title ?? 'new'}-${draft?.subject ?? ''}`}
+          layout="quick"
           inboxes={inboxes}
           defaultAliasId={defaultAliasId}
           initialTo={draft?.to}
           initialSubject={draft?.subject}
           initialBody={draft?.body}
+          initialDraftThreadId={draft?.draftThreadId}
           confirmClose={confirmClose}
           onDirtyChange={setDirty}
           onSent={() => {
@@ -79,16 +71,12 @@ export function ComposeMailDialog({
             close();
           }}
           onCancel={close}
-          onDraft={(values) => {
-            if (composeDraftHasContent(values)) {
-              saveComposeDraft(workspaceId, values);
-              toast.success('Draft saved');
-            }
+          onDraft={() => {
+            clearComposeDraft(workspaceId);
             close();
           }}
-          className="min-h-72 px-5 py-5"
         />
-      </DialogContent>
+      </QuickCreateDialogContent>
     </Dialog>
   );
 }

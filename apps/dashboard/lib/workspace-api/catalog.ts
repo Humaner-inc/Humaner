@@ -377,6 +377,11 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
           enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
         },
         assigneeId: { type: 'string', format: 'uuid' },
+        dueAt: {
+          type: 'string',
+          format: 'date-time',
+          description: 'Optional due date for the task.'
+        },
         topics: {
           type: 'array',
           items: { type: 'string' },
