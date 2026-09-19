@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { CaretDown } from '@phosphor-icons/react/dist/ssr/CaretDown';
 import { Funnel } from '@phosphor-icons/react/dist/ssr/Funnel';
 
+import { WorkspaceCalendarGrid } from '@/components/dashboard/calendar/workspace-calendar-grid';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,6 @@ import {
   calendarPath,
   type CalendarView
 } from '@/lib/calendar/calendar-view';
-import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
 import { cn } from '@/lib/utils';
 
 const TOOLBAR_BUTTON =
@@ -89,36 +88,13 @@ export function CalendarToolbar({
           sideOffset={6}
           className="w-auto rounded-lg p-0"
         >
-          <Calendar
-            mode="single"
+          <WorkspaceCalendarGrid
             selected={focusDate}
             month={visibleMonth}
             onMonthChange={setVisibleMonth}
             onSelect={(date) => {
-              if (!date) return;
               goTo(date, view);
               setPickerOpen(false);
-            }}
-            weekStartsOn={1}
-            fixedWeeks
-            showOutsideDays
-            className="p-3"
-            classNames={{
-              caption_label: 'font-mono text-xs font-medium capitalize',
-              cell: 'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
-              day_selected:
-                'bg-transparent text-[#f85919] hover:bg-transparent hover:text-[#f85919] focus:bg-transparent focus:text-[#f85919]',
-              day_today: 'bg-transparent font-medium text-[#f85919]'
-            }}
-            modifiersStyles={{
-              selected: {
-                color: HUMANER_NAV_COLORS.warning,
-                backgroundColor: 'transparent'
-              },
-              today: {
-                color: HUMANER_NAV_COLORS.warning,
-                backgroundColor: 'transparent'
-              }
             }}
           />
         </PopoverContent>
