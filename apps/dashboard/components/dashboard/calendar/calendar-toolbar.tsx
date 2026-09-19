@@ -83,7 +83,10 @@ export function CalendarToolbar({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          align="end"
+          align="start"
+          alignOffset={0}
+          side="bottom"
+          sideOffset={6}
           className="w-auto rounded-lg p-0"
         >
           <Calendar
@@ -141,7 +144,7 @@ export function CalendarToolbar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          align="end"
+          align="start"
           className="min-w-36 rounded-lg"
         >
           {CALENDAR_VIEWS.map((item) => (

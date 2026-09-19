@@ -17,27 +17,75 @@ import {
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import type { CalendarConnectionItem } from '@/data/calendar/get-workspace-calendar';
+import { getLogoUrl } from '@/lib/logo';
 
-const PROVIDERS = [
+export const CALENDAR_PROVIDERS = [
   {
     id: 'GOOGLE' as const,
     label: 'Google Calendar',
-    hint: 'Import upcoming events from Google'
+    hint: 'Import upcoming events from Google',
+    logoDomain: 'google.com',
+    soon: false
   },
   {
     id: 'CALENDLY' as const,
     label: 'Calendly',
-    hint: 'Pull booked Calendly meetings'
+    hint: 'Pull booked Calendly meetings',
+    logoDomain: 'calendly.com',
+    soon: false
   },
   {
     id: 'OUTLOOK' as const,
     label: 'Outlook',
-    hint: 'Microsoft 365 / Outlook calendar'
+    hint: 'Microsoft 365 / Outlook calendar',
+    logoDomain: 'outlook.com',
+    soon: true
   }
 ];
 
+const PROVIDERS = CALENDAR_PROVIDERS;
+
 function providerLabel(provider: CalendarConnectionItem['provider']): string {
   return PROVIDERS.find((item) => item.id === provider)?.label ?? provider;
+}
+
+export function CalendarConnectedLogos({
+  connections
+}: {
+  connections: CalendarConnectionItem[];
+}): React.JSX.Element | null {
+  const logos: Array<{ id: string; label: string; domain: string }> = [];
+  const seen = new Set<string>();
+  for (const connection of connections) {
+    if (seen.has(connection.provider)) continue;
+    const provider = PROVIDERS.find((item) => item.id === connection.provider);
+    if (!provider) continue;
+    seen.add(connection.provider);
+    logos.push({
+      id: connection.provider,
+      label: provider.label,
+      domain: provider.logoDomain
+    });
+  }
+  if (logos.length === 0) {
+    return null;
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      {logos.map((logo) => (
+        <img
+          key={logo.id}
+          src={getLogoUrl(logo.domain, 32)}
+          alt={logo.label}
+          title={logo.label}
+          width={18}
+          height={18}
+          className="size-[18px] rounded-sm"
+        />
+      ))}
+    </span>
+  );
 }
 
 export function CalendarConnectSettings({
@@ -160,6 +208,10 @@ export function CalendarConnectSettings({
                   >
                     Disconnect
                   </Button>
+                ) : provider.soon ? (
+                  <span className="shrink-0 pt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    [soon]
+                  </span>
                 ) : (
                   <Button
                     type="button"

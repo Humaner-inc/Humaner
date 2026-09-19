@@ -8,7 +8,10 @@ import { toast } from 'sonner';
 import { createCalendarEvent } from '@/actions/calendar/create-calendar-event';
 import { deleteCalendarEvent } from '@/actions/calendar/delete-calendar-event';
 import { updateCalendarEvent } from '@/actions/calendar/update-calendar-event';
-import { CalendarConnectSettings } from '@/components/dashboard/calendar/calendar-connect-settings';
+import {
+  CalendarConnectedLogos,
+  CalendarConnectSettings
+} from '@/components/dashboard/calendar/calendar-connect-settings';
 import {
   CalendarToolbar,
   TOOLBAR_BUTTON
@@ -430,7 +433,12 @@ export function WorkspaceCalendarWeek({
   return (
     <>
       <WorkspacePageShell
-        title="Calendar"
+        title={
+          <span className="inline-flex items-center gap-2">
+            Calendar
+            <CalendarConnectedLogos connections={connections} />
+          </span>
+        }
         actions={
           <CalendarToolbar
             focusDate={focus}
