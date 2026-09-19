@@ -4,6 +4,7 @@ import {
   MAIL_CONNECT_KIND_LABELS,
   mailProviderImapAvailable,
   mailProviderOauthAvailable,
+  mailProviderUsesAppPassword,
   MAIL_PROVIDERS as SHARED_MAIL_PROVIDERS,
   type MailConnectKind,
   type MailProviderDefinition as SharedMailProvider
@@ -43,6 +44,8 @@ export const MAIL_PROVIDERS: MailProviderDefinition[] =
 const providerById = new Map(
   MAIL_PROVIDERS.map((provider) => [provider.id, provider])
 );
+
+export { mailProviderUsesAppPassword };
 
 export function getMailProviderById(
   id: string

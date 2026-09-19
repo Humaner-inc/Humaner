@@ -23,6 +23,7 @@ import { deleteMailboxConnection } from '@/actions/inbox/delete-mailbox-connecti
 import { discoverImapAliases } from '@/actions/inbox/discover-imap-aliases';
 import { startGmailConnect } from '@/actions/inbox/start-gmail-connect';
 import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
+import { AppPasswordTitleHint } from '@/components/dashboard/inbox/app-password-title-hint';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
@@ -58,6 +59,7 @@ import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import {
   getMailProviderById,
+  mailProviderUsesAppPassword,
   resolveMailProviderPreset
 } from '@/lib/inbox/mail-providers';
 import { cn } from '@/lib/utils';
@@ -644,7 +646,15 @@ export function ConnectImapForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="inbox-password">Password</Label>
+                <Label
+                  htmlFor="inbox-password"
+                  className="inline-flex items-center gap-1.5"
+                >
+                  Password
+                  {mailProviderUsesAppPassword(selectedProvider.id) ? (
+                    <AppPasswordTitleHint />
+                  ) : null}
+                </Label>
                 <Input
                   id="inbox-password"
                   type="password"

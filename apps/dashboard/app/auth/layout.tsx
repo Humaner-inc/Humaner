@@ -89,11 +89,20 @@ async function getAuthenticatedRedirect(userId: string): Promise<string> {
   });
 }
 
+async function readAuthSession() {
+  try {
+    return await dedupedAuth();
+  } catch (error) {
+    console.error('[auth] session lookup failed', error);
+    return null;
+  }
+}
+
 async function AuthSessionGate({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
   await connection();
-  const session = await dedupedAuth();
+  const session = await readAuthSession();
   if (
     !isChangeEmailRoute() &&
     !isLogoutRoute() &&

@@ -87,6 +87,11 @@ export type MailProviderDefinition = {
   requiresCustomHosts?: boolean;
 };
 
+/** Fastmail and iCloud require an app / in-app password, not the account password. */
+export function mailProviderUsesAppPassword(id: string): boolean {
+  return id === "fastmail" || id === "icloud";
+}
+
 export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
   {
     id: "gmail",
