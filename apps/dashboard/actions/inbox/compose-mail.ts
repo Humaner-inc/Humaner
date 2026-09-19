@@ -62,6 +62,9 @@ export const composeMail = pageActionClient('inbox')
         to: parsedInput.to,
         subject: parsedInput.subject,
         body: parsedInput.body,
+        ...(parsedInput.attachments?.length
+          ? { attachments: parsedInput.attachments }
+          : {}),
         ...(parsedInput.draftThreadId
           ? { draftThreadId: parsedInput.draftThreadId }
           : {})

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { mailAttachmentListSchema } from '@/lib/inbox/mail-attachments';
+
 const emailSchema = z
   .string()
   .trim()
@@ -15,6 +17,7 @@ export const composeMailSchema = z.object({
     .min(1, 'Add a subject')
     .max(998, 'Subject is too long'),
   body: z.string().trim().min(1, 'Write a message before sending').max(50_000),
+  attachments: mailAttachmentListSchema.optional(),
   draftThreadId: z.string().uuid().optional()
 });
 

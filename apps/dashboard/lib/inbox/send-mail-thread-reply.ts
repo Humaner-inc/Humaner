@@ -4,6 +4,7 @@ import { MailMessageDirection, MailProvider } from '@prisma/client';
 
 import { workspaceAllowsCompanionAction } from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
+import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
@@ -28,6 +29,7 @@ export async function sendMailThreadReply(input: {
   threadId: string;
   organizationId: string;
   body: string;
+  attachments?: MailAttachment[];
   aliasId?: string;
 }): Promise<{ messageId: string }> {
   const thread = await prisma.mailThread.findFirst({
@@ -120,6 +122,7 @@ export async function sendMailThreadReply(input: {
       to: toAddresses,
       subject: replySubject(thread.subject),
       text: input.body,
+      attachments: input.attachments,
       inReplyTo: lastInbound?.providerMessageId,
       references: references || undefined,
       providerThreadId: thread.providerThreadId.startsWith('outbound-')
@@ -170,6 +173,7 @@ export async function sendMailThreadReply(input: {
       to: toAddresses,
       subject: replySubject(thread.subject),
       text: input.body,
+      attachments: input.attachments,
       inReplyTo: lastInbound?.providerMessageId,
       references: references || undefined
     });

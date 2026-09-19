@@ -4,6 +4,7 @@ import { MailProvider } from '@prisma/client';
 
 import { sendGmailMessage } from '@/lib/inbox/gmail/api';
 import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import type { ImapSmtpEndpoints } from '@/lib/inbox/test-imap-smtp';
 
@@ -16,6 +17,7 @@ export async function sendMailboxMail(input: {
   cc?: string[];
   subject: string;
   text: string;
+  attachments?: MailAttachment[];
   inReplyTo?: string;
   references?: string;
   providerThreadId?: string;
@@ -30,6 +32,7 @@ export async function sendMailboxMail(input: {
         cc: input.cc,
         subject: input.subject,
         text: input.text,
+        attachments: input.attachments,
         inReplyTo: input.inReplyTo,
         references: input.references
       },
@@ -49,6 +52,7 @@ export async function sendMailboxMail(input: {
     cc: input.cc,
     subject: input.subject,
     text: input.text,
+    attachments: input.attachments,
     inReplyTo: input.inReplyTo,
     references: input.references
   });

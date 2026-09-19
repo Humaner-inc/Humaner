@@ -2,6 +2,7 @@ import 'server-only';
 
 import nodemailer from 'nodemailer';
 
+import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import type { ImapSmtpEndpoints } from '@/lib/inbox/test-imap-smtp';
 
 export type OutboundMailInput = {
@@ -11,6 +12,7 @@ export type OutboundMailInput = {
   cc?: string[];
   subject: string;
   text: string;
+  attachments?: MailAttachment[];
   inReplyTo?: string;
   references?: string;
 };
@@ -80,6 +82,13 @@ export async function sendOutboundMail(
         : undefined,
       subject: input.subject,
       text: input.text,
+      attachments: input.attachments?.length
+        ? input.attachments.map((attachment) => ({
+            filename: attachment.name,
+            content: Buffer.from(attachment.data, 'base64'),
+            contentType: attachment.mediaType
+          }))
+        : undefined,
       inReplyTo: formatMessageId(input.inReplyTo),
       references: formatReferences(input.references),
       // Auth mailbox is the envelope sender — required by many IMAP hosts

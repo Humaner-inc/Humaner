@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { encodeChatAttachments } from '@humaner/shared/chat-attachments';
+import { Paperclip } from '@humaner/shared/icons';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -28,6 +30,11 @@ import {
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import { composeDraftHasContent } from '@/lib/inbox/compose-draft';
+import {
+  chatAttachmentsToMailAttachments,
+  MAIL_ATTACHMENT_MAX_COUNT,
+  type MailAttachment
+} from '@/lib/inbox/mail-attachments';
 import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +56,7 @@ export function ComposeMailForm({
   initialTo = '',
   initialSubject = '',
   initialBody = '',
+  initialAttachments,
   threadId,
   initialDraftThreadId,
   confirmClose = false,
@@ -64,6 +72,7 @@ export function ComposeMailForm({
   initialTo?: string;
   initialSubject?: string;
   initialBody?: string;
+  initialAttachments?: MailAttachment[];
   threadId?: string;
   initialDraftThreadId?: string;
   confirmClose?: boolean;
@@ -85,6 +94,10 @@ export function ComposeMailForm({
   const [draftThreadId, setDraftThreadId] = React.useState(
     initialDraftThreadId ?? ''
   );
+  const [attachments, setAttachments] = React.useState<MailAttachment[]>(
+    () => initialAttachments ?? []
+  );
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (!defaultAliasId) return;
@@ -98,10 +111,15 @@ export function ComposeMailForm({
     setDraftThreadId(initialDraftThreadId ?? '');
   }, [initialTo, initialSubject, initialBody, initialDraftThreadId]);
 
+  React.useEffect(() => {
+    setAttachments(initialAttachments ?? []);
+  }, [initialAttachments]);
+
   const dirty =
     to !== initialTo ||
     subject !== initialSubject ||
     body !== initialBody ||
+    attachments.length !== (initialAttachments?.length ?? 0) ||
     (defaultAliasId != null && aliasId !== defaultAliasId);
 
   React.useEffect(() => {
@@ -202,7 +220,8 @@ export function ComposeMailForm({
       executeReply({
         threadId,
         ...(aliasId ? { aliasId } : {}),
-        body: values.body
+        body: values.body,
+        ...(attachments.length > 0 ? { attachments } : {})
       });
       return;
     }
@@ -211,8 +230,25 @@ export function ComposeMailForm({
       to: values.to,
       subject: values.subject,
       body: values.body,
+      ...(attachments.length > 0 ? { attachments } : {}),
       ...(draftThreadId ? { draftThreadId } : {})
     });
+  };
+
+  const handleAttachFiles = async (files: File[]): Promise<void> => {
+    if (files.length === 0) return;
+    const encoded = await encodeChatAttachments(files);
+    const next = chatAttachmentsToMailAttachments(encoded);
+    const skipped = files.length - next.length;
+    if (skipped > 0) {
+      toast.error(
+        `Could not attach ${skipped} file${skipped === 1 ? '' : 's'} — use images, PDFs, or text under 600KB.`
+      );
+    }
+    if (next.length === 0) return;
+    setAttachments((current) =>
+      [...current, ...next].slice(0, MAIL_ATTACHMENT_MAX_COUNT)
+    );
   };
 
   const handleDraft = (): void => {
@@ -289,6 +325,32 @@ export function ComposeMailForm({
               : 'min-h-32 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground/60'
           }
         />
+        {attachments.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {attachments.map((attachment, index) => (
+              <span
+                key={`${attachment.name}-${index}`}
+                className="inline-flex h-7 max-w-56 items-center gap-1.5 rounded-lg border border-border/60 px-2 font-mono text-[11px] text-muted-foreground"
+              >
+                <Paperclip className="size-3 shrink-0" />
+                <span className="min-w-0 truncate">{attachment.name}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${attachment.name}`}
+                  className="shrink-0 text-muted-foreground/70 transition-colors hover:text-foreground"
+                  disabled={isExecuting}
+                  onClick={() =>
+                    setAttachments((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index)
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
       <div
         className={cn(
@@ -296,7 +358,31 @@ export function ComposeMailForm({
           isQuick && 'px-5 pb-4 pt-3'
         )}
       >
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.txt,.md,.csv,.json,.log"
+            className="hidden"
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              event.target.value = '';
+              void handleAttachFiles(files);
+            }}
+          />
+          <button
+            type="button"
+            aria-label="Attach files"
+            title="Attach files"
+            disabled={
+              isExecuting || attachments.length >= MAIL_ATTACHMENT_MAX_COUNT
+            }
+            onClick={() => fileInputRef.current?.click()}
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/60 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+          >
+            <Paperclip className="size-3.5" />
+          </button>
           {inboxes.length > 1 ? (
             <Select
               value={aliasId}
