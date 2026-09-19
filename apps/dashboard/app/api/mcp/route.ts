@@ -11,6 +11,10 @@ import {
   mcpCorsHeaders,
   negotiateMcpProtocolVersion
 } from '@/lib/developers/mcp-http';
+import {
+  mcpAppUrlFromRequest,
+  mcpWwwAuthenticate
+} from '@/lib/developers/mcp-oauth';
 import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import {
   authorizeMcpClient,
@@ -48,12 +52,27 @@ function rpcError(
   code: number,
   message: string,
   origin: string | null,
-  status = 200
+  status = 200,
+  extraHeaders?: Record<string, string>
 ): NextResponse {
   return NextResponse.json(
     { jsonrpc: '2.0', id: id ?? null, error: { code, message } },
-    { status, headers: mcpCorsHeaders(origin) }
+    {
+      status,
+      headers: { ...mcpCorsHeaders(origin), ...extraHeaders }
+    }
   );
+}
+
+function mcpUnauthorized(
+  request: NextRequest,
+  id: string | number | null | undefined,
+  message: string,
+  origin: string | null
+): NextResponse {
+  return rpcError(id, -32001, message, origin, 401, {
+    'WWW-Authenticate': mcpWwwAuthenticate(mcpAppUrlFromRequest(request))
+  });
 }
 
 function accepted(origin: string | null): Response {
@@ -132,11 +151,15 @@ export function OPTIONS(request: NextRequest): Response {
   });
 }
 
-/** Streamable HTTP: GET SSE is optional. 405 tells Cursor to use POST only. */
-export function GET(request: NextRequest): Response {
+/** Unauthenticated GET starts OAuth. Authenticated GET is 405 (POST only). */
+export async function GET(request: NextRequest): Promise<Response> {
   const blocked = requireHttps(request);
   if (blocked) {
     return blocked;
+  }
+  const auth = await authorizeMcpClient(request);
+  if (!auth.ok) {
+    return mcpUnauthorized(request, null, auth.message, auth.allowOrigin);
   }
   return new Response(null, {
     status: 405,
@@ -154,6 +177,9 @@ export async function DELETE(request: NextRequest): Promise<Response> {
   }
   const auth = await authorizeMcpClient(request);
   if (!auth.ok) {
+    if (auth.status === 401) {
+      return mcpUnauthorized(request, null, auth.message, auth.allowOrigin);
+    }
     return rpcError(null, -32001, auth.message, auth.allowOrigin, auth.status);
   }
   return new Response(null, {
@@ -192,6 +218,14 @@ export async function POST(request: NextRequest): Promise<Response> {
       status: handshake.status,
       errorMessage: handshake.message
     });
+    if (handshake.status === 401) {
+      return mcpUnauthorized(
+        request,
+        id,
+        handshake.message,
+        handshake.allowOrigin
+      );
+    }
     return rpcError(
       id,
       -32001,
@@ -302,6 +336,9 @@ export async function POST(request: NextRequest): Promise<Response> {
           status: intel.status,
           errorMessage: intel.message
         });
+        if (intel.status === 401) {
+          return mcpUnauthorized(request, id, intel.message, intel.allowOrigin);
+        }
         return rpcError(
           id,
           -32001,
@@ -382,6 +419,9 @@ export async function POST(request: NextRequest): Promise<Response> {
         status: auth.status,
         errorMessage: auth.message
       });
+      if (auth.status === 401) {
+        return mcpUnauthorized(request, id, auth.message, auth.allowOrigin);
+      }
       return rpcError(id, -32001, auth.message, auth.allowOrigin, auth.status);
     }
 

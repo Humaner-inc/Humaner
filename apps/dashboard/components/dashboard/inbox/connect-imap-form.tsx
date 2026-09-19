@@ -24,6 +24,7 @@ import { discoverImapAliases } from '@/actions/inbox/discover-imap-aliases';
 import { startGmailConnect } from '@/actions/inbox/start-gmail-connect';
 import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
 import { AppPasswordTitleHint } from '@/components/dashboard/inbox/app-password-title-hint';
+import { DetectedImapProviderBanner } from '@/components/dashboard/inbox/detected-imap-provider-banner';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
@@ -56,8 +57,8 @@ import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
 import type { ConnectedMailboxItem } from '@/data/inbox/get-mail-threads';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { DASHBOARD_FULL_BLEED_HEIGHT_CLASS } from '@/lib/companion-visibility';
 import {
+  detectMailProviderFromEmail,
   getMailProviderById,
   mailProviderUsesAppPassword,
   resolveMailProviderPreset
@@ -138,7 +139,20 @@ export function ConnectImapForm({
   }, [pendingRemove?.id]);
 
   const selectedProvider = providerId ? getMailProviderById(providerId) : null;
-  const preset = providerId ? resolveMailProviderPreset(providerId) : null;
+  const customFlow = selectedProvider?.id === 'custom';
+  const detection = React.useMemo(
+    () => (customFlow ? detectMailProviderFromEmail(email) : null),
+    [customFlow, email]
+  );
+  const detectedPresetProvider =
+    detection?.kind === 'preset' ? detection.provider : null;
+  const connectingProviderId = detectedPresetProvider?.id ?? providerId;
+  const connectingProvider = connectingProviderId
+    ? getMailProviderById(connectingProviderId)
+    : null;
+  const preset = connectingProviderId
+    ? resolveMailProviderPreset(connectingProviderId)
+    : null;
   const primaryEmail = normalizeEmail(email);
 
   const aliasOptions = React.useMemo(() => {
@@ -152,21 +166,50 @@ export function ConnectImapForm({
     return [...options].sort((left, right) => left.localeCompare(right));
   }, [discoveredAliases, primaryEmail, selectedAliases]);
 
+  const appliedDetectionIdRef = React.useRef<string | null>(null);
+
   React.useEffect(() => {
     if (!selectedProvider) return;
+
+    if (detectedPresetProvider && preset) {
+      if (appliedDetectionIdRef.current !== detectedPresetProvider.id) {
+        appliedDetectionIdRef.current = detectedPresetProvider.id;
+        setShowAdvanced(false);
+        setImapHost(preset.imapHost);
+        setImapPort(String(preset.imapPort));
+        setSmtpHost(preset.smtpHost);
+        setSmtpPort(String(preset.smtpPort));
+      }
+      return;
+    }
+
+    if (appliedDetectionIdRef.current) {
+      appliedDetectionIdRef.current = null;
+      if (selectedProvider.requiresCustomHosts) {
+        setImapHost('');
+        setImapPort('993');
+        setSmtpHost('');
+        setSmtpPort('465');
+        setShowAdvanced(true);
+      }
+      return;
+    }
 
     if (selectedProvider.requiresCustomHosts) {
       setShowAdvanced(true);
       return;
     }
 
-    if (!preset || showAdvanced) return;
-
+    if (!preset) return;
     setImapHost(preset.imapHost);
     setImapPort(String(preset.imapPort));
     setSmtpHost(preset.smtpHost);
     setSmtpPort(String(preset.smtpPort));
-  }, [selectedProvider, preset, showAdvanced]);
+  }, [selectedProvider, detectedPresetProvider, preset]);
+
+  React.useEffect(() => {
+    appliedDetectionIdRef.current = null;
+  }, [providerId]);
 
   React.useEffect(() => {
     setStep('credentials');
@@ -176,15 +219,18 @@ export function ConnectImapForm({
   }, [providerId]);
 
   const buildCredentialsInput = (): DiscoverImapAliasesInput | null => {
-    if (!providerId) return null;
+    if (!connectingProviderId) return null;
+
+    const needsHosts = Boolean(
+      connectingProvider?.requiresCustomHosts && !detectedPresetProvider
+    );
 
     return {
-      providerId,
+      providerId: connectingProviderId,
       email,
       password,
       smtpSameAsImap,
-      showAdvanced:
-        showAdvanced || Boolean(selectedProvider?.requiresCustomHosts),
+      showAdvanced: showAdvanced || needsHosts,
       imapHost: imapHost || undefined,
       imapPort: imapPort ? Number(imapPort) : undefined,
       imapTls: true,
@@ -358,7 +404,11 @@ export function ConnectImapForm({
   const onDiscover = (event: React.FormEvent): void => {
     event.preventDefault();
 
-    if (!providerId) {
+    if (detection?.kind === 'oauth') {
+      return;
+    }
+
+    if (!connectingProviderId) {
       toast.error('Choose your mail provider first.');
       return;
     }
@@ -398,8 +448,8 @@ export function ConnectImapForm({
   );
 
   const oauthDetailPanel = selectedProvider?.oauthAvailable ? (
-    <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 px-3 py-2 sm:px-4">
+    <div className="flex min-h-full flex-col bg-background">
+      <div className="sticky top-0 z-10 flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 bg-background px-3 py-2 sm:px-4">
         {mobileShowDetail ? (
           <Button
             type="button"
@@ -422,14 +472,16 @@ export function ConnectImapForm({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium leading-tight">
-            {selectedProvider.name}
+            {detectedPresetProvider
+              ? `${detectedPresetProvider.name} via Custom IMAP`
+              : selectedProvider.name}
           </p>
           <p className="truncate text-xs text-muted-foreground">
             Sign in with Google · send-as aliases import after authorization
           </p>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+      <div className="flex-1 p-5 sm:p-6">
         {providerConnections.length > 0 ? (
           <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -479,9 +531,9 @@ export function ConnectImapForm({
     (oauthDetailPanel ?? (
       <form
         onSubmit={step === 'credentials' ? onDiscover : onConnect}
-        className="flex h-full min-h-0 flex-col bg-background"
+        className="flex min-h-full flex-col bg-background"
       >
-        <div className="flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 px-3 py-2 sm:px-4">
+        <div className="sticky top-0 z-10 flex min-h-[3.75rem] shrink-0 items-center gap-2.5 border-b border-border/50 bg-background px-3 py-2 sm:px-4">
           {mobileShowDetail ? (
             <Button
               type="button"
@@ -496,7 +548,12 @@ export function ConnectImapForm({
           ) : null}
           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border/60">
             <BrandLogo
-              domain={selectedProvider.logoDomain}
+              domain={
+                (detectedPresetProvider ?? selectedProvider).logoDomain ===
+                'humaner.io'
+                  ? undefined
+                  : (detectedPresetProvider ?? selectedProvider).logoDomain
+              }
               fallbackIcon={MailIcon}
               size={32}
               className="size-5"
@@ -504,7 +561,9 @@ export function ConnectImapForm({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium leading-tight">
-              {selectedProvider.name}
+              {detectedPresetProvider
+                ? detectedPresetProvider.name
+                : selectedProvider.name}
             </p>
             {providerConnections.length > 0 ? (
               <p className="truncate text-xs text-muted-foreground">
@@ -512,18 +571,21 @@ export function ConnectImapForm({
                 {providerConnections.length === 1 ? '' : 'es'} connected — add
                 another below.
               </p>
-            ) : selectedProvider.appPasswordUrl ? (
+            ) : (detectedPresetProvider ?? selectedProvider).appPasswordUrl ? (
               <a
-                href={selectedProvider.appPasswordUrl}
+                href={
+                  (detectedPresetProvider ?? selectedProvider).appPasswordUrl
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="truncate text-xs text-muted-foreground underline decoration-foreground/20 underline-offset-4 hover:text-foreground"
               >
-                {selectedProvider.setupNote ?? 'Create an app password'}
+                {(detectedPresetProvider ?? selectedProvider).setupNote ??
+                  'Create an app password'}
               </a>
-            ) : selectedProvider.setupNote ? (
+            ) : (detectedPresetProvider ?? selectedProvider).setupNote ? (
               <p className="truncate text-xs text-muted-foreground">
-                {selectedProvider.setupNote}
+                {(detectedPresetProvider ?? selectedProvider).setupNote}
               </p>
             ) : (
               <p className="truncate text-xs text-muted-foreground">
@@ -545,7 +607,7 @@ export function ConnectImapForm({
           ) : null}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+        <div className="flex-1 p-5 sm:p-6">
           {providerConnections.length > 0 ? (
             <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
               <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -645,103 +707,124 @@ export function ConnectImapForm({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="inbox-password"
-                  className="inline-flex items-center gap-1.5"
-                >
-                  Password
-                  {mailProviderUsesAppPassword(selectedProvider.id) ? (
-                    <AppPasswordTitleHint />
-                  ) : null}
-                </Label>
-                <Input
-                  id="inbox-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
+              {customFlow && detection ? (
+                <DetectedImapProviderBanner
+                  detection={detection}
+                  onUseGoogle={
+                    detection.kind === 'oauth'
+                      ? () => beginGmailConnect(detection.provider.id)
+                      : undefined
+                  }
                 />
-              </div>
+              ) : null}
 
-              <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5">
-                <div>
-                  <p className="text-sm font-medium">SMTP same as IMAP login</p>
-                  <p className="text-xs text-muted-foreground">
-                    Turn off only if send uses different credentials.
-                  </p>
-                </div>
-                <Switch
-                  checked={smtpSameAsImap}
-                  onCheckedChange={setSmtpSameAsImap}
-                />
-              </div>
-
-              {!smtpSameAsImap ? (
-                <div className="grid gap-4 sm:grid-cols-2">
+              {detection?.kind === 'oauth' ? null : (
+                <>
                   <div className="space-y-2">
-                    <Label htmlFor="smtp-user">SMTP username</Label>
+                    <Label
+                      htmlFor="inbox-password"
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      Password
+                      {mailProviderUsesAppPassword(
+                        connectingProvider?.id ?? selectedProvider.id
+                      ) ? (
+                        <AppPasswordTitleHint />
+                      ) : null}
+                    </Label>
                     <Input
-                      id="smtp-user"
-                      autoComplete="username"
-                      value={smtpUser}
-                      onChange={(event) => setSmtpUser(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="smtp-password">SMTP password</Label>
-                    <Input
-                      id="smtp-password"
+                      id="inbox-password"
                       type="password"
                       autoComplete="current-password"
-                      value={smtpPassword}
-                      onChange={(event) => setSmtpPassword(event.target.value)}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
                       required
                     />
                   </div>
-                </div>
-              ) : null}
 
-              {showAdvanced ? (
-                <div className="grid gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-2">
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="imap-host">IMAP host</Label>
-                    <Input
-                      id="imap-host"
-                      value={imapHost}
-                      onChange={(event) => setImapHost(event.target.value)}
-                      placeholder="imap.example.com"
+                  <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5">
+                    <div>
+                      <p className="text-sm font-medium">
+                        SMTP same as IMAP login
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Turn off only if send uses different credentials.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={smtpSameAsImap}
+                      onCheckedChange={setSmtpSameAsImap}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="imap-port">IMAP port</Label>
-                    <Input
-                      id="imap-port"
-                      value={imapPort}
-                      onChange={(event) => setImapPort(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="smtp-port">SMTP port</Label>
-                    <Input
-                      id="smtp-port"
-                      value={smtpPort}
-                      onChange={(event) => setSmtpPort(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="smtp-host">SMTP host</Label>
-                    <Input
-                      id="smtp-host"
-                      value={smtpHost}
-                      onChange={(event) => setSmtpHost(event.target.value)}
-                      placeholder="smtp.example.com"
-                    />
-                  </div>
-                </div>
-              ) : null}
+
+                  {!smtpSameAsImap ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="smtp-user">SMTP username</Label>
+                        <Input
+                          id="smtp-user"
+                          autoComplete="username"
+                          value={smtpUser}
+                          onChange={(event) => setSmtpUser(event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="smtp-password">SMTP password</Label>
+                        <Input
+                          id="smtp-password"
+                          type="password"
+                          autoComplete="current-password"
+                          value={smtpPassword}
+                          onChange={(event) =>
+                            setSmtpPassword(event.target.value)
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {showAdvanced ? (
+                    <div className="grid gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-2">
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="imap-host">IMAP host</Label>
+                        <Input
+                          id="imap-host"
+                          value={imapHost}
+                          onChange={(event) => setImapHost(event.target.value)}
+                          placeholder="imap.example.com"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="imap-port">IMAP port</Label>
+                        <Input
+                          id="imap-port"
+                          value={imapPort}
+                          onChange={(event) => setImapPort(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="smtp-port">SMTP port</Label>
+                        <Input
+                          id="smtp-port"
+                          value={smtpPort}
+                          onChange={(event) => setSmtpPort(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="smtp-host">SMTP host</Label>
+                        <Input
+                          id="smtp-host"
+                          value={smtpHost}
+                          onChange={(event) => setSmtpHost(event.target.value)}
+                          placeholder="smtp.example.com"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-5">
@@ -829,7 +912,8 @@ export function ConnectImapForm({
           )}
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-            {step === 'credentials' ? (
+            {step === 'credentials' &&
+            detection?.kind === 'oauth' ? null : step === 'credentials' ? (
               <>
                 <Button
                   type="button"
@@ -885,7 +969,7 @@ export function ConnectImapForm({
       title="Connect mailbox"
       description="Simply sign in using your provider(s) to display your inbox(ex) within Humaner."
       example={`You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`}
-      className="h-full min-h-0 border-0 bg-transparent"
+      className="min-h-full border-0 bg-transparent"
     >
       <Button
         size="sm"
@@ -1020,12 +1104,7 @@ export function ConnectImapForm({
 
   return (
     <>
-      <div
-        className={cn(
-          '-m-6 flex min-h-0 overflow-hidden md:-m-8',
-          DASHBOARD_FULL_BLEED_HEIGHT_CLASS
-        )}
-      >
+      <div className="flex h-full min-h-0 overflow-hidden">
         <div className="hidden min-h-0 w-full md:block">
           <ResizablePanelGroup
             direction="horizontal"
@@ -1042,14 +1121,18 @@ export function ConnectImapForm({
             </ResizablePanel>
             <ResizableHandle className="w-px bg-border/50 transition-colors hover:bg-border" />
             <ResizablePanel defaultSize={76}>
-              <div className="h-full min-h-0 bg-background">{detailPanel}</div>
+              <div className="h-full min-h-0 overflow-y-auto bg-background">
+                {detailPanel}
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
 
         <div className="w-full md:hidden">
           {mobileShowDetail && selectedProvider ? (
-            <div className="h-full min-h-0 bg-background">{detailPanel}</div>
+            <div className="h-full min-h-0 overflow-y-auto bg-background">
+              {detailPanel}
+            </div>
           ) : (
             <div className="h-full border-r border-border/50">{listPanel}</div>
           )}

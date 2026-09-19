@@ -5,9 +5,11 @@ import { getPlanCapabilities } from '@humaner/shared/plans';
 import type { IndustryType } from '@prisma/client';
 
 import { apiKeyHasScope, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
-import { verifyApiKey } from '@/lib/auth/api-keys';
+import { isApiKeyFormat, verifyApiKey } from '@/lib/auth/api-keys';
 import { resolveIanaTimeZone } from '@/lib/calendar/parse-calendar-when';
 import { prisma } from '@/lib/db/prisma';
+import { isMcpAccessToken } from '@/lib/developers/mcp-oauth';
+import { verifyMcpAccessToken } from '@/lib/developers/mcp-oauth-store';
 import { extractBearerToken } from '@/lib/security/authorize-public-agent-request';
 import {
   resolveWorkspaceToolName,
@@ -16,7 +18,7 @@ import {
 
 export type WorkspaceToolContext = {
   organizationId: string;
-  /** Null when the caller is a signed-in dashboard session (Companion). */
+  /** Null for Companion sessions and OAuth grants. */
   apiKeyId: string | null;
   actorUserId: string;
   allowSend: boolean;
@@ -50,6 +52,15 @@ export type WorkspaceAuthFailure = {
   allowOrigin: string | null;
   organizationId?: string;
   apiKeyId?: string;
+};
+
+type ResolvedMcpCaller = {
+  organizationId: string;
+  apiKeyId: string | null;
+  actorUserId: string;
+  scopes: readonly string[];
+  timeZone?: string;
+  industry: IndustryType | null;
 };
 
 /** Tasks are inbox work items, so they ride the mailbox scope. */
@@ -94,66 +105,119 @@ async function resolveWorkspaceActor(
   };
 }
 
-/**
- * Handshake for MCP (initialize, ping, list). Requires a live workspace key
- * with mailbox or calendar access — no anonymous capability probe.
- */
-export async function authorizeMcpClient(
-  request: NextRequest
-): Promise<WorkspaceAuthSuccess | WorkspaceAuthFailure> {
-  const allowOrigin = request.headers.get('origin');
-  const bearer = extractBearerToken(request);
-  if (!bearer) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'MCP requires an API key.',
-      allowOrigin
-    };
-  }
-
-  const verified = await verifyApiKey(bearer);
-  if (!verified.success) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'Invalid API key.',
-      allowOrigin
-    };
-  }
-
-  if (!keyCanUseMcp(verified.scopes)) {
-    return {
-      ok: false,
-      status: 403,
-      message:
-        'This API key does not have Mailbox, Calendar, or Intelligence access.',
-      allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
-    };
-  }
-
-  const organization = await prisma.organization.findUnique({
-    where: { id: verified.organizationId },
+async function loadOrganization(organizationId: string) {
+  return prisma.organization.findUnique({
+    where: { id: organizationId },
     select: {
       id: true,
       ownerId: true,
       tier: true,
-      frontierBetaEnabled: true
+      frontierBetaEnabled: true,
+      industry: true
     }
   });
+}
+
+function missingCredential(
+  allowOrigin: string | null,
+  message = 'MCP requires OAuth or an API key.'
+): WorkspaceAuthFailure {
+  return {
+    ok: false,
+    status: 401,
+    message,
+    allowOrigin
+  };
+}
+
+async function resolveMcpCaller(
+  request: NextRequest
+): Promise<
+  | { ok: true; allowOrigin: string | null; caller: ResolvedMcpCaller }
+  | WorkspaceAuthFailure
+> {
+  const allowOrigin = request.headers.get('origin');
+  const bearer = extractBearerToken(request);
+  if (!bearer) {
+    return missingCredential(allowOrigin);
+  }
+
+  if (isApiKeyFormat(bearer)) {
+    const verified = await verifyApiKey(bearer);
+    if (!verified.success) {
+      return missingCredential(allowOrigin, 'Invalid API key.');
+    }
+    const organization = await loadOrganization(verified.organizationId);
+    if (!organization) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'Workspace not found.',
+        allowOrigin,
+        organizationId: verified.organizationId,
+        apiKeyId: verified.id
+      };
+    }
+    const capabilities = getPlanCapabilities(organization.tier, {
+      frontierBetaEnabled: organization.frontierBetaEnabled
+    });
+    if (!capabilities.apiAccess) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'API access is not available on this plan.',
+        allowOrigin,
+        organizationId: organization.id,
+        apiKeyId: verified.id
+      };
+    }
+    const actor = await resolveWorkspaceActor(
+      organization.id,
+      organization.ownerId
+    );
+    if (!actor) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'Workspace has no actor to attribute writes to.',
+        allowOrigin,
+        organizationId: organization.id,
+        apiKeyId: verified.id
+      };
+    }
+    return {
+      ok: true,
+      allowOrigin,
+      caller: {
+        organizationId: organization.id,
+        apiKeyId: verified.id,
+        actorUserId: actor.actorUserId,
+        scopes: verified.scopes,
+        industry: organization.industry,
+        ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
+      }
+    };
+  }
+
+  if (!isMcpAccessToken(bearer)) {
+    return missingCredential(allowOrigin, 'Invalid MCP credential.');
+  }
+
+  const grant = await verifyMcpAccessToken(bearer);
+  if (!grant) {
+    return missingCredential(allowOrigin, 'Invalid or expired OAuth token.');
+  }
+
+  const organization = await loadOrganization(grant.organizationId);
   if (!organization) {
     return {
       ok: false,
       status: 403,
       message: 'Workspace not found.',
       allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
+      organizationId: grant.organizationId
     };
   }
-
   const capabilities = getPlanCapabilities(organization.tier, {
     frontierBetaEnabled: organization.frontierBetaEnabled
   });
@@ -163,36 +227,72 @@ export async function authorizeMcpClient(
       status: 403,
       message: 'API access is not available on this plan.',
       allowOrigin,
-      organizationId: organization.id,
-      apiKeyId: verified.id
+      organizationId: organization.id
     };
   }
 
-  const actor = await resolveWorkspaceActor(
-    organization.id,
-    organization.ownerId
-  );
-
+  const actor = await prisma.user.findFirst({
+    where: { id: grant.userId },
+    select: { id: true, timeZone: true }
+  });
   if (!actor) {
     return {
       ok: false,
       status: 403,
       message: 'Workspace has no actor to attribute writes to.',
       allowOrigin,
-      organizationId: organization.id,
-      apiKeyId: verified.id
+      organizationId: organization.id
     };
   }
+  const timeZone = resolveIanaTimeZone(actor.timeZone) ?? undefined;
 
   return {
     ok: true,
     allowOrigin,
-    context: {
+    caller: {
       organizationId: organization.id,
-      apiKeyId: verified.id,
-      actorUserId: actor.actorUserId,
+      apiKeyId: null,
+      actorUserId: actor.id,
+      scopes: grant.scopes,
+      industry: organization.industry,
+      ...(timeZone ? { timeZone } : {})
+    }
+  };
+}
+
+/**
+ * Handshake for MCP (initialize, ping, list). Requires OAuth or a live
+ * workspace key with mailbox, calendar, or intelligence access.
+ */
+export async function authorizeMcpClient(
+  request: NextRequest
+): Promise<WorkspaceAuthSuccess | WorkspaceAuthFailure> {
+  const resolved = await resolveMcpCaller(request);
+  if (!resolved.ok) {
+    return resolved;
+  }
+  if (!keyCanUseMcp(resolved.caller.scopes)) {
+    return {
+      ok: false,
+      status: 403,
+      message:
+        'This credential does not have Mailbox, Calendar, or Intelligence access.',
+      allowOrigin: resolved.allowOrigin,
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId ?? undefined
+    };
+  }
+  return {
+    ok: true,
+    allowOrigin: resolved.allowOrigin,
+    context: {
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId,
+      actorUserId: resolved.caller.actorUserId,
       allowSend: true,
-      ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
+      ...(resolved.caller.timeZone
+        ? { timeZone: resolved.caller.timeZone }
+        : {})
     }
   };
 }
@@ -204,79 +304,33 @@ export async function authorizeMcpClient(
 export async function authorizeMcpIntelligence(
   request: NextRequest
 ): Promise<IntelligenceMcpAuthSuccess | WorkspaceAuthFailure> {
-  const allowOrigin = request.headers.get('origin');
-  const bearer = extractBearerToken(request);
-  if (!bearer) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'Intelligence tools require an API key.',
-      allowOrigin
-    };
-  }
-
-  const verified = await verifyApiKey(bearer);
-  if (!verified.success) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'Invalid API key.',
-      allowOrigin
-    };
-  }
-
-  if (!apiKeyHasScope(verified.scopes, 'intelligence')) {
-    return {
-      ok: false,
-      status: 403,
-      message: 'This API key does not have Intelligence access.',
-      allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
-    };
-  }
-
-  const organization = await prisma.organization.findUnique({
-    where: { id: verified.organizationId },
-    select: {
-      id: true,
-      tier: true,
-      frontierBetaEnabled: true,
-      industry: true
+  const resolved = await resolveMcpCaller(request);
+  if (!resolved.ok) {
+    if (resolved.status === 401) {
+      return {
+        ...resolved,
+        message: 'Intelligence tools require OAuth or an API key.'
+      };
     }
-  });
-  if (!organization) {
+    return resolved;
+  }
+  if (!apiKeyHasScope(resolved.caller.scopes, 'intelligence')) {
     return {
       ok: false,
       status: 403,
-      message: 'Workspace not found.',
-      allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
+      message: 'This credential does not have Intelligence access.',
+      allowOrigin: resolved.allowOrigin,
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId ?? undefined
     };
   }
-
-  const capabilities = getPlanCapabilities(organization.tier, {
-    frontierBetaEnabled: organization.frontierBetaEnabled
-  });
-  if (!capabilities.apiAccess) {
-    return {
-      ok: false,
-      status: 403,
-      message: 'API access is not available on this plan.',
-      allowOrigin,
-      organizationId: organization.id,
-      apiKeyId: verified.id
-    };
-  }
-
   return {
     ok: true,
-    allowOrigin,
+    allowOrigin: resolved.allowOrigin,
     context: {
-      organizationId: organization.id,
-      apiKeyId: verified.id,
-      industry: organization.industry
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId,
+      industry: resolved.caller.industry
     }
   };
 }
@@ -296,100 +350,43 @@ export async function authorizeWorkspaceRequest(input: {
     };
   }
 
-  const bearer = extractBearerToken(input.request);
-  if (!bearer) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'Mailbox and calendar tools require an API key.',
-      allowOrigin
-    };
-  }
-
-  const verified = await verifyApiKey(bearer);
-  if (!verified.success) {
-    return {
-      ok: false,
-      status: 401,
-      message: 'Invalid API key.',
-      allowOrigin
-    };
+  const resolved = await resolveMcpCaller(input.request);
+  if (!resolved.ok) {
+    if (resolved.status === 401) {
+      return {
+        ...resolved,
+        message: 'Mailbox and calendar tools require OAuth or an API key.'
+      };
+    }
+    return resolved;
   }
 
   const required = scopeForWorkspaceTool(tool);
-  if (!apiKeyHasScope(verified.scopes, required)) {
+  if (!apiKeyHasScope(resolved.caller.scopes, required)) {
     return {
       ok: false,
       status: 403,
       message:
         required === 'calendar'
-          ? 'This API key does not have Calendar access.'
-          : 'This API key does not have Mailbox access.',
-      allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
-    };
-  }
-
-  const organization = await prisma.organization.findUnique({
-    where: { id: verified.organizationId },
-    select: {
-      id: true,
-      ownerId: true,
-      tier: true,
-      frontierBetaEnabled: true
-    }
-  });
-  if (!organization) {
-    return {
-      ok: false,
-      status: 403,
-      message: 'Workspace not found.',
-      allowOrigin,
-      organizationId: verified.organizationId,
-      apiKeyId: verified.id
-    };
-  }
-
-  const capabilities = getPlanCapabilities(organization.tier, {
-    frontierBetaEnabled: organization.frontierBetaEnabled
-  });
-  if (!capabilities.apiAccess) {
-    return {
-      ok: false,
-      status: 403,
-      message: 'API access is not available on this plan.',
-      allowOrigin,
-      organizationId: organization.id,
-      apiKeyId: verified.id
-    };
-  }
-
-  const actor = await resolveWorkspaceActor(
-    organization.id,
-    organization.ownerId
-  );
-
-  if (!actor) {
-    return {
-      ok: false,
-      status: 403,
-      message: 'Workspace has no actor to attribute writes to.',
-      allowOrigin,
-      organizationId: organization.id,
-      apiKeyId: verified.id
+          ? 'This credential does not have Calendar access.'
+          : 'This credential does not have Mailbox access.',
+      allowOrigin: resolved.allowOrigin,
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId ?? undefined
     };
   }
 
   return {
     ok: true,
-    allowOrigin,
+    allowOrigin: resolved.allowOrigin,
     context: {
-      organizationId: organization.id,
-      apiKeyId: verified.id,
-      actorUserId: actor.actorUserId,
+      organizationId: resolved.caller.organizationId,
+      apiKeyId: resolved.caller.apiKeyId,
+      actorUserId: resolved.caller.actorUserId,
       allowSend: true,
-      ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
+      ...(resolved.caller.timeZone
+        ? { timeZone: resolved.caller.timeZone }
+        : {})
     }
   };
 }

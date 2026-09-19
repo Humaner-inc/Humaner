@@ -1,4 +1,9 @@
 import {
+  detectMailProviderFromEmail as detectSharedMailProviderFromEmail,
+  type MailProviderDetection as SharedMailProviderDetection
+} from '@humaner/shared/mail-provider-detect';
+import {
+  getLandingMailProviders,
   getMailProviderById as getSharedMailProviderById,
   getMailProvidersGrouped as getSharedMailProvidersGrouped,
   MAIL_CONNECT_KIND_LABELS,
@@ -58,16 +63,41 @@ export function getMailProviderById(
   );
 }
 
-export function getMailProvidersGrouped(): Array<{
+export function getMailProvidersGrouped(
+  options: { featuredOnly?: boolean } = {}
+): Array<{
   category: MailProviderCategory;
   label: string;
   providers: MailProviderDefinition[];
 }> {
-  return getSharedMailProvidersGrouped(SHARED_MAIL_PROVIDERS).map((group) => ({
+  const source = options.featuredOnly
+    ? getLandingMailProviders()
+    : SHARED_MAIL_PROVIDERS;
+  return getSharedMailProvidersGrouped(source).map((group) => ({
     category: group.connect,
     label: group.label,
     providers: group.providers.map(adaptProvider)
   }));
+}
+
+export type DetectedMailProvider = {
+  provider: MailProviderDefinition;
+  kind: SharedMailProviderDetection['kind'];
+  matched: string;
+};
+
+export function detectMailProviderFromEmail(
+  email: string
+): DetectedMailProvider | null {
+  const detection = detectSharedMailProviderFromEmail(email);
+  if (!detection) {
+    return null;
+  }
+  return {
+    provider: adaptProvider(detection.provider),
+    kind: detection.kind,
+    matched: detection.matched
+  };
 }
 
 export type MailProviderPreset = {

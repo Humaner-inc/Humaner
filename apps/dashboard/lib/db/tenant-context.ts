@@ -36,6 +36,7 @@ export const TENANT_SCOPED_MODELS = new Set([
   'MailboxConnection',
   'MailTag',
   'MailThread',
+  'McpOAuthGrant',
   'TeamMemberProfile',
   'VisitorMetadata',
   'Webhook',

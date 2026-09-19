@@ -5,7 +5,10 @@ import {
   mcpPublicEndpoint,
   negotiateMcpProtocolVersion
 } from '@/lib/developers/mcp-http';
-import { buildMcpServerConfig } from '@/lib/developers/mcp-server-config';
+import {
+  buildMcpApiKeyServerConfig,
+  buildMcpServerConfig
+} from '@/lib/developers/mcp-server-config';
 
 describe('buildMcpServerConfig', () => {
   it('uses a remote URL like Neon, not a stdio command', () => {
@@ -24,6 +27,15 @@ describe('buildMcpServerConfig', () => {
       'https://app.humaner.io/api/mcp'
     );
     expect(parsed.mcpServers.humaner.command).toBeUndefined();
+    expect(parsed.mcpServers.humaner.headers).toBeUndefined();
+  });
+
+  it('keeps a Bearer snippet for scripts', () => {
+    const parsed = JSON.parse(
+      buildMcpApiKeyServerConfig('https://app.humaner.io')
+    ) as {
+      mcpServers: { humaner: { headers?: { Authorization: string } } };
+    };
     expect(parsed.mcpServers.humaner.headers?.Authorization).toBe(
       'Bearer Your_api_key'
     );

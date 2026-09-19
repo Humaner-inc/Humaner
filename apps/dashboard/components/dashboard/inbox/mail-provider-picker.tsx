@@ -32,7 +32,10 @@ export function MailProviderPicker({
   onSelectConnected
 }: MailProviderPickerProps): React.JSX.Element {
   const [query, setQuery] = React.useState('');
-  const groups = React.useMemo(() => getMailProvidersGrouped(), []);
+  const groups = React.useMemo(
+    () => getMailProvidersGrouped({ featuredOnly: true }),
+    []
+  );
   const normalizedQuery = query.trim().toLowerCase();
   const connectedSet = React.useMemo(
     () => new Set(connectedProviderIds),
@@ -51,8 +54,6 @@ export function MailProviderPicker({
       );
     };
 
-    // Keep connected providers in the catalog so another inbox can be added
-    // from the same host (Connected is a badge, not a lock).
     return groups
       .map((group) => ({
         ...group,
@@ -76,10 +77,15 @@ export function MailProviderPicker({
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search providers…"
+            placeholder="Search Gmail, Fastmail, IONOS…"
             className="h-9 pl-9 font-mono text-sm"
           />
         </div>
+        <p className="mt-2 px-0.5 text-xs text-muted-foreground">
+          Host not listed? Choose{' '}
+          <span className="font-medium text-foreground">Custom IMAP</span> — we
+          detect settings from your email.
+        </p>
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
@@ -177,7 +183,11 @@ function ProviderListItem({
       >
         <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background ring-1 ring-border/60">
           <BrandLogo
-            domain={provider.logoDomain}
+            domain={
+              provider.logoDomain === 'humaner.io'
+                ? undefined
+                : provider.logoDomain
+            }
             fallbackIcon={MailIcon}
             size={28}
             className="size-5"

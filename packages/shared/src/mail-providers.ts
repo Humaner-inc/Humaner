@@ -1,15 +1,3 @@
-/**
- * One mailbox-provider catalog. Landing, docs, mockups, and the dashboard
- * picker all read this file. Marketing cannot show a host the picker cannot
- * open — `showOnLanding` is a filter, not a second list.
- *
- * Classification is how you connect (Spark-style chips), not geography:
- *   oauth  — Google sign-in
- *   preset — documented IMAP/SMTP hosts filled in
- *   custom — customer pastes hosts from their panel
- *   soon   — listed, not connectable
- */
-
 export type MailConnectKind = "oauth" | "preset" | "custom" | "soon";
 
 export const MAIL_PROVIDERS_LEAD =
@@ -44,25 +32,23 @@ export const MAIL_CONNECT_KIND_DOCS: Record<
   oauth: {
     title: "Gmail / Google Workspace",
     available: "✓",
-    integration: "OAuth. No app password. Company.com addresses use Workspace.",
+    integration: "Link your Gmail with Google oAuth.",
   },
   preset: {
     title: "IMAP presets",
     available: "✓",
     integration:
-      "Email + password, or an app password when the host requires it. Hosts are filled in.",
+      "Email + password, or a genarated in-app password for some, like Fastmail.",
   },
   custom: {
     title: "Your own host",
     available: "✓",
-    integration:
-      "cPanel, Plesk, or any IMAP + SMTP. Paste the hosts from your panel.",
+    integration: "cPanel, Plesk, or any IMAP + SMTP.",
   },
   soon: {
     title: "Microsoft 365 / Proton",
     available: "Soon",
-    integration:
-      "Microsoft mail OAuth is not shipped. Proton needs Bridge and is not connectable yet.",
+    integration: "Microsoft and Proton mail are coming shortly.",
   },
 };
 
@@ -641,13 +627,15 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
   },
   {
     id: "custom",
-    name: "Other / Custom",
+    name: "Custom IMAP",
     logoDomain: null,
     connect: "custom",
     showOnLanding: true,
-    summary: "Any IMAP + SMTP host. Enter the servers in Advanced.",
+    summary:
+      "Any IMAP + SMTP host. We fill settings when we recognize the domain.",
     requiresCustomHosts: true,
-    setupNote: "Enter your provider IMAP and SMTP hosts in Advanced.",
+    setupNote:
+      "Type your mailbox email — we prefill hosts when we recognize the provider.",
   },
 
   {

@@ -19,6 +19,7 @@ export enum OrganizationCacheKey {
   Members,
   Invitations,
   ApiKeys,
+  McpOAuthGrants,
   Webhooks,
   Agents,
   KnowledgeSources,

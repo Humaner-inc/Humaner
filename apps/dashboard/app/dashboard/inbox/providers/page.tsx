@@ -17,16 +17,22 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
   const overview = await getInboxOverview();
 
   if (!overview || overview.locked) {
-    return <InboxUpgradeEmptyState />;
+    return (
+      <div className="p-6 md:p-8">
+        <InboxUpgradeEmptyState />
+      </div>
+    );
   }
 
   if (!overview.canManageProviders) {
     return (
-      <InboxOptionalEmptyState
-        title="Workspace owner setup required"
-        description="Only this workspace's owner can connect or change mail providers. You can still work aliases assigned to you."
-        showConnect={false}
-      />
+      <div className="p-6 md:p-8">
+        <InboxOptionalEmptyState
+          title="Workspace owner setup required"
+          description="Only this workspace's owner can connect or change mail providers. You can still work aliases assigned to you."
+          showConnect={false}
+        />
+      </div>
     );
   }
 

@@ -3,8 +3,10 @@ import { type Metadata } from 'next';
 
 import { McpIcon } from '@/components/brand/mcp-icon';
 import { McpIntelligenceToggle } from '@/components/dashboard/settings/organization/developers/mcp-intelligence-toggle';
+import { McpOAuthClientsCard } from '@/components/dashboard/settings/organization/developers/mcp-oauth-clients-card';
 import { McpServerConfigPanel } from '@/components/dashboard/settings/organization/developers/mcp-server-config-panel';
 import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
+import { getMcpOAuthGrants } from '@/data/developers/get-mcp-oauth-grants';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { cn, createTitle } from '@/lib/utils';
@@ -24,7 +26,10 @@ export default async function DevelopersLayout({
   webhooks,
   mcpLogs
 }: DevelopersLayoutProps): Promise<React.JSX.Element> {
-  const mcpIntelligenceEnabled = await getMcpIntelligenceEnabled();
+  const [mcpIntelligenceEnabled, oauthGrants] = await Promise.all([
+    getMcpIntelligenceEnabled(),
+    getMcpOAuthGrants()
+  ]);
 
   return (
     <div className="space-y-6">
@@ -42,6 +47,15 @@ export default async function DevelopersLayout({
         <div className="space-y-4 px-5 py-5 sm:px-6">
           <McpServerConfigPanel />
           <McpIntelligenceToggle enabled={mcpIntelligenceEnabled} />
+        </div>
+
+        <div className="border-t border-border/40" />
+
+        <div className="px-5 py-4 sm:px-6">
+          <h2 className="mb-3 text-sm font-medium text-foreground">
+            Connected clients
+          </h2>
+          <McpOAuthClientsCard grants={oauthGrants} />
         </div>
 
         <div className="border-t border-border/40" />

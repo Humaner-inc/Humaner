@@ -16,8 +16,8 @@ export function McpServerConfigPanel(): React.JSX.Element {
         language="json"
       />
       <p className="text-xs text-muted-foreground">
-        Paste into your MCP server config. Replace Your_api_key with one created
-        below.
+        Paste into Cursor, Claude, or VS Code. Enable the server — a browser
+        login connects this workspace. API keys below are for scripts and REST.
       </p>
     </div>
   );

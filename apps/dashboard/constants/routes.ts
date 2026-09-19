@@ -76,6 +76,8 @@ export enum Routes {
   Billing = '/settings/organization/billing',
   Developers = '/settings/organization/developers',
   AuditLogs = '/settings/organization/audit-logs',
+  McpOAuthAuthorize = '/api/oauth/mcp/authorize',
+  McpOAuthConsent = '/oauth/mcp/consent',
 
   Invitations = '/invitations',
   InvitationRequest = '/invitations/request',
