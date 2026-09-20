@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto';
 
 import { Routes } from '@/constants/routes';
 import { API_KEY_SCOPES, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
-import { mcpPublicEndpoint } from '@/lib/developers/mcp-http';
+import { mcpPublicEndpoint, mcpServerIconUrl } from '@/lib/developers/mcp-http';
 
 export const MCP_OAUTH_SCOPES = API_KEY_SCOPES;
 export const MCP_OAUTH_DEFAULT_SCOPES: ApiKeyScope[] = ['mailbox', 'calendar'];
@@ -84,7 +84,8 @@ export function mcpProtectedResourceMetadata(
     resource: mcpPublicEndpoint(appUrl),
     authorization_servers: [issuer],
     bearer_methods_supported: ['header'],
-    scopes_supported: [...MCP_OAUTH_SCOPES]
+    scopes_supported: [...MCP_OAUTH_SCOPES],
+    logo_uri: mcpServerIconUrl(appUrl)
   };
 }
 
@@ -102,7 +103,8 @@ export function mcpAuthorizationServerMetadata(
     code_challenge_methods_supported: ['S256'],
     token_endpoint_auth_methods_supported: ['none'],
     scopes_supported: [...MCP_OAUTH_SCOPES],
-    resource_indicators_supported: true
+    resource_indicators_supported: true,
+    logo_uri: mcpServerIconUrl(appUrl)
   };
 }
 

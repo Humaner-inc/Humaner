@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isMcpRequestEncrypted,
+  MCP_SERVER_ICON_VERSION,
   mcpPublicEndpoint,
   mcpServerIcons,
   negotiateMcpProtocolVersion
@@ -44,12 +45,17 @@ describe('buildMcpServerConfig', () => {
 });
 
 describe('mcpServerIcons', () => {
-  it('advertises landing LOGO.png with array sizes', () => {
+  it('advertises landing LOGO.png with pixel sizes Cursor accepts', () => {
     expect(mcpServerIcons('https://app.humaner.io')).toEqual([
       {
-        src: 'https://app.humaner.io/LOGO.png',
+        src: `https://app.humaner.io/LOGO.png?v=${MCP_SERVER_ICON_VERSION}`,
         mimeType: 'image/png',
-        sizes: ['any']
+        sizes: ['512x512', '256x256', '128x128']
+      },
+      {
+        src: `https://app.humaner.io/icon.png?v=${MCP_SERVER_ICON_VERSION}`,
+        mimeType: 'image/png',
+        sizes: ['256x256']
       }
     ]);
   });

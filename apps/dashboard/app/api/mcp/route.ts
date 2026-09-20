@@ -8,6 +8,7 @@ import {
 } from '@/lib/developers/log-mcp-request';
 import {
   isMcpRequestEncrypted,
+  MCP_SERVER_INFO_VERSION,
   mcpCorsHeaders,
   mcpServerIcons,
   negotiateMcpProtocolVersion
@@ -241,6 +242,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       method,
       status: 200
     });
+    const appUrl = mcpAppUrlFromRequest(request);
     return rpcResult(
       id,
       {
@@ -254,8 +256,10 @@ export async function POST(request: NextRequest): Promise<Response> {
         },
         serverInfo: {
           name: 'humaner',
-          version: '1.0.0',
-          icons: mcpServerIcons(mcpAppUrlFromRequest(request))
+          title: 'Humaner',
+          version: MCP_SERVER_INFO_VERSION,
+          websiteUrl: appUrl,
+          icons: mcpServerIcons(appUrl)
         }
       },
       origin

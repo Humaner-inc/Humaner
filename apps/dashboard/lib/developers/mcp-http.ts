@@ -24,11 +24,18 @@ export function isMcpRequestEncrypted(request: Request): boolean {
   return proto === 'https';
 }
 
-/** Same file as landing `public/LOGO.png` — Cursor MCP list icon. */
 export const MCP_SERVER_ICON_PATH = '/LOGO.png';
+
+export const MCP_SERVER_ICON_VERSION = '20260920e';
+
+export const MCP_SERVER_INFO_VERSION = '1.0.1';
 
 export function mcpServerOrigin(appUrl: string): string {
   return mcpPublicEndpoint(appUrl).replace(/\/api\/mcp$/, '');
+}
+
+export function mcpServerIconUrl(appUrl: string): string {
+  return `${mcpServerOrigin(appUrl)}${MCP_SERVER_ICON_PATH}?v=${MCP_SERVER_ICON_VERSION}`;
 }
 
 export function mcpServerIcons(appUrl: string): Array<{
@@ -36,11 +43,18 @@ export function mcpServerIcons(appUrl: string): Array<{
   mimeType: string;
   sizes: string[];
 }> {
+  const origin = mcpServerOrigin(appUrl);
+  const logo = mcpServerIconUrl(appUrl);
   return [
     {
-      src: `${mcpServerOrigin(appUrl)}${MCP_SERVER_ICON_PATH}`,
+      src: logo,
       mimeType: 'image/png',
-      sizes: ['any']
+      sizes: ['512x512', '256x256', '128x128']
+    },
+    {
+      src: `${origin}/icon.png?v=${MCP_SERVER_ICON_VERSION}`,
+      mimeType: 'image/png',
+      sizes: ['256x256']
     }
   ];
 }

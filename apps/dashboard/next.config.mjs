@@ -114,6 +114,36 @@ const nextConfig = {
 
     return [
       {
+        locale: false,
+        source: '/icon.svg',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ]
+      },
+      {
+        locale: false,
+        source: '/icon.png',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ]
+      },
+      {
+        locale: false,
+        source: '/LOGO.png',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ]
+      },
+      {
         // Everything except the embeddable widget gets strict frame protection.
         locale: false,
         source: '/((?!widget/).*)',

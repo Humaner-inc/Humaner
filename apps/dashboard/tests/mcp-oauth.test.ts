@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { MCP_SERVER_ICON_VERSION } from '@/lib/developers/mcp-http';
 import {
   isAllowedMcpRedirectUri,
   mcpAuthorizationServerMetadata,
@@ -21,6 +22,12 @@ describe('mcp oauth metadata', () => {
     );
     expect(mcpWwwAuthenticate('https://app.humaner.io')).toContain(
       'resource_metadata="https://app.humaner.io/.well-known/oauth-protected-resource/api/mcp"'
+    );
+    expect(resource.logo_uri).toBe(
+      `https://app.humaner.io/LOGO.png?v=${MCP_SERVER_ICON_VERSION}`
+    );
+    expect(server.logo_uri).toBe(
+      `https://app.humaner.io/LOGO.png?v=${MCP_SERVER_ICON_VERSION}`
     );
   });
 });

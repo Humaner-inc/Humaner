@@ -130,11 +130,26 @@ function isOssBlockedPath(pathname: string): boolean {
   });
 }
 
+const MCP_ORIGIN_ICON_PATHS = new Set([
+  '/favicon.ico',
+  '/icon',
+  '/icon.svg',
+  '/icon.png',
+  '/apple-icon',
+  '/apple-icon.png',
+  '/apple-touch-icon',
+  '/apple-touch-icon.png'
+]);
+
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname === '/favicon.ico') {
-    return NextResponse.rewrite(new URL('/favicon.svg', request.url));
+  // Cursor scrapes these well-known paths on the MCP origin and ignores
+  // serverInfo.icons. Always serve landing LOGO.png — not the cream mark.
+  if (MCP_ORIGIN_ICON_PATHS.has(pathname)) {
+    const response = NextResponse.rewrite(new URL('/LOGO.png', request.url));
+    response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    return response;
   }
 
   // Self-Host: Polar billing + Cloud inbox are not part of the kit.
