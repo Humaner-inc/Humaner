@@ -17,6 +17,7 @@ import * as React from "react";
 
 import {
   EMAIL_BODY_CLASS,
+  EMAIL_BRAND_SECTION_CLASS,
   EMAIL_BUTTON_PRIMARY_CLASS,
   EMAIL_BUTTON_RADIUS_PX,
   EMAIL_BUTTON_SECTION_CLASS,
@@ -26,37 +27,22 @@ import {
   EMAIL_FOOTER_TEXT_CLASS,
   EMAIL_HR_CLASS,
   EMAIL_LINK_CLASS,
-  EMAIL_LOGO_CLASS,
-  EMAIL_LOGO_SECTION_CLASS,
   EMAIL_LOGO_SIZE,
-  EMAIL_MUTED_CENTER_CLASS,
   EMAIL_MUTED_CLASS,
   EMAIL_OTP_CLASS,
   EMAIL_OTP_SECTION_CLASS,
   EMAIL_TEXT_CLASS,
   EMAIL_TITLE_CLASS,
+  EMAIL_WORDMARK_CLASS,
 } from "./email-brand";
-import { HUMANER_ADDRESS_LINE } from "./company";
-import {
-  getContactUrl,
-  getDocsUrl,
-  getEmailLogoUrl,
-  getGithubUrl,
-  getUnsubscribeUrl,
-  getXUrl,
-} from "./urls";
+import { getEmailLogoUrl, getUnsubscribeUrl } from "./urls";
 
-const EMAIL_FOOTER_LINKS = [
-  { label: "Docs", href: getDocsUrl },
-  { label: "Contact", href: getContactUrl },
-  { label: "Github", href: getGithubUrl },
-  { label: "X", href: getXUrl },
-] as const;
+const EMAIL_BRAND_NAME = "Humaner";
 
 export type EmailLayoutProps = {
   preview: string;
   logoSrc?: string;
-  /** Optional note shown in the footer zone above the unsubscribe line. */
+  /** Optional note shown in the footer zone above the reply line. */
   footerNote?: React.ReactNode;
   /**
    * Opt-in for marketing mail only. Transactional process mail
@@ -74,7 +60,7 @@ export function EmailLayout({
   children,
 }: EmailLayoutProps): React.JSX.Element {
   return (
-    <Html style={{ backgroundColor: EMAIL_COLORS.background }}>
+    <Html style={{ backgroundColor: EMAIL_COLORS.canvas }}>
       <Head>
         <meta name="color-scheme" content="light only" />
         <meta name="supported-color-schemes" content="light only" />
@@ -85,7 +71,7 @@ export function EmailLayout({
         <Body
           className={EMAIL_BODY_CLASS}
           style={{
-            backgroundColor: EMAIL_COLORS.background,
+            backgroundColor: EMAIL_COLORS.canvas,
             margin: "0 auto",
           }}
         >
@@ -93,16 +79,7 @@ export function EmailLayout({
             className={EMAIL_CONTAINER_CLASS}
             style={{ backgroundColor: EMAIL_COLORS.background }}
           >
-            <Section align="center" className={EMAIL_LOGO_SECTION_CLASS}>
-              <Img
-                src={logoSrc}
-                alt=""
-                width={EMAIL_LOGO_SIZE}
-                height={EMAIL_LOGO_SIZE}
-                className={EMAIL_LOGO_CLASS}
-                style={{ display: "block", margin: "0 auto" }}
-              />
-            </Section>
+            <EmailBrandRow src={logoSrc} />
             {children}
             <EmailDivider />
             {footerNote ? <EmailMuted>{footerNote}</EmailMuted> : null}
@@ -114,6 +91,45 @@ export function EmailLayout({
   );
 }
 
+function EmailBrandRow({ src }: { src: string }): React.JSX.Element {
+  return (
+    <Section className={EMAIL_BRAND_SECTION_CLASS}>
+      <table
+        role="presentation"
+        cellPadding={0}
+        cellSpacing={0}
+        style={{ borderCollapse: "collapse" }}
+      >
+        <tr>
+          <td style={{ verticalAlign: "middle", padding: 0 }}>
+            <Img
+              src={src}
+              alt=""
+              width={EMAIL_LOGO_SIZE}
+              height={EMAIL_LOGO_SIZE}
+              style={{
+                display: "block",
+                width: EMAIL_LOGO_SIZE,
+                height: EMAIL_LOGO_SIZE,
+              }}
+            />
+          </td>
+          <td
+            style={{
+              verticalAlign: "middle",
+              padding: "0 0 0 8px",
+            }}
+          >
+            <Text className={EMAIL_WORDMARK_CLASS} style={{ margin: 0 }}>
+              {EMAIL_BRAND_NAME}
+            </Text>
+          </td>
+        </tr>
+      </table>
+    </Section>
+  );
+}
+
 function EmailFooter({
   showUnsubscribe,
 }: {
@@ -121,33 +137,21 @@ function EmailFooter({
 }): React.JSX.Element {
   return (
     <>
+      <Text className={EMAIL_FOOTER_TEXT_CLASS}>
+        If you need anything, reply to this email.
+      </Text>
+      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
+        — The Humaner team
+      </Text>
       {showUnsubscribe ? (
-        <Text className={EMAIL_MUTED_CLASS}>
+        <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
           If you no longer want to receive mails from us simply{" "}
           <Link href={getUnsubscribeUrl()} className={EMAIL_FOOTER_LINK_CLASS}>
-            Unsubscribe
+            unsubscribe
           </Link>
+          .
         </Text>
       ) : null}
-      <Text
-        className={
-          showUnsubscribe
-            ? `${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`
-            : EMAIL_FOOTER_TEXT_CLASS
-        }
-      >
-        {EMAIL_FOOTER_LINKS.map((link, index) => (
-          <React.Fragment key={link.label}>
-            {index > 0 ? " | " : null}
-            <Link href={link.href()} className={EMAIL_FOOTER_LINK_CLASS}>
-              {link.label}
-            </Link>
-          </React.Fragment>
-        ))}
-      </Text>
-      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[8px]`}>
-        {HUMANER_ADDRESS_LINE}
-      </Text>
     </>
   );
 }
@@ -180,16 +184,11 @@ export function EmailText({
 
 export function EmailMuted({
   children,
-  center = false,
 }: {
   children: React.ReactNode;
   center?: boolean;
 }): React.JSX.Element {
-  return (
-    <Text className={center ? EMAIL_MUTED_CENTER_CLASS : EMAIL_MUTED_CLASS}>
-      {children}
-    </Text>
-  );
+  return <Text className={EMAIL_MUTED_CLASS}>{children}</Text>;
 }
 
 export function EmailDivider(): React.JSX.Element {

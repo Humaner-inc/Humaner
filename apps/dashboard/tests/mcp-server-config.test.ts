@@ -45,17 +45,12 @@ describe('buildMcpServerConfig', () => {
 });
 
 describe('mcpServerIcons', () => {
-  it('advertises landing LOGO.png with pixel sizes Cursor accepts', () => {
+  it('advertises the cobalt brandmark', () => {
     expect(mcpServerIcons('https://app.humaner.io')).toEqual([
       {
-        src: `https://app.humaner.io/LOGO.png?v=${MCP_SERVER_ICON_VERSION}`,
-        mimeType: 'image/png',
-        sizes: ['512x512', '256x256', '128x128']
-      },
-      {
-        src: `https://app.humaner.io/icon.png?v=${MCP_SERVER_ICON_VERSION}`,
-        mimeType: 'image/png',
-        sizes: ['256x256']
+        src: `https://app.humaner.io/brandmark_blue.svg?v=${MCP_SERVER_ICON_VERSION}`,
+        mimeType: 'image/svg+xml',
+        sizes: ['any']
       }
     ]);
   });

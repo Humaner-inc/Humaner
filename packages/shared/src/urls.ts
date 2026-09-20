@@ -27,29 +27,18 @@ export function getHumanerAgentPublicId(): string | undefined {
   return id || undefined;
 }
 
-/** Compact mark — cobalt tile favicon. */
+/** Tab / app icon — cobalt rounded tile. */
 export const HUMANER_ICON_PATH = "/favicon.svg";
-/** Light surfaces that need ink, not cobalt. */
+/** Ink mark for light surfaces and mail. */
 export const HUMANER_ICON_BLACK_PATH = "/brandmark-dark.svg";
-/** Cobalt figure on transparent — light chrome and inline marks. */
+/** Main brand logo — cobalt figure on transparent. */
 export const HUMANER_BRANDMARK_PATH = "/brandmark_blue.svg";
-/** Square cobalt logo for search, OG, and apple icons. */
-export const HUMANER_LOGO_PATH = "/LOGO.png";
-/** Raster / search tile (same art as the favicon). */
-export const HUMANER_BLUE_ICON_PATH = "/blue_icon.svg";
 
-/** Mail header — cobalt brandmark (2× vector so clients stay sharp at 80px). */
-export const EMAIL_LOGO_PATH = "/brandmark_blue.svg";
-
-/** X / Twitter mark for transactional email (same glyph as landing footer). */
-export const EMAIL_X_ICON_PATH = "/x-email.png";
+/** Mail header — raster of `brandmark-dark.svg` (clients drop SVG). */
+export const EMAIL_LOGO_PATH = "/brandmark-dark.png";
 
 export function getEmailLogoUrl(): string {
   return `${getAppUrl()}${EMAIL_LOGO_PATH}`;
-}
-
-export function getEmailXIconUrl(): string {
-  return `${getAppUrl()}${EMAIL_X_ICON_PATH}`;
 }
 
 export function getDashboardSignUpUrl(options?: {

@@ -145,9 +145,9 @@ export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
   // Cursor scrapes these well-known paths on the MCP origin and ignores
-  // serverInfo.icons. Always serve landing LOGO.png — not the cream mark.
+  // serverInfo.icons. Serve the landing favicon tile — not leftover aliases.
   if (MCP_ORIGIN_ICON_PATHS.has(pathname)) {
-    const response = NextResponse.rewrite(new URL('/LOGO.png', request.url));
+    const response = NextResponse.rewrite(new URL('/favicon.svg', request.url));
     response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
     return response;
   }

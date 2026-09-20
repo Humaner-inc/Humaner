@@ -115,7 +115,7 @@ const nextConfig = {
     return [
       {
         locale: false,
-        source: '/icon.svg',
+        source: '/favicon.svg',
         headers: [
           {
             key: 'Cache-Control',
@@ -125,17 +125,7 @@ const nextConfig = {
       },
       {
         locale: false,
-        source: '/icon.png',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
-          }
-        ]
-      },
-      {
-        locale: false,
-        source: '/LOGO.png',
+        source: '/brandmark_blue.svg',
         headers: [
           {
             key: 'Cache-Control',
@@ -319,6 +309,18 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.svg'
+      },
+      {
+        source: '/icon.svg',
+        destination: '/favicon.svg'
+      },
+      {
+        source: '/apple-touch-icon.png',
+        destination: '/favicon.svg'
+      },
       {
         source: '/organization/overview',
         destination: '/dashboard/home'

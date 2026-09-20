@@ -51,29 +51,9 @@ export const metadata: Metadata = {
   },
   description,
   icons: {
-    icon: [
-      {
-        url: '/favicon.svg?v=20260920',
-        type: 'image/svg+xml'
-      },
-      {
-        url: '/blue_icon.svg?v=20260920',
-        type: 'image/svg+xml'
-      },
-      {
-        url: '/LOGO.png?v=20260920',
-        type: 'image/png',
-        sizes: '1254x1254'
-      }
-    ],
-    shortcut: '/favicon.svg?v=20260920',
-    apple: [
-      {
-        url: '/LOGO.png?v=20260920',
-        type: 'image/png',
-        sizes: '180x180'
-      }
-    ]
+    icon: [{ url: '/favicon.svg?v=20260921', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg?v=20260921',
+    apple: [{ url: '/favicon.svg?v=20260921', type: 'image/svg+xml' }]
   },
   manifest: `${getBaseUrl()}/manifest`,
   openGraph: {

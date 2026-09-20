@@ -1,15 +1,11 @@
 import type { ImgHTMLAttributes, JSX } from "react";
 
-/** Compact mark — cobalt tile favicon. */
+/** Tab / app icon — cobalt rounded tile. */
 export const HUMANER_ICON_PATH = "/favicon.svg";
-/** Light surfaces that need ink, not cobalt. */
+/** Ink mark for light surfaces and mail. */
 export const HUMANER_ICON_BLACK_PATH = "/brandmark-dark.svg";
-/** Cobalt figure on transparent — light chrome and inline marks. */
+/** Main brand logo — cobalt figure on transparent. */
 export const HUMANER_BRANDMARK_PATH = "/brandmark_blue.svg";
-/** Square cobalt logo for search, OG, and apple icons. */
-export const HUMANER_LOGO_PATH = "/LOGO.png";
-/** Raster / search tile (same art as the favicon). */
-export const HUMANER_BLUE_ICON_PATH = "/blue_icon.svg";
 
 export const HUMANER_INK = "#0A0D0D";
 export const HUMANER_ACCENT = "#e0e1df";

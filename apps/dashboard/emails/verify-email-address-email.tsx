@@ -32,9 +32,7 @@ export const VerifyEmailAddressEmail = ({
       {AppInfo.APP_NAME}:
     </EmailText>
     <EmailOtp code={otp} />
-    <EmailMuted center>
-      Or use the button below to open {AppInfo.APP_NAME}.
-    </EmailMuted>
+    <EmailMuted>Or use the button below to open {AppInfo.APP_NAME}.</EmailMuted>
     <EmailButton href={verificationLink}>Open {AppInfo.APP_NAME}</EmailButton>
   </EmailLayout>
 );
