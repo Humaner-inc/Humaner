@@ -27,14 +27,16 @@ export function getHumanerAgentPublicId(): string | undefined {
   return id || undefined;
 }
 
-/** Compact mark — favicon, dark theme, and icons. */
+/** Compact mark — cobalt tile favicon. */
 export const HUMANER_ICON_PATH = "/favicon.svg";
-/** Light surfaces — dark ink brandmark. */
+/** Light surfaces that need ink, not cobalt. */
 export const HUMANER_ICON_BLACK_PATH = "/brandmark-dark.svg";
-/** Brandmark on light chrome — emails + light theme. */
-export const HUMANER_BRANDMARK_PATH = "/brandmark-dark.svg";
-/** Full brand logo. */
-export const HUMANER_LOGO_PATH = "/logo-black.png";
+/** Cobalt figure on transparent — light chrome and inline marks. */
+export const HUMANER_BRANDMARK_PATH = "/brandmark_blue.svg";
+/** Square cobalt logo for search, OG, and apple icons. */
+export const HUMANER_LOGO_PATH = "/LOGO.png";
+/** Raster / search tile (same art as the favicon). */
+export const HUMANER_BLUE_ICON_PATH = "/blue_icon.svg";
 
 /** Mail header — cobalt brandmark (2× vector so clients stay sharp at 80px). */
 export const EMAIL_LOGO_PATH = "/brandmark_blue.svg";

@@ -53,18 +53,27 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/brandmark-dark.svg',
-        type: 'image/svg+xml',
-        media: '(prefers-color-scheme: light)'
+        url: '/favicon.svg?v=20260920',
+        type: 'image/svg+xml'
       },
       {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
-        media: '(prefers-color-scheme: dark)'
+        url: '/blue_icon.svg?v=20260920',
+        type: 'image/svg+xml'
+      },
+      {
+        url: '/LOGO.png?v=20260920',
+        type: 'image/png',
+        sizes: '1254x1254'
       }
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg'
+    shortcut: '/favicon.svg?v=20260920',
+    apple: [
+      {
+        url: '/LOGO.png?v=20260920',
+        type: 'image/png',
+        sizes: '180x180'
+      }
+    ]
   },
   manifest: `${getBaseUrl()}/manifest`,
   openGraph: {

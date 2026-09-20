@@ -4,7 +4,7 @@ export const HUMANER_TITLE = "The agentic inbox, for humans.";
 export const HUMANER_TAGLINE = HUMANER_TITLE;
 
 export const HUMANER_META_DESCRIPTION =
-  "The agentic inbox, for humans. Automated but never impersonal. Powered by Companion, our agent built for support or by your own. Automate, connect and collaborate to run your emails better, faster.";
+  "The agentic inbox, for humans. Connect every mailbox. Work it with your team and Companion — or point your own agent at the same inbox over MCP.";
 
 export const HUMANER_ELEVATOR_PITCH = HUMANER_META_DESCRIPTION;
 
