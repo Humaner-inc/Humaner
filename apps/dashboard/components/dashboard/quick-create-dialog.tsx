@@ -30,6 +30,7 @@ export function QuickCreateDialogContent({
   description,
   className,
   children,
+  preventDismiss = false,
   ...props
 }: DialogContentProps & {
   title: string;
@@ -38,6 +39,7 @@ export function QuickCreateDialogContent({
   return (
     <DialogContent
       hideClose
+      preventDismiss={preventDismiss}
       className={cn(
         'flex w-full max-w-lg flex-col items-center gap-3 border-0 bg-transparent p-0 shadow-none sm:max-w-xl',
         className
@@ -55,13 +57,15 @@ export function QuickCreateDialogContent({
         )}
       >
         {children}
-        <DialogClose
-          type="button"
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-        >
-          <Cross2Icon className="size-4 shrink-0" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+        {preventDismiss ? null : (
+          <DialogClose
+            type="button"
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          >
+            <Cross2Icon className="size-4 shrink-0" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        )}
       </div>
     </DialogContent>
   );

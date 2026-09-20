@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { HighlightedTextarea, HighlightedTextInput } from '@humaner/react';
 import type { HighlightedFieldTone } from '@humaner/react';
-import { ctaSecondaryAdaptiveClassName } from '@humaner/shared/cta';
 import {
   ArrowUpRightIcon,
   FileTextIcon,
@@ -27,16 +26,13 @@ import {
   useKnowledgeResources,
   useOptionalKnowledgeResources
 } from '@/components/dashboard/knowledge/knowledge-resources-shell';
-import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog';
+  QUICK_CREATE_CHIP_CLASS,
+  QuickCreateDialogContent,
+  QuickCreateFooter
+} from '@/components/dashboard/quick-create-dialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,11 +48,17 @@ import { cn } from '@/lib/utils';
 const REMOTE_INGESTION_POLL_MS = 2000;
 const REMOTE_INGESTION_MAX_WAIT_MS = 120_000;
 
-const highlightedInputClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+const fieldClassName = 'border-border/60 bg-transparent shadow-none';
 
-const highlightedTextareaClassName =
-  'flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+const highlightedInputClassName = cn(
+  'flex h-10 w-full rounded-lg px-3 py-1 text-sm placeholder:text-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+  fieldClassName
+);
+
+const highlightedTextareaClassName = cn(
+  'flex min-h-[60px] w-full rounded-lg px-3 py-2 text-sm placeholder:text-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+  fieldClassName
+);
 
 type SourceType = 'URL' | 'SITEMAP' | 'TEXT' | 'MARKDOWN';
 type DialogView = 'form' | 'ingestion';
@@ -67,20 +69,6 @@ const TYPE_OPTIONS: { value: SourceType; label: string }[] = [
   { value: 'SITEMAP', label: 'Crawl site' },
   { value: 'TEXT', label: 'Plain text' }
 ];
-
-const sourceTypeButtonSizeClassName =
-  'px-3 py-2 text-sm font-medium font-sans tracking-normal';
-
-const sourceTypeButtonClassName = cn(
-  ctaSecondaryAdaptiveClassName,
-  'w-full justify-center normal-case',
-  sourceTypeButtonSizeClassName
-);
-
-const sourceTypeButtonSelectedClassName = cn(
-  'inline-flex w-full items-center justify-center rounded-[16px] border border-transparent bg-[#0A0D0D] text-[#fcf4ec] transition-[color,background-color,border-color] duration-200 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
-  sourceTypeButtonSizeClassName
-);
 
 function isMarkdownFileName(name: string): boolean {
   return /\.(md|markdown)$/i.test(name);
@@ -490,9 +478,11 @@ export function AddSourceDialog({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent
-        className="max-w-lg overflow-hidden"
+      <QuickCreateDialogContent
+        title="Add a source"
+        description="Insert your company's knowledge into your agent."
         preventDismiss={dialogView === 'ingestion'}
+        className="sm:max-w-lg"
       >
         <AnimatePresence
           mode="wait"
@@ -505,18 +495,10 @@ export function AddSourceDialog({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="flex min-h-0 flex-1 flex-col"
             >
-              <DialogHeader className="space-y-1">
-                <DialogTitle className="font-display text-2xl">
-                  Add a source
-                </DialogTitle>
-                <DialogDescription>
-                  Insert your company&apos;s knowledge into your agent.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="mt-6 space-y-5">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-1 pt-5">
+                <div className="flex flex-wrap gap-1.5 pr-8">
                   {TYPE_OPTIONS.map((option) => (
                     <button
                       key={option.value}
@@ -524,10 +506,10 @@ export function AddSourceDialog({
                       disabled={isPending}
                       onClick={() => setType(option.value)}
                       className={cn(
+                        QUICK_CREATE_CHIP_CLASS,
                         'disabled:cursor-not-allowed disabled:opacity-50',
-                        type === option.value
-                          ? sourceTypeButtonSelectedClassName
-                          : sourceTypeButtonClassName
+                        type === option.value &&
+                          'border-foreground/25 bg-muted text-foreground'
                       )}
                     >
                       {option.label}
@@ -595,6 +577,7 @@ export function AddSourceDialog({
                         value={title}
                         maxLength={255}
                         disabled={isPending}
+                        className="h-10 border-border/60 bg-transparent"
                         onChange={(e) => setTitle(e.target.value)}
                       />
                     </div>
@@ -607,6 +590,7 @@ export function AddSourceDialog({
                         value={content}
                         maxLength={KNOWLEDGE_PASTED_TEXT_MAX_LENGTH}
                         disabled={isPending}
+                        className="border-border/60 bg-transparent shadow-none"
                         onChange={(e) => setContent(e.target.value)}
                       />
                     </div>
@@ -640,7 +624,7 @@ export function AddSourceDialog({
                         e.stopPropagation();
                         void handleMdFiles(e.dataTransfer.files);
                       }}
-                      className="flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-8 text-center transition-colors hover:border-foreground/20 hover:bg-muted/30"
+                      className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-border/70 bg-muted/10 px-4 py-8 text-center transition-colors hover:border-foreground/20 hover:bg-muted/30"
                     >
                       <UploadIcon className="size-6 text-muted-foreground" />
                       <div>
@@ -692,24 +676,18 @@ export function AddSourceDialog({
                 )}
               </div>
 
-              <DialogFooter className="mt-6">
+              <QuickCreateFooter>
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={() => handleDialogOpenChange(false)}
-                  disabled={isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
+                  size="sm"
+                  className="h-8 px-3 font-mono text-xs font-medium normal-case tracking-normal"
                   onClick={handleAdd}
                   loading={isPending}
                   disabled={!canSubmit || isPending}
                 >
                   Add source
                 </Button>
-              </DialogFooter>
+              </QuickCreateFooter>
             </motion.div>
           ) : (
             <motion.div
@@ -718,6 +696,7 @@ export function AddSourceDialog({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 40 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="px-5 py-6"
             >
               <KnowledgeIngestionPanel
                 phase={ingestionPhase}
@@ -731,7 +710,7 @@ export function AddSourceDialog({
             </motion.div>
           )}
         </AnimatePresence>
-      </DialogContent>
+      </QuickCreateDialogContent>
     </Dialog>
   );
 }
