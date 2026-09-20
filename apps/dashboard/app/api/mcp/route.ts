@@ -9,6 +9,7 @@ import {
 import {
   isMcpRequestEncrypted,
   mcpCorsHeaders,
+  mcpServerIcons,
   negotiateMcpProtocolVersion
 } from '@/lib/developers/mcp-http';
 import {
@@ -251,7 +252,11 @@ export async function POST(request: NextRequest): Promise<Response> {
           resources: { listChanged: false },
           prompts: { listChanged: false }
         },
-        serverInfo: { name: 'humaner', version: '1.0.0' }
+        serverInfo: {
+          name: 'humaner',
+          version: '1.0.0',
+          icons: mcpServerIcons(mcpAppUrlFromRequest(request))
+        }
       },
       origin
     );

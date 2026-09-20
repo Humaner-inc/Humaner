@@ -1,9 +1,11 @@
 import * as React from 'react';
 
-import { AuthLayoutFrame } from '@/components/auth/auth-layout-frame';
-
 export default function McpOAuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
-  return <AuthLayoutFrame>{children}</AuthLayoutFrame>;
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#0a0d0d] px-6">
+      {children}
+    </div>
+  );
 }

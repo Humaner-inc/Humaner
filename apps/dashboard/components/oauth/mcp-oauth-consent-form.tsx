@@ -1,25 +1,39 @@
 'use client';
 
 import * as React from 'react';
+import { CompanionMark } from '@humaner/shared/companion-icon';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
 import { approveMcpOAuth } from '@/actions/developers/approve-mcp-oauth';
-import {
-  authHighlightButtonClassName,
-  authMutedTextClassName,
-  authOutlineButtonClassName,
-  authPageTitleClassName
-} from '@/components/auth/auth-form-styles';
-import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import {
-  API_KEY_SCOPE_OPTIONS,
-  type ApiKeyScope
-} from '@/lib/auth/api-key-scopes';
+import { CheckMark } from '@/components/ui/check-icon';
+import { type ApiKeyScope } from '@/lib/auth/api-key-scopes';
 import { cn } from '@/lib/utils';
+
+const CONSENT_SCOPES: {
+  id: ApiKeyScope;
+  label: string;
+  hint: string;
+}[] = [
+  {
+    id: 'mailbox',
+    label: 'Mailbox',
+    hint: 'Read, draft, and send mail'
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    hint: 'List and create events'
+  },
+  {
+    id: 'intelligence',
+    label: 'Intelligence',
+    hint: 'Hybrid RAG retrieval only'
+  }
+];
+
+const PILL =
+  'inline-flex h-10 flex-1 items-center justify-center rounded-full border-2 font-sans text-sm font-medium transition-colors duration-200 disabled:opacity-50';
 
 export function McpOAuthConsentForm({
   clientName,
@@ -38,7 +52,9 @@ export function McpOAuthConsentForm({
   state: string;
   defaultScopes: ApiKeyScope[];
 }): React.JSX.Element {
-  const [scopes, setScopes] = React.useState<ApiKeyScope[]>(defaultScopes);
+  const [scopes, setScopes] = React.useState<ApiKeyScope[]>(() =>
+    defaultScopes.length > 0 ? defaultScopes : ['mailbox']
+  );
   const { execute, isExecuting } = useAction(approveMcpOAuth, {
     onSuccess: ({ data }) => {
       if (data?.redirectTo) {
@@ -50,7 +66,7 @@ export function McpOAuthConsentForm({
     }
   });
 
-  const denyHref = (() => {
+  const declineHref = (() => {
     const url = new URL(redirectUri);
     url.searchParams.set('error', 'access_denied');
     if (state) {
@@ -59,19 +75,29 @@ export function McpOAuthConsentForm({
     return url.toString();
   })();
 
+  function toggleScope(id: ApiKeyScope): void {
+    setScopes((current) =>
+      current.includes(id)
+        ? current.filter((scope) => scope !== id)
+        : [...current, id]
+    );
+  }
+
   return (
-    <AuthOnboardingCardShell maxWidth="sm">
-      <h1 className={authPageTitleClassName}>Connect {clientName}</h1>
-      <p className={cn(authMutedTextClassName, 'mt-2')}>
-        {clientName} wants mailbox tools on {workspaceName}. Sign in once — the
-        agent will not ask again.
-      </p>
+    <div className="flex w-full max-w-[22rem] flex-col items-center text-center">
+      <CompanionMark
+        size={40}
+        className="text-[#F2F2F2]"
+      />
+      <h1 className="mt-6 font-sans text-[15px] font-medium tracking-tight text-[#F2F2F2]">
+        Connect {clientName}
+      </h1>
+      <p className="mt-2 font-sans text-xs text-white/40">on {workspaceName}</p>
       <form
-        className="mt-6 space-y-4"
+        className="mt-6 w-full"
         onSubmit={(event) => {
           event.preventDefault();
           if (scopes.length === 0) {
-            toast.error('Pick at least one scope.');
             return;
           }
           execute({
@@ -83,57 +109,63 @@ export function McpOAuthConsentForm({
           });
         }}
       >
-        <div className="space-y-2.5">
-          {API_KEY_SCOPE_OPTIONS.map((option) => {
+        <ul className="w-full divide-y divide-white/10 text-left">
+          {CONSENT_SCOPES.map((option) => {
             const checked = scopes.includes(option.id);
             return (
-              <label
-                key={option.id}
-                className="flex cursor-pointer items-start gap-2.5"
-              >
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={(value) => {
-                    setScopes((current) => {
-                      if (value === true) {
-                        return current.includes(option.id)
-                          ? current
-                          : [...current, option.id];
-                      }
-                      return current.filter((scope) => scope !== option.id);
-                    });
-                  }}
-                />
-                <span>
-                  <Label className="text-sm font-medium text-white">
-                    {option.label}
-                  </Label>
-                  <p className={cn(authMutedTextClassName, 'mt-0.5 text-xs')}>
-                    {option.description}
-                  </p>
-                </span>
-              </label>
+              <li key={option.id}>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={checked}
+                  onClick={() => toggleScope(option.id)}
+                  className="flex w-full items-center gap-3 py-3 text-left"
+                >
+                  <span
+                    className={cn(
+                      'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors duration-200',
+                      checked
+                        ? 'border-[#F2F2F2] bg-[#F2F2F2] text-[#0a0d0d]'
+                        : 'border-white/25 bg-transparent text-transparent'
+                    )}
+                  >
+                    <CheckMark size={11} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-sans text-sm font-medium text-[#F2F2F2]">
+                      {option.label}
+                    </span>
+                    <span className="mt-0.5 block font-sans text-xs text-white/40">
+                      {option.hint}
+                    </span>
+                  </span>
+                </button>
+              </li>
             );
           })}
-        </div>
-        <div className="flex flex-col gap-2 pt-1">
-          <Button
+        </ul>
+        <div className="mt-6 flex w-full gap-2">
+          <a
+            href={declineHref}
+            className={cn(
+              PILL,
+              'border-[#18181b] bg-[#18181b] text-[#F2F2F2] hover:border-[#dc2626] hover:bg-[#dc2626] hover:text-white'
+            )}
+          >
+            Decline
+          </a>
+          <button
             type="submit"
-            disabled={isExecuting}
-            className={authHighlightButtonClassName}
+            disabled={isExecuting || scopes.length === 0}
+            className={cn(
+              PILL,
+              'border-white bg-white text-[#0a0d0d] hover:border-[#16a34a] hover:bg-[#16a34a] hover:text-white'
+            )}
           >
             {isExecuting ? 'Connecting…' : 'Allow'}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className={authOutlineButtonClassName}
-            asChild
-          >
-            <a href={denyHref}>Deny</a>
-          </Button>
+          </button>
         </div>
       </form>
-    </AuthOnboardingCardShell>
+    </div>
   );
 }

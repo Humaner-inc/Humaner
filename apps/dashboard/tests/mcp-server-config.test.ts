@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isMcpRequestEncrypted,
   mcpPublicEndpoint,
+  mcpServerIcons,
   negotiateMcpProtocolVersion
 } from '@/lib/developers/mcp-http';
 import {
@@ -39,6 +40,18 @@ describe('buildMcpServerConfig', () => {
     expect(parsed.mcpServers.humaner.headers?.Authorization).toBe(
       'Bearer Your_api_key'
     );
+  });
+});
+
+describe('mcpServerIcons', () => {
+  it('advertises landing LOGO.png with array sizes', () => {
+    expect(mcpServerIcons('https://app.humaner.io')).toEqual([
+      {
+        src: 'https://app.humaner.io/LOGO.png',
+        mimeType: 'image/png',
+        sizes: ['any']
+      }
+    ]);
   });
 });
 
