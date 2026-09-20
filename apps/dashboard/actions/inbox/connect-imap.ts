@@ -8,7 +8,12 @@ import { MailProvider, Prisma } from '@prisma/client';
 import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
+import {
+  ensureAddOnCapacity,
+  resolveAddOnOwner
+} from '@/lib/billing/ensure-add-on';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   buildValidatedMailEndpoints,
   normalizeMailboxAddress
@@ -115,9 +120,28 @@ export const connectImap = ownerActionClient
 
     const remaining = effectiveLimit - organization._count.mailboxConnections;
     if (remaining <= 0) {
-      throw new ValidationError(
-        `Your plan covers ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free; add a mailbox from Billing to connect another.`
-      );
+      if (onboardingConnect || isOssDeployment()) {
+        throw new ValidationError(
+          `Your plan covers ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free; add a mailbox from Billing to connect another.`
+        );
+      }
+
+      const owner = (await resolveAddOnOwner(organizationId)) ?? {
+        ownerId: session.user.id,
+        email: session.user.email,
+        name: session.user.name
+      };
+      const addOn = await ensureAddOnCapacity({
+        ownerId: owner.ownerId,
+        email: owner.email,
+        name: owner.name,
+        kind: 'mailbox',
+        quantity: 1,
+        successPath: Routes.InboxProviders
+      });
+      if (addOn.status === 'checkout') {
+        return { checkoutUrl: addOn.url };
+      }
     }
 
     const [existingConnection, existingAliases] = await Promise.all([

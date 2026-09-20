@@ -1602,8 +1602,10 @@ input[type='password'],
 
 /* Simple HTML mail — keep lists, headings, and paragraph rhythm */
 .mail-structured-body {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.6;
+  letter-spacing: normal;
   word-wrap: break-word;
   overflow-wrap: anywhere;
   color: inherit;
@@ -1623,9 +1625,10 @@ input[type='password'],
 .mail-structured-body h3,
 .mail-structured-body h4 {
   margin: 1.15em 0 0.45em;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
 }
 .mail-structured-body ul,
 .mail-structured-body ol {

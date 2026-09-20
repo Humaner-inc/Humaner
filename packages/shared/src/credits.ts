@@ -338,11 +338,12 @@ export function resolvePolarCreditGrant(
   return { ok: true, orderId, customerId, productId, cents };
 }
 
-/** Recurring Polar add-ons billed monthly. */
+/** Recurring Polar add-ons — extra seats and extra inboxes. */
 export const POLAR_ADDON_ENV_KEYS = {
   seatMonth: "POLAR_PRODUCT_ADDON_SEAT_MONTH_ID",
-  agentMonth: "POLAR_PRODUCT_ADDON_AGENT_MONTH_ID",
+  seatYear: "POLAR_PRODUCT_ADDON_SEAT_YEAR_ID",
   inboxMonth: "POLAR_PRODUCT_ADDON_INBOX_MONTH_ID",
+  inboxYear: "POLAR_PRODUCT_ADDON_INBOX_YEAR_ID",
 } as const;
 
 export function repliesFromCreditCents(cents: number): number {

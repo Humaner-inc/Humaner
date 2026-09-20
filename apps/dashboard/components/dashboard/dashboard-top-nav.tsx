@@ -21,7 +21,6 @@ export type DashboardTopNavProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   planName: string;
-  industryLabel: string | null;
   audienceLabel: string | null;
   teamFeed?: {
     messages: Array<{ authorId: string; createdAt: string }>;
@@ -34,7 +33,6 @@ export function DashboardTopNav({
   profile,
   workspaces,
   planName,
-  industryLabel,
   audienceLabel,
   teamFeed,
   className
@@ -120,7 +118,6 @@ export function DashboardTopNav({
           profile={profile}
           workspaces={workspaces}
           planName={planName}
-          industryLabel={industryLabel}
           audienceLabel={audienceLabel}
         />
       </div>

@@ -138,11 +138,19 @@ function EmailFooter({
   return (
     <>
       <Text className={EMAIL_FOOTER_TEXT_CLASS}>
-        If you need anything, reply to this email.
+        If you need anything just reach out to me at{" "}
+        <Link
+          href="mailto:hello@humaner.io"
+          className={EMAIL_FOOTER_LINK_CLASS}
+        >
+          hello@humaner.io
+        </Link>
+        .
       </Text>
       <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
-        — The Humaner team
+        Until then, I wish you a fast, and happy emailing,
       </Text>
+      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>Alexandre.</Text>
       {showUnsubscribe ? (
         <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
           If you no longer want to receive mails from us simply{" "}

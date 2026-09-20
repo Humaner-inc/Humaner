@@ -5,7 +5,6 @@ import { WorkspaceRole } from '@prisma/client';
 import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
-import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
@@ -48,7 +47,7 @@ async function assertThreadAccess(
 
 function revalidateNotePaths(threadId: string): void {
   revalidatePath(Routes.InboxAll);
-  revalidatePath(inboxThreadRoute(threadId));
+  revalidatePath(Routes.InboxAll);
 }
 
 export const saveMailThreadNoteDraft = pageActionClient('inbox')

@@ -46,6 +46,7 @@ async function InboxAllPageContent({
     filter?: string;
     tag?: string;
     compose?: string;
+    thread?: string;
   }>;
 }): Promise<React.JSX.Element> {
   await connection();
@@ -133,6 +134,7 @@ export default function InboxAllPage({
     filter?: string;
     tag?: string;
     compose?: string;
+    thread?: string;
   }>;
 }): React.JSX.Element {
   return (

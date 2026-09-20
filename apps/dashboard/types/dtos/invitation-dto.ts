@@ -7,6 +7,8 @@ export type InvitationDto = {
   email: string;
   role: Role;
   allowedPages: string[];
+  allowedAliasIds: string[];
+  timeZone?: string | null;
   lastSent?: Date;
   dateAdded: Date;
 };

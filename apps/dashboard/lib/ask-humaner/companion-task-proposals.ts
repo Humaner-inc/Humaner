@@ -21,6 +21,13 @@ export function truncateProposalLabel(value: string, max = LABEL_MAX): string {
 
 export function threadIdFromHref(href: string | undefined): string | null {
   if (!href) return null;
+  try {
+    const url = new URL(href, 'https://app.humaner.io');
+    const fromQuery = url.searchParams.get('thread');
+    if (fromQuery) return fromQuery;
+  } catch {
+    // relative path without a host still parses with the base above
+  }
   const match = href.match(/\/inbox\/threads\/([^/?#]+)/);
   return match?.[1] ?? null;
 }

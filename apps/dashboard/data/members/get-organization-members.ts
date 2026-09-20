@@ -74,7 +74,11 @@ async function loadOrganizationMembers(
           email: true,
           role: true,
           lastLogin: true,
-          timeZone: true
+          timeZone: true,
+          mailAliasMemberships: {
+            where: { alias: { organizationId, enabled: true } },
+            select: { aliasId: true }
+          }
         }
       }
     },
@@ -91,6 +95,9 @@ async function loadOrganizationMembers(
     role: membership.user.role,
     workspaceRole: membership.workspaceRole,
     allowedPages: membership.allowedPages,
+    allowedAliasIds: membership.user.mailAliasMemberships.map(
+      (row) => row.aliasId
+    ),
     timeZone: membership.user.timeZone,
     dateAdded: membership.createdAt,
     lastLogin: membership.user.lastLogin ?? undefined

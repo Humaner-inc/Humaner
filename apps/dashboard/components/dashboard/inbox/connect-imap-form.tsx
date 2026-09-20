@@ -18,6 +18,7 @@ import {
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { createAddOnCheckout } from '@/actions/billing/create-add-on-checkout';
 import { connectImap } from '@/actions/inbox/connect-imap';
 import { deleteMailboxConnection } from '@/actions/inbox/delete-mailbox-connection';
 import { discoverImapAliases } from '@/actions/inbox/discover-imap-aliases';
@@ -63,6 +64,10 @@ import {
   mailProviderUsesAppPassword,
   resolveMailProviderPreset
 } from '@/lib/inbox/mail-providers';
+import {
+  getCaughtActionErrorMessage,
+  getSafeActionErrorMessage
+} from '@/lib/safe-action-error';
 import { cn } from '@/lib/utils';
 import type { DiscoverImapAliasesInput } from '@/schemas/inbox/connect-imap-schema';
 
@@ -266,6 +271,11 @@ export function ConnectImapForm({
 
   const { execute, isExecuting } = useAction(connectImap, {
     onSuccess: ({ data }) => {
+      if (data?.checkoutUrl) {
+        toast.message('Add a mailbox to connect another inbox');
+        window.location.href = data.checkoutUrl;
+        return;
+      }
       toast.success(
         `Connected — ${data?.aliasCount ?? 1} alias${(data?.aliasCount ?? 1) === 1 ? '' : 'es'} ready`
       );
@@ -281,6 +291,11 @@ export function ConnectImapForm({
     startGmailConnect,
     {
       onSuccess: ({ data }) => {
+        if (data?.checkoutUrl) {
+          toast.message('Add a mailbox to connect another inbox');
+          window.location.assign(data.checkoutUrl);
+          return;
+        }
         if (data?.url) {
           window.location.assign(data.url);
           return;
@@ -293,11 +308,35 @@ export function ConnectImapForm({
     }
   );
 
-  const beginGmailConnect = (nextProviderId: string): void => {
-    if (remainingInboxes <= 0) {
-      toast.error('This plan has no mailbox slots left.');
-      return;
+  const purchaseMailboxSlot = async (): Promise<boolean> => {
+    try {
+      const result = await createAddOnCheckout({
+        kind: 'mailbox',
+        interval: 'month',
+        quantity: 1,
+        successPath: Routes.InboxProviders
+      });
+      if (result?.data?.applied) {
+        toast.success('Mailbox added to your monthly subscription');
+        router.refresh();
+        return true;
+      }
+      if (result?.data?.url) {
+        window.location.href = result.data.url;
+        return false;
+      }
+      toast.error(
+        getSafeActionErrorMessage(result, 'Could not add a mailbox slot.')
+      );
+    } catch (error) {
+      toast.error(
+        getCaughtActionErrorMessage(error, 'Could not add a mailbox slot.')
+      );
     }
+    return false;
+  };
+
+  const beginGmailConnect = (nextProviderId: string): void => {
     if (nextProviderId !== 'gmail' && nextProviderId !== 'google-workspace') {
       return;
     }
@@ -322,6 +361,10 @@ export function ConnectImapForm({
   );
 
   const startNewForProvider = (nextProviderId: string): void => {
+    if (remainingInboxes <= 0) {
+      void purchaseMailboxSlot();
+      return;
+    }
     setProviderId(nextProviderId);
     setEmail('');
     setPassword('');
@@ -517,7 +560,7 @@ export function ConnectImapForm({
         </p>
         <Button
           type="button"
-          disabled={isConnectingGmail || remainingInboxes <= 0}
+          disabled={isConnectingGmail}
           className="font-mono"
           onClick={() => beginGmailConnect(selectedProvider.id)}
         >
@@ -927,7 +970,7 @@ export function ConnectImapForm({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isDiscovering || remainingInboxes <= 0}
+                  disabled={isDiscovering}
                   className="font-mono"
                 >
                   {isDiscovering ? (

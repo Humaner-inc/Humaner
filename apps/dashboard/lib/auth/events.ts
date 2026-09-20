@@ -173,7 +173,9 @@ export const events = {
               select: {
                 id: true,
                 organizationId: true,
-                allowedPages: true
+                allowedPages: true,
+                allowedAliasIds: true,
+                timeZone: true
               }
             });
             if (invitation) {
@@ -181,7 +183,9 @@ export const events = {
                 invitationId: invitation.id,
                 userId: user.id,
                 organizationId: invitation.organizationId,
-                allowedPages: invitation.allowedPages
+                allowedPages: invitation.allowedPages,
+                timeZone: invitation.timeZone,
+                allowedAliasIds: invitation.allowedAliasIds
               });
               revalidateWorkspaceMembership({
                 organizationId: invitation.organizationId,

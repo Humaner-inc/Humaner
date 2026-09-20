@@ -193,7 +193,10 @@ export async function joinOrganization(input: {
   hashedPassword: string;
   role: Role;
   allowedPages: string[];
+  timeZone?: string | null;
+  allowedAliasIds?: string[];
 }): Promise<void> {
+  let createdUserId: string | null = null;
   await prisma.$transaction(async (tx) => {
     await tx.invitation.updateMany({
       where: { id: input.invitationId },
@@ -219,6 +222,7 @@ export async function joinOrganization(input: {
         role: APP_ASSIGNABLE_ROLE,
         workspaceRole: WorkspaceRole.TEAMMATE,
         allowedPages: input.allowedPages,
+        timeZone: input.timeZone ?? null,
         locale: 'en-US',
         emailVerified: new Date(),
         completedOnboarding: ONBOARDING_COMPLETE
@@ -227,6 +231,7 @@ export async function joinOrganization(input: {
         id: true
       }
     });
+    createdUserId = createdUser.id;
 
     await tx.organizationMembership.upsert({
       where: {
@@ -247,6 +252,19 @@ export async function joinOrganization(input: {
       }
     });
   });
+
+  if (createdUserId) {
+    const { applyInvitationGrants } = await import(
+      '@/lib/inbox/apply-invitation-grants'
+    );
+    await applyInvitationGrants({
+      userId: createdUserId,
+      organizationId: input.organizationId,
+      allowedPages: input.allowedPages,
+      timeZone: input.timeZone,
+      allowedAliasIds: input.allowedAliasIds
+    });
+  }
 }
 
 /**
@@ -258,6 +276,8 @@ export async function acceptInvitationForExistingUser(input: {
   userId: string;
   organizationId: string;
   allowedPages: string[];
+  timeZone?: string | null;
+  allowedAliasIds?: string[];
 }): Promise<void> {
   await prisma.$transaction(async (tx) => {
     await tx.invitation.updateMany({
@@ -292,5 +312,16 @@ export async function acceptInvitationForExistingUser(input: {
         allowedPages: input.allowedPages
       }
     });
+  });
+
+  const { applyInvitationGrants } = await import(
+    '@/lib/inbox/apply-invitation-grants'
+  );
+  await applyInvitationGrants({
+    userId: input.userId,
+    organizationId: input.organizationId,
+    allowedPages: input.allowedPages,
+    timeZone: input.timeZone,
+    allowedAliasIds: input.allowedAliasIds
   });
 }

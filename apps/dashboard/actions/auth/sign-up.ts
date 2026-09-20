@@ -68,6 +68,8 @@ export const signUp = actionClient
           email: true,
           role: true,
           allowedPages: true,
+          allowedAliasIds: true,
+          timeZone: true,
           organizationId: true
         }
       });
@@ -95,7 +97,9 @@ export const signUp = actionClient
         normalizedEmail,
         hashedPassword,
         role: invitation.role,
-        allowedPages: invitation.allowedPages
+        allowedPages: invitation.allowedPages,
+        timeZone: invitation.timeZone,
+        allowedAliasIds: invitation.allowedAliasIds
       });
 
       revalidateWorkspaceMembership({

@@ -102,9 +102,11 @@ export function isInboxLocked(orgTier: string): boolean {
 }
 
 export function inboxThreadRoute(threadId: string): string {
-  return `/inbox/threads/${threadId}`;
+  const params = new URLSearchParams({ thread: threadId });
+  return `${Routes.InboxAll}?${params.toString()}`;
 }
 
 export function inboxThreadNotesRoute(threadId: string): string {
-  return `${inboxThreadRoute(threadId)}?panel=notes`;
+  const params = new URLSearchParams({ thread: threadId, panel: 'notes' });
+  return `${Routes.InboxAll}?${params.toString()}`;
 }

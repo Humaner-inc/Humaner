@@ -261,7 +261,7 @@ export async function composeMailboxMail(input: {
   revalidatePath(Routes.InboxAssigned);
   revalidatePath(Routes.InboxSent);
   revalidatePath(Routes.InboxDrafts);
-  revalidatePath(inboxThreadRoute(thread.id));
+  revalidatePath(Routes.InboxAll);
 
   return {
     threadId: thread.id,

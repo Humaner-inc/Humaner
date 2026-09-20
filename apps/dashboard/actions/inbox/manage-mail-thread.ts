@@ -6,7 +6,6 @@ import { MailThreadFolder } from '@prisma/client';
 import { z } from 'zod';
 
 import { authActionClient } from '@/actions/safe-action';
-import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
@@ -66,7 +65,7 @@ function revalidateMailPaths(threadId: string): void {
   revalidatePath(Routes.InboxSpam);
   revalidatePath(Routes.InboxTrash);
   revalidatePath(Routes.InboxDrafts);
-  revalidatePath(inboxThreadRoute(threadId));
+  revalidatePath(Routes.InboxAll);
 }
 
 export const markMailThreadRead = authActionClient

@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import { pageActionClientAny } from '@/actions/safe-action';
-import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { requireOrganizationCapability } from '@/lib/billing/capabilities';
 import { createTaskFromMailThread } from '@/lib/inbox/create-task-from-thread';
@@ -41,7 +40,7 @@ export const createTaskFromMailThreadAction = pageActionClientAny(
 
       revalidatePath(Routes.Tasks);
       revalidatePath(Routes.InboxAssigned);
-      revalidatePath(inboxThreadRoute(parsedInput.threadId));
+      revalidatePath(Routes.InboxAll);
       return ticket;
     } catch (error) {
       const message =

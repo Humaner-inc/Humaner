@@ -41,7 +41,6 @@ export type NavUserProps = {
   profile: ProfileDto;
   workspaces: UserWorkspaceSummary[];
   planName: string;
-  industryLabel: string | null;
   audienceLabel: string | null;
   className?: string;
 };
@@ -76,7 +75,6 @@ export function NavUser({
   profile,
   workspaces,
   planName,
-  industryLabel,
   audienceLabel,
   className
 }: NavUserProps): React.JSX.Element {
@@ -163,7 +161,7 @@ export function NavUser({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const metaParts = [audienceLabel, industryLabel].filter(Boolean);
+  const metaParts = [audienceLabel].filter(Boolean);
 
   return (
     <DropdownMenu>

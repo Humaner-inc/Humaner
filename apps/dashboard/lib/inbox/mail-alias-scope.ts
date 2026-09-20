@@ -33,7 +33,8 @@ export async function ensureAllAliasMemberships(
 /**
  * Collaborative inbox scope.
  * - Workspace owners → every alias (and memberships are healed).
- * - Teammates with Inbox page access → every alias (memberships healed).
+ * - Teammates with Inbox page access and every (or no) alias membership → all.
+ * - Teammates restricted to a subset of channels → those aliases only.
  * - Everyone else → only aliases they were explicitly added to.
  */
 const resolveMailAliasScopeCached = cache(
@@ -48,11 +49,32 @@ const resolveMailAliasScopeCached = cache(
       select: { workspaceRole: true, allowedPages: true }
     });
 
-    const hasFullInbox =
-      membership?.workspaceRole === WorkspaceRole.OWNER ||
-      Boolean(membership?.allowedPages.includes('inbox'));
+    const isOwner = membership?.workspaceRole === WorkspaceRole.OWNER;
+    const hasInboxPage = Boolean(membership?.allowedPages.includes('inbox'));
 
-    if (hasFullInbox) {
+    const [enabledAliases, memberAliases] = await Promise.all([
+      prisma.mailAlias.findMany({
+        where: { organizationId, enabled: true },
+        select: { id: true }
+      }),
+      prisma.mailAlias.findMany({
+        where: {
+          organizationId,
+          enabled: true,
+          members: { some: { userId } }
+        },
+        select: { id: true }
+      })
+    ]);
+
+    const memberAliasIds = memberAliases.map((alias) => alias.id);
+    const hasFullChannelAccess =
+      isOwner ||
+      (hasInboxPage &&
+        (memberAliasIds.length === 0 ||
+          memberAliasIds.length === enabledAliases.length));
+
+    if (hasFullChannelAccess) {
       try {
         after(() => {
           void ensureAllAliasMemberships(userId, organizationId);
@@ -63,16 +85,7 @@ const resolveMailAliasScopeCached = cache(
       return { type: 'all' };
     }
 
-    const aliases = await prisma.mailAlias.findMany({
-      where: {
-        organizationId,
-        enabled: true,
-        members: { some: { userId } }
-      },
-      select: { id: true }
-    });
-
-    return { type: 'ids', aliasIds: aliases.map((alias) => alias.id) };
+    return { type: 'ids', aliasIds: memberAliasIds };
   }
 );
 
@@ -132,7 +145,7 @@ export async function filterUsersWithThreadAccess(input: {
   });
   if (!thread) return [];
 
-  const [memberships, aliasMembers] = await Promise.all([
+  const [memberships, aliasMembers, userAliasMemberships] = await Promise.all([
     prisma.organizationMembership.findMany({
       where: {
         organizationId: input.organizationId,
@@ -146,6 +159,13 @@ export async function filterUsersWithThreadAccess(input: {
         userId: { in: input.userIds }
       },
       select: { userId: true }
+    }),
+    prisma.mailAliasMember.findMany({
+      where: {
+        userId: { in: input.userIds },
+        alias: { organizationId: input.organizationId, enabled: true }
+      },
+      select: { userId: true, aliasId: true }
     })
   ]);
 
@@ -153,13 +173,21 @@ export async function filterUsersWithThreadAccess(input: {
     memberships.map((membership) => [membership.userId, membership])
   );
   const aliasMemberIds = new Set(aliasMembers.map((member) => member.userId));
+  const aliasIdsByUser = new Map<string, string[]>();
+  for (const row of userAliasMemberships) {
+    const current = aliasIdsByUser.get(row.userId) ?? [];
+    current.push(row.aliasId);
+    aliasIdsByUser.set(row.userId, current);
+  }
 
   return input.userIds.filter((userId) => {
     const membership = membershipByUser.get(userId);
     if (!membership) return false;
     if (membership.workspaceRole === WorkspaceRole.OWNER) return true;
-    if (membership.allowedPages.includes('inbox')) return true;
     if (thread.assigneeId === userId) return true;
-    return aliasMemberIds.has(userId);
+    if (aliasMemberIds.has(userId)) return true;
+    if (!membership.allowedPages.includes('inbox')) return false;
+    const userAliases = aliasIdsByUser.get(userId) ?? [];
+    return userAliases.length === 0;
   });
 }

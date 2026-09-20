@@ -106,7 +106,10 @@ export function resolveDashboardPageTitle(pathname: string): string {
     return channel?.name ?? 'Integration';
   }
 
-  if (publicPath.startsWith('/inbox/threads/')) {
+  if (
+    publicPath.startsWith('/inbox/threads/') ||
+    publicPath.startsWith('/inbox/all')
+  ) {
     return 'Mails';
   }
 

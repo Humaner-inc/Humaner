@@ -155,5 +155,5 @@ export async function saveMailboxDraft(input: {
 function revalidateDraftPaths(threadId: string): void {
   revalidatePath(Routes.InboxDrafts);
   revalidatePath(Routes.InboxAll);
-  revalidatePath(inboxThreadRoute(threadId));
+  revalidatePath(Routes.InboxAll);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckIcon,
   MoreHorizontalIcon,
@@ -56,7 +56,6 @@ import {
   ResizablePanelGroup
 } from '@/components/ui/resizable';
 import { SkillzCubeLoader } from '@/components/ui/skillz-cube-loader';
-import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import type {
   MailTagItem,
   MailThreadDetail as MailThreadDetailDto,
@@ -198,6 +197,9 @@ export function MailThreadList({
   variant?: 'card' | 'desk';
 }): React.JSX.Element {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const threadFromUrl = searchParams.get('thread');
   const isDesk = variant === 'desk';
   const view: MailListFolder =
     folderView ?? (archivedView ? 'archive' : 'inbox');
@@ -287,12 +289,33 @@ export function MailThreadList({
     }));
   }, []);
 
+  const syncThreadInUrl = React.useCallback(
+    (threadId: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const current = params.get('thread');
+      if (threadId) {
+        if (current === threadId) return;
+        params.set('thread', threadId);
+      } else if (!current) {
+        return;
+      } else {
+        params.delete('thread');
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false
+      });
+    },
+    [pathname, router, searchParams]
+  );
+
   const clearPane = React.useCallback(() => {
     activeThreadIdRef.current = null;
     setActiveThreadId(null);
     setPaneThread(null);
     setPaneLoading(false);
-  }, []);
+    syncThreadInUrl(null);
+  }, [syncThreadInUrl]);
 
   const removeThreads = React.useCallback(
     (ids: string[]) => {
@@ -359,18 +382,11 @@ export function MailThreadList({
 
   const prefetchThread = React.useCallback(
     (threadId: string) => {
-      if (
-        typeof window !== 'undefined' &&
-        !window.matchMedia('(min-width: 768px)').matches
-      ) {
-        router.prefetch(inboxThreadRoute(threadId));
-        return;
-      }
       if (detailCacheRef.current.has(threadId)) return;
       if (prefetchingRef.current.has(threadId)) return;
       requestThread(threadId);
     },
-    [requestThread, router]
+    [requestThread]
   );
 
   const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
@@ -401,6 +417,7 @@ export function MailThreadList({
           sharedNoteDraft: cached?.sharedNoteDraft ?? null
         });
       }
+      syncThreadInUrl(threadId);
       if (cached) {
         setPaneThread(cached);
         setPaneLoading(false);
@@ -417,9 +434,20 @@ export function MailThreadList({
       markThreadOpened,
       requestThread,
       runRowMarkRead,
+      syncThreadInUrl,
       threads
     ]
   );
+
+  const selectThreadRef = React.useRef(selectThread);
+  selectThreadRef.current = selectThread;
+
+  React.useEffect(() => {
+    if (!threadFromUrl || activeThreadIdRef.current === threadFromUrl) {
+      return;
+    }
+    selectThreadRef.current(threadFromUrl);
+  }, [threadFromUrl]);
 
   React.useEffect(() => {
     function onOpenNotes(event: Event): void {
@@ -442,7 +470,11 @@ export function MailThreadList({
       const next = new Set([...current].filter((id) => valid.has(id)));
       return next.size === current.size ? current : next;
     });
-    if (activeThreadId && !valid.has(activeThreadId)) {
+    if (
+      activeThreadId &&
+      !valid.has(activeThreadId) &&
+      activeThreadId !== threadFromUrl
+    ) {
       clearPane();
     }
     for (const id of detailCacheRef.current.keys()) {
@@ -450,7 +482,7 @@ export function MailThreadList({
         detailCacheRef.current.delete(id);
       }
     }
-  }, [threads, activeThreadId, clearPane]);
+  }, [threads, activeThreadId, clearPane, threadFromUrl]);
 
   const displayThreads = React.useMemo(() => {
     return threads
@@ -1296,7 +1328,6 @@ function MailThreadRow({
   onTag: (tagId: string | null) => void;
   onMarkRead: () => void;
 }): React.JSX.Element {
-  const router = useRouter();
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
@@ -1321,15 +1352,7 @@ function MailThreadRow({
       return;
     }
 
-    // Desktop: keep selection in the reading pane. Mobile: full thread page.
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia('(min-width: 768px)').matches
-    ) {
-      onSelect();
-      return;
-    }
-    router.push(inboxThreadRoute(thread.id));
+    onSelect();
   };
 
   const handleRowClick = (event: React.MouseEvent<HTMLDivElement>): void => {

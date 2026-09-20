@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
-import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
@@ -105,7 +104,7 @@ export const replyMailThread = pageActionClient('inbox')
 
     revalidatePath(Routes.InboxAll);
     revalidatePath(Routes.InboxAssigned);
-    revalidatePath(inboxThreadRoute(thread.id));
+    revalidatePath(Routes.InboxAll);
 
     return { messageId };
   });

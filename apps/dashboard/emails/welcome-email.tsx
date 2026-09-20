@@ -31,19 +31,8 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => {
         server.
       </EmailText>
       <EmailText>
-        You were granted some credits to try everything Humaner has to offer..
-      </EmailText>
-      {earlyAccess ? (
-        <EmailText>and more to come since you was here first.</EmailText>
-      ) : null}
-      <EmailText>
-        Please, if you need anything just reach to me at{' '}
-        <EmailInlineLink href="https://x.com/alexneyret">
-          @alexneyret
-        </EmailInlineLink>
-        . Until then, I wish you a fast, and happy emailing,
-        <br />
-        Alexandre
+        You were granted some credits to try everything Humaner has to offer,
+        enjoy!
       </EmailText>
     </EmailLayout>
   );

@@ -50,7 +50,6 @@ import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
-import { getIndustry } from '@/lib/industries';
 import { ASK_HUMANER_ACCENT } from '@/lib/urls/extract-brand-accent-color';
 import { COMPANION_TASK_PROPOSALS_ENABLED } from '@/types/companion-task-proposal';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
@@ -81,7 +80,6 @@ export async function DashboardSessionShell({
           completedOnboarding: true,
           dataImprovementConsent: true,
           targetAudience: true,
-          industry: true,
           tier: true,
           billingModel: true,
           frontierBetaEnabled: true,
@@ -294,11 +292,6 @@ export async function DashboardSessionShell({
           workspaces={workspaces}
           teamFeed={teamFeed}
           planName={getPlanForTier(userFromDb!.organization!.tier).name}
-          industryLabel={
-            userFromDb!.organization!.industry
-              ? getIndustry(userFromDb!.organization!.industry).label
-              : null
-          }
           audienceLabel={
             oss ? (userFromDb!.organization!.targetAudience ?? null) : null
           }
