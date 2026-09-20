@@ -29,12 +29,67 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
   settings: 'Settings'
 };
 
-export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
-  'overview',
+export type TeammateAccessLevel = 'admin' | 'member';
+
+/** Full workspace access: team, settings, providers, and every mailbox. */
+export const ADMIN_PAGE_ACCESS: DashboardPageKey[] = [...DASHBOARD_PAGE_KEYS];
+
+/** Mailbox work only — no team management, workspace settings, or providers. */
+export const MEMBER_PAGE_ACCESS: DashboardPageKey[] = [
+  'history',
   'inbox',
   'tasks',
-  'calendar'
+  'calendar',
+  'desk',
+  'human-desk'
 ];
+
+export const DEFAULT_TEAMMATE_PAGE_ACCESS: DashboardPageKey[] = [
+  ...MEMBER_PAGE_ACCESS
+];
+
+const ADMIN_ONLY_PAGE_KEYS = new Set<DashboardPageKey>([
+  'overview',
+  'agents',
+  'integrations',
+  'settings'
+]);
+
+export function resolveTeammateAccessLevel(
+  pages: readonly string[]
+): TeammateAccessLevel {
+  return pages.some((page) =>
+    ADMIN_ONLY_PAGE_KEYS.has(page as DashboardPageKey)
+  )
+    ? 'admin'
+    : 'member';
+}
+
+export function pagesForTeammateAccess(
+  level: TeammateAccessLevel
+): DashboardPageKey[] {
+  return level === 'admin' ? [...ADMIN_PAGE_ACCESS] : [...MEMBER_PAGE_ACCESS];
+}
+
+/** Empty list means every enabled inbox. Admins always get every inbox. */
+export function storedAllowedAliasIds(input: {
+  pages: readonly string[];
+  selectedAliasIds: readonly string[];
+  channelIds: readonly string[];
+}): string[] {
+  if (!input.pages.includes('inbox') || input.channelIds.length === 0) {
+    return [];
+  }
+  if (resolveTeammateAccessLevel(input.pages) === 'admin') {
+    return [];
+  }
+  const allowed = new Set(input.channelIds);
+  const selected = input.selectedAliasIds.filter((id) => allowed.has(id));
+  if (selected.length === 0 || selected.length === input.channelIds.length) {
+    return [];
+  }
+  return selected;
+}
 
 export const OWNER_ONLY_ROUTE_PREFIXES = [
   Routes.OrganizationInformation,
@@ -68,6 +123,7 @@ const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
 
 export type ResolvedPathAccess =
   | { type: 'owner' }
+  | { type: 'workspace-admin' }
   | { type: 'account' }
   | { type: 'platform-admin' }
   | { type: 'page'; pageKey: DashboardPageKey }
@@ -78,6 +134,14 @@ export function resolvePathAccess(pathname: string): ResolvedPathAccess {
 
   if (path.startsWith('/admin')) {
     return { type: 'platform-admin' };
+  }
+
+  if (
+    path.startsWith(Routes.InboxProviders) ||
+    path.startsWith(Routes.InboxSettings) ||
+    path.startsWith(Routes.InboxAliases)
+  ) {
+    return { type: 'workspace-admin' };
   }
 
   if (OWNER_ONLY_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix))) {

@@ -71,6 +71,7 @@ export function AppSidebar({
               width={32}
               height={32}
               className="size-7 shrink-0"
+              tone="light"
             />
           ) : (
             <HumanerBrandTitle

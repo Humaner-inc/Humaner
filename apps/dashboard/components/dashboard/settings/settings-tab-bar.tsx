@@ -43,7 +43,7 @@ export function SettingsTabBar({
               dashboardRadiusClassName,
               tab.active
                 ? 'bg-foreground text-background'
-                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
             {Icon ? (

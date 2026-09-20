@@ -80,6 +80,12 @@ export function NavMain({
               companionHref={companionHref}
               showCompanionUpgrade={showCompanionUpgrade}
               showMcp={isWorkspaceOwner(profile)}
+              canManageTeam={
+                isWorkspaceOwner(profile) || canAccessPage(profile, 'overview')
+              }
+              canManageProviders={
+                isWorkspaceOwner(profile) || canAccessPage(profile, 'settings')
+              }
             />
           </React.Suspense>
         ) : null}

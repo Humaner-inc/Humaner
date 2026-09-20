@@ -2,6 +2,7 @@ import { Role, WorkspaceRole } from '@prisma/client';
 
 import {
   resolvePathAccess,
+  resolveTeammateAccessLevel,
   type DashboardPageKey
 } from '@/constants/dashboard-pages';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -11,6 +12,15 @@ export function isWorkspaceOwner(
   profile: Pick<ProfileDto, 'workspaceRole'>
 ): boolean {
   return profile.workspaceRole === WorkspaceRole.OWNER;
+}
+
+export function isWorkspaceAdmin(
+  profile: Pick<ProfileDto, 'workspaceRole' | 'allowedPages'>
+): boolean {
+  return (
+    isWorkspaceOwner(profile) ||
+    resolveTeammateAccessLevel(profile.allowedPages) === 'admin'
+  );
 }
 
 export function isPlatformAdmin(profile: Pick<ProfileDto, 'role'>): boolean {
@@ -75,6 +85,8 @@ export function canAccessPathname(
       return true;
     case 'owner':
       return isWorkspaceOwner(profile);
+    case 'workspace-admin':
+      return isWorkspaceAdmin(profile);
     case 'platform-admin':
       return isPlatformAdmin(profile);
     case 'page':

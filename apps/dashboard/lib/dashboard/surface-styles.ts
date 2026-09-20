@@ -42,3 +42,6 @@ export const dashboardSurfaceDashedClassName = `${dashboardRadiusClassName} bord
 export const dashboardListSurfaceClassName = `divide-y divide-border/60 ${dashboardRadiusClassName} border border-border/70 bg-muted/20`;
 
 export const dashboardInteractiveSurfaceClassName = `${dashboardRadiusClassName} border border-border/70 bg-muted/20 transition-colors hover:border-border`;
+
+/** Banded inset headers — `--muted` (#e0e1df / #1c1c1e). */
+export const dashboardInsetHeaderClassName = 'border-b bg-muted';

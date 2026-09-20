@@ -11,6 +11,7 @@ import {
   DashboardCardHeader
 } from '@/components/ui/dashboard-card';
 import { StatusTag } from '@/components/ui/micro-label';
+import { resolveTeammateAccessLevel } from '@/constants/dashboard-pages';
 import { Routes } from '@/constants/routes';
 import { getInitials } from '@/lib/utils';
 import type { MemberDto } from '@/types/dtos/member-dto';
@@ -27,7 +28,13 @@ function memberRoleLabel(member: MemberDto): string {
     return 'Platform admin';
   }
 
-  return member.workspaceRole === WorkspaceRole.OWNER ? 'Owner' : 'Teammate';
+  if (member.workspaceRole === WorkspaceRole.OWNER) {
+    return 'Owner';
+  }
+
+  return resolveTeammateAccessLevel(member.allowedPages) === 'admin'
+    ? 'Admin'
+    : 'Member';
 }
 
 export function TeamMembersOverviewCard({

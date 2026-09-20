@@ -1,4 +1,4 @@
-/** Linear-angle transactional mail — mark + name, left type, reply footer. */
+/** Full-bleed white transactional mail — mark + name, left type, reply footer. */
 
 import { RADIUS_CHIP_PX } from "./radius";
 
@@ -6,7 +6,7 @@ import { RADIUS_CHIP_PX } from "./radius";
 export const EMAIL_COLORS = {
   foreground: "#0A0D0D",
   background: "#ffffff",
-  canvas: "#f7f7f7",
+  canvas: "#ffffff",
   border: "#eaeaea",
   muted: "#71717a",
   body: "#3f3f46",
@@ -17,7 +17,7 @@ export const EMAIL_COLORS = {
 export const EMAIL_BUTTON_RADIUS_PX = RADIUS_CHIP_PX;
 
 export const EMAIL_BODY_CLASS =
-  "m-auto bg-[#f7f7f7] px-2 font-sans text-[#0A0D0D]";
+  "m-auto bg-[#ffffff] px-2 font-sans text-[#0A0D0D]";
 
 export const EMAIL_CONTAINER_CLASS =
   "mx-auto my-[40px] max-w-[520px] bg-[#ffffff] px-[40px] py-[48px]";

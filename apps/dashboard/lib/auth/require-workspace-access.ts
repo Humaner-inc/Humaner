@@ -6,7 +6,10 @@ import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { Role, WorkspaceRole } from '@prisma/client';
 
-import { resolvePathAccess } from '@/constants/dashboard-pages';
+import {
+  resolvePathAccess,
+  resolveTeammateAccessLevel
+} from '@/constants/dashboard-pages';
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
@@ -74,6 +77,11 @@ export function canAccessPathWithContext(
       return true;
     case 'owner':
       return context.workspaceRole === WorkspaceRole.OWNER;
+    case 'workspace-admin':
+      return (
+        context.workspaceRole === WorkspaceRole.OWNER ||
+        resolveTeammateAccessLevel(context.allowedPages) === 'admin'
+      );
     case 'platform-admin':
       return false;
     case 'page':

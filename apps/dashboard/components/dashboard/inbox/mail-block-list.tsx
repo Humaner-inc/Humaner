@@ -67,7 +67,7 @@ export function MailBlockList({
 
   return (
     <section className="overflow-hidden rounded-md border">
-      <div className="border-b bg-muted/30 px-4 py-2.5">
+      <div className="border-b bg-muted px-4 py-2.5">
         <p className="font-mono text-sm font-medium">Blocked senders</p>
         <p className="text-xs text-muted-foreground">
           New mail from these addresses goes to Spam.
@@ -93,6 +93,7 @@ export function MailBlockList({
           <Button
             type="submit"
             size="sm"
+            variant="secondary"
             className="font-mono"
             disabled={blocking || email.trim().length === 0}
           >

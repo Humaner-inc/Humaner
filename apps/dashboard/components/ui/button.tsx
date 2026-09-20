@@ -125,6 +125,7 @@ const Button = React.forwardRef<ButtonElement, ButtonProps>(
       asChild = false,
       loading = false,
       children,
+      disabled,
       ...props
     },
     ref
@@ -135,12 +136,19 @@ const Button = React.forwardRef<ButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         {...props}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
       >
         {asChild ? (
           children
         ) : (
           <>
-            {loading && <SquircleLoader className={cn(!!children && 'mr-2')} />}
+            {loading ? (
+              <SquircleLoader
+                className={cn(!!children && 'mr-2')}
+                color="currentColor"
+              />
+            ) : null}
             {children}
           </>
         )}

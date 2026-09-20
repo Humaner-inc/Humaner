@@ -7,6 +7,7 @@ module.exports = {
     './constants/**/*.{ts,tsx}',
     './emails/**/*.{ts,tsx}',
     './hooks/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}',
     '../../packages/shared/src/**/*.{ts,tsx}'
   ],
   theme: {

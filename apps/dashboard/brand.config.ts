@@ -30,13 +30,13 @@ const humanerBrand: BrandConfig = {
     primary: '90 3% 88%',
     /* #0A0D0D */
     primaryForeground: '180 13% 4.5%',
-    /* #f2f2f2 */
-    secondary: '0 0% 95%',
+    /* #e0e1df */
+    secondary: '90 3% 88%',
     secondaryForeground: '180 13% 4.5%',
-    muted: '0 0% 95%',
+    muted: '90 3% 88%',
     /* #18181b */
     mutedForeground: '240 6% 10%',
-    accent: '0 0% 95%',
+    accent: '90 3% 88%',
     accentForeground: '180 13% 4.5%',
     brand: '90 3% 88%',
     brandForeground: '180 13% 4.5%',

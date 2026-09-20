@@ -81,8 +81,8 @@ export default async function InboxSettingsPage({
       : tab === 'inbox'
         ? `Humaner detect aliases for your inbox so you can use them while sending emails. Block senders to file their mail to Spam.`
         : overview.canManageProviders
-          ? 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate.'
-          : 'Activate Linear, Stripe, or GitHub through Humaner’s Vercel Connect gate. Only the workspace owner can change this.';
+          ? 'Activate Linear, Stripe, or GitHub through Humaner.'
+          : 'Activate Linear, Stripe, or GitHub through Humaner. Only the workspace owner can change this.';
 
   return (
     <div className="space-y-6">
@@ -137,7 +137,7 @@ export default async function InboxSettingsPage({
                 key={`${mailbox.providerName}-${mailbox.email}`}
                 className="overflow-hidden rounded-md border"
               >
-                <div className="border-b bg-muted/30 px-4 py-2.5">
+                <div className="border-b bg-muted px-4 py-2.5">
                   <p className="font-mono text-sm font-medium">
                     {mailbox.email}
                   </p>

@@ -28,6 +28,15 @@ export type TimeZoneLocation = {
   city: string;
 };
 
+/** Polar angle (radians from +Y) for a geodetic latitude. */
+export function globePolarAngle(lat: number): number {
+  return ((90 - lat) * Math.PI) / 180;
+}
+
+/** Loose enough for London (51.5°N) and Auckland (36.9°S). */
+export const GLOBE_MIN_POLAR_ANGLE = 0.35;
+export const GLOBE_MAX_POLAR_ANGLE = Math.PI - 0.35;
+
 const TIME_ZONE_LOCATIONS: Record<
   string,
   Omit<TimeZoneLocation, 'timeZone'>
@@ -103,6 +112,63 @@ const TIME_ZONE_LOCATIONS: Record<
     lng: 174.76,
     countryIso: 'NZL',
     city: 'Auckland'
+  },
+  'Europe/Amsterdam': {
+    lat: 52.37,
+    lng: 4.9,
+    countryIso: 'NLD',
+    city: 'Amsterdam'
+  },
+  'Europe/Rome': { lat: 41.9, lng: 12.5, countryIso: 'ITA', city: 'Rome' },
+  'Europe/Zurich': { lat: 47.38, lng: 8.54, countryIso: 'CHE', city: 'Zurich' },
+  'Europe/Dublin': {
+    lat: 53.35,
+    lng: -6.26,
+    countryIso: 'IRL',
+    city: 'Dublin'
+  },
+  'America/Toronto': {
+    lat: 43.65,
+    lng: -79.38,
+    countryIso: 'CAN',
+    city: 'Toronto'
+  },
+  'America/Vancouver': {
+    lat: 49.28,
+    lng: -123.12,
+    countryIso: 'CAN',
+    city: 'Vancouver'
+  },
+  'America/Phoenix': {
+    lat: 33.45,
+    lng: -112.07,
+    countryIso: 'USA',
+    city: 'Phoenix'
+  },
+  'America/Mexico_City': {
+    lat: 19.43,
+    lng: -99.13,
+    countryIso: 'MEX',
+    city: 'Mexico City'
+  },
+  'Asia/Shanghai': {
+    lat: 31.23,
+    lng: 121.47,
+    countryIso: 'CHN',
+    city: 'Shanghai'
+  },
+  'Asia/Hong_Kong': {
+    lat: 22.32,
+    lng: 114.17,
+    countryIso: 'HKG',
+    city: 'Hong Kong'
+  },
+  'Asia/Seoul': { lat: 37.57, lng: 126.98, countryIso: 'KOR', city: 'Seoul' },
+  'Australia/Melbourne': {
+    lat: -37.81,
+    lng: 144.96,
+    countryIso: 'AUS',
+    city: 'Melbourne'
   }
 };
 

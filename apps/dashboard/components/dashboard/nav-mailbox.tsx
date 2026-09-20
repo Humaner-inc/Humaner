@@ -110,7 +110,9 @@ export function NavMailbox({
   inboxes = [],
   companionHref = null,
   showCompanionUpgrade = false,
-  showMcp = false
+  showMcp = false,
+  canManageTeam = true,
+  canManageProviders = true
 }: {
   orgTier: string;
   unreadCount?: number;
@@ -118,6 +120,8 @@ export function NavMailbox({
   companionHref?: string | null;
   showCompanionUpgrade?: boolean;
   showMcp?: boolean;
+  canManageTeam?: boolean;
+  canManageProviders?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
   const { toggleDock, activeMode } = useDashboardDock();
@@ -231,7 +235,9 @@ export function NavMailbox({
             />
           }
         >
-          {WORKSPACE_SECTION_ITEMS.map((item) => {
+          {WORKSPACE_SECTION_ITEMS.filter(
+            (item) => item.id !== 'team' || canManageTeam
+          ).map((item) => {
             const Icon = SECTION_ICONS[item.id];
             const active = activeSection === item.id;
             return (
@@ -322,7 +328,9 @@ export function NavMailbox({
             />
           );
         })}
-        {MAILBOX_WORKSPACE_ITEMS.map((item) => {
+        {MAILBOX_WORKSPACE_ITEMS.filter(
+          (item) => item.id !== 'providers' || canManageProviders
+        ).map((item) => {
           const Icon = WORKSPACE_ICONS[item.id];
           const active = activeWorkspace === item.id;
           return (

@@ -27,15 +27,15 @@
     --primary: 90 3% 88%;
     --primary-foreground: 180 13% 4.5%;
 
-    /* #F2F2F2 */
-    --secondary: 0 0% 95%;
+    /* #e0e1df — zinc mist, not #F2F2F2 (reads blue on cream) */
+    --secondary: 90 3% 88%;
     --secondary-foreground: 180 13% 4.5%;
 
-    --muted: 0 0% 95%;
+    --muted: 90 3% 88%;
     /* #18181b — secondary text on light */
     --muted-foreground: 240 6% 10%;
 
-    --accent: 0 0% 95%;
+    --accent: 90 3% 88%;
     --accent-foreground: 180 13% 4.5%;
 
     --brand: 90 3% 88%;
@@ -94,7 +94,7 @@
     --sidebar-foreground: 180 13% 4.5%;
     --sidebar-primary: 90 3% 88%;
     --sidebar-primary-foreground: 180 13% 4.5%;
-    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent: 90 3% 88%;
     --sidebar-accent-foreground: 180 13% 4.5%;
     --sidebar-active: 180 13% 4.5%;
     --sidebar-active-foreground: 30 73% 95.7%;
@@ -213,7 +213,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) transparent;
+    scrollbar-color: hsl(var(--muted)) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -226,7 +226,7 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--border));
+    background-color: hsl(var(--muted));
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
