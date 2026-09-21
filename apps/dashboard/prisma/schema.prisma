@@ -1194,6 +1194,8 @@ model MailThread {
   subject          String           @db.VarChar(998)
   status           MailThreadStatus @default(OPEN)
   isUnread         Boolean          @default(true)
+  /// Pinned threads stay at the top of the inbox list.
+  isPinned         Boolean          @default(false)
   folder           MailThreadFolder @default(INBOX)
   archivedAt       DateTime?
   /// Set when the thread is moved to Trash; cleared when it leaves.

@@ -45,6 +45,7 @@ export type MailThreadListItem = {
   fromName: string | null;
   preview: string | null;
   isUnread: boolean;
+  isPinned: boolean;
   messageCount: number;
   awaitingReply: boolean;
   tag: MailTagItem | null;
@@ -337,13 +338,14 @@ export async function getMailThreads(options?: {
               ? { aliasId: scopedAliasIds }
               : {})
     },
-    orderBy: { lastMessageAt: 'desc' },
+    orderBy: [{ isPinned: 'desc' }, { lastMessageAt: 'desc' }],
     take: 200,
     select: {
       id: true,
       subject: true,
       status: true,
       isUnread: true,
+      isPinned: true,
       lastMessageAt: true,
       alias: { select: { id: true, address: true } },
       assigneeKind: true,
@@ -406,6 +408,7 @@ export async function getMailThreads(options?: {
       fromName: from.name,
       preview: previewText(latest?.bodyText ?? null),
       isUnread,
+      isPinned: thread.isPinned,
       messageCount: thread._count.messages,
       awaitingReply,
       tag: thread.tags[0]?.tag ?? null

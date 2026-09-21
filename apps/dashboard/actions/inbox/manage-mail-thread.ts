@@ -101,6 +101,39 @@ export const markMailThreadRead = authActionClient
     return { success: true };
   });
 
+export const pinMailThread = authActionClient
+  .metadata({ actionName: 'pinMailThread' })
+  .schema(
+    z.object({
+      threadId: z.string().uuid(),
+      isPinned: z.boolean()
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    await assertThreadAccess(
+      parsedInput.threadId,
+      session.user.id,
+      organizationId
+    );
+
+    await prisma.mailThread.update({
+      where: { id: parsedInput.threadId },
+      data: { isPinned: parsedInput.isPinned }
+    });
+
+    try {
+      after(() => {
+        revalidateMailPaths(parsedInput.threadId);
+      });
+    } catch {
+      revalidateMailPaths(parsedInput.threadId);
+    }
+    return { success: true };
+  });
+
 export const archiveMailThread = authActionClient
   .metadata({ actionName: 'archiveMailThread' })
   .schema(

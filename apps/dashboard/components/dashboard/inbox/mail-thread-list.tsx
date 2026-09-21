@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckIcon,
   MoreHorizontalIcon,
+  PinIcon,
   Trash2Icon,
   UserPlus2Icon
 } from '@humaner/shared/icons';
@@ -23,7 +24,8 @@ import {
   bulkDeleteMailThreads,
   bulkMoveMailThreads,
   markMailThreadRead,
-  moveMailThreadFolder
+  moveMailThreadFolder,
+  pinMailThread
 } from '@/actions/inbox/manage-mail-thread';
 import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
@@ -236,6 +238,7 @@ export function MailThreadList({
   type ThreadOverride = {
     removed?: boolean;
     isUnread?: boolean;
+    isPinned?: boolean;
     awaitingReply?: boolean;
     lastMessageAt?: string;
     tag?: MailTagItem | null;
@@ -396,6 +399,13 @@ export function MailThreadList({
     }
   });
 
+  const { execute: runRowPin } = useAction(pinMailThread, {
+    onError: ({ error, input }) => {
+      patchThreads([input.threadId], { isPinned: !input.isPinned });
+      toast.error(error.serverError || 'Could not update pin');
+    }
+  });
+
   const selectThread = React.useCallback(
     (threadId: string) => {
       closeCompose();
@@ -493,6 +503,7 @@ export function MailThreadList({
         return {
           ...thread,
           isUnread: override.isUnread ?? thread.isUnread,
+          isPinned: override.isPinned ?? thread.isPinned,
           awaitingReply: override.awaitingReply ?? thread.awaitingReply,
           lastMessageAt: override.lastMessageAt ?? thread.lastMessageAt,
           tag: override.tag === undefined ? thread.tag : override.tag,
@@ -501,6 +512,13 @@ export function MailThreadList({
               ? thread.assigneeName
               : override.assigneeName
         };
+      })
+      .toSorted((a, b) => {
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+        return (
+          new Date(b.lastMessageAt).getTime() -
+          new Date(a.lastMessageAt).getTime()
+        );
       });
   }, [threads, localOverrides]);
 
@@ -532,6 +550,9 @@ export function MailThreadList({
         const unreadCaughtUp =
           override.isUnread === undefined ||
           thread.isUnread === override.isUnread;
+        const pinCaughtUp =
+          override.isPinned === undefined ||
+          thread.isPinned === override.isPinned;
         const timeCaughtUp =
           !override.lastMessageAt ||
           new Date(thread.lastMessageAt).getTime() >=
@@ -543,7 +564,13 @@ export function MailThreadList({
           override.assigneeName === undefined ||
           (thread.assigneeName ?? null) === (override.assigneeName ?? null);
 
-        if (unreadCaughtUp && timeCaughtUp && tagCaughtUp && assigneeCaughtUp) {
+        if (
+          unreadCaughtUp &&
+          pinCaughtUp &&
+          timeCaughtUp &&
+          tagCaughtUp &&
+          assigneeCaughtUp
+        ) {
           delete next[id];
           changed = true;
         }
@@ -858,6 +885,10 @@ export function MailThreadList({
         onMarkRead={() => {
           patchThreads([thread.id], { isUnread: false });
           runRowMarkRead({ threadId: thread.id, isUnread: false });
+        }}
+        onPin={(isPinned) => {
+          patchThreads([thread.id], { isPinned });
+          runRowPin({ threadId: thread.id, isPinned });
         }}
       />
     );
@@ -1306,7 +1337,8 @@ function MailThreadRow({
   onBlock,
   onAssign,
   onTag,
-  onMarkRead
+  onMarkRead,
+  onPin
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
@@ -1327,6 +1359,7 @@ function MailThreadRow({
   onAssign: (assigneeId: string | null) => void;
   onTag: (tagId: string | null) => void;
   onMarkRead: () => void;
+  onPin: (isPinned: boolean) => void;
 }): React.JSX.Element {
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
@@ -1369,18 +1402,28 @@ function MailThreadRow({
     <li
       className={cn(
         'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
-        localUnread && 'bg-[color-mix(in_srgb,#001afc_8%,transparent)]',
-        previewActive &&
+        thread.isPinned
+          ? previewActive || selected
+            ? 'bg-[color-mix(in_srgb,#f5a524_22%,transparent)]'
+            : 'bg-[color-mix(in_srgb,#f5a524_14%,transparent)]'
+          : localUnread && 'bg-[color-mix(in_srgb,#001afc_8%,transparent)]',
+        !thread.isPinned &&
+          previewActive &&
           (localUnread
             ? 'bg-[color-mix(in_srgb,#001afc_14%,transparent)]'
             : 'bg-foreground/[0.06]'),
-        selected && !localUnread && 'bg-foreground/[0.04]'
+        !thread.isPinned && selected && !localUnread && 'bg-foreground/[0.04]'
       )}
     >
       <div
         role="button"
         tabIndex={0}
-        className="flex cursor-pointer items-start gap-3 px-3 py-3 pr-16 text-left transition-colors hover:bg-foreground/[0.04] sm:px-3"
+        className={cn(
+          'flex cursor-pointer items-start gap-3 px-3 py-3 pr-16 text-left transition-colors sm:px-3',
+          thread.isPinned
+            ? 'hover:bg-[color-mix(in_srgb,#f5a524_20%,transparent)]'
+            : 'hover:bg-foreground/[0.04]'
+        )}
         onClick={handleRowClick}
         onMouseEnter={onPrefetch}
         onFocus={onPrefetch}
@@ -1454,7 +1497,10 @@ function MailThreadRow({
             <time
               dateTime={thread.lastMessageAt}
               suppressHydrationWarning
-              className="shrink-0 font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"
+              className={cn(
+                'shrink-0 font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0',
+                thread.isPinned && 'opacity-0'
+              )}
             >
               {formatDistanceToNow(new Date(thread.lastMessageAt), {
                 addSuffix: true
@@ -1488,124 +1534,155 @@ function MailThreadRow({
         data-no-pull
       >
         <div
-          className="pointer-events-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          className="pointer-events-auto flex items-center gap-0.5"
           onClick={stopRowEvent}
           onPointerDown={stopRowEvent}
         >
-          {localUnread ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 rounded-lg bg-background/95 shadow-sm"
-              title="Mark as read"
-              onClick={(event) => {
-                stopRowEvent(event);
-                onMarkRead();
-              }}
-            >
-              <CheckIcon className="size-3.5 text-[#001afc]" />
-              <span className="sr-only">Mark as read</span>
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              'size-7 rounded-lg shadow-sm transition-opacity',
+              thread.isPinned
+                ? 'bg-[#f5a524] text-[#0A0D0D] hover:!bg-[#ffb43a] hover:!text-[#0A0D0D]'
+                : 'pointer-events-none bg-background/95 opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100'
+            )}
+            title={thread.isPinned ? 'Unpin' : 'Pin to top'}
+            onClick={(event) => {
+              stopRowEvent(event);
+              onPin(!thread.isPinned);
+            }}
+          >
+            <PinIcon
+              className={cn('size-3.5', thread.isPinned && 'fill-current')}
+            />
+            <span className="sr-only">
+              {thread.isPinned ? 'Unpin' : 'Pin to top'}
+            </span>
+          </Button>
 
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-7 rounded-lg bg-background/95 shadow-sm"
-                onClick={stopRowEvent}
-                onPointerDown={stopRowEvent}
-              >
-                <MoreHorizontalIcon className="size-3.5" />
-                <span className="sr-only">Thread actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onCloseAutoFocus={(event) => event.preventDefault()}
-            >
-              {folderView === 'trash' ? (
-                <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
-                  Restore
-                </DropdownMenuItem>
-              ) : folderView === 'spam' ? (
-                <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
-                  Not spam
-                </DropdownMenuItem>
-              ) : folderView === 'drafts' ? null : archivedView ? (
-                <DropdownMenuItem onSelect={() => onArchive(false)}>
-                  Move to inbox
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onSelect={() => onArchive(true)}>
-                  Archive
-                </DropdownMenuItem>
-              )}
-              {folderView !== 'spam' &&
-              folderView !== 'trash' &&
-              folderView !== 'sent' &&
-              folderView !== 'drafts' ? (
-                <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
-                  Report spam
-                </DropdownMenuItem>
+          {thread.isPinned ? null : (
+            <div className="pointer-events-none flex items-center gap-0.5 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+              {localUnread ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 rounded-lg bg-background/95 shadow-sm"
+                  title="Mark as read"
+                  onClick={(event) => {
+                    stopRowEvent(event);
+                    onMarkRead();
+                  }}
+                >
+                  <CheckIcon className="size-3.5 text-[#001afc]" />
+                  <span className="sr-only">Mark as read</span>
+                </Button>
               ) : null}
-              {folderView !== 'sent' &&
-              folderView !== 'trash' &&
-              folderView !== 'drafts' ? (
-                <DropdownMenuItem onSelect={onBlock}>
-                  Block sender
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <UserPlus2Icon className="mr-2 size-4" />
-                  Assign
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <AssigneeMenuItems
-                    members={members}
-                    value={null}
-                    includeCompanion
-                    onSelect={onAssign}
-                  />
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              {applicableTags.length > 0 ? (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onSelect={() => onTag(null)}>
-                      No tag
+
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 rounded-lg bg-background/95 shadow-sm"
+                    onClick={stopRowEvent}
+                    onPointerDown={stopRowEvent}
+                  >
+                    <MoreHorizontalIcon className="size-3.5" />
+                    <span className="sr-only">Thread actions</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  onCloseAutoFocus={(event) => event.preventDefault()}
+                >
+                  <DropdownMenuItem onSelect={() => onPin(!thread.isPinned)}>
+                    {thread.isPinned ? 'Unpin' : 'Pin to top'}
+                  </DropdownMenuItem>
+                  {folderView === 'trash' ? (
+                    <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
+                      Restore
                     </DropdownMenuItem>
-                    {applicableTags.map((tag) => (
-                      <DropdownMenuItem
-                        key={tag.id}
-                        onSelect={() => onTag(tag.id)}
-                      >
-                        <span
-                          className="mr-2 size-2.5 rounded-full"
-                          style={{ backgroundColor: tag.color }}
-                        />
-                        {tag.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ) : null}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onSelect={onAskDelete}
-              >
-                <Trash2Icon className="mr-2 size-4" />
-                Delete
-                {folderView === 'trash' ? ' forever' : ''}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  ) : folderView === 'spam' ? (
+                    <DropdownMenuItem onSelect={() => onMoveFolder('INBOX')}>
+                      Not spam
+                    </DropdownMenuItem>
+                  ) : folderView === 'drafts' ? null : archivedView ? (
+                    <DropdownMenuItem onSelect={() => onArchive(false)}>
+                      Move to inbox
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onSelect={() => onArchive(true)}>
+                      Archive
+                    </DropdownMenuItem>
+                  )}
+                  {folderView !== 'spam' &&
+                  folderView !== 'trash' &&
+                  folderView !== 'sent' &&
+                  folderView !== 'drafts' ? (
+                    <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
+                      Report spam
+                    </DropdownMenuItem>
+                  ) : null}
+                  {folderView !== 'sent' &&
+                  folderView !== 'trash' &&
+                  folderView !== 'drafts' ? (
+                    <DropdownMenuItem onSelect={onBlock}>
+                      Block sender
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <UserPlus2Icon className="mr-2 size-4" />
+                      Assign
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <AssigneeMenuItems
+                        members={members}
+                        value={null}
+                        includeCompanion
+                        onSelect={onAssign}
+                      />
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                  {applicableTags.length > 0 ? (
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Tag color</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem onSelect={() => onTag(null)}>
+                          No tag
+                        </DropdownMenuItem>
+                        {applicableTags.map((tag) => (
+                          <DropdownMenuItem
+                            key={tag.id}
+                            onSelect={() => onTag(tag.id)}
+                          >
+                            <span
+                              className="mr-2 size-2.5 rounded-full"
+                              style={{ backgroundColor: tag.color }}
+                            />
+                            {tag.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  ) : null}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={onAskDelete}
+                  >
+                    <Trash2Icon className="mr-2 size-4" />
+                    Delete
+                    {folderView === 'trash' ? ' forever' : ''}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
       </div>
     </li>

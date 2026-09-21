@@ -122,13 +122,14 @@ async function executeListThreads(
       ...(unreadOnly ? { isUnread: true } : {}),
       ...(status ? { status } : {})
     },
-    orderBy: { lastMessageAt: 'desc' },
+    orderBy: [{ isPinned: 'desc' }, { lastMessageAt: 'desc' }],
     take: limit,
     select: {
       id: true,
       subject: true,
       status: true,
       isUnread: true,
+      isPinned: true,
       assigneeKind: true,
       lastMessageAt: true,
       alias: { select: { address: true } },
@@ -144,6 +145,7 @@ async function executeListThreads(
         subject: thread.subject,
         status: thread.status,
         isUnread: thread.isUnread,
+        isPinned: thread.isPinned,
         alias: thread.alias.address,
         assignee: mailAssigneeLabel({
           assigneeKind: thread.assigneeKind,

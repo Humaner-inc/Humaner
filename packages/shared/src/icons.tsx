@@ -115,6 +115,7 @@ export {
 } from "./icon-utils";
 export {
   BotIconStatic,
+  PinIcon,
   PlugIconStatic,
   createStaticLucideIcon,
   type StaticLucideIcon,

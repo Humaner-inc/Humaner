@@ -7,7 +7,12 @@ import {
   type RefAttributes,
   type SVGProps,
 } from "react";
-import { Bot, PlugZap, type LucideIcon as LucideReactIcon } from "lucide-react";
+import {
+  Bot,
+  Pin,
+  PlugZap,
+  type LucideIcon as LucideReactIcon,
+} from "lucide-react";
 
 import { resolveIconSize } from "./icon-utils";
 
@@ -63,4 +68,5 @@ export function createStaticLucideIcon(
 
 /** Crisp SVG icons for layouts that must not use lucide-animated wrappers. */
 export const BotIconStatic = createStaticLucideIcon(Bot);
+export const PinIcon = createStaticLucideIcon(Pin);
 export const PlugIconStatic = createStaticLucideIcon(PlugZap);

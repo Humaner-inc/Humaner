@@ -145,6 +145,7 @@ function EmailFooter({
         >
           hello@humaner.io
         </Link>
+        .<br />
         Until then, have a fast, and happy emailing.
       </Text>
       <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
