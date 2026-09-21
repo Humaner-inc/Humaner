@@ -83,8 +83,7 @@ export function MailProviderPicker({
         </div>
         <p className="mt-2 px-0.5 text-xs text-muted-foreground">
           Host not listed? Choose{' '}
-          <span className="font-medium text-foreground">Custom IMAP</span> — we
-          detect settings from your email.
+          <span className="font-medium text-foreground">Custom IMAP</span>.
         </p>
       </div>
 

@@ -25,7 +25,6 @@ import {
 import { InputWithAdornments } from '@/components/ui/input-with-adornments';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AUTH_ACCESS_CODE_LENGTH } from '@/lib/auth/access-code-constants';
-import { brandAngleSurfaceClassName } from '@/lib/dashboard/brand-angle-styles';
 import { cn } from '@/lib/utils';
 import {
   submitAuthAccessCodeSchema,
@@ -81,10 +80,7 @@ export function AuthAccessWall(): React.JSX.Element {
         <div className="space-y-3 text-center">
           <div className="flex justify-center">
             <span
-              className={cn(
-                'relative flex size-14 items-center justify-center overflow-hidden border border-white/[0.12] bg-[#001afc] text-[#F2F2F2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_24px_48px_-28px_rgb(0_26_252_/_0.55)] sm:size-16',
-                brandAngleSurfaceClassName('rounded-xl')
-              )}
+              className="relative flex size-14 items-center justify-center overflow-hidden rounded-xl border border-white/[0.12] bg-[#001afc] text-[#F2F2F2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.14),0_24px_48px_-28px_rgb(0_26_252_/_0.55)] sm:size-16"
               aria-hidden
             >
               <span

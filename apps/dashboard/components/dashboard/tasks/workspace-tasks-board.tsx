@@ -380,8 +380,7 @@ export function WorkspaceTasksBoard({
                   onChange={(next) => setAssigneeId(next ?? '')}
                   compact
                   align="start"
-                  className="h-7 border-border/70 bg-background hover:bg-background/80 dark:bg-background dark:hover:bg-background/80"
-                  contentClassName="z-[60] min-w-56 border-border bg-background shadow-lg"
+                  contentClassName="z-[60] min-w-56 border-border bg-popover shadow-lg"
                 />
                 <DueDateChip
                   value={dueAt}

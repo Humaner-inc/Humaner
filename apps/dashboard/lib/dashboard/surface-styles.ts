@@ -28,7 +28,8 @@ export const dashboardChipRadiusClassName = radiusChipClassName;
 /** Modals and sheets (24px). */
 export const dashboardModalRadiusClassName = radiusModalClassName;
 
-/** Floating create cards — same grey as assignee / dropdown popovers. */
+/** Floating create cards — same grey as assignee / dropdown popovers.
+ * Do not add CSS clip-path chamfers: they shear bordered corners. */
 export const dashboardQuickCreateClassName = `${dashboardModalRadiusClassName} border-border/50 bg-popover text-popover-foreground shadow-lg`;
 
 /** Photo, logo, and avatar tiles use the 12px surface radius. */
@@ -45,3 +46,12 @@ export const dashboardInteractiveSurfaceClassName = `${dashboardRadiusClassName}
 
 /** Banded inset headers — `--muted` (#e0e1df / #1c1c1e). */
 export const dashboardInsetHeaderClassName = 'border-b bg-muted';
+
+/**
+ * Companion composer, suggestion chips, and icon pill.
+ * Same `--muted` fill as inset headers, plus a light top highlight / bottom lip.
+ */
+export const companionExtrudeClassName =
+  'border-foreground/10 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.72),inset_0_-1px_0_rgb(0_0_0_/_0.06),0_1px_0_0_rgb(0_0_0_/_0.08),0_2px_4px_-1px_rgb(0_0_0_/_0.1)] dark:border-white/10 dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),inset_0_-1px_0_rgb(0_0_0_/_0.5),0_1px_0_0_rgb(0_0_0_/_0.55),0_3px_6px_-2px_rgb(0_0_0_/_0.45)]';
+
+export const companionSurfaceClassName = `relative isolate overflow-hidden border bg-muted ${companionExtrudeClassName}`;

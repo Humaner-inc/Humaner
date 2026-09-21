@@ -543,7 +543,12 @@ function TeamNotesFeed({
                 open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
               )}
             >
-              <div className="min-h-0 overflow-hidden">
+              <div
+                className={cn(
+                  'min-h-0',
+                  open ? 'overflow-visible' : 'overflow-hidden'
+                )}
+              >
                 <div className="px-2 pb-3 pt-1">
                   <MailThreadNotesPanel
                     threadId={group.threadId}

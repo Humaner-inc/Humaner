@@ -4,6 +4,7 @@ import * as React from 'react';
 import { CheckIcon, ChevronDownIcon } from '@humaner/shared/icons';
 
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
+import { QUICK_CREATE_CHIP_CLASS } from '@/components/dashboard/quick-create-dialog';
 import {
   ASSIGNEE_PANEL_PROPS,
   AssigneeFace,
@@ -159,12 +160,14 @@ export function AssigneePicker({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="background"
+          variant={compact ? 'ghost' : 'background'}
           size="sm"
           disabled={disabled}
           className={cn(
-            'items-center justify-start font-normal normal-case tracking-normal leading-none',
-            compact ? 'h-7 gap-1.5 px-1.5' : 'h-10 gap-2 px-2',
+            'items-center justify-start font-normal normal-case tracking-normal leading-none shadow-none',
+            compact
+              ? cn(QUICK_CREATE_CHIP_CLASS, 'gap-1.5 pr-1.5')
+              : 'h-10 gap-2 px-2',
             className
           )}
           onClick={(event) => event.stopPropagation()}

@@ -18,8 +18,6 @@ import {
   fromLocalDateTimeInput,
   toLocalDateTimeInput
 } from '@/lib/calendar/calendar-view';
-import { brandAngleSurfaceClassName } from '@/lib/dashboard/brand-angle-styles';
-import { cn } from '@/lib/utils';
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const MINUTES = [0, 15, 30, 45];
@@ -40,13 +38,11 @@ function nearestMinute(value: number): number {
   return snapped;
 }
 
-export const EVENT_PICKER_SURFACE = cn(
-  brandAngleSurfaceClassName('rounded-[12px]'),
-  'z-[60] w-auto border-border/60 bg-background p-2 text-popover-foreground shadow-lg'
-);
+export const EVENT_PICKER_SURFACE =
+  'z-[60] w-auto rounded-xl border-border/60 bg-popover p-2 text-popover-foreground shadow-lg';
 
 const TIME_SELECT_CLASS =
-  'h-7 rounded-lg border border-border/60 bg-transparent px-1.5 font-mono text-xs text-foreground outline-none';
+  'h-7 rounded-lg border border-border/60 bg-muted px-1.5 font-mono text-xs text-foreground outline-none';
 
 export function EventDateTimeChip({
   value,

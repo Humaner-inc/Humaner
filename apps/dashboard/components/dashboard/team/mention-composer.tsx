@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -11,6 +12,85 @@ import {
 } from '@/lib/inbox/mentions';
 import { filesFromClipboard } from '@/lib/team/message-attachments';
 import { cn } from '@/lib/utils';
+
+const SUGGESTION_HEIGHT = 196;
+
+function MentionSuggestionList({
+  anchorRef,
+  suggestions,
+  onPick
+}: {
+  anchorRef: React.RefObject<HTMLTextAreaElement | null>;
+  suggestions: MentionMember[];
+  onPick: (name: string) => void;
+}): React.JSX.Element | null {
+  const [coords, setCoords] = React.useState<{
+    left: number;
+    width: number;
+    top?: number;
+    bottom?: number;
+  } | null>(null);
+
+  React.useLayoutEffect(() => {
+    const node = anchorRef.current;
+    if (!node) return;
+
+    const update = (): void => {
+      const rect = node.getBoundingClientRect();
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const placeBelow =
+        spaceBelow >= SUGGESTION_HEIGHT || spaceBelow >= spaceAbove;
+      setCoords({
+        left: rect.left,
+        width: Math.max(rect.width, 180),
+        ...(placeBelow
+          ? { top: rect.bottom + 4 }
+          : { bottom: window.innerHeight - rect.top + 4 })
+      });
+    };
+
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [anchorRef, suggestions.length]);
+
+  if (!coords || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <ul
+      style={{
+        position: 'fixed',
+        left: coords.left,
+        width: coords.width,
+        top: coords.top,
+        bottom: coords.bottom,
+        zIndex: 80
+      }}
+      className="max-h-48 overflow-y-auto rounded-lg border border-border/60 bg-popover p-1 shadow-md"
+    >
+      {suggestions.map((member) => (
+        <li key={member.id}>
+          <button
+            type="button"
+            className="flex w-full rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted/60"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              onPick(member.name);
+            }}
+          >
+            @{member.name}
+          </button>
+        </li>
+      ))}
+    </ul>,
+    document.body
+  );
+}
 
 export function MentionComposer({
   value,
@@ -108,22 +188,11 @@ export function MentionComposer({
         }}
       />
       {suggestions.length > 0 ? (
-        <ul className="absolute bottom-full z-20 mb-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border/60 bg-popover p-1 shadow-md">
-          {suggestions.map((member) => (
-            <li key={member.id}>
-              <button
-                type="button"
-                className="flex w-full rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted/60"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  applyMention(member.name);
-                }}
-              >
-                @{member.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <MentionSuggestionList
+          anchorRef={textareaRef}
+          suggestions={suggestions}
+          onPick={applyMention}
+        />
       ) : null}
     </div>
   );

@@ -27,7 +27,9 @@ import {
   useOptionalKnowledgeResources
 } from '@/components/dashboard/knowledge/knowledge-resources-shell';
 import {
+  QUICK_CREATE_CHIP_ACTIVE_CLASS,
   QUICK_CREATE_CHIP_CLASS,
+  QUICK_CREATE_FIELD_CLASS,
   QuickCreateDialogContent,
   QuickCreateFooter
 } from '@/components/dashboard/quick-create-dialog';
@@ -48,7 +50,7 @@ import { cn } from '@/lib/utils';
 const REMOTE_INGESTION_POLL_MS = 2000;
 const REMOTE_INGESTION_MAX_WAIT_MS = 120_000;
 
-const fieldClassName = 'border-border/60 bg-transparent shadow-none';
+const fieldClassName = 'border-border/60 bg-muted shadow-none';
 
 const highlightedInputClassName = cn(
   'flex h-10 w-full rounded-lg px-3 py-1 text-sm placeholder:text-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
@@ -508,8 +510,7 @@ export function AddSourceDialog({
                       className={cn(
                         QUICK_CREATE_CHIP_CLASS,
                         'disabled:cursor-not-allowed disabled:opacity-50',
-                        type === option.value &&
-                          'border-foreground/25 bg-muted text-foreground'
+                        type === option.value && QUICK_CREATE_CHIP_ACTIVE_CLASS
                       )}
                     >
                       {option.label}
@@ -577,7 +578,7 @@ export function AddSourceDialog({
                         value={title}
                         maxLength={255}
                         disabled={isPending}
-                        className="h-10 border-border/60 bg-transparent"
+                        className={QUICK_CREATE_FIELD_CLASS}
                         onChange={(e) => setTitle(e.target.value)}
                       />
                     </div>
@@ -590,7 +591,7 @@ export function AddSourceDialog({
                         value={content}
                         maxLength={KNOWLEDGE_PASTED_TEXT_MAX_LENGTH}
                         disabled={isPending}
-                        className="border-border/60 bg-transparent shadow-none"
+                        className="border-border/60 bg-muted shadow-none"
                         onChange={(e) => setContent(e.target.value)}
                       />
                     </div>
@@ -624,7 +625,7 @@ export function AddSourceDialog({
                         e.stopPropagation();
                         void handleMdFiles(e.dataTransfer.files);
                       }}
-                      className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-border/70 bg-muted/10 px-4 py-8 text-center transition-colors hover:border-foreground/20 hover:bg-muted/30"
+                      className="flex w-full flex-col items-center gap-2 rounded-lg border border-dashed border-border/70 bg-muted/40 px-4 py-8 text-center transition-colors hover:border-foreground/20 hover:bg-muted/60"
                     >
                       <UploadIcon className="size-6 text-muted-foreground" />
                       <div>
@@ -642,7 +643,7 @@ export function AddSourceDialog({
                         {mdFiles.map((file, index) => (
                           <div
                             key={`${file.name}-${index}`}
-                            className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2"
+                            className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted px-3 py-2"
                           >
                             <FileTextIcon className="size-4 shrink-0 text-muted-foreground" />
                             <span className="min-w-0 flex-1 truncate text-sm">

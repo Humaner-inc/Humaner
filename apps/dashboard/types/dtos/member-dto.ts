@@ -10,6 +10,7 @@ export type MemberDto = {
   allowedPages: string[];
   allowedAliasIds: string[];
   timeZone?: string | null;
+  workingHours?: unknown;
   dateAdded: Date;
   lastLogin?: Date;
 };

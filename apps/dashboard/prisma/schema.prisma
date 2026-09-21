@@ -378,6 +378,8 @@ model User {
   locale                       String                   @default("en-US") @db.VarChar(8)
   /// IANA timezone for Companion and SLA clocks, e.g. Europe/Paris.
   timeZone                     String?                  @db.VarChar(64)
+  /// Per-member weekly availability (HH:mm slots). Null falls back to org hours.
+  workingHours                 Json?
   completedOnboarding          Boolean                  @default(false)
   enabledContactsNotifications Boolean                  @default(false)
   enabledInboxNotifications    Boolean                  @default(false)

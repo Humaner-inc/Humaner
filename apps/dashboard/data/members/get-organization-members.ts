@@ -12,6 +12,7 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { createOrganizationMembership } from '@/lib/auth/workspace-membership';
 import { prisma } from '@/lib/db/prisma';
+import { readWorkingHoursByOrganization } from '@/lib/team/persist-working-hours';
 import type { MemberDto } from '@/types/dtos/member-dto';
 import { SortDirection } from '@/types/sorty-direction';
 
@@ -87,6 +88,8 @@ async function loadOrganizationMembers(
     }
   });
 
+  const hoursById = await readWorkingHoursByOrganization(organizationId);
+
   return members.map((membership) => ({
     id: membership.user.id,
     image: membership.user.image ?? undefined,
@@ -99,6 +102,7 @@ async function loadOrganizationMembers(
       (row) => row.aliasId
     ),
     timeZone: membership.user.timeZone,
+    workingHours: hoursById.get(membership.user.id) ?? null,
     dateAdded: membership.createdAt,
     lastLogin: membership.user.lastLogin ?? undefined
   }));

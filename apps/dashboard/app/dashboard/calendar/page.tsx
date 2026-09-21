@@ -1,9 +1,12 @@
 import * as React from 'react';
+import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 
 import { WorkspaceCalendarWeek } from '@/components/dashboard/calendar/workspace-calendar-week';
+import { Routes } from '@/constants/routes';
 import { getWorkspaceCalendarWeek } from '@/data/calendar/get-workspace-calendar';
 import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
+import { completeGoogleCalendarPageOAuth } from '@/lib/calendar/complete-calendar-oauth';
 
 function CalendarFallback(): React.JSX.Element {
   return (
@@ -17,11 +20,27 @@ function CalendarFallback(): React.JSX.Element {
 async function CalendarPageContent({
   searchParams
 }: {
-  searchParams: Promise<{ week?: string; date?: string; view?: string }>;
+  searchParams: Promise<{
+    week?: string;
+    date?: string;
+    view?: string;
+    code?: string;
+    state?: string;
+    error?: string;
+    calendar?: string;
+  }>;
 }): Promise<React.JSX.Element> {
   await connection();
   await requireDashboardPageOrRedirect('calendar');
-  const { week, date, view } = await searchParams;
+  const { week, date, view, code, state, error } = await searchParams;
+  const oauthStatus = await completeGoogleCalendarPageOAuth({
+    code,
+    state,
+    error
+  });
+  if (oauthStatus) {
+    redirect(`${Routes.Calendar}?calendar=${oauthStatus}`);
+  }
   const data = await getWorkspaceCalendarWeek(date ?? week, view);
 
   return (
@@ -42,7 +61,15 @@ async function CalendarPageContent({
 export default function CalendarPage({
   searchParams
 }: {
-  searchParams: Promise<{ week?: string; date?: string; view?: string }>;
+  searchParams: Promise<{
+    week?: string;
+    date?: string;
+    view?: string;
+    code?: string;
+    state?: string;
+    error?: string;
+    calendar?: string;
+  }>;
 }): React.JSX.Element {
   return (
     <React.Suspense fallback={<CalendarFallback />}>

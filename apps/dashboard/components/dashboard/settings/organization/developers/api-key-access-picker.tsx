@@ -16,14 +16,13 @@ import {
   type ApiKeyAccessMode,
   type ApiKeyScope
 } from '@/lib/auth/api-key-scopes';
-import { brandAngleSurfaceClassName } from '@/lib/dashboard/brand-angle-styles';
 import { cn } from '@/lib/utils';
 
 const FADE = { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
 
-const ACCESS_CARD_SURFACE = brandAngleSurfaceClassName('rounded-xl');
+const ACCESS_CARD_SURFACE = 'rounded-xl';
 
-const SCOPE_CARD_SURFACE = brandAngleSurfaceClassName('rounded-xl');
+const SCOPE_CARD_SURFACE = 'rounded-xl';
 
 const ACCESS_OPTIONS = [
   {

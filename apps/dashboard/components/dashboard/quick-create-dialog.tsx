@@ -22,8 +22,16 @@ export const QUICK_CREATE_BODY_CLASS =
 export const QUICK_CREATE_META_CLASS =
   'w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/55';
 
+/** Same `--muted` fill as inset headers and header icon hover. */
+export const QUICK_CREATE_FIELD_CLASS =
+  'h-10 w-full rounded-xl border border-border/60 bg-muted px-3 text-sm text-foreground shadow-none outline-none placeholder:text-muted-foreground/55 focus-visible:ring-1 focus-visible:ring-ring';
+
+/** Outline property chips — Linear-style: icon + label, same surface as the card. */
 export const QUICK_CREATE_CHIP_CLASS =
-  'inline-flex h-7 items-center gap-1.5 rounded-lg border border-border/60 bg-transparent px-2 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground';
+  'inline-flex h-7 items-center gap-1 rounded-md border border-foreground/15 bg-transparent px-1.5 font-sans text-[13px] font-normal leading-none tracking-normal text-muted-foreground shadow-none transition-colors hover:bg-muted/40 hover:text-foreground';
+
+export const QUICK_CREATE_CHIP_ACTIVE_CLASS =
+  'border-foreground/20 bg-muted/40 text-foreground';
 
 export function QuickCreateDialogContent({
   title,
@@ -53,14 +61,14 @@ export function QuickCreateDialogContent({
       <div
         className={cn(
           dashboardQuickCreateClassName,
-          'relative flex max-h-[min(40rem,90vh)] w-full flex-col gap-0 p-0'
+          'relative flex max-h-[min(40rem,90vh)] w-full flex-col gap-0 overflow-hidden p-0'
         )}
       >
         {children}
         {preventDismiss ? null : (
           <DialogClose
             type="button"
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            className="absolute right-3 top-3 rounded-lg p-1.5 text-muted-foreground opacity-70 ring-offset-background transition-colors hover:bg-muted/60 hover:text-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
           >
             <Cross2Icon className="size-4 shrink-0" />
             <span className="sr-only">Close</span>
@@ -81,7 +89,7 @@ export function QuickCreateFooter({
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-2 px-5 pb-4 pt-3',
+        'flex items-center justify-end gap-2 bg-transparent px-4 pb-3.5 pt-1',
         className
       )}
     >
