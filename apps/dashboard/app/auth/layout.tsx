@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { connection } from 'next/server';
 import { InvitationStatus } from '@prisma/client';
 import { validate as uuidValidate } from 'uuid';
 
@@ -98,10 +97,7 @@ async function readAuthSession() {
   }
 }
 
-async function AuthSessionGate({
-  children
-}: React.PropsWithChildren): Promise<React.JSX.Element> {
-  await connection();
+async function AuthLoggedInRedirect(): Promise<null> {
   const session = await readAuthSession();
   if (
     !isChangeEmailRoute() &&
@@ -110,28 +106,45 @@ async function AuthSessionGate({
     !isMfaChallengeRoute() &&
     session?.user?.id
   ) {
-    return redirect(await getAuthenticatedRedirect(session.user.id));
+    redirect(await getAuthenticatedRedirect(session.user.id));
   }
+  return null;
+}
 
-  const oss = isOssDeployment();
-  const showBackToMarketing = !oss && isLoginOrSignUpRoute();
-
-  if (
+async function AuthAccessSwitch({
+  children
+}: React.PropsWithChildren): Promise<React.JSX.Element> {
+  const showWall =
     isLoginOrSignUpRoute() &&
     isAuthAccessGateEnabled() &&
     !(await hasAuthAccessUnlock()) &&
-    !(await hasPendingInvitationSignup())
-  ) {
-    return (
-      <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
-        <AuthAccessWall />
-      </AuthLayoutFrame>
-    );
+    !(await hasPendingInvitationSignup());
+
+  if (!showWall) {
+    return <>{children}</>;
   }
 
   return (
+    <>
+      <AuthAccessWall />
+      <div hidden>{children}</div>
+    </>
+  );
+}
+
+function AuthLayoutBody({
+  children
+}: React.PropsWithChildren): React.JSX.Element {
+  const showBackToMarketing = !isOssDeployment() && isLoginOrSignUpRoute();
+
+  return (
     <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
-      {children}
+      <React.Suspense fallback={null}>
+        <AuthLoggedInRedirect />
+      </React.Suspense>
+      <React.Suspense fallback={children}>
+        <AuthAccessSwitch>{children}</AuthAccessSwitch>
+      </React.Suspense>
     </AuthLayoutFrame>
   );
 }
@@ -140,8 +153,12 @@ export default function AuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <React.Suspense fallback={<AuthLayoutFrame showBackToMarketing />}>
-      <AuthSessionGate>{children}</AuthSessionGate>
+    <React.Suspense
+      fallback={
+        <AuthLayoutFrame showBackToMarketing>{children}</AuthLayoutFrame>
+      }
+    >
+      <AuthLayoutBody>{children}</AuthLayoutBody>
     </React.Suspense>
   );
 }
