@@ -67,14 +67,33 @@ export async function updateOrganizationsForOwner(
   ownerId: string,
   data: Prisma.OrganizationUncheckedUpdateInput
 ): Promise<void> {
-  const orgs = await db.organization.findMany({
-    where: { ownerId },
-    select: { id: true }
-  });
-  for (const org of orgs) {
+  const [orgs, owner] = await Promise.all([
+    db.organization.findMany({
+      where: { ownerId },
+      select: { id: true, ownerId: true }
+    }),
+    db.user.findUnique({
+      where: { id: ownerId },
+      select: { organizationId: true }
+    })
+  ]);
+  const byId = new Map(orgs.map((org) => [org.id, org.ownerId]));
+  if (owner?.organizationId && !byId.has(owner.organizationId)) {
+    const active = await db.organization.findUnique({
+      where: { id: owner.organizationId },
+      select: { id: true, ownerId: true }
+    });
+    if (active) {
+      byId.set(active.id, active.ownerId);
+    }
+  }
+  for (const [id, existingOwnerId] of byId) {
     await db.organization.update({
-      where: { id: org.id },
-      data
+      where: { id },
+      data: {
+        ...data,
+        ...(existingOwnerId ? {} : { ownerId })
+      }
     });
   }
 }

@@ -261,6 +261,40 @@ export function clampAddOnQuantity(quantity: number): number {
   return Math.min(MAX_ADD_ON_QUANTITY, Math.max(1, Math.floor(quantity)));
 }
 
+/**
+ * Units still missing on the Humaner ledger after Polar/checkout sync.
+ * A successful Extra Inbox / Extra Seat payment must raise extras by the
+ * purchased count — `Math.max` on an existing row is not a grant.
+ */
+export function missingAddOnGrant(
+  extrasBefore: number,
+  extrasAfterSync: number,
+  purchasedQuantity: number,
+): number {
+  const before = Math.max(0, extrasBefore);
+  const after = Math.max(0, extrasAfterSync);
+  const purchased = clampAddOnQuantity(purchasedQuantity);
+  return Math.max(0, before + purchased - after);
+}
+
+/**
+ * Polar opens a new Extra Inbox / Extra Seat subscription per checkout
+ * instead of raising `seats` on the first one. A `checkout:{id}` row is a
+ * paid grant Polar has not absorbed yet — fold it only into a new Polar id,
+ * or when Polar's count already covers the local kind total. Folding a
+ * stale seats=1 event into the first Extra Inbox row drops every later buy.
+ */
+export function shouldFoldCheckoutPlaceholder(input: {
+  polarSubscriptionAlreadyOnLedger: boolean;
+  polarQuantity: number;
+  localKindTotal: number;
+}): boolean {
+  if (!input.polarSubscriptionAlreadyOnLedger) {
+    return true;
+  }
+  return Math.max(0, input.polarQuantity) >= Math.max(0, input.localKindTotal);
+}
+
 export function formatAddOnCount(kind: AddOnKind, count: number): string {
   const labels = ADD_ON_LABELS[kind];
   return `${count} ${count === 1 ? labels.singular : labels.plural}`;
