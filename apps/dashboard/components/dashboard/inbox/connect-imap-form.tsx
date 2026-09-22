@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import type { AddOnInterval } from '@humaner/shared/addons';
 import {
   ArrowLeftIcon,
   ArrowRight,
@@ -18,16 +19,25 @@ import {
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
-import { createAddOnCheckout } from '@/actions/billing/create-add-on-checkout';
 import { connectImap } from '@/actions/inbox/connect-imap';
 import { deleteMailboxConnection } from '@/actions/inbox/delete-mailbox-connection';
 import { discoverImapAliases } from '@/actions/inbox/discover-imap-aliases';
 import { startGmailConnect } from '@/actions/inbox/start-gmail-connect';
+import {
+  addOnConsentCopy,
+  AddOnConsentFields,
+  AddOnConsentFooterButtons
+} from '@/components/billing/add-on-consent';
+import { AddOnGrantedDialog } from '@/components/billing/add-on-granted-dialog';
 import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
 import { AppPasswordTitleHint } from '@/components/dashboard/inbox/app-password-title-hint';
 import { DetectedImapProviderBanner } from '@/components/dashboard/inbox/detected-imap-provider-banner';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
+import {
+  QuickCreateDialogContent,
+  QuickCreateFooter
+} from '@/components/dashboard/quick-create-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +50,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,18 +69,18 @@ import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
 import type { ConnectedMailboxItem } from '@/data/inbox/get-mail-threads';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { usePurchaseAddOn } from '@/hooks/use-purchase-add-on';
 import {
   detectMailProviderFromEmail,
   getMailProviderById,
   mailProviderUsesAppPassword,
   resolveMailProviderPreset
 } from '@/lib/inbox/mail-providers';
-import {
-  getCaughtActionErrorMessage,
-  getSafeActionErrorMessage
-} from '@/lib/safe-action-error';
 import { cn } from '@/lib/utils';
-import type { DiscoverImapAliasesInput } from '@/schemas/inbox/connect-imap-schema';
+import type {
+  ConnectImapInput,
+  DiscoverImapAliasesInput
+} from '@/schemas/inbox/connect-imap-schema';
 
 type ConnectStep = 'credentials' | 'aliases';
 
@@ -105,15 +116,40 @@ export function ConnectImapForm({
   inboxLimit,
   connectionCount,
   connectedProviderIds = [],
-  connections = []
+  connections = [],
+  canApplyToBill = false
 }: {
   inboxLimit: number;
   connectionCount: number;
   connectedProviderIds?: string[];
   connections?: ConnectedMailboxItem[];
+  canApplyToBill?: boolean;
 }): React.JSX.Element {
   const router = useRouter();
-  const remainingInboxes = Math.max(0, inboxLimit - connectionCount);
+  const {
+    pending: addOnPending,
+    grant,
+    clearGrant,
+    purchase
+  } = usePurchaseAddOn();
+  const afterMailboxGrantRef = React.useRef<{
+    providerId: string | null;
+    retry: 'gmail' | 'imap' | null;
+  } | null>(null);
+  const [purchasedSlots, setPurchasedSlots] = React.useState(0);
+  const remainingInboxes = Math.max(
+    0,
+    inboxLimit + purchasedSlots - connectionCount
+  );
+  const [mailboxConsent, setMailboxConsent] = React.useState<{
+    canApplyToBill: boolean;
+    providerId: string | null;
+    retry: 'gmail' | 'imap' | null;
+  } | null>(null);
+  const [mailboxInterval, setMailboxInterval] =
+    React.useState<AddOnInterval>('month');
+  const [mailboxQuantity, setMailboxQuantity] = React.useState(1);
+  const pendingImapInputRef = React.useRef<ConnectImapInput | null>(null);
   const [step, setStep] = React.useState<ConnectStep>('credentials');
   const [providerId, setProviderId] = React.useState<string | null>(null);
   const [mobileShowDetail, setMobileShowDetail] = React.useState(false);
@@ -271,9 +307,12 @@ export function ConnectImapForm({
 
   const { execute, isExecuting } = useAction(connectImap, {
     onSuccess: ({ data }) => {
-      if (data?.checkoutUrl) {
-        toast.message('Add a mailbox to connect another inbox');
-        window.location.href = data.checkoutUrl;
+      if (data?.needsMailbox) {
+        setMailboxConsent({
+          canApplyToBill: data.canApplyToBill,
+          providerId: connectingProviderId,
+          retry: 'imap'
+        });
         return;
       }
       toast.success(
@@ -291,9 +330,12 @@ export function ConnectImapForm({
     startGmailConnect,
     {
       onSuccess: ({ data }) => {
-        if (data?.checkoutUrl) {
-          toast.message('Add a mailbox to connect another inbox');
-          window.location.assign(data.checkoutUrl);
+        if (data?.needsMailbox) {
+          setMailboxConsent({
+            canApplyToBill: data.canApplyToBill,
+            providerId: connectingProviderId,
+            retry: 'gmail'
+          });
           return;
         }
         if (data?.url) {
@@ -308,39 +350,29 @@ export function ConnectImapForm({
     }
   );
 
-  const purchaseMailboxSlot = async (): Promise<boolean> => {
-    try {
-      const result = await createAddOnCheckout({
-        kind: 'mailbox',
-        interval: 'month',
-        quantity: 1,
-        successPath: Routes.InboxProviders
-      });
-      if (result?.data?.applied) {
-        toast.success('Mailbox added to your monthly subscription');
-        router.refresh();
-        return true;
-      }
-      if (result?.data?.url) {
-        window.location.href = result.data.url;
-        return false;
-      }
-      toast.error(
-        getSafeActionErrorMessage(result, 'Could not add a mailbox slot.')
-      );
-    } catch (error) {
-      toast.error(
-        getCaughtActionErrorMessage(error, 'Could not add a mailbox slot.')
-      );
-    }
-    return false;
-  };
-
   const beginGmailConnect = (nextProviderId: string): void => {
     if (nextProviderId !== 'gmail' && nextProviderId !== 'google-workspace') {
       return;
     }
     connectGmail({ providerId: nextProviderId });
+  };
+
+  const openProviderFlow = (nextProviderId: string): void => {
+    setProviderId(nextProviderId);
+    setEmail('');
+    setPassword('');
+    setSmtpSameAsImap(true);
+    setSmtpUser('');
+    setSmtpPassword('');
+    setStep('credentials');
+    setDiscoveredAliases([]);
+    setSelectedAliases([]);
+    setManualAlias('');
+    setMobileShowDetail(true);
+
+    if (getMailProviderById(nextProviderId)?.oauthAvailable) {
+      beginGmailConnect(nextProviderId);
+    }
   };
 
   const { execute: removeConnection, isExecuting: isRemoving } = useAction(
@@ -362,23 +394,54 @@ export function ConnectImapForm({
 
   const startNewForProvider = (nextProviderId: string): void => {
     if (remainingInboxes <= 0) {
-      void purchaseMailboxSlot();
+      setMailboxConsent({
+        canApplyToBill,
+        providerId: nextProviderId,
+        retry: null
+      });
       return;
     }
-    setProviderId(nextProviderId);
-    setEmail('');
-    setPassword('');
-    setSmtpSameAsImap(true);
-    setSmtpUser('');
-    setSmtpPassword('');
-    setStep('credentials');
-    setDiscoveredAliases([]);
-    setSelectedAliases([]);
-    setManualAlias('');
-    setMobileShowDetail(true);
+    openProviderFlow(nextProviderId);
+  };
 
-    if (getMailProviderById(nextProviderId)?.oauthAvailable) {
-      beginGmailConnect(nextProviderId);
+  const confirmMailboxAddOn = async (): Promise<void> => {
+    if (!mailboxConsent) {
+      return;
+    }
+    const outcome = await purchase({
+      kind: 'mailbox',
+      interval: mailboxInterval,
+      quantity: mailboxQuantity,
+      successPath: Routes.InboxProviders
+    });
+    if (outcome.outcome !== 'applied') {
+      return;
+    }
+    setPurchasedSlots((current) => current + outcome.grantedQuantity);
+    afterMailboxGrantRef.current = {
+      providerId: mailboxConsent.providerId,
+      retry: mailboxConsent.retry
+    };
+    setMailboxConsent(null);
+  };
+
+  const continueAfterMailboxGrant = (): void => {
+    const pending = afterMailboxGrantRef.current;
+    afterMailboxGrantRef.current = null;
+    clearGrant();
+    if (!pending) {
+      return;
+    }
+    if (pending.retry === 'imap' && pendingImapInputRef.current) {
+      execute(pendingImapInputRef.current);
+      return;
+    }
+    if (pending.retry === 'gmail' && pending.providerId) {
+      beginGmailConnect(pending.providerId);
+      return;
+    }
+    if (pending.providerId) {
+      openProviderFlow(pending.providerId);
     }
   };
 
@@ -473,10 +536,12 @@ export function ConnectImapForm({
       return;
     }
 
-    execute({
+    const input = {
       ...payload,
       aliases: selectedAliases
-    });
+    };
+    pendingImapInputRef.current = input;
+    execute(input);
   };
 
   const listPanel = (
@@ -1182,6 +1247,48 @@ export function ConnectImapForm({
         </div>
       </div>
       {removeDialog}
+      <Dialog
+        open={mailboxConsent != null}
+        onOpenChange={(open) => {
+          if (!open && addOnPending == null) {
+            setMailboxConsent(null);
+          }
+        }}
+      >
+        <QuickCreateDialogContent
+          title={addOnConsentCopy('mailbox').title}
+          description={addOnConsentCopy('mailbox').description}
+          hideCardClose
+          onClose={() => {
+            if (addOnPending == null) {
+              setMailboxConsent(null);
+            }
+          }}
+        >
+          <AddOnConsentFields
+            kind="mailbox"
+            interval={mailboxInterval}
+            onIntervalChange={setMailboxInterval}
+            quantity={mailboxQuantity}
+            onQuantityChange={setMailboxQuantity}
+            canApplyToBill={mailboxConsent?.canApplyToBill ?? canApplyToBill}
+          />
+          <QuickCreateFooter className="justify-between">
+            <AddOnConsentFooterButtons
+              kind="mailbox"
+              quantity={mailboxQuantity}
+              canApplyToBill={mailboxConsent?.canApplyToBill ?? canApplyToBill}
+              loading={addOnPending === 'mailbox'}
+              onCancel={() => setMailboxConsent(null)}
+              onConfirm={() => void confirmMailboxAddOn()}
+            />
+          </QuickCreateFooter>
+        </QuickCreateDialogContent>
+      </Dialog>
+      <AddOnGrantedDialog
+        grant={grant}
+        onClose={continueAfterMailboxGrant}
+      />
     </>
   );
 }

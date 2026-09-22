@@ -26,6 +26,10 @@ import { InboxMailboxMenu } from '@/components/dashboard/inbox-mailbox-menu';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { MailboxNavIcon } from '@/components/dashboard/mailbox-nav-icon';
 import { McpNavIcon } from '@/components/dashboard/mcp-nav-icon';
+import {
+  NavConnectors,
+  type ConnectorNavItem
+} from '@/components/dashboard/nav-connectors';
 import { SIDEBAR_DRAWER_IDS } from '@/components/dashboard/sidebar-nav-accordion';
 import {
   SidebarNavChild,
@@ -112,7 +116,8 @@ export function NavMailbox({
   showCompanionUpgrade = false,
   showMcp = false,
   canManageTeam = true,
-  canManageProviders = true
+  canManageProviders = true,
+  connectors = []
 }: {
   orgTier: string;
   unreadCount?: number;
@@ -122,6 +127,7 @@ export function NavMailbox({
   showMcp?: boolean;
   canManageTeam?: boolean;
   canManageProviders?: boolean;
+  connectors?: ConnectorNavItem[];
 }): React.JSX.Element {
   const pathname = usePathname();
   const { toggleDock, activeMode } = useDashboardDock();
@@ -351,6 +357,7 @@ export function NavMailbox({
             />
           );
         })}
+        <NavConnectors connectors={connectors} />
         {showMcp ? (
           <SidebarNavLink
             href={Routes.Developers}

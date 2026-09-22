@@ -39,10 +39,13 @@ export function QuickCreateDialogContent({
   className,
   children,
   preventDismiss = false,
+  hideCardClose = false,
   ...props
 }: DialogContentProps & {
   title: string;
   description: string;
+  /** Hide the overlapping card X when a footer Cancel is used instead. */
+  hideCardClose?: boolean;
 }): React.JSX.Element {
   return (
     <DialogContent
@@ -65,7 +68,7 @@ export function QuickCreateDialogContent({
         )}
       >
         {children}
-        {preventDismiss ? null : (
+        {preventDismiss || hideCardClose ? null : (
           <DialogClose
             type="button"
             className="absolute right-3 top-3 rounded-lg p-1.5 text-muted-foreground opacity-70 ring-offset-background transition-colors hover:bg-muted/60 hover:text-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"

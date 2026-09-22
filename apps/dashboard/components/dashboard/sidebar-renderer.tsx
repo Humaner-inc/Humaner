@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
+import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { SidebarEdgeToggle } from '@/components/dashboard/sidebar-edge-toggle';
 import { SidebarOverlayBackdrop } from '@/components/dashboard/sidebar-overlay-backdrop';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
@@ -24,6 +25,7 @@ export type SidebarRendererProps = {
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
   showCompanionUpgrade?: boolean;
+  connectors?: ConnectorNavItem[];
 };
 
 export function SidebarRenderer({
@@ -38,7 +40,8 @@ export function SidebarRenderer({
   agentDeskOpenCount = 0,
   mailInboxes = [],
   companionHref,
-  showCompanionUpgrade = false
+  showCompanionUpgrade = false,
+  connectors = []
 }: SidebarRendererProps): React.JSX.Element {
   return (
     <>
@@ -55,6 +58,7 @@ export function SidebarRenderer({
         mailInboxes={mailInboxes}
         companionHref={companionHref}
         showCompanionUpgrade={showCompanionUpgrade}
+        connectors={connectors}
       />
       <SidebarOverlayBackdrop />
       <SidebarEdgeToggle />

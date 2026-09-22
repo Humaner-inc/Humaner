@@ -9,7 +9,7 @@ import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import {
-  ensureAddOnCapacity,
+  canApplyAddOnToBill,
   resolveAddOnOwner
 } from '@/lib/billing/ensure-add-on';
 import { prisma } from '@/lib/db/prisma';
@@ -131,17 +131,11 @@ export const connectImap = ownerActionClient
         email: session.user.email,
         name: session.user.name
       };
-      const addOn = await ensureAddOnCapacity({
-        ownerId: owner.ownerId,
-        email: owner.email,
-        name: owner.name,
-        kind: 'mailbox',
-        quantity: 1,
-        successPath: Routes.InboxProviders
-      });
-      if (addOn.status === 'checkout') {
-        return { checkoutUrl: addOn.url };
-      }
+      const canApplyToBill = await canApplyAddOnToBill(
+        owner.ownerId,
+        'mailbox'
+      );
+      return { needsMailbox: true as const, canApplyToBill };
     }
 
     const [existingConnection, existingAliases] = await Promise.all([

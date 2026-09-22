@@ -1,5 +1,11 @@
 import 'server-only';
 
+import {
+  finishConnectorEvent,
+  recordConnectorEvent,
+  upsertThreadConnectorLink
+} from '@/lib/connectors/events';
+import { prisma } from '@/lib/db/prisma';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
 import { getConnectAccessToken } from '@/lib/vercel-connect/client';
 import type { WorkspaceToolContext } from '@/lib/workspace-api/authorize';
@@ -88,6 +94,34 @@ async function stripeJson(
   return { ok: true, data: text ? JSON.parse(text) : null };
 }
 
+const LINEAR_ISSUE_FIELDS = `id identifier title url priority state { id name } assignee { id name } team { id name key }`;
+
+type LinearIssueNode = {
+  id: string;
+  identifier: string;
+  title: string;
+  url?: string;
+  priority?: number | null;
+  state?: { id?: string; name?: string } | null;
+  assignee?: { id?: string; name?: string } | null;
+  team?: { id?: string; name?: string; key?: string } | null;
+};
+
+function mapLinearIssue(node: LinearIssueNode) {
+  return {
+    id: node.id,
+    identifier: node.identifier,
+    title: node.title,
+    url: node.url ?? null,
+    priority: node.priority ?? null,
+    state: node.state?.name ?? null,
+    stateId: node.state?.id ?? null,
+    assignee: node.assignee?.name ?? null,
+    team: node.team?.name ?? null,
+    teamId: node.team?.id ?? null
+  };
+}
+
 async function linearGraphql(
   token: string,
   query: string,
@@ -95,12 +129,13 @@ async function linearGraphql(
 ): Promise<
   { ok: true; data: Record<string, unknown> } | { ok: false; error: string }
 > {
+  const headers: Record<string, string> = {
+    Authorization: token.startsWith('lin_') ? token : `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
   const response = await fetch('https://api.linear.app/graphql', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify({ query, variables })
   });
   const payload = (await response.json()) as {
@@ -116,7 +151,69 @@ async function linearGraphql(
   return { ok: true, data: payload.data ?? {} };
 }
 
-async function executeListLinearIssues(
+async function withLinearEvent<T extends WorkspaceToolResult>(
+  context: WorkspaceToolContext,
+  kind: string,
+  title: string,
+  run: () => Promise<T>
+): Promise<T> {
+  const eventId = await recordConnectorEvent({
+    organizationId: context.organizationId,
+    connector: 'linear',
+    direction: 'outbound',
+    status: 'processing',
+    kind,
+    title
+  });
+  try {
+    const result = await run();
+    const data = result.data as
+      | { identifier?: string; title?: string; url?: string; id?: string }
+      | undefined;
+    await finishConnectorEvent(eventId, {
+      status: result.ok ? 'ok' : 'error',
+      title:
+        data?.identifier && data.title
+          ? `${data.identifier} · ${data.title}`
+          : result.ok
+            ? title
+            : (result.error ?? title),
+      detail: result.ok ? null : result.error,
+      externalId: data?.id ?? null,
+      externalUrl: data?.url ?? null
+    });
+    return result;
+  } catch (error) {
+    await finishConnectorEvent(eventId, {
+      status: 'error',
+      detail: error instanceof Error ? error.message : 'Linear request failed.'
+    });
+    throw error;
+  }
+}
+
+async function upsertThreadLinearLink(
+  organizationId: string,
+  threadId: string,
+  issue: {
+    id: string;
+    identifier: string;
+    title: string;
+    url?: string | null;
+  }
+): Promise<void> {
+  await upsertThreadConnectorLink({
+    organizationId,
+    threadId,
+    connector: 'linear',
+    externalId: issue.id,
+    identifier: issue.identifier,
+    title: issue.title,
+    url: issue.url ?? ''
+  });
+}
+
+async function fetchLinearIssues(
   args: Record<string, unknown>,
   context: WorkspaceToolContext
 ): Promise<WorkspaceToolResult> {
@@ -124,96 +221,330 @@ async function executeListLinearIssues(
   if (!('token' in token)) return token;
 
   const query = asString(args.query);
+  const first = asLimit(args.limit);
   const result = await linearGraphql(
     token.token,
     query
       ? `query SearchIssues($first: Int!, $term: String!) {
-      searchIssues(term: $term, first: $first, includeComments: false) {
-        nodes { id identifier title url state { name } team { name key } }
-      }
-      teams { nodes { id name key } }
-    }`
+          viewer { id displayName organization { name urlKey } }
+          searchIssues(term: $term, first: $first, includeComments: false) {
+            nodes { ${LINEAR_ISSUE_FIELDS} }
+          }
+          teams { nodes { id name key } }
+        }`
       : `query ListIssues($first: Int!) {
-      issues(first: $first) {
-        nodes { id identifier title url state { name } team { name key } }
-      }
-      teams { nodes { id name key } }
-    }`,
-    query
-      ? { first: asLimit(args.limit), term: query }
-      : { first: asLimit(args.limit) }
+          viewer { id displayName organization { name urlKey } }
+          issues(first: $first, includeArchived: false) {
+            nodes { ${LINEAR_ISSUE_FIELDS} }
+          }
+          teams {
+            nodes {
+              id name key
+              issues(first: $first, includeArchived: false) {
+                nodes { ${LINEAR_ISSUE_FIELDS} }
+              }
+            }
+          }
+        }`,
+    query ? { first, term: query } : { first }
   );
   if (!result.ok) return result;
 
-  const issues = (query ? result.data.searchIssues : result.data.issues) as
-    | { nodes?: unknown[] }
+  const viewer = result.data.viewer as
+    | { displayName?: string; organization?: { name?: string } }
     | undefined;
-  const teams = result.data.teams as { nodes?: unknown[] } | undefined;
+  const searched = (
+    result.data.searchIssues as { nodes?: LinearIssueNode[] } | undefined
+  )?.nodes;
+  const root = (result.data.issues as { nodes?: LinearIssueNode[] } | undefined)
+    ?.nodes;
+  const teams = (
+    result.data.teams as {
+      nodes?: Array<{
+        id: string;
+        name: string;
+        key: string;
+        issues?: { nodes?: LinearIssueNode[] };
+      }>;
+    }
+  )?.nodes;
+
+  const fromTeams = teams?.flatMap((team) => team.issues?.nodes ?? []) ?? [];
+  const raw = searched ?? (root && root.length > 0 ? root : fromTeams);
+  const seen = new Set<string>();
+  const issues = raw
+    .filter((node) => {
+      if (!node?.id || seen.has(node.id)) return false;
+      seen.add(node.id);
+      return true;
+    })
+    .map(mapLinearIssue);
+
   return {
     ok: true,
-    data: { issues: issues?.nodes ?? [], teams: teams?.nodes ?? [] }
+    data: {
+      workspace: viewer?.organization?.name ?? viewer?.displayName ?? null,
+      issues,
+      teams: (teams ?? []).map((team) => ({
+        id: team.id,
+        name: team.name,
+        key: team.key
+      }))
+    }
   };
+}
+
+async function executeListLinearIssues(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const query = asString(args.query);
+  return withLinearEvent(
+    context,
+    query ? 'issues.search' : 'issues.list',
+    query ? `Search Linear · ${query}` : 'List Linear issues',
+    () => fetchLinearIssues(args, context)
+  );
 }
 
 async function executeCreateLinearIssue(
   args: Record<string, unknown>,
   context: WorkspaceToolContext
 ): Promise<WorkspaceToolResult> {
-  const title = asString(args.title);
+  let title = asString(args.title);
+  const threadId = asString(args.threadId);
+  let description = asString(args.description);
+
+  if (threadId && (!title || !description)) {
+    const thread = await prisma.mailThread.findFirst({
+      where: { id: threadId, organizationId: context.organizationId },
+      select: {
+        subject: true,
+        messages: {
+          orderBy: { sentAt: 'asc' },
+          take: 1,
+          select: { bodyText: true, fromAddress: true }
+        }
+      }
+    });
+    if (!thread) return { ok: false, error: 'threadId was not found.' };
+    if (!title) title = thread.subject;
+    if (!description) {
+      const first = thread.messages[0];
+      description = [first?.fromAddress, first?.bodyText]
+        .filter(Boolean)
+        .join('\n\n')
+        .slice(0, 8000);
+    }
+  }
+
   if (!title) return { ok: false, error: 'title is required.' };
 
   const token = await requireToken(context, 'linear');
   if (!('token' in token)) return token;
 
-  let teamId = asString(args.teamId);
-  if (!teamId) {
-    const teams = await linearGraphql(
-      token.token,
-      'query { teams { nodes { id name key } } }',
-      {}
-    );
-    if (!teams.ok) return teams;
-    const nodes =
-      (
-        teams.data.teams as {
-          nodes?: Array<{ id: string; name: string; key: string }>;
-        }
-      )?.nodes ?? [];
-    if (nodes.length === 0) {
-      return { ok: false, error: 'No Linear team is available.' };
-    }
-    if (nodes.length > 1) {
-      return {
-        ok: true,
-        data: { needsTeam: true, teams: nodes }
-      };
-    }
-    teamId = nodes[0].id;
-  }
-
-  const created = await linearGraphql(
-    token.token,
-    `mutation CreateIssue($teamId: String!, $title: String!, $description: String) {
-      issueCreate(input: { teamId: $teamId, title: $title, description: $description }) {
-        success
-        issue { id identifier title url }
+  return withLinearEvent(context, 'issues.create', title, async () => {
+    let teamId = asString(args.teamId);
+    if (!teamId) {
+      const teams = await linearGraphql(
+        token.token,
+        'query { teams { nodes { id name key } } }',
+        {}
+      );
+      if (!teams.ok) return teams;
+      const nodes =
+        (
+          teams.data.teams as {
+            nodes?: Array<{ id: string; name: string; key: string }>;
+          }
+        )?.nodes ?? [];
+      if (nodes.length === 0) {
+        return { ok: false, error: 'No Linear team is available.' };
       }
-    }`,
-    {
-      teamId,
-      title,
-      description: asString(args.description) || null
+      if (nodes.length > 1) {
+        return {
+          ok: true,
+          data: { needsTeam: true, teams: nodes }
+        };
+      }
+      teamId = nodes[0].id;
+    }
+
+    const created = await linearGraphql(
+      token.token,
+      `mutation CreateIssue($teamId: String!, $title: String!, $description: String) {
+        issueCreate(input: { teamId: $teamId, title: $title, description: $description }) {
+          success
+          issue { ${LINEAR_ISSUE_FIELDS} }
+        }
+      }`,
+      {
+        teamId,
+        title,
+        description: description || null
+      }
+    );
+    if (!created.ok) return created;
+    const payload = created.data.issueCreate as {
+      success?: boolean;
+      issue?: LinearIssueNode;
+    };
+    if (!payload?.success || !payload.issue) {
+      return { ok: false, error: 'Linear did not create the issue.' };
+    }
+    const issue = mapLinearIssue(payload.issue);
+    if (threadId) {
+      await upsertThreadLinearLink(context.organizationId, threadId, issue);
+    }
+    return { ok: true, data: { ...issue, threadId: threadId || null } };
+  });
+}
+
+async function executeUpdateLinearIssue(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const issueId = asString(args.issueId) || asString(args.id);
+  if (!issueId) return { ok: false, error: 'issueId is required.' };
+
+  const token = await requireToken(context, 'linear');
+  if (!('token' in token)) return token;
+
+  return withLinearEvent(
+    context,
+    'issues.update',
+    `Update ${issueId}`,
+    async () => {
+      let stateId = asString(args.stateId);
+      const stateName = asString(args.state);
+      if (!stateId && stateName) {
+        const states = await linearGraphql(
+          token.token,
+          `query IssueStates($id: String!) {
+          issue(id: $id) {
+            team {
+              states { nodes { id name } }
+            }
+          }
+        }`,
+          { id: issueId }
+        );
+        if (!states.ok) return states;
+        const nodes =
+          (
+            states.data.issue as {
+              team?: {
+                states?: { nodes?: Array<{ id: string; name: string }> };
+              };
+            }
+          )?.team?.states?.nodes ?? [];
+        const match = nodes.find(
+          (state) => state.name.toLowerCase() === stateName.toLowerCase()
+        );
+        if (!match) {
+          return {
+            ok: false,
+            error: `No Linear state named "${stateName}".`,
+            data: { states: nodes }
+          };
+        }
+        stateId = match.id;
+      }
+
+      const priorityRaw = args.priority;
+      const priority =
+        typeof priorityRaw === 'number'
+          ? priorityRaw
+          : Number.parseInt(asString(priorityRaw), 10);
+      const assigneeId = asString(args.assigneeId);
+      const title = asString(args.title);
+
+      const updated = await linearGraphql(
+        token.token,
+        `mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
+        issueUpdate(id: $id, input: $input) {
+          success
+          issue { ${LINEAR_ISSUE_FIELDS} }
+        }
+      }`,
+        {
+          id: issueId,
+          input: {
+            ...(stateId ? { stateId } : {}),
+            ...(Number.isFinite(priority) ? { priority } : {}),
+            ...(assigneeId ? { assigneeId } : {}),
+            ...(title ? { title } : {})
+          }
+        }
+      );
+      if (!updated.ok) return updated;
+      const payload = updated.data.issueUpdate as {
+        success?: boolean;
+        issue?: LinearIssueNode;
+      };
+      if (!payload?.success || !payload.issue) {
+        return { ok: false, error: 'Linear did not update the issue.' };
+      }
+      return { ok: true, data: mapLinearIssue(payload.issue) };
     }
   );
-  if (!created.ok) return created;
-  const payload = created.data.issueCreate as {
-    success?: boolean;
-    issue?: unknown;
-  };
-  if (!payload?.success || !payload.issue) {
-    return { ok: false, error: 'Linear did not create the issue.' };
+}
+
+async function executeLinkLinearIssue(
+  args: Record<string, unknown>,
+  context: WorkspaceToolContext
+): Promise<WorkspaceToolResult> {
+  const threadId = asString(args.threadId);
+  const issueId = asString(args.issueId) || asString(args.identifier);
+  if (!threadId || !issueId) {
+    return { ok: false, error: 'threadId and issueId are required.' };
   }
-  return { ok: true, data: payload.issue };
+
+  const thread = await prisma.mailThread.findFirst({
+    where: { id: threadId, organizationId: context.organizationId },
+    select: { id: true }
+  });
+  if (!thread) return { ok: false, error: 'threadId was not found.' };
+
+  const token = await requireToken(context, 'linear');
+  if (!('token' in token)) return token;
+
+  return withLinearEvent(
+    context,
+    'issues.link',
+    `Link ${issueId}`,
+    async () => {
+      const lookedUp = await linearGraphql(
+        token.token,
+        issueId.includes('-')
+          ? `query FindIssue($term: String!) {
+            searchIssues(term: $term, first: 5, includeComments: false) {
+              nodes { ${LINEAR_ISSUE_FIELDS} }
+            }
+          }`
+          : `query Issue($id: String!) { issue(id: $id) { ${LINEAR_ISSUE_FIELDS} } }`,
+        issueId.includes('-') ? { term: issueId } : { id: issueId }
+      );
+      if (!lookedUp.ok) return lookedUp;
+      const nodes =
+        (
+          lookedUp.data.searchIssues as
+            | { nodes?: LinearIssueNode[] }
+            | undefined
+        )?.nodes ??
+        (lookedUp.data.issue ? [lookedUp.data.issue as LinearIssueNode] : []);
+      const match =
+        nodes.find(
+          (node) =>
+            node.id === issueId ||
+            node.identifier.toLowerCase() === issueId.toLowerCase()
+        ) ?? nodes[0];
+      if (!match) return { ok: false, error: 'Linear issue was not found.' };
+      const issue = mapLinearIssue(match);
+      await upsertThreadLinearLink(context.organizationId, threadId, issue);
+      return { ok: true, data: { ...issue, threadId } };
+    }
+  );
 }
 
 async function executeListGithubIssues(
@@ -520,6 +851,15 @@ async function executeSearchNotionPages(
   };
 }
 
+export async function loadLinearWorkspace(
+  organizationId: string
+): Promise<WorkspaceToolResult> {
+  return fetchLinearIssues(
+    {},
+    { organizationId, apiKeyId: null, actorUserId: '', allowSend: false }
+  );
+}
+
 export async function executeConnectorTool(
   name: string,
   args: Record<string, unknown>,
@@ -530,6 +870,10 @@ export async function executeConnectorTool(
       return executeListLinearIssues(args, context);
     case 'create_linear_issue':
       return executeCreateLinearIssue(args, context);
+    case 'update_linear_issue':
+      return executeUpdateLinearIssue(args, context);
+    case 'link_linear_issue':
+      return executeLinkLinearIssue(args, context);
     case 'list_github_issues':
       return executeListGithubIssues(args, context);
     case 'list_github_pull_requests':

@@ -31,6 +31,7 @@ import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
+import { getConnectorSummaries } from '@/data/inbox/get-connector-activity';
 import {
   getMailInboxes,
   getMailUnreadCount
@@ -169,7 +170,8 @@ export async function DashboardSessionShell({
     teamFeed,
     taskProposals,
     mcpIntelligenceEnabled,
-    companionRights
+    companionRights,
+    connectors
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -196,7 +198,8 @@ export async function DashboardSessionShell({
           integrations: [],
           actionSuggestions: true
         })
-      : getCompanionWorkspaceRights()
+      : getCompanionWorkspaceRights(),
+    oss || !canInbox ? Promise.resolve([]) : getConnectorSummaries()
   ]);
   const {
     items: notifications,
@@ -282,6 +285,7 @@ export async function DashboardSessionShell({
         showCompanionUpgrade={isCloudFreePlan(
           userFromDb!.organization!.tier ?? 'free'
         )}
+        connectors={connectors}
       />
       <SidebarInset
         id="skip"

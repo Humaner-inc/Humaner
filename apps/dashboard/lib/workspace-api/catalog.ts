@@ -17,6 +17,8 @@ export const WORKSPACE_TOOL_NAMES = [
   'list_connectors',
   'list_linear_issues',
   'create_linear_issue',
+  'update_linear_issue',
+  'link_linear_issue',
   'list_github_issues',
   'list_github_pull_requests',
   'create_github_issue',
@@ -230,16 +232,48 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
   {
     name: 'create_linear_issue',
     description:
-      'Create a Linear issue. If several teams exist, omit teamId first — the tool returns them. Then call again with teamId.',
+      'Create a Linear issue from chat or a mailbox thread. Pass threadId to draft the description from the mail and link the issue. If several teams exist, omit teamId first — the tool returns them. Then call again with teamId.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
       properties: {
         title: { type: 'string', minLength: 1, maxLength: 255 },
         description: { type: 'string', maxLength: 8000 },
-        teamId: { type: 'string' }
+        teamId: { type: 'string' },
+        threadId: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'update_linear_issue',
+    description:
+      'Update a Linear issue: state (by name, e.g. In Progress / Done), priority (0–4), assigneeId, or title. Pass issueId.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        issueId: { type: 'string', minLength: 1 },
+        state: { type: 'string' },
+        stateId: { type: 'string' },
+        priority: { type: 'integer', minimum: 0, maximum: 4 },
+        assigneeId: { type: 'string' },
+        title: { type: 'string', maxLength: 255 }
       },
-      required: ['title']
+      required: ['issueId']
+    }
+  },
+  {
+    name: 'link_linear_issue',
+    description:
+      'Link an existing Linear issue to a mailbox thread. Pass threadId and issueId or identifier (ENG-123).',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        threadId: { type: 'string', minLength: 1 },
+        issueId: { type: 'string', minLength: 1 }
+      },
+      required: ['threadId', 'issueId']
     }
   },
   {

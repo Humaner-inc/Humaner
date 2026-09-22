@@ -58,6 +58,7 @@ export enum Routes {
   InboxDrafts = '/inbox/drafts',
   InboxSettings = '/inbox/settings',
   InboxSettingsConnectCallback = '/inbox/settings/connect-callback',
+  InboxConnectors = '/inbox/connectors',
   Tasks = '/organization/tasks',
   Calendar = '/calendar',
   Resources = '/organization/resources',
@@ -144,6 +145,10 @@ export function agentAnalyticsRoute(agentId: string): string {
 
 export function agentHistoryRoute(agentId: string): string {
   return `/agents/${agentId}/history`;
+}
+
+export function inboxConnectorRoute(app: string): string {
+  return `${Routes.InboxConnectors}/${encodeURIComponent(app)}`;
 }
 
 export function integrationChannelRoute(channelId: string): string {

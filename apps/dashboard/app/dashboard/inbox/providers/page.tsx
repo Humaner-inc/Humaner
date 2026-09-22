@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 
+import { AddOnCheckoutReturn } from '@/components/billing/add-on-checkout-return';
 import { ConnectImapForm } from '@/components/dashboard/inbox/connect-imap-form';
 import { GmailConnectToast } from '@/components/dashboard/inbox/gmail-connect-toast';
 import {
@@ -44,6 +45,7 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
   return (
     <>
       <Suspense fallback={null}>
+        <AddOnCheckoutReturn />
         <GmailConnectToast />
       </Suspense>
       <ConnectImapForm
@@ -51,6 +53,7 @@ export default async function InboxProvidersPage(): Promise<React.JSX.Element> {
         connectionCount={overview.connectionCount}
         connectedProviderIds={connectedProviderIds}
         connections={connections}
+        canApplyToBill={overview.canApplyMailboxAddOn}
       />
     </>
   );

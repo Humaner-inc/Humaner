@@ -185,3 +185,13 @@ export function addOnMonthlyPrice(
 ): number {
   return ADD_ON_PRICES[kind][interval] * clampAddOnQuantity(quantity);
 }
+
+export function addOnCheckoutAmountCents(
+  kind: AddOnKind,
+  interval: AddOnInterval,
+  quantity: number,
+): number {
+  const monthly = ADD_ON_PRICES[kind][interval];
+  const periods = interval === "year" ? 12 : 1;
+  return Math.round(monthly * periods * clampAddOnQuantity(quantity) * 100);
+}

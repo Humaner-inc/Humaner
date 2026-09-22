@@ -67,6 +67,8 @@ export const CONNECTOR_TOOL_INTEGRATION: Record<
 > = {
   list_linear_issues: 'linear',
   create_linear_issue: 'linear',
+  update_linear_issue: 'linear',
+  link_linear_issue: 'linear',
   list_github_issues: 'github',
   list_github_pull_requests: 'github',
   create_github_issue: 'github',

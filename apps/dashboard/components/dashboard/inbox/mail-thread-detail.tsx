@@ -46,6 +46,7 @@ import {
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
 import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
+import { MailThreadLinear } from '@/components/dashboard/inbox/mail-thread-linear';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -1187,6 +1188,10 @@ export function MailThreadDetail({
                 showFloatingBar && 'pb-24'
               )}
             >
+              <MailThreadLinear
+                threadId={thread.id}
+                subject={thread.subject}
+              />
               <ol className="space-y-4">
                 {thread.messages.map((message, index) => (
                   <MailThreadMessage

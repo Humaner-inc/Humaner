@@ -6,6 +6,7 @@ import { XIcon } from '@humaner/shared/icons';
 import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
 import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
+import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
@@ -38,6 +39,7 @@ export type AppSidebarProps = {
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
   showCompanionUpgrade?: boolean;
+  connectors?: ConnectorNavItem[];
 };
 
 export function AppSidebar({
@@ -52,7 +54,8 @@ export function AppSidebar({
   agentDeskOpenCount = 0,
   mailInboxes = [],
   companionHref,
-  showCompanionUpgrade = false
+  showCompanionUpgrade = false,
+  connectors = []
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
   const isCollapsed = !sidebar.open;
@@ -110,6 +113,7 @@ export function AppSidebar({
             mailInboxes={mailInboxes}
             companionHref={companionHref}
             showCompanionUpgrade={showCompanionUpgrade}
+            connectors={connectors}
           />
         </ScrollArea>
       </SidebarContent>

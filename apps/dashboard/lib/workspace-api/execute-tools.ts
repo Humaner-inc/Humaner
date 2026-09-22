@@ -1165,6 +1165,8 @@ export async function executeWorkspaceTool(
       return executeListConnectors(context);
     case 'list_linear_issues':
     case 'create_linear_issue':
+    case 'update_linear_issue':
+    case 'link_linear_issue':
     case 'list_github_issues':
     case 'list_github_pull_requests':
     case 'create_github_issue':

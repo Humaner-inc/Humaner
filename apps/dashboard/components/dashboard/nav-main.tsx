@@ -7,6 +7,7 @@ import {
   NavAgentTree,
   type SidebarAgent
 } from '@/components/dashboard/nav-agent-tree';
+import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
@@ -43,6 +44,7 @@ export type NavMainProps = SidebarGroupProps & {
   mailInboxes?: MailInboxOption[];
   companionHref?: string | null;
   showCompanionUpgrade?: boolean;
+  connectors?: ConnectorNavItem[];
 };
 
 export function NavMain({
@@ -56,6 +58,7 @@ export function NavMain({
   mailInboxes = [],
   companionHref,
   showCompanionUpgrade = false,
+  connectors = [],
   ...props
 }: NavMainProps): React.JSX.Element {
   const pathname = usePathname();
@@ -86,6 +89,7 @@ export function NavMain({
               canManageProviders={
                 isWorkspaceOwner(profile) || canAccessPage(profile, 'settings')
               }
+              connectors={connectors}
             />
           </React.Suspense>
         ) : null}

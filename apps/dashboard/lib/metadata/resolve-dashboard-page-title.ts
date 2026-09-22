@@ -30,6 +30,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.InboxTrash]: 'Trash',
   [Routes.InboxAliases]: 'Workspace settings',
   [Routes.InboxSettings]: 'Workspace settings',
+  [Routes.InboxConnectors]: 'Connectors',
   [Routes.Resources]: 'Resources',
   [Routes.InboxProviders]: 'Providers',
   [Routes.InboxTags]: 'Tags',
@@ -104,6 +105,10 @@ export function resolveDashboardPageTitle(pathname: string): string {
     const channelId = integrationMatch[1];
     const channel = INTEGRATION_CHANNELS.find((item) => item.id === channelId);
     return channel?.name ?? 'Integration';
+  }
+
+  if (publicPath.startsWith(Routes.InboxConnectors)) {
+    return 'Connectors';
   }
 
   if (
