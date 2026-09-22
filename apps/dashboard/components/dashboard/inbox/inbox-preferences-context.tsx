@@ -10,22 +10,41 @@ const InboxPreferencesContext = React.createContext<InboxPreferences>({
   autoSuggestReplies: true
 });
 
+const InboxPreferencesSetterContext = React.createContext<
+  ((value: boolean) => void) | null
+>(null);
+
 export function InboxPreferencesProvider({
-  autoSuggestReplies,
+  autoSuggestReplies = true,
   children
-}: InboxPreferences & {
+}: Partial<InboxPreferences> & {
   children: React.ReactNode;
 }): React.JSX.Element {
+  const [suggest, setSuggest] = React.useState(autoSuggestReplies);
   const value = React.useMemo(
-    () => ({ autoSuggestReplies }),
-    [autoSuggestReplies]
+    () => ({ autoSuggestReplies: suggest }),
+    [suggest]
   );
 
   return (
-    <InboxPreferencesContext.Provider value={value}>
-      {children}
-    </InboxPreferencesContext.Provider>
+    <InboxPreferencesSetterContext.Provider value={setSuggest}>
+      <InboxPreferencesContext.Provider value={value}>
+        {children}
+      </InboxPreferencesContext.Provider>
+    </InboxPreferencesSetterContext.Provider>
   );
+}
+
+export function InboxPreferencesSync({
+  autoSuggestReplies
+}: InboxPreferences): null {
+  const setSuggest = React.useContext(InboxPreferencesSetterContext);
+
+  React.useEffect(() => {
+    setSuggest?.(autoSuggestReplies);
+  }, [autoSuggestReplies, setSuggest]);
+
+  return null;
 }
 
 export function useInboxPreferences(): InboxPreferences {

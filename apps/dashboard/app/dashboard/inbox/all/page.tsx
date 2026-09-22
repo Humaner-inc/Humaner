@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { connection } from 'next/server';
 
 import { InboxAllMailList } from '@/components/dashboard/inbox/inbox-all-mail-list';
 import {
@@ -7,6 +6,7 @@ import {
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { type InboxListFilter } from '@/components/dashboard/inbox/inbox-list-header';
+import { InboxPageLoader } from '@/components/dashboard/inbox/inbox-page-loader';
 import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import {
@@ -24,19 +24,6 @@ function parseFilter(value: string | undefined): InboxListFilter {
   return 'all';
 }
 
-function InboxAllFallback(): React.JSX.Element {
-  return (
-    <div
-      className="flex h-full min-h-0 flex-1 flex-col gap-4 p-6"
-      data-dashboard-page-shell="inbox"
-    >
-      <div className="h-8 w-48 animate-pulse rounded-md bg-muted/40" />
-      <div className="h-32 animate-pulse rounded-md bg-muted/40" />
-      <div className="h-32 animate-pulse rounded-md bg-muted/40" />
-    </div>
-  );
-}
-
 async function InboxAllPageContent({
   searchParams
 }: {
@@ -49,19 +36,35 @@ async function InboxAllPageContent({
     thread?: string;
   }>;
 }): Promise<React.JSX.Element> {
-  await connection();
-  const [
-    {
-      mailbox: mailboxParam,
-      alias: aliasParam,
-      filter: filterParam,
-      tag: tagParam,
-      compose: composeParam
-    },
-    overview
-  ] = await Promise.all([searchParams, getInboxOverview()]);
+  const {
+    mailbox: mailboxParam,
+    alias: aliasParam,
+    filter: filterParam,
+    tag: tagParam,
+    compose: composeParam
+  } = await searchParams;
   const activeFilter = parseFilter(filterParam);
   const autoCompose = composeParam === '1' || composeParam === 'true';
+
+  const threadFilters = {
+    aliasId: mailboxParam ? null : (aliasParam ?? null),
+    tagId: tagParam ?? null,
+    unreadOnly: !tagParam && activeFilter === 'unread',
+    status:
+      !tagParam && activeFilter === 'open'
+        ? ('OPEN' as const)
+        : !tagParam && activeFilter === 'pending'
+          ? ('PENDING' as const)
+          : undefined
+  };
+
+  const [overview, inboxes, tags, members, threads] = await Promise.all([
+    getInboxOverview(),
+    getMailInboxes(),
+    getMailTags(),
+    getOrganizationMembers(),
+    getMailThreads(threadFilters)
+  ]);
 
   if (!overview || overview.locked) {
     return (
@@ -82,38 +85,30 @@ async function InboxAllPageContent({
     );
   }
 
-  const [inboxes, tags, members] = await Promise.all([
-    getMailInboxes(),
-    getMailTags(),
-    getOrganizationMembers()
-  ]);
-
   const mailboxes = groupMailInboxes(inboxes);
-  const activeMailboxId =
+  const requestedMailboxValid = Boolean(
     mailboxParam &&
-    mailboxes.some((mailbox) => mailbox.connectionId === mailboxParam)
-      ? mailboxParam
-      : (mailboxes[0]?.connectionId ?? null);
+      mailboxes.some((mailbox) => mailbox.connectionId === mailboxParam)
+  );
+  const activeMailboxId = requestedMailboxValid
+    ? mailboxParam!
+    : (mailboxes[0]?.connectionId ?? null);
 
-  const threads = await getMailThreads({
-    connectionId: activeMailboxId,
-    aliasId: activeMailboxId ? null : (aliasParam ?? null),
-    tagId: tagParam ?? null,
-    unreadOnly: !tagParam && activeFilter === 'unread',
-    status:
-      !tagParam && activeFilter === 'open'
-        ? 'OPEN'
-        : !tagParam && activeFilter === 'pending'
-          ? 'PENDING'
-          : undefined
-  });
+  const aliasIds = new Set(
+    inboxes
+      .filter((inbox) => inbox.connectionId === activeMailboxId)
+      .map((inbox) => inbox.id)
+  );
+  const visibleThreads = !activeMailboxId
+    ? threads
+    : threads.filter((thread) => aliasIds.has(thread.aliasId));
 
   const activeTagId =
     tagParam && tags.some((tag) => tag.id === tagParam) ? tagParam : null;
 
   return (
     <InboxAllMailList
-      threads={threads}
+      threads={visibleThreads}
       tags={tags}
       members={members.map(toAssigneePerson)}
       inboxes={inboxes}
@@ -138,7 +133,7 @@ export default function InboxAllPage({
   }>;
 }): React.JSX.Element {
   return (
-    <React.Suspense fallback={<InboxAllFallback />}>
+    <React.Suspense fallback={<InboxPageLoader />}>
       <InboxAllPageContent searchParams={searchParams} />
     </React.Suspense>
   );

@@ -1380,6 +1380,87 @@ input[type='password'],
   }
 }
 
+.humaner-morph-loader {
+  position: relative;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #001afc;
+}
+.humaner-morph-loader__layer {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity, filter, transform;
+}
+.humaner-morph-loader__mark {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.humaner-morph-loader__icon {
+  animation: humaner-morph-icon 2.2s var(--icon-swap-ease, ease-in-out)
+    infinite;
+}
+.humaner-morph-loader__spinner {
+  animation: humaner-morph-spinner 2.2s var(--icon-swap-ease, ease-in-out)
+    infinite;
+}
+
+@keyframes humaner-morph-icon {
+  0%,
+  36% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  50%,
+  86% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.28);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes humaner-morph-spinner {
+  0%,
+  36% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.28);
+  }
+  50%,
+  86% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .humaner-morph-loader__icon {
+    animation: none;
+    opacity: 0;
+  }
+  .humaner-morph-loader__spinner {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
 .onboarding-shift-icon {
   position: absolute;
   inset: 0;
