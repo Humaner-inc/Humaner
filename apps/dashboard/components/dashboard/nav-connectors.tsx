@@ -48,7 +48,7 @@ export function NavConnectors({
   connectors
 }: {
   connectors: ConnectorNavItem[];
-}): React.JSX.Element {
+}): React.JSX.Element | null {
   const pathname = usePathname();
   const [live, setLive] = React.useState(connectors);
 
