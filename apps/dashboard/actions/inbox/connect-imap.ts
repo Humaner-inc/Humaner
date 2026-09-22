@@ -8,17 +8,15 @@ import { MailProvider, Prisma } from '@prisma/client';
 import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
-import {
-  canApplyAddOnToBill,
-  resolveAddOnOwner
-} from '@/lib/billing/ensure-add-on';
 import { prisma } from '@/lib/db/prisma';
-import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   buildValidatedMailEndpoints,
   normalizeMailboxAddress
 } from '@/lib/inbox/build-mail-endpoints';
-import { getMailboxAliasLimit } from '@/lib/inbox/plan';
+import {
+  mailboxConnectQuotaFromOrg,
+  resolveNewMailboxSlot
+} from '@/lib/inbox/mailbox-connect-quota';
 import { testImapAndSmtp } from '@/lib/inbox/test-imap-smtp';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
@@ -76,19 +74,10 @@ export const connectImap = ownerActionClient
       throw new PreConditionError('Organization not found');
     }
 
-    const inboxLimit = getMailboxAliasLimit(
-      organization.tier,
-      organization.includedMessages,
-      organization
-    );
-    const onboardingConnect = !organization.completedOnboarding;
-    if (!onboardingConnect && inboxLimit <= 0) {
-      throw new PreConditionError('Connecting a mailbox requires Inbox.');
-    }
-
-    const effectiveLimit = onboardingConnect
-      ? Math.max(inboxLimit, 1)
-      : inboxLimit;
+    const quota = mailboxConnectQuotaFromOrg(organization, {
+      onboardingConnect: !organization.completedOnboarding
+    });
+    const { effectiveLimit } = quota;
 
     const { primary, endpoints } =
       await buildValidatedMailEndpoints(parsedInput);
@@ -118,26 +107,6 @@ export const connectImap = ownerActionClient
       );
     }
 
-    const remaining = effectiveLimit - organization._count.mailboxConnections;
-    if (remaining <= 0) {
-      if (onboardingConnect || isOssDeployment()) {
-        throw new ValidationError(
-          `Your plan covers ${effectiveLimit} connected mailbox${effectiveLimit === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free; add a mailbox from Billing to connect another.`
-        );
-      }
-
-      const owner = (await resolveAddOnOwner(organizationId)) ?? {
-        ownerId: session.user.id,
-        email: session.user.email,
-        name: session.user.name
-      };
-      const canApplyToBill = await canApplyAddOnToBill(
-        owner.ownerId,
-        'mailbox'
-      );
-      return { needsMailbox: true as const, canApplyToBill };
-    }
-
     const [existingConnection, existingAliases] = await Promise.all([
       prisma.mailboxConnection.findFirst({
         where: { organizationId, email: primary },
@@ -162,6 +131,26 @@ export const connectImap = ownerActionClient
       throw new ValidationError(
         `${existingAliases[0].address} is already connected to this workspace.`
       );
+    }
+
+    const slot = await resolveNewMailboxSlot({
+      organizationId,
+      userId: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+      quota
+    });
+    if (slot.kind === 'requiresInbox') {
+      throw new PreConditionError('Connecting a mailbox requires Inbox.');
+    }
+    if (slot.kind === 'planFull') {
+      throw new ValidationError(slot.message);
+    }
+    if (slot.kind === 'needsMailbox') {
+      return {
+        needsMailbox: true as const,
+        canApplyToBill: slot.canApplyToBill
+      };
     }
 
     try {

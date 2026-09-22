@@ -1,8 +1,13 @@
 'use server';
 
 import { ownerActionClient } from '@/actions/safe-action';
+import { prisma } from '@/lib/db/prisma';
 import { buildValidatedMailEndpoints } from '@/lib/inbox/build-mail-endpoints';
 import { discoverMailboxAliases } from '@/lib/inbox/discover-mailbox-aliases';
+import {
+  mailboxConnectQuotaFromOrg,
+  resolveNewMailboxSlot
+} from '@/lib/inbox/mailbox-connect-quota';
 import { testImapAndSmtp } from '@/lib/inbox/test-imap-smtp';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
@@ -43,8 +48,50 @@ export const discoverImapAliases = ownerActionClient
       );
     }
 
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        tier: true,
+        includedMessages: true,
+        extraSeats: true,
+        extraMailboxes: true,
+        completedOnboarding: true,
+        _count: { select: { mailboxConnections: true } }
+      }
+    });
+    if (!organization) {
+      throw new PreConditionError('Organization not found');
+    }
+
     const { primary, endpoints } =
       await buildValidatedMailEndpoints(parsedInput);
+
+    const existingConnection = await prisma.mailboxConnection.findFirst({
+      where: { organizationId, email: primary },
+      select: { id: true }
+    });
+
+    if (!existingConnection) {
+      const decision = await resolveNewMailboxSlot({
+        organizationId,
+        userId: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        quota: mailboxConnectQuotaFromOrg(organization)
+      });
+      if (decision.kind === 'requiresInbox') {
+        throw new PreConditionError('Connecting a mailbox requires Inbox.');
+      }
+      if (decision.kind === 'planFull') {
+        throw new ValidationError(decision.message);
+      }
+      if (decision.kind === 'needsMailbox') {
+        return {
+          needsMailbox: true as const,
+          canApplyToBill: decision.canApplyToBill
+        };
+      }
+    }
 
     try {
       await testImapAndSmtp(endpoints);

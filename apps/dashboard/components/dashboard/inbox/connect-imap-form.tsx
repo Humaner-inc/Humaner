@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { AddOnInterval } from '@humaner/shared/addons';
 import {
   ArrowLeftIcon,
@@ -88,6 +89,23 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function MailboxUpgradeFromQuery({
+  onNeedMailbox
+}: {
+  onNeedMailbox: () => void;
+}): null {
+  const searchParams = useSearchParams();
+  const gmailStatus = searchParams.get('gmail');
+
+  React.useEffect(() => {
+    if (gmailStatus === 'limit') {
+      onNeedMailbox();
+    }
+  }, [gmailStatus, onNeedMailbox]);
+
+  return null;
+}
+
 const CONNECTION_STATUS_LABELS: Record<string, string> = {
   NEEDS_REAUTH: 'Reconnect',
   ERROR: 'Sync failed',
@@ -146,10 +164,33 @@ export function ConnectImapForm({
     providerId: string | null;
     retry: 'gmail' | 'imap' | null;
   } | null>(null);
+  const existingMailboxEmails = React.useMemo(
+    () => new Set(connections.map((item) => normalizeEmail(item.email))),
+    [connections]
+  );
+  const isExistingMailbox = React.useCallback(
+    (address: string): boolean =>
+      existingMailboxEmails.has(normalizeEmail(address)),
+    [existingMailboxEmails]
+  );
+  const needsNewMailboxSlot = React.useCallback(
+    (address?: string): boolean => {
+      if (remainingInboxes > 0) {
+        return false;
+      }
+      if (address && isExistingMailbox(address)) {
+        return false;
+      }
+      return true;
+    },
+    [isExistingMailbox, remainingInboxes]
+  );
   const [mailboxInterval, setMailboxInterval] =
     React.useState<AddOnInterval>('month');
   const [mailboxQuantity, setMailboxQuantity] = React.useState(1);
-  const pendingImapInputRef = React.useRef<ConnectImapInput | null>(null);
+  const pendingImapInputRef = React.useRef<
+    (DiscoverImapAliasesInput & { aliases?: string[] }) | null
+  >(null);
   const [step, setStep] = React.useState<ConnectStep>('credentials');
   const [providerId, setProviderId] = React.useState<string | null>(null);
   const [mobileShowDetail, setMobileShowDetail] = React.useState(false);
@@ -191,6 +232,16 @@ export function ConnectImapForm({
   const connectingProvider = connectingProviderId
     ? getMailProviderById(connectingProviderId)
     : null;
+  const openMailboxUpgrade = React.useCallback(
+    (retry: 'gmail' | 'imap' | null, nextProviderId?: string | null) => {
+      setMailboxConsent({
+        canApplyToBill,
+        providerId: nextProviderId ?? connectingProviderId,
+        retry
+      });
+    },
+    [canApplyToBill, connectingProviderId]
+  );
   const preset = connectingProviderId
     ? resolveMailProviderPreset(connectingProviderId)
     : null;
@@ -287,6 +338,14 @@ export function ConnectImapForm({
     discoverImapAliases,
     {
       onSuccess: ({ data }) => {
+        if (data?.needsMailbox) {
+          setMailboxConsent({
+            canApplyToBill: data.canApplyToBill,
+            providerId: connectingProviderId,
+            retry: 'imap'
+          });
+          return;
+        }
         const aliases = data?.aliases ?? [];
         const primary = data?.primary ?? primaryEmail;
         setDiscoveredAliases(aliases);
@@ -350,11 +409,17 @@ export function ConnectImapForm({
     }
   );
 
-  const beginGmailConnect = (nextProviderId: string): void => {
+  const beginGmailConnect = (
+    nextProviderId: string,
+    options?: { reconnect?: boolean }
+  ): void => {
     if (nextProviderId !== 'gmail' && nextProviderId !== 'google-workspace') {
       return;
     }
-    connectGmail({ providerId: nextProviderId });
+    connectGmail({
+      providerId: nextProviderId,
+      reconnect: options?.reconnect
+    });
   };
 
   const showProviderDetail = (nextProviderId: string): void => {
@@ -436,7 +501,15 @@ export function ConnectImapForm({
       return;
     }
     if (pending.retry === 'imap' && pendingImapInputRef.current) {
-      execute(pendingImapInputRef.current);
+      const input = pendingImapInputRef.current;
+      if (input.aliases && input.aliases.length > 0) {
+        execute({ ...input, aliases: input.aliases });
+        return;
+      }
+      if (input.email.includes('@') && input.password) {
+        const { aliases: _aliases, ...credentials } = input;
+        discoverAliases(credentials);
+      }
       return;
     }
     if (pending.retry === 'gmail' && pending.providerId) {
@@ -522,6 +595,15 @@ export function ConnectImapForm({
       return;
     }
 
+    if (needsNewMailboxSlot(email)) {
+      const payload = buildCredentialsInput();
+      if (payload?.email.includes('@') && payload.password) {
+        pendingImapInputRef.current = payload;
+      }
+      openMailboxUpgrade('imap');
+      return;
+    }
+
     const payload = buildCredentialsInput();
     if (!payload) return;
 
@@ -544,6 +626,12 @@ export function ConnectImapForm({
       aliases: selectedAliases
     };
     pendingImapInputRef.current = input;
+
+    if (needsNewMailboxSlot(primaryEmail)) {
+      openMailboxUpgrade('imap');
+      return;
+    }
+
     execute(input);
   };
 
@@ -588,9 +676,21 @@ export function ConnectImapForm({
               : selectedProvider.name}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            Sign in with Google · send-as aliases import after authorization
+            {remainingInboxes <= 0
+              ? '0 mailbox slots left — add a mailbox to connect another'
+              : 'Sign in with Google · send-as aliases import after authorization'}
           </p>
         </div>
+        {remainingInboxes <= 0 ? (
+          <Button
+            type="button"
+            size="sm"
+            className="shrink-0 font-mono"
+            onClick={() => openMailboxUpgrade('gmail', selectedProvider.id)}
+          >
+            Add mailbox
+          </Button>
+        ) : null}
       </div>
       <div className="flex-1 p-5 sm:p-6">
         {providerConnections.length > 0 ? (
@@ -634,7 +734,9 @@ export function ConnectImapForm({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onSelect={() =>
-                            beginGmailConnect(selectedProvider.id)
+                            beginGmailConnect(selectedProvider.id, {
+                              reconnect: true
+                            })
                           }
                         >
                           Reconnect
@@ -668,9 +770,19 @@ export function ConnectImapForm({
           type="button"
           disabled={isConnectingGmail}
           className="font-mono"
-          onClick={() => beginGmailConnect(selectedProvider.id)}
+          onClick={() => {
+            if (remainingInboxes <= 0) {
+              openMailboxUpgrade('gmail', selectedProvider.id);
+              return;
+            }
+            beginGmailConnect(selectedProvider.id);
+          }}
         >
-          {isConnectingGmail ? 'Opening Google…' : 'Continue with Google'}
+          {isConnectingGmail
+            ? 'Opening Google…'
+            : remainingInboxes <= 0
+              ? 'Add mailbox'
+              : 'Continue with Google'}
         </Button>
       </div>
     </div>
@@ -717,8 +829,10 @@ export function ConnectImapForm({
             {providerConnections.length > 0 ? (
               <p className="truncate text-xs text-muted-foreground">
                 {providerConnections.length} mailbox
-                {providerConnections.length === 1 ? '' : 'es'} connected — add
-                another below.
+                {providerConnections.length === 1 ? '' : 'es'} connected
+                {remainingInboxes <= 0
+                  ? ' — 0 slots left'
+                  : ' — add another below.'}
               </p>
             ) : (detectedPresetProvider ?? selectedProvider).appPasswordUrl ? (
               <a
@@ -743,17 +857,29 @@ export function ConnectImapForm({
               </p>
             )}
           </div>
-          {connections.length > 0 ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="hidden shrink-0 font-mono sm:inline-flex"
-              asChild
-            >
-              <Link href={Routes.InboxSettings}>Manage aliases</Link>
-            </Button>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {remainingInboxes <= 0 ? (
+              <Button
+                type="button"
+                size="sm"
+                className="font-mono"
+                onClick={() => openMailboxUpgrade('imap')}
+              >
+                Add mailbox
+              </Button>
+            ) : null}
+            {connections.length > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="hidden font-mono sm:inline-flex"
+                asChild
+              >
+                <Link href={Routes.InboxSettings}>Manage aliases</Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex-1 p-5 sm:p-6">
@@ -1081,6 +1207,8 @@ export function ConnectImapForm({
                 >
                   {isDiscovering ? (
                     'Linking mailbox…'
+                  ) : remainingInboxes <= 0 && !isExistingMailbox(email) ? (
+                    'Add mailbox'
                   ) : (
                     <>
                       Link mailbox
@@ -1117,22 +1245,36 @@ export function ConnectImapForm({
       icon={<MailIcon strokeWidth={1.25} />}
       title="Connect mailbox"
       description="Simply sign in using your provider(s) to display your inbox(ex) within Humaner."
-      example={`You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`}
+      example={
+        remainingInboxes <= 0
+          ? 'Your included mailbox is in use. Add a mailbox slot to connect another. Redirect aliases on a connected mailbox are free.'
+          : `You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
+      }
       className="min-h-full border-0 bg-transparent"
     >
-      <Button
-        size="sm"
-        variant="outline"
-        asChild
-      >
-        <a
-          href="https://humaner.io/security"
-          target="_blank"
-          rel="noopener noreferrer"
+      {remainingInboxes <= 0 ? (
+        <Button
+          size="sm"
+          className="font-mono"
+          onClick={() => openMailboxUpgrade(null)}
         >
-          Security
-        </a>
-      </Button>
+          Add mailbox
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          asChild
+        >
+          <a
+            href="https://humaner.io/security"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Security
+          </a>
+        </Button>
+      )}
     </FeatureIntroEmpty>
   );
 
@@ -1288,6 +1430,11 @@ export function ConnectImapForm({
         </div>
       </div>
       {removeDialog}
+      <Suspense fallback={null}>
+        <MailboxUpgradeFromQuery
+          onNeedMailbox={() => openMailboxUpgrade('gmail')}
+        />
+      </Suspense>
       <Dialog
         open={mailboxConsent != null}
         onOpenChange={(open) => {

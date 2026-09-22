@@ -33,10 +33,7 @@ async function requireToken(
 ): Promise<{ token: string } | WorkspaceToolResult> {
   const grant = await getConnectAccessToken(context.organizationId, id);
   if (!grant.ok) {
-    return {
-      ok: false,
-      error: `${grant.error} Activate it in Workspace Settings → Connect.`
-    };
+    return { ok: false, error: grant.error };
   }
   return { token: grant.token };
 }

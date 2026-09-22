@@ -25,7 +25,7 @@ const GMAIL_TOASTS: Record<
   },
   limit: {
     type: 'error',
-    message: 'This plan has no mailbox slots left.'
+    message: 'This plan has no mailbox slots left. Add a mailbox to continue.'
   },
   failed: {
     type: 'error',
