@@ -74,16 +74,16 @@ export const ADD_ON_TITLES: Record<AddOnKind, string> = {
   mailbox: "Extra Inbox",
 };
 
-/** Line under the title: "1 inbox upgrade" / "2 seats upgrade". */
+/** Paid count on the receipt selector: "1 Inbox" / "2 Inboxes" / "1 Seat". */
 export function formatAddOnUpgradeLabel(
   kind: AddOnKind,
   quantity: number,
 ): string {
   const count = clampAddOnQuantity(quantity);
   if (kind === "mailbox") {
-    return count === 1 ? "1 inbox upgrade" : `${count} inboxes upgrade`;
+    return count === 1 ? "1 Inbox" : `${count} Inboxes`;
   }
-  return count === 1 ? "1 seat upgrade" : `${count} seats upgrade`;
+  return count === 1 ? "1 Seat" : `${count} Seats`;
 }
 
 export type AddOnProduct = {

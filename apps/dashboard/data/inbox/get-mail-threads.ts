@@ -154,7 +154,19 @@ async function requireInboxReadSession() {
   return session;
 }
 
-export async function getMailInboxes(): Promise<MailInboxOption[]> {
+function unreadInboxThreadWhere(
+  organizationId: string,
+  scopedAliasIds?: { in: string[] }
+) {
+  return {
+    organizationId,
+    isUnread: true,
+    ...INBOX_ACTIVE_WHERE,
+    ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
+  };
+}
+
+export const getMailInboxes = cache(async (): Promise<MailInboxOption[]> => {
   const session = await requireInboxReadSession();
   if (!session) return [];
 
@@ -173,7 +185,7 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
     ...(scopedAliasIds ? { id: scopedAliasIds } : {})
   };
 
-  const [aliases, unreadThreads] = await Promise.all([
+  const [aliases, unreadRows] = await Promise.all([
     prisma.mailAlias.findMany({
       where: aliasWhere,
       orderBy: { address: 'asc' },
@@ -191,35 +203,18 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
         }
       }
     }),
-    // Same unread rule as getMailUnreadCount, grouped per inbox.
-    prisma.mailThread.findMany({
-      where: {
-        organizationId,
-        isUnread: true,
-        ...INBOX_ACTIVE_WHERE,
-        alias: aliasWhere
-      },
-      select: {
-        aliasId: true,
-        messages: {
-          orderBy: { sentAt: 'desc' },
-          take: 1,
-          select: { direction: true }
-        }
-      }
+    prisma.mailThread.groupBy({
+      by: ['aliasId'],
+      where: unreadInboxThreadWhere(organizationId, scopedAliasIds),
+      _count: { id: true }
     })
   ]);
 
   if (aliases.length === 0) return [];
 
-  const unreadByAlias = new Map<string, number>();
-  for (const thread of unreadThreads) {
-    if (thread.messages[0]?.direction !== 'INBOUND') continue;
-    unreadByAlias.set(
-      thread.aliasId,
-      (unreadByAlias.get(thread.aliasId) ?? 0) + 1
-    );
-  }
+  const unreadByAlias = new Map(
+    unreadRows.map((row) => [row.aliasId, row._count.id])
+  );
 
   return aliases.map((alias) => {
     const preset = alias.connection.providerPresetId
@@ -236,9 +231,9 @@ export async function getMailInboxes(): Promise<MailInboxOption[]> {
       providerName: preset?.name ?? alias.connection.provider
     };
   });
-}
+});
 
-export async function getMailUnreadCount(): Promise<number> {
+export const getMailUnreadCount = cache(async (): Promise<number> => {
   const session = await requireInboxReadSession();
   if (!session) return 0;
 
@@ -252,27 +247,10 @@ export async function getMailUnreadCount(): Promise<number> {
   const scopedAliasIds = aliasIdFilter(scope);
   if (scope.type === 'ids' && scope.aliasIds.length === 0) return 0;
 
-  // Unopened = flagged unread AND still waiting on an inbound (no reply yet).
-  const threads = await prisma.mailThread.findMany({
-    where: {
-      organizationId,
-      isUnread: true,
-      ...INBOX_ACTIVE_WHERE,
-      ...(scopedAliasIds ? { aliasId: scopedAliasIds } : {})
-    },
-    select: {
-      id: true,
-      messages: {
-        orderBy: { sentAt: 'desc' },
-        take: 1,
-        select: { direction: true }
-      }
-    }
+  return prisma.mailThread.count({
+    where: unreadInboxThreadWhere(organizationId, scopedAliasIds)
   });
-
-  return threads.filter((thread) => thread.messages[0]?.direction === 'INBOUND')
-    .length;
-}
+});
 
 export async function getMailThreads(options?: {
   assignedToCurrentUser?: boolean;

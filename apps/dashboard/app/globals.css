@@ -1392,9 +1392,12 @@ input[type='password'],
   display: flex;
   align-items: center;
   justify-content: center;
-  will-change: opacity, filter, transform;
+  width: 2.5rem;
+  height: 2.5rem;
+  will-change: opacity, filter;
 }
-.humaner-morph-loader__mark {
+.humaner-morph-loader__mark,
+.humaner-morph-loader__ring {
   display: block;
   width: 2.5rem;
   height: 2.5rem;
@@ -1407,44 +1410,48 @@ input[type='password'],
   animation: humaner-morph-spinner 2.2s var(--icon-swap-ease, ease-in-out)
     infinite;
 }
+.humaner-morph-loader__ring {
+  animation: humaner-morph-spin 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
 
 @keyframes humaner-morph-icon {
   0%,
-  36% {
+  34% {
     opacity: 1;
     filter: blur(0);
-    transform: scale(1);
   }
   50%,
-  86% {
+  84% {
     opacity: 0;
-    filter: blur(4px);
-    transform: scale(0.28);
+    filter: blur(6px);
   }
   100% {
     opacity: 1;
     filter: blur(0);
-    transform: scale(1);
   }
 }
 
 @keyframes humaner-morph-spinner {
   0%,
-  36% {
+  34% {
     opacity: 0;
-    filter: blur(4px);
-    transform: scale(0.28);
+    filter: blur(6px);
   }
   50%,
-  86% {
+  84% {
     opacity: 1;
     filter: blur(0);
-    transform: scale(1);
   }
   100% {
     opacity: 0;
-    filter: blur(4px);
-    transform: scale(0.28);
+    filter: blur(6px);
+  }
+}
+
+@keyframes humaner-morph-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -1457,7 +1464,9 @@ input[type='password'],
     animation: none;
     opacity: 1;
     filter: none;
-    transform: none;
+  }
+  .humaner-morph-loader__ring {
+    animation: none;
   }
 }
 

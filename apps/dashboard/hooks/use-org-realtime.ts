@@ -38,6 +38,19 @@ export function useOrgRealtime(options: UseOrgRealtimeOptions = {}): void {
     let since = Date.now() - 5_000;
     let abort: AbortController | null = null;
     let reconnectTimer: number | undefined;
+    let refreshTimer: number | undefined;
+
+    const scheduleRefresh = (): void => {
+      if (refreshTimer !== undefined) {
+        return;
+      }
+      refreshTimer = window.setTimeout(() => {
+        refreshTimer = undefined;
+        if (active) {
+          router.refresh();
+        }
+      }, 800);
+    };
 
     const connect = async (): Promise<void> => {
       if (!active) {
@@ -89,7 +102,7 @@ export function useOrgRealtime(options: UseOrgRealtimeOptions = {}): void {
                   payload.event.type === 'inbox.synced' ||
                   payload.event.type === 'agent.changed'
                 ) {
-                  router.refresh();
+                  scheduleRefresh();
                 }
               } else if (payload.type === 'reconnect') {
                 since = payload.since;
@@ -122,6 +135,9 @@ export function useOrgRealtime(options: UseOrgRealtimeOptions = {}): void {
       abort?.abort();
       if (reconnectTimer !== undefined) {
         window.clearTimeout(reconnectTimer);
+      }
+      if (refreshTimer !== undefined) {
+        window.clearTimeout(refreshTimer);
       }
     };
   }, [enabled, router]);

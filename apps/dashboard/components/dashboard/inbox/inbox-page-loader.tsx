@@ -2,14 +2,50 @@
 
 import * as React from 'react';
 import { BrandMark } from '@humaner/shared/brand-mark';
-import { SquircleLoader } from '@humaner/shared/squircle-loader';
 
 /** Inbox cobalt — same token as the inbox accent. */
 export const INBOX_LOADER_COBALT = '#001afc';
+const LOADER_SIZE = 40;
 
 /**
- * Main-inbox loading mark: the sidebar Humaner icon morphs into the
- * squircle spinner and back, looping, all cobalt.
+ * Same 40×40 box as the Humaner mark: a ring that occupies the icon bounds
+ * so the mark can dissolve into this spinner without shrinking.
+ */
+function InboxMorphSpinner(): React.JSX.Element {
+  return (
+    <svg
+      width={LOADER_SIZE}
+      height={LOADER_SIZE}
+      viewBox="0 0 40 40"
+      className="humaner-morph-loader__ring"
+      aria-hidden
+    >
+      <circle
+        cx="20"
+        cy="20"
+        r="16"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.14"
+        strokeWidth="3"
+      />
+      <circle
+        cx="20"
+        cy="20"
+        r="16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray="22 79"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Main-inbox loading mark: the sidebar Humaner icon morphs into a
+ * same-size cobalt spinner and back, looping.
  */
 export function InboxPageLoader({
   fill = 'slot'
@@ -39,10 +75,7 @@ export function InboxPageLoader({
           </span>
         </span>
         <span className="humaner-morph-loader__layer humaner-morph-loader__spinner">
-          <SquircleLoader
-            size={40}
-            color={INBOX_LOADER_COBALT}
-          />
+          <InboxMorphSpinner />
         </span>
       </span>
     </div>
