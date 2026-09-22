@@ -357,7 +357,7 @@ export function ConnectImapForm({
     connectGmail({ providerId: nextProviderId });
   };
 
-  const openProviderFlow = (nextProviderId: string): void => {
+  const showProviderDetail = (nextProviderId: string): void => {
     setProviderId(nextProviderId);
     setEmail('');
     setPassword('');
@@ -369,10 +369,25 @@ export function ConnectImapForm({
     setSelectedAliases([]);
     setManualAlias('');
     setMobileShowDetail(true);
+  };
 
-    if (getMailProviderById(nextProviderId)?.oauthAvailable) {
-      beginGmailConnect(nextProviderId);
+  const openProviderFlow = (nextProviderId: string): void => {
+    showProviderDetail(nextProviderId);
+    const alreadyConnected = connections.some(
+      (item) => item.providerId === nextProviderId
+    );
+    if (
+      alreadyConnected ||
+      remainingInboxes <= 0 ||
+      !getMailProviderById(nextProviderId)?.oauthAvailable
+    ) {
+      return;
     }
+    beginGmailConnect(nextProviderId);
+  };
+
+  const selectConnectedProvider = (nextProviderId: string): void => {
+    showProviderDetail(nextProviderId);
   };
 
   const { execute: removeConnection, isExecuting: isRemoving } = useAction(
@@ -391,18 +406,6 @@ export function ConnectImapForm({
       }
     }
   );
-
-  const startNewForProvider = (nextProviderId: string): void => {
-    if (remainingInboxes <= 0) {
-      setMailboxConsent({
-        canApplyToBill,
-        providerId: nextProviderId,
-        retry: null
-      });
-      return;
-    }
-    openProviderFlow(nextProviderId);
-  };
 
   const confirmMailboxAddOn = async (): Promise<void> => {
     if (!mailboxConsent) {
@@ -548,9 +551,9 @@ export function ConnectImapForm({
     <div className="flex h-full min-h-0 flex-col bg-background text-foreground">
       <MailProviderPicker
         value={providerId}
-        onChange={startNewForProvider}
+        onChange={openProviderFlow}
         connectedProviderIds={connectedProviderIds}
-        onSelectConnected={startNewForProvider}
+        onSelectConnected={selectConnectedProvider}
       />
     </div>
   );
@@ -605,15 +608,53 @@ export function ConnectImapForm({
                     {connection.email}
                   </span>
                   <ConnectionStatusChip status={connection.status} />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 rounded-lg px-2 font-mono text-[10px]"
-                    onClick={() => setPendingRemove(connection)}
-                  >
-                    Remove
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 rounded-lg px-2 font-mono text-[10px]"
+                      asChild
+                    >
+                      <Link href={Routes.InboxSettings}>Aliases</Link>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7"
+                          disabled={isRemoving}
+                        >
+                          <MoreHorizontalIcon className="size-3.5" />
+                          <span className="sr-only">Mailbox actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            beginGmailConnect(selectedProvider.id)
+                          }
+                        >
+                          Reconnect
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={Routes.InboxSettings}>
+                            Manage aliases
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onSelect={() => setPendingRemove(connection)}
+                        >
+                          <Trash2Icon className="mr-2 size-4" />
+                          Remove mailbox
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </li>
               ))}
             </ul>

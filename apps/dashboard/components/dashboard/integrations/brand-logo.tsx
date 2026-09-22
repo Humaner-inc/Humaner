@@ -14,9 +14,11 @@ export type BrandLogoProps = {
   /** Pixel size requested from the proxy. */
   size?: number;
   className?: string;
+  /** Skip the GitHub dark-theme invert so the official mark stays intact. */
+  invertOnDark?: boolean;
 };
 
-function invertOnDark(domain: string): boolean {
+function invertGithubOnDark(domain: string): boolean {
   return domain === 'github.com' || domain.endsWith('.github.com');
 }
 
@@ -24,10 +26,12 @@ export function BrandLogo({
   domain,
   fallbackIcon: FallbackIcon,
   size = 64,
-  className
+  className,
+  invertOnDark
 }: BrandLogoProps): React.JSX.Element {
   const [failed, setFailed] = React.useState(false);
-  const invert = domain ? invertOnDark(domain) : false;
+  const invert =
+    invertOnDark !== false && domain ? invertGithubOnDark(domain) : false;
 
   if (!domain || failed) {
     return (

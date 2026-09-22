@@ -19,7 +19,7 @@ export type MailProviderPickerProps = {
   onChange: (providerId: string) => void;
   connectedProviderIds?: string[];
   /**
-   * Connected row click — start another mailbox on that provider.
+   * Connected row click — open that provider to edit or remove mailboxes.
    * Falls back to `onChange` when omitted.
    */
   onSelectConnected?: (providerId: string) => void;
@@ -57,7 +57,9 @@ export function MailProviderPicker({
     return groups
       .map((group) => ({
         ...group,
-        providers: filterProviders(group.providers)
+        providers: filterProviders(group.providers).filter(
+          (provider) => !connectedSet.has(provider.id)
+        )
       }))
       .filter((group) => group.providers.length > 0);
   }, [groups, normalizedQuery]);
