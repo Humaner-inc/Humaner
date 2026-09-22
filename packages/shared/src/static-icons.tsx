@@ -9,8 +9,11 @@ import {
 } from "react";
 import {
   Bot,
+  Ellipsis,
   Pin,
   PlugZap,
+  Star,
+  Tag,
   type LucideIcon as LucideReactIcon,
 } from "lucide-react";
 
@@ -68,5 +71,8 @@ export function createStaticLucideIcon(
 
 /** Crisp SVG icons for layouts that must not use lucide-animated wrappers. */
 export const BotIconStatic = createStaticLucideIcon(Bot);
+export const EllipsisIcon = createStaticLucideIcon(Ellipsis);
 export const PinIcon = createStaticLucideIcon(Pin);
 export const PlugIconStatic = createStaticLucideIcon(PlugZap);
+export const TagIcon = createStaticLucideIcon(Tag);
+export const RatingStarIcon = createStaticLucideIcon(Star);

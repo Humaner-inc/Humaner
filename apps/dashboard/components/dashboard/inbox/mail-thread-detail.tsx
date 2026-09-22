@@ -6,10 +6,7 @@ import {
   ArrowRightIcon,
   CheckIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
-  FileTextIcon,
-  StarIcon,
-  Trash2Icon
+  ChevronRightIcon
 } from '@humaner/shared/icons';
 import { format } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
@@ -23,18 +20,15 @@ import {
   assignMailThread,
   deleteMailThread,
   markMailThreadRead,
-  moveMailThreadFolder
+  moveMailThreadFolder,
+  pinMailThread
 } from '@/actions/inbox/manage-mail-thread';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
 import { createTaskFromMailThreadAction } from '@/actions/tasks/create-task-from-mail-thread';
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
-import {
-  AssigneeFaces,
-  AssigneeMenuItems,
-  COMPANION_ASSIGNEE_PERSON
-} from '@/components/dashboard/assignee-options';
+import { COMPANION_ASSIGNEE_PERSON } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
 import { BlockMailSenderDialog } from '@/components/dashboard/inbox/block-mail-sender-dialog';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
@@ -46,16 +40,10 @@ import {
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
 import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
-import { MailThreadLinear } from '@/components/dashboard/inbox/mail-thread-linear';
+import { MailThreadHeaderMenu } from '@/components/dashboard/inbox/mail-thread-task-menu';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -396,6 +384,7 @@ export function MailThreadDetail({
   onPatched?: (patch: {
     tag?: MailTagItem | null;
     isUnread?: boolean;
+    isPinned?: boolean;
     assigneeId?: string | null;
     assigneeKind?: string;
   }) => void;
@@ -722,6 +711,18 @@ export function MailThreadDetail({
     runTag({ threadId: thread.id, tagId });
   };
 
+  const { execute: runPin } = useAction(pinMailThread, {
+    onError: ({ error }) =>
+      toast.error(error.serverError || 'Could not update pin')
+  });
+
+  const handlePin = (): void => {
+    const next = !thread.isPinned;
+    setThread((current) => ({ ...current, isPinned: next }));
+    onPatched?.({ isPinned: next });
+    runPin({ threadId: thread.id, isPinned: next });
+  };
+
   const { execute: loadSuggestions, isExecuting: loadingSuggestions } =
     useAction(suggestMailThreadReplies, {
       onSuccess: ({ data }) => {
@@ -1011,168 +1012,41 @@ export function MailThreadDetail({
               title="Unread"
             />
           ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-lg"
-            title="Reply"
-            onClick={openReply}
-          >
-            <ArrowRightIcon className="size-4 rotate-180" />
-            <span className="sr-only">Reply</span>
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-lg"
-            title="Forward"
-            onClick={openForward}
-          >
-            <ForwardGlyph />
-            <span className="sr-only">Forward</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-lg p-0"
-                title="Assign"
-              >
-                <AssigneeFaces people={assignPerson ? [assignPerson] : []} />
-                <span className="sr-only">Assign</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {inTrash ? (
-                <DropdownMenuItem onSelect={() => handleMoveFolder('INBOX')}>
-                  Restore
-                </DropdownMenuItem>
-              ) : inSpam ? (
-                <DropdownMenuItem onSelect={() => handleMoveFolder('INBOX')}>
-                  Not spam
-                </DropdownMenuItem>
-              ) : isArchived ? (
-                <DropdownMenuItem onSelect={() => handleArchive(false)}>
-                  Move to inbox
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onSelect={() => handleArchive(true)}>
-                  Archive
-                </DropdownMenuItem>
-              )}
-              {!inSpam && !inTrash && folder !== 'SENT' ? (
-                <DropdownMenuItem onSelect={() => handleMoveFolder('SPAM')}>
-                  Report spam
-                </DropdownMenuItem>
-              ) : null}
-              {folder !== 'SENT' && !inTrash ? (
-                <DropdownMenuItem onSelect={handleBlock}>
-                  Block sender
-                </DropdownMenuItem>
-              ) : null}
-              <AssigneeMenuItems
-                members={members}
-                value={assignValue}
-                includeCompanion
-                onSelect={handleAssign}
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {applicableTags.length > 0 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 rounded-lg"
-                  title="Tag color"
-                >
-                  {thread.tag ? (
-                    <span
-                      className="size-3.5 rounded-lg"
-                      style={{ backgroundColor: thread.tag.color }}
-                      aria-hidden
-                    />
-                  ) : (
-                    <StarIcon className="size-4" />
-                  )}
-                  <span className="sr-only">Tag color</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => handleTag(null)}>
-                  No tag
-                </DropdownMenuItem>
-                {applicableTags.map((tag) => (
-                  <DropdownMenuItem
-                    key={tag.id}
-                    onSelect={() => handleTag(tag.id)}
-                  >
-                    <span
-                      className="mr-2 size-2.5 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                    {tag.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'relative size-8 rounded-lg',
-              notesOpen && 'text-foreground'
-            )}
-            title="Notes"
-            aria-pressed={notesOpen}
-            onClick={openThreadNotes}
-          >
-            <FileTextIcon className="size-4" />
-            <span className="sr-only">Notes</span>
-            {noteCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-[#001afc] font-mono text-[9px] text-white">
-                {noteCount > 9 ? '9+' : noteCount}
-              </span>
-            ) : null}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 font-mono text-[10px]"
-            title="Create task"
-            disabled={creatingTask}
-            onClick={() => createTask({ threadId: thread.id })}
-          >
-            {thread.handoffTicketNumber
-              ? `#${String(thread.handoffTicketNumber).padStart(5, '0')}`
-              : 'Task'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-lg text-destructive hover:text-destructive"
-            title={inTrash ? 'Delete forever' : 'Move to Trash'}
-            onClick={() => {
+          <MailThreadHeaderMenu
+            threadId={thread.id}
+            subject={thread.subject}
+            ticketNumber={thread.handoffTicketNumber}
+            creatingTask={creatingTask}
+            onCreateTask={() => createTask({ threadId: thread.id })}
+            assignValue={assignValue}
+            assignPerson={assignPerson}
+            members={members}
+            onAssign={handleAssign}
+            tags={applicableTags}
+            currentTag={thread.tag}
+            onTag={handleTag}
+            isPinned={Boolean(thread.isPinned)}
+            onPin={handlePin}
+            notesOpen={notesOpen}
+            noteCount={noteCount}
+            onNotes={openThreadNotes}
+            onReply={openReply}
+            onForward={openForward}
+            folder={folder}
+            inTrash={inTrash}
+            inSpam={inSpam}
+            isArchived={isArchived}
+            onArchive={handleArchive}
+            onMoveFolder={handleMoveFolder}
+            onBlock={handleBlock}
+            onDelete={() => {
               requestMailDelete(
                 skipDeleteWarning,
                 () => setDeleteOpen(true),
                 handleDelete
               );
             }}
-          >
-            <Trash2Icon className="size-4" />
-            <span className="sr-only">Delete</span>
-          </Button>
+          />
         </div>
       </header>
 
@@ -1188,10 +1062,6 @@ export function MailThreadDetail({
                 showFloatingBar && 'pb-24'
               )}
             >
-              <MailThreadLinear
-                threadId={thread.id}
-                subject={thread.subject}
-              />
               <ol className="space-y-4">
                 {thread.messages.map((message, index) => (
                   <MailThreadMessage

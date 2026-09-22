@@ -48,6 +48,7 @@ import {
   UNTRUSTED_MAIL_GUARD,
   wrapUntrustedMailBody
 } from '@/lib/untrusted-content';
+import { getConnectAccessToken } from '@/lib/vercel-connect/client';
 import type { WorkspaceToolContext } from '@/lib/workspace-api/authorize';
 import {
   resolveWorkspaceToolName,
@@ -516,7 +517,18 @@ async function requireActivatedConnector(
     context.organizationId
   );
   const error = connectorActivationError(name, integrations);
-  return error ? { ok: false, error } : null;
+  if (!error) return null;
+
+  const integration = integrationForConnectorTool(name);
+  if (integration) {
+    const grant = await getConnectAccessToken(
+      context.organizationId,
+      integration
+    );
+    if (grant.ok) return null;
+  }
+
+  return { ok: false, error };
 }
 
 async function executeSendMail(

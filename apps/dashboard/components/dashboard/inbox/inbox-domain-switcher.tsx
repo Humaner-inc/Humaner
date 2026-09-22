@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
@@ -83,10 +82,6 @@ export function InboxDomainSwitcher({
           const selected =
             (activeMailboxId ?? mailboxes[0]?.connectionId) ===
             mailbox.connectionId;
-          const aliases = mailbox.aliases.filter(
-            (alias) =>
-              alias.address.toLowerCase() !== mailbox.email.toLowerCase()
-          );
           return (
             <React.Fragment key={mailbox.connectionId}>
               {index > 0 ? <DropdownMenuSeparator /> : null}
@@ -116,21 +111,6 @@ export function InboxDomainSwitcher({
                   </span>
                 </Link>
               </DropdownMenuItem>
-              {aliases.length > 0 ? (
-                <>
-                  <DropdownMenuLabel className="font-mono text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
-                    Sending aliases
-                  </DropdownMenuLabel>
-                  {aliases.map((alias) => (
-                    <div
-                      key={alias.id}
-                      className="px-2 py-1 font-mono text-xs text-muted-foreground"
-                    >
-                      {alias.address}
-                    </div>
-                  ))}
-                </>
-              ) : null}
             </React.Fragment>
           );
         })}

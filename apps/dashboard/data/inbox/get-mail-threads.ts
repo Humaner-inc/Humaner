@@ -59,6 +59,7 @@ export type MailThreadDetail = {
   aliasId: string;
   lastMessageAt: string;
   isUnread: boolean;
+  isPinned: boolean;
   folder: string;
   archivedAt: string | null;
   assigneeKind: string;
@@ -472,6 +473,7 @@ export const getMailThread = cache(
           subject: true,
           status: true,
           isUnread: true,
+          isPinned: true,
           folder: true,
           archivedAt: true,
           assigneeKind: true,
@@ -576,6 +578,7 @@ export const getMailThread = cache(
       aliasId: thread.alias.id,
       lastMessageAt: thread.lastMessageAt.toISOString(),
       isUnread: Boolean(thread.isUnread && awaitingReply),
+      isPinned: thread.isPinned,
       folder: thread.folder,
       archivedAt: thread.archivedAt?.toISOString() ?? null,
       assigneeKind: thread.assigneeKind,

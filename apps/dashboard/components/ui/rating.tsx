@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { StarIcon } from '@humaner/shared/icons';
+import { RatingStarIcon } from '@humaner/shared/icons';
 
 import { cn, mergeRefs } from '@/lib/utils';
 
@@ -48,7 +48,7 @@ const Rating = React.forwardRef<RatingElement, RatingProps>(
       totalStars = 5,
       size = 20,
       fill = true,
-      Icon = <StarIcon />,
+      Icon = <RatingStarIcon />,
       variant = 'default',
       onChange,
       onValueChange,

@@ -999,6 +999,9 @@ export function MailThreadList({
                     ...(patch.tag !== undefined ? { tag: patch.tag } : {}),
                     ...(patch.isUnread !== undefined
                       ? { isUnread: patch.isUnread }
+                      : {}),
+                    ...(patch.isPinned !== undefined
+                      ? { isPinned: patch.isPinned }
                       : {})
                   }
                 : current

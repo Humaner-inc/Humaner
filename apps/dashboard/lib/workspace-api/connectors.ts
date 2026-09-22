@@ -5,6 +5,7 @@ import {
   recordConnectorEvent,
   upsertThreadConnectorLink
 } from '@/lib/connectors/events';
+import { findLinearIssueMatch } from '@/lib/connectors/linear-issue-lookup';
 import { prisma } from '@/lib/db/prisma';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
 import { getConnectAccessToken } from '@/lib/vercel-connect/client';
@@ -227,7 +228,7 @@ async function fetchLinearIssues(
     query
       ? `query SearchIssues($first: Int!, $term: String!) {
           viewer { id displayName organization { name urlKey } }
-          searchIssues(term: $term, first: $first, includeComments: false) {
+          searchIssues(term: $term, first: $first) {
             nodes { ${LINEAR_ISSUE_FIELDS} }
           }
           teams { nodes { id name key } }
@@ -514,31 +515,40 @@ async function executeLinkLinearIssue(
     'issues.link',
     `Link ${issueId}`,
     async () => {
+      // Linear `issue(id:)` accepts a UUID or identifier (ENG-123). Search is
+      // only a fallback — taking the first search hit linked the wrong issue.
       const lookedUp = await linearGraphql(
         token.token,
-        issueId.includes('-')
-          ? `query FindIssue($term: String!) {
-            searchIssues(term: $term, first: 5, includeComments: false) {
+        `query Issue($id: String!) { issue(id: $id) { ${LINEAR_ISSUE_FIELDS} } }`,
+        { id: issueId }
+      );
+      const direct = lookedUp.ok
+        ? (lookedUp.data.issue as LinearIssueNode | null | undefined)
+        : null;
+      let match = direct ? findLinearIssueMatch(issueId, [direct]) : null;
+
+      if (!match) {
+        const searched = await linearGraphql(
+          token.token,
+          `query FindIssue($term: String!) {
+            searchIssues(term: $term, first: 10) {
               nodes { ${LINEAR_ISSUE_FIELDS} }
             }
-          }`
-          : `query Issue($id: String!) { issue(id: $id) { ${LINEAR_ISSUE_FIELDS} } }`,
-        issueId.includes('-') ? { term: issueId } : { id: issueId }
-      );
-      if (!lookedUp.ok) return lookedUp;
-      const nodes =
-        (
-          lookedUp.data.searchIssues as
-            | { nodes?: LinearIssueNode[] }
-            | undefined
-        )?.nodes ??
-        (lookedUp.data.issue ? [lookedUp.data.issue as LinearIssueNode] : []);
-      const match =
-        nodes.find(
-          (node) =>
-            node.id === issueId ||
-            node.identifier.toLowerCase() === issueId.toLowerCase()
-        ) ?? nodes[0];
+          }`,
+          { term: issueId }
+        );
+        if (!searched.ok) {
+          return lookedUp.ok ? searched : lookedUp;
+        }
+        const nodes =
+          (
+            searched.data.searchIssues as
+              | { nodes?: LinearIssueNode[] }
+              | undefined
+          )?.nodes ?? [];
+        match = findLinearIssueMatch(issueId, nodes);
+      }
+
       if (!match) return { ok: false, error: 'Linear issue was not found.' };
       const issue = mapLinearIssue(match);
       await upsertThreadLinearLink(context.organizationId, threadId, issue);

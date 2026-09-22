@@ -10,8 +10,8 @@ import {
   BicepsFlexedIcon,
   BlocksIcon as BlocksIconSource,
   BoldIcon as BoldIconSource,
-  BookmarkIcon,
-  BookmarkXIcon,
+  BookmarkIcon as BookmarkIconSource,
+  BookmarkXIcon as BookmarkXIconSource,
   BookTextIcon,
   BotIcon as BotIconSource,
   BoxesIcon,
@@ -105,6 +105,7 @@ import {
   type AnimatedIconHandle,
   type LucideIcon,
 } from "./icon-utils";
+import { TagIcon } from "./static-icons";
 
 export type { AnimatedIconHandle, LucideIcon };
 export {
@@ -113,10 +114,14 @@ export {
   ICON_HOVER_PARENT_SELECTOR,
   resolveIconSize,
 } from "./icon-utils";
+
 export {
   BotIconStatic,
+  EllipsisIcon,
   PinIcon,
   PlugIconStatic,
+  RatingStarIcon,
+  TagIcon,
   createStaticLucideIcon,
   type StaticLucideIcon,
   type StaticLucideIconProps,
@@ -242,8 +247,11 @@ export const SlidersHorizontal = createAnimatedIcon(
 export const SmileIcon = createAnimatedIcon(SmileIconSource);
 export const Sparkles = createAnimatedIcon(SparklesIconSource);
 export const SquareDashedKanbanIcon = createAnimatedIcon(FolderKanbanIcon);
-export const StarIcon = createAnimatedIcon(BookmarkIcon);
-export const StarOffIcon = createAnimatedIcon(BookmarkXIcon);
+export const BookmarkIcon = createAnimatedIcon(BookmarkIconSource);
+export const BookmarkOffIcon = createAnimatedIcon(BookmarkXIconSource);
+/** Label mark — was a bookmark; keep `StarIcon` as the same export. */
+export const StarIcon = TagIcon;
+export const StarOffIcon = createAnimatedIcon(BookmarkXIconSource);
 export const StoreIcon = createAnimatedIcon(HomeIconSource);
 export const ThumbsDown = createAnimatedIcon(DownvoteIcon);
 export const ThumbsUp = createAnimatedIcon(UpvoteIcon);
