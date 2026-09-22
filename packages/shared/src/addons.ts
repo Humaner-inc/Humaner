@@ -156,11 +156,16 @@ export function addOnQuantityFromMetadata(
  */
 export function addOnQuantityFromSubscription(subscription: {
   seats?: number | null;
+  units?: number | null;
   metadata?: Record<string, unknown> | null;
 }): number {
   const seats = subscription.seats;
   if (typeof seats === "number" && Number.isFinite(seats) && seats >= 1) {
     return clampAddOnQuantity(seats);
+  }
+  const units = subscription.units;
+  if (typeof units === "number" && Number.isFinite(units) && units >= 1) {
+    return clampAddOnQuantity(units);
   }
   return addOnQuantityFromMetadata(subscription.metadata ?? null);
 }
