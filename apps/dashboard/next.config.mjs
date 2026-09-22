@@ -137,11 +137,17 @@ const nextConfig = {
         // Everything except the embeddable widget gets strict frame protection.
         locale: false,
         source: '/((?!widget/).*)',
-        headers: createSecureHeaders({
-          ...baseSecureHeaders,
-          frameGuard: 'deny',
-          referrerPolicy: 'same-origin'
-        })
+        headers: [
+          ...createSecureHeaders({
+            ...baseSecureHeaders,
+            frameGuard: 'deny',
+            referrerPolicy: 'same-origin'
+          }),
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups'
+          }
+        ]
       },
       {
         // The widget is designed to be iframed on third-party sites, so we must

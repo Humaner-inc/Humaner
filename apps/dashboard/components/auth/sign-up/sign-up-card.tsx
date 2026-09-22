@@ -3,10 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  ctaPrimaryOnLightClassName,
-  ctaSecondaryOnLightClassName
-} from '@humaner/shared/cta';
+import { ctaPrimaryOnLightClassName } from '@humaner/shared/cta';
 import {
   AlertCircleIcon,
   LockIcon,
@@ -14,18 +11,14 @@ import {
   UserIcon
 } from '@humaner/shared/icons';
 import { getPrivacyUrl } from '@humaner/shared/urls';
-import GitHubLogo from 'public/github-logo.svg';
-import GoogleLogo from 'public/google-logo.svg';
 import { type SubmitHandler } from 'react-hook-form';
 
-import { continueWithGitHub } from '@/actions/auth/continue-with-github';
-import { continueWithGoogle } from '@/actions/auth/continue-with-google';
 import { setSignupIntent } from '@/actions/auth/set-signup-intent';
 import { signUp } from '@/actions/auth/sign-up';
 import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authDividerClassName,
+  authHighlightButtonClassName,
   authInputAdornmentClassName,
   authInputAdornmentOnLightClassName,
   authInputClassName,
@@ -33,9 +26,10 @@ import {
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
-  authOutlineButtonClassName,
   authPageTitleClassName,
-  authPrimaryButtonClassName
+  authStackButtonClassName,
+  authStackInputClassName,
+  authStackInputOnLightClassName
 } from '@/components/auth/auth-form-styles';
 import { useAuthTheme } from '@/components/auth/auth-theme-context';
 import { PasswordRequirementList } from '@/components/auth/password-requirement-list';
@@ -61,10 +55,10 @@ import {
 } from '@/schemas/auth/sign-up-schema';
 
 const pillButtonClassNameCloud =
-  'relative min-h-9 flex-1 rounded-md border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
+  'relative z-10 min-h-9 flex-1 rounded-full border-0 px-2 py-2 font-mono text-[11px] font-medium tracking-normal outline-none transition-colors duration-200 focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#e0e1df]/40 sm:min-h-10 sm:text-xs';
 
 const pillButtonClassNameOss =
-  'relative min-h-9 flex-1 rounded-[0.5rem] border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 sm:min-h-10';
+  'relative z-10 min-h-9 flex-1 rounded-full border-0 px-2 py-2 font-sans text-xs font-medium normal-case outline-none transition-colors duration-200 focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 sm:min-h-10';
 
 export type SignUpCardProps = {
   initialIntent?: SignUpIntent;
@@ -72,6 +66,11 @@ export type SignUpCardProps = {
   invitationEmail?: string;
   organizationName?: string;
   lockIntent?: boolean;
+  /** Hide the page title when the form slides in from login. */
+  embedded?: boolean;
+  /** When embedded, only invert the page while this panel is showing. */
+  active?: boolean;
+  onBackToLogin?: () => void;
 };
 
 export function SignUpCard({
@@ -79,7 +78,10 @@ export function SignUpCard({
   invitationId,
   invitationEmail,
   organizationName,
-  lockIntent = false
+  lockIntent = false,
+  embedded = false,
+  active = true,
+  onBackToLogin
 }: SignUpCardProps): React.JSX.Element {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = React.useState<string>();
@@ -101,9 +103,17 @@ export function SignUpCard({
   const { setAppearance } = useAuthTheme();
 
   React.useLayoutEffect(() => {
+    if (embedded && !active) {
+      setAppearance('dark');
+      return;
+    }
     setAppearance(inverted ? 'light' : 'dark');
-    return () => setAppearance('dark');
-  }, [inverted, setAppearance]);
+    return () => {
+      if (embedded) {
+        setAppearance('dark');
+      }
+    };
+  }, [active, embedded, inverted, setAppearance]);
 
   const persistIntent = async (next: SignUpIntent): Promise<void> => {
     await setSignupIntent({
@@ -133,29 +143,6 @@ export function SignUpCard({
       }
     }
   };
-  const handleSignInWithGoogle = async (): Promise<void> => {
-    await persistIntent(intent);
-    const result = await continueWithGoogle();
-    if (result?.data?.redirectTo) {
-      window.location.assign(result.data.redirectTo);
-      return;
-    }
-    if (result?.serverError || result?.validationErrors) {
-      setErrorMessage('An error occured during Google sign in.');
-    }
-  };
-  const handleSignInWithGitHub = async (): Promise<void> => {
-    await persistIntent(intent);
-    const result = await continueWithGitHub();
-    if (result?.data?.redirectTo) {
-      window.location.assign(result.data.redirectTo);
-      return;
-    }
-    if (result?.serverError || result?.validationErrors) {
-      setErrorMessage('An error occured during GitHub sign in.');
-    }
-  };
-
   const oss = false; // Humaner brand chrome
   const titleClassName = cn(
     authPageTitleClassName,
@@ -175,21 +162,20 @@ export function SignUpCard({
     authLabelClassName,
     inverted && 'text-[#0A0D0D]/65'
   );
-  const inputClassName = inverted
-    ? authInputOnLightClassName
-    : authInputClassName;
+  const inputClassName = cn(
+    inverted ? authInputOnLightClassName : authInputClassName,
+    inverted ? authStackInputOnLightClassName : authStackInputClassName
+  );
   const adornmentClassName = inverted
     ? authInputAdornmentOnLightClassName
     : authInputAdornmentClassName;
-  const primaryButtonClassName = inverted
-    ? `${ctaPrimaryOnLightClassName} h-11 w-full`
-    : authPrimaryButtonClassName;
-  const outlineButtonClassName = inverted
-    ? `${ctaSecondaryOnLightClassName} h-11 w-full`
-    : authOutlineButtonClassName;
-  const dividerClassName = inverted
-    ? 'flex items-center gap-x-3 font-mono text-xs text-[#0A0D0D]/30 before:h-px before:flex-1 before:bg-[#0A0D0D]/[0.08] after:h-px after:flex-1 after:bg-[#0A0D0D]/[0.08]'
-    : authDividerClassName;
+  const primaryButtonClassName = cn(
+    inverted
+      ? `${ctaPrimaryOnLightClassName} h-11 w-full`
+      : authHighlightButtonClassName,
+    authStackButtonClassName,
+    'justify-center gap-2.5'
+  );
   const destructiveClassName = inverted
     ? 'text-red-600'
     : authDestructiveMessageClassName;
@@ -200,35 +186,56 @@ export function SignUpCard({
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
       <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
-        <h1 className={titleClassName}>
-          {oss ? 'Create an account' : 'Humaner'}
-        </h1>
+        {embedded ? null : (
+          <h1 className={titleClassName}>
+            {oss ? 'Create an account' : 'Humaner'}
+          </h1>
+        )}
         <p className={mutedClassName}>
           {organizationName
             ? `Join ${organizationName}'s mailbox`
             : 'Already have an account?'}{' '}
           {!organizationName ? (
-            <Link
-              href={Routes.Login}
-              className={linkClassName}
-            >
-              Log in
-            </Link>
+            onBackToLogin ? (
+              <button
+                type="button"
+                className={linkClassName}
+                onClick={onBackToLogin}
+              >
+                Log in
+              </button>
+            ) : (
+              <Link
+                href={Routes.Login}
+                className={linkClassName}
+              >
+                Log in
+              </Link>
+            )
           ) : null}
         </p>
       </div>
 
       <div
-        className={
+        className={cn(
+          'auth-intent-pill',
           oss
-            ? 'flex gap-1 rounded-[0.5rem] border border-[#eaeaea] bg-[#f2f2f2] p-1'
+            ? 'border border-[#eaeaea] bg-[#f2f2f2]'
             : inverted
-              ? 'flex gap-1 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04] p-1'
-              : 'flex gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] p-1'
-        }
+              ? 'border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.04]'
+              : 'border border-white/[0.08] bg-white/[0.04]'
+        )}
+        data-intent={intent}
         role="group"
         aria-label="Account type"
       >
+        <span
+          aria-hidden
+          className={cn(
+            'auth-intent-pill__thumb',
+            oss ? 'bg-[#0A0D0D]' : inverted ? 'bg-[#0A0D0D]' : 'bg-[#fcf4ec]'
+          )}
+        />
         {(
           [
             { value: 'business_owner', label: 'Business owner' },
@@ -253,17 +260,18 @@ export function SignUpCard({
                 }}
                 className={cn(
                   oss ? pillButtonClassNameOss : pillButtonClassNameCloud,
+                  'z-10 bg-transparent',
                   oss
                     ? selected
-                      ? 'bg-[#0A0D0D] text-white shadow-sm'
-                      : 'bg-transparent text-[#18181b]/70 hover:text-[#0A0D0D]'
+                      ? 'text-white'
+                      : 'text-[#18181b]/70 hover:text-[#0A0D0D]'
                     : inverted
                       ? selected
-                        ? 'bg-[#0A0D0D] text-[#fcf4ec] hover:bg-[#0A0D0D] hover:text-[#fcf4ec]'
-                        : 'bg-transparent text-[#0A0D0D]/40 hover:bg-[#0A0D0D]/[0.06] hover:text-[#0A0D0D]/70'
+                        ? 'text-[#fcf4ec]'
+                        : 'text-[#0A0D0D]/40 hover:text-[#0A0D0D]/70'
                       : selected
-                        ? 'bg-[#fcf4ec] text-[#0A0D0D] hover:bg-white hover:text-[#0A0D0D]'
-                        : 'bg-transparent text-white/40 hover:bg-white/[0.06] hover:text-white/70',
+                        ? 'text-[#0A0D0D]'
+                        : 'text-white/40 hover:text-white/70',
                   disabled && !selected && 'cursor-not-allowed opacity-40'
                 )}
               >
@@ -314,6 +322,11 @@ export function SignUpCard({
                     autoComplete="name"
                     placeholder="Enter your name"
                     className={inputClassName}
+                    containerClassName={
+                      inverted
+                        ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40'
+                        : undefined
+                    }
                     disabled={methods.formState.isSubmitting}
                     startAdornment={
                       <UserIcon
@@ -340,6 +353,11 @@ export function SignUpCard({
                     autoComplete="username"
                     placeholder="Enter your email address"
                     className={inputClassName}
+                    containerClassName={
+                      inverted
+                        ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40'
+                        : undefined
+                    }
                     disabled={methods.formState.isSubmitting || emailLocked}
                     startAdornment={
                       <MailIcon
@@ -367,6 +385,11 @@ export function SignUpCard({
                       autoComplete="new-password"
                       placeholder="Enter your password"
                       className={inputClassName}
+                      containerClassName={
+                        inverted
+                          ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40 [&_button]:text-[#0A0D0D]/40'
+                          : undefined
+                      }
                       disabled={methods.formState.isSubmitting}
                       startAdornment={
                         <LockIcon
@@ -385,7 +408,7 @@ export function SignUpCard({
               inverted={inverted}
             />
           </div>
-          {errorMessage && (
+          {errorMessage ? (
             <Alert
               variant="destructive"
               className={alertClassName}
@@ -395,67 +418,42 @@ export function SignUpCard({
                 <AlertDescription>{errorMessage}</AlertDescription>
               </div>
             </Alert>
-          )}
-          <Button
-            type="submit"
-            variant="ghost"
-            className={primaryButtonClassName}
-            disabled={methods.formState.isSubmitting}
-            loading={methods.formState.isSubmitting}
-          >
-            Create account
-          </Button>
+          ) : null}
+          <div className="flex flex-col gap-2">
+            <Button
+              type="submit"
+              variant="ghost"
+              className={primaryButtonClassName}
+              disabled={methods.formState.isSubmitting}
+              loading={methods.formState.isSubmitting}
+            >
+              Create account
+            </Button>
+            <p
+              className={cn(
+                mutedClassName,
+                'text-center text-xs leading-relaxed'
+              )}
+            >
+              By signing up, you agree to our{' '}
+              <Link
+                href="#"
+                className={linkClassName}
+              >
+                Terms of Use
+              </Link>{' '}
+              and{' '}
+              <Link
+                href={getPrivacyUrl()}
+                className={linkClassName}
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
         </form>
       </FormProvider>
-
-      <p className={dividerClassName}>or</p>
-
-      <div className="flex flex-row gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label="Continue with Google"
-          className={cn(outlineButtonClassName, 'flex-1')}
-          disabled={methods.formState.isSubmitting}
-          onClick={() => void handleSignInWithGoogle()}
-        >
-          <GoogleLogo
-            width="20"
-            height="20"
-          />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label="Continue with GitHub"
-          className={cn(outlineButtonClassName, 'flex-1')}
-          disabled={methods.formState.isSubmitting}
-          onClick={() => void handleSignInWithGitHub()}
-        >
-          <GitHubLogo
-            width="20"
-            height="20"
-          />
-        </Button>
-      </div>
-
-      <p className={cn(mutedClassName, 'text-center text-xs leading-relaxed')}>
-        By signing up, you agree to our{' '}
-        <Link
-          href="#"
-          className={linkClassName}
-        >
-          Terms of Use
-        </Link>{' '}
-        and{' '}
-        <Link
-          href={getPrivacyUrl()}
-          className={linkClassName}
-        >
-          Privacy Policy
-        </Link>
-        .
-      </p>
     </div>
   );
 }

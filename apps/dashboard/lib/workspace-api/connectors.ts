@@ -127,8 +127,8 @@ async function executeListLinearIssues(
   const result = await linearGraphql(
     token.token,
     query
-      ? `query ListIssues($first: Int!, $term: String!) {
-      issues(first: $first, filter: { search: $term }) {
+      ? `query SearchIssues($first: Int!, $term: String!) {
+      searchIssues(term: $term, first: $first, includeComments: false) {
         nodes { id identifier title url state { name } team { name key } }
       }
       teams { nodes { id name key } }
@@ -145,7 +145,9 @@ async function executeListLinearIssues(
   );
   if (!result.ok) return result;
 
-  const issues = result.data.issues as { nodes?: unknown[] } | undefined;
+  const issues = (query ? result.data.searchIssues : result.data.issues) as
+    | { nodes?: unknown[] }
+    | undefined;
   const teams = result.data.teams as { nodes?: unknown[] } | undefined;
   return {
     ok: true,

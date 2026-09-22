@@ -3,7 +3,12 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
+  ctaPrimaryOnLightClassName,
+  ctaSecondaryOnLightClassName
+} from '@humaner/shared/cta';
+import {
   AlertCircleIcon,
+  ArrowLeftIcon,
   ArrowRightIcon,
   CheckIcon,
   LockIcon,
@@ -19,7 +24,6 @@ import { logIn } from '@/actions/auth/log-in';
 import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authDividerClassName,
   authHighlightButtonClassName,
   authInputAdornmentClassName,
   authInputClassName,
@@ -27,8 +31,12 @@ import {
   authLinkClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
-  authPageTitleClassName
+  authPageTitleClassName,
+  authStackButtonClassName,
+  authStackInputClassName
 } from '@/components/auth/auth-form-styles';
+import { useAuthTheme } from '@/components/auth/auth-theme-context';
+import { SignUpCard } from '@/components/auth/sign-up/sign-up-card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -66,6 +74,14 @@ export function LoginCard({
     initialErrorMessage
   );
   const [highlightInputs, setHighlightInputs] = React.useState(false);
+  const [authPage, setAuthPage] = React.useState<'1' | '2' | '3'>('1');
+  const showEmailForm = authPage === '2';
+  const showSignupForm = authPage === '3';
+  const { isInverted, setAppearance } = useAuthTheme();
+  const goToMethods = (): void => {
+    setAppearance('dark');
+    setAuthPage('1');
+  };
   const [unverifiedEmail, setUnverifiedEmail] = React.useState<
     string | undefined
   >();
@@ -179,188 +195,308 @@ export function LoginCard({
     setIsLoading(false);
   };
   const oss = false; // Humaner brand chrome
+  const methodButtonClassName = cn(
+    isInverted
+      ? `${ctaSecondaryOnLightClassName} h-11 w-full`
+      : authOutlineButtonClassName,
+    authStackButtonClassName,
+    'justify-center gap-2.5'
+  );
+  const primaryButtonClassName = cn(
+    isInverted
+      ? `${ctaPrimaryOnLightClassName} h-11 w-full`
+      : authHighlightButtonClassName,
+    authStackButtonClassName,
+    'justify-center gap-2.5'
+  );
 
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
       <div className={cn('text-center', oss ? 'space-y-1' : 'space-y-2')}>
-        <h1 className={authPageTitleClassName}>
+        <h1
+          className={cn(
+            authPageTitleClassName,
+            'transition-colors duration-300',
+            isInverted && 'text-[#0A0D0D]'
+          )}
+        >
           {oss ? 'Log in' : AppInfo.APP_NAME}
         </h1>
-        <p className={authMutedTextClassName}>
-          Enter your details below to sign into your account.
-        </p>
-      </div>
-
-      <FormProvider {...methods}>
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(event) => {
-            pulseInputs();
-            void methods.handleSubmit(onSubmit)(event);
-          }}
-        >
-          <FormField
-            control={methods.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel className={authLabelClassName}>Email</FormLabel>
-                <FormControl>
-                  <InputWithAdornments
-                    {...field}
-                    type="email"
-                    maxLength={255}
-                    autoCapitalize="off"
-                    autoComplete="username"
-                    placeholder="Enter your email address"
-                    className={cn(
-                      authInputClassName,
-                      highlightInputs && 'auth-input--highlight'
-                    )}
-                    startAdornment={
-                      <MailIcon
-                        className={cn(
-                          'size-4 shrink-0',
-                          authInputAdornmentClassName
-                        )}
-                      />
-                    }
-                    disabled={isLoading || loginSuccess}
-                  />
-                </FormControl>
-                <FormMessage className={authDestructiveMessageClassName} />
-              </FormItem>
+        {showSignupForm ? null : (
+          <p
+            className={cn(
+              authMutedTextClassName,
+              'transition-colors duration-300',
+              isInverted && 'text-[#0A0D0D]/50'
             )}
-          />
-          <FormField
-            control={methods.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <div className="flex flex-row items-center justify-between">
-                  <FormLabel className={authLabelClassName}>Password</FormLabel>
-                  <Link
-                    href={Routes.ForgotPassword}
-                    className={authLinkClassName}
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <InputPassword
-                    {...field}
-                    maxLength={72}
-                    autoCapitalize="off"
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    className={cn(
-                      authInputClassName,
-                      highlightInputs && 'auth-input--highlight'
-                    )}
-                    startAdornment={
-                      <LockIcon
-                        className={cn(
-                          'size-4 shrink-0',
-                          authInputAdornmentClassName
-                        )}
-                      />
-                    }
-                    disabled={isLoading || loginSuccess}
-                  />
-                </FormControl>
-                <FormMessage className={authDestructiveMessageClassName} />
-              </FormItem>
-            )}
-          />
-          {errorMessage && (
-            <Alert
-              variant="destructive"
-              className={authAlertDestructiveClassName}
-            >
-              <div className="flex flex-row items-center gap-2">
-                <AlertCircleIcon className="size-[18px] shrink-0" />
-                <AlertDescription>
-                  {errorMessage}
-                  {unverifiedEmail && (
-                    <Link
-                      className={cn(
-                        buttonVariants({ variant: 'link' }),
-                        'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
-                        oss ? 'text-foreground' : 'text-red-300'
-                      )}
-                      href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
-                    >
-                      Verify email
-                      <ArrowRightIcon className="size-3 shrink-0" />
-                    </Link>
-                  )}
-                </AlertDescription>
-              </div>
-            </Alert>
-          )}
-          <Button
-            type="submit"
-            variant="ghost"
-            className={authHighlightButtonClassName}
-            disabled={!canSubmit}
-            loading={isLoading}
           >
-            {loginSuccess ? (
-              <CheckIcon
-                className="size-4"
-                strokeWidth={2.5}
+            {showEmailForm
+              ? 'Enter your details below to sign into your account.'
+              : 'Log in to your account.'}
+          </p>
+        )}
+      </div>
+
+      {errorMessage && authPage === '1' ? (
+        <Alert
+          variant="destructive"
+          className={authAlertDestructiveClassName}
+        >
+          <div className="flex flex-row items-center gap-2">
+            <AlertCircleIcon className="size-[18px] shrink-0" />
+            <AlertDescription>
+              {errorMessage}
+              {unverifiedEmail ? (
+                <Link
+                  className={cn(
+                    buttonVariants({ variant: 'link' }),
+                    'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                    oss ? 'text-foreground' : 'text-red-300'
+                  )}
+                  href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
+                >
+                  Verify email
+                  <ArrowRightIcon className="size-3 shrink-0" />
+                </Link>
+              ) : null}
+            </AlertDescription>
+          </div>
+        </Alert>
+      ) : null}
+
+      <div
+        className={cn(
+          't-page-slide t-resize overflow-hidden',
+          showSignupForm
+            ? 'h-[min(38rem,72vh)]'
+            : showEmailForm
+              ? 'h-[20rem]'
+              : 'h-[10.25rem]'
+        )}
+        data-page={authPage}
+      >
+        <section
+          className="t-page flex flex-col justify-start"
+          data-page-id="1"
+        >
+          <div className="flex flex-col gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className={primaryButtonClassName}
+              disabled={!canSubmit}
+              onClick={handleSignInWithGoogle}
+            >
+              <GoogleLogo
+                width="20"
+                height="20"
               />
-            ) : (
-              'Log in'
+              Google
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className={methodButtonClassName}
+              disabled={!canSubmit}
+              onClick={handleSignInWithGitHub}
+            >
+              <GitHubLogo
+                width="20"
+                height="20"
+              />
+              GitHub
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className={methodButtonClassName}
+              disabled={!canSubmit}
+              onClick={() => setAuthPage('2')}
+            >
+              With email
+            </Button>
+          </div>
+        </section>
+
+        <section
+          className="t-page flex flex-col justify-start overflow-y-auto"
+          data-page-id="2"
+        >
+          <FormProvider {...methods}>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(event) => {
+                pulseInputs();
+                void methods.handleSubmit(onSubmit)(event);
+              }}
+            >
+              <button
+                type="button"
+                className={cn(
+                  authLinkClassName,
+                  'inline-flex items-center gap-1.5 self-start'
+                )}
+                onClick={goToMethods}
+              >
+                <ArrowLeftIcon className="size-3.5 shrink-0" />
+                Back
+              </button>
+              <FormField
+                control={methods.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className={authLabelClassName}>Email</FormLabel>
+                    <FormControl>
+                      <InputWithAdornments
+                        {...field}
+                        type="email"
+                        maxLength={255}
+                        autoCapitalize="off"
+                        autoComplete="username"
+                        placeholder="Enter your email address"
+                        className={cn(
+                          authInputClassName,
+                          authStackInputClassName,
+                          highlightInputs && 'auth-input--highlight'
+                        )}
+                        startAdornment={
+                          <MailIcon
+                            className={cn(
+                              'size-4 shrink-0',
+                              authInputAdornmentClassName
+                            )}
+                          />
+                        }
+                        disabled={isLoading || loginSuccess}
+                      />
+                    </FormControl>
+                    <FormMessage className={authDestructiveMessageClassName} />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={methods.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div className="flex flex-row items-center justify-between">
+                      <FormLabel className={authLabelClassName}>
+                        Password
+                      </FormLabel>
+                      <Link
+                        href={Routes.ForgotPassword}
+                        className={authLinkClassName}
+                      >
+                        Forgot your password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <InputPassword
+                        {...field}
+                        maxLength={72}
+                        autoCapitalize="off"
+                        autoComplete="current-password"
+                        placeholder="Enter your password"
+                        className={cn(
+                          authInputClassName,
+                          authStackInputClassName,
+                          highlightInputs && 'auth-input--highlight'
+                        )}
+                        startAdornment={
+                          <LockIcon
+                            className={cn(
+                              'size-4 shrink-0',
+                              authInputAdornmentClassName
+                            )}
+                          />
+                        }
+                        disabled={isLoading || loginSuccess}
+                      />
+                    </FormControl>
+                    <FormMessage className={authDestructiveMessageClassName} />
+                  </FormItem>
+                )}
+              />
+              {errorMessage && showEmailForm ? (
+                <Alert
+                  variant="destructive"
+                  className={authAlertDestructiveClassName}
+                >
+                  <div className="flex flex-row items-center gap-2">
+                    <AlertCircleIcon className="size-[18px] shrink-0" />
+                    <AlertDescription>
+                      {errorMessage}
+                      {unverifiedEmail ? (
+                        <Link
+                          className={cn(
+                            buttonVariants({ variant: 'link' }),
+                            'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+                            oss ? 'text-foreground' : 'text-red-300'
+                          )}
+                          href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
+                        >
+                          Verify email
+                          <ArrowRightIcon className="size-3 shrink-0" />
+                        </Link>
+                      ) : null}
+                    </AlertDescription>
+                  </div>
+                </Alert>
+              ) : null}
+              <Button
+                type="submit"
+                variant="ghost"
+                className={primaryButtonClassName}
+                disabled={!canSubmit}
+                loading={isLoading}
+              >
+                {loginSuccess ? (
+                  <CheckIcon
+                    className="size-4"
+                    strokeWidth={2.5}
+                  />
+                ) : (
+                  'Log in'
+                )}
+              </Button>
+            </form>
+          </FormProvider>
+        </section>
+
+        <section
+          className="t-page flex flex-col justify-start overflow-y-auto"
+          data-page-id="3"
+        >
+          <SignUpCard
+            embedded
+            active={showSignupForm}
+            onBackToLogin={goToMethods}
+          />
+        </section>
+      </div>
+
+      {showSignupForm ? null : (
+        <div className="space-y-3">
+          <p
+            className={cn(
+              authMutedTextClassName,
+              'text-center transition-colors duration-300',
+              isInverted && 'text-[#0A0D0D]/50'
             )}
+          >
+            Don&apos;t have an account?
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            className={cn(methodButtonClassName)}
+            onClick={() => setAuthPage('3')}
+          >
+            Create account
           </Button>
-        </form>
-      </FormProvider>
-
-      <p className={authDividerClassName}>or</p>
-
-      <div className="flex flex-row gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label="Continue with Google"
-          className={cn(authOutlineButtonClassName, 'flex-1')}
-          disabled={!canSubmit}
-          onClick={handleSignInWithGoogle}
-        >
-          <GoogleLogo
-            width="20"
-            height="20"
-          />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label="Continue with GitHub"
-          className={cn(authOutlineButtonClassName, 'flex-1')}
-          disabled={!canSubmit}
-          onClick={handleSignInWithGitHub}
-        >
-          <GitHubLogo
-            width="20"
-            height="20"
-          />
-        </Button>
-      </div>
-
-      <div className="space-y-3 pt-2">
-        <p className={cn(authMutedTextClassName, 'text-center')}>
-          Don&apos;t have an account?
-        </p>
-        <Button
-          type="button"
-          variant="ghost"
-          className={authOutlineButtonClassName}
-          asChild
-        >
-          <Link href={Routes.SignUp}>Create account</Link>
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

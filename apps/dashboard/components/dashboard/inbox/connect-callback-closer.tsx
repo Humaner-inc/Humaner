@@ -10,10 +10,12 @@ import {
 
 export function ConnectCallbackCloser({
   app,
-  ok
+  ok,
+  error
 }: {
   app: CompanionIntegrationId;
   ok: boolean;
+  error?: string;
 }): React.JSX.Element {
   React.useEffect(() => {
     const payload = {
@@ -24,14 +26,19 @@ export function ConnectCallbackCloser({
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage(payload, window.location.origin);
     }
-    window.close();
+    try {
+      window.close();
+    } catch {
+      // COOP can block close after a cross-origin Connect portal hop.
+    }
   }, [app, ok]);
 
   return (
     <p className="text-sm text-muted-foreground">
       {ok
         ? `${VERCEL_CONNECT_APPS[app].name} is connected. You can close this window.`
-        : `Could not finish ${VERCEL_CONNECT_APPS[app].name}. Close this window and try Link again.`}
+        : error ||
+          `Could not finish ${VERCEL_CONNECT_APPS[app].name}. Close this window and try Connect again.`}
     </p>
   );
 }

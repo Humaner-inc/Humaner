@@ -62,6 +62,20 @@ export const authHighlightButtonClassName = oss
   ? 'inline-flex h-10 w-full items-center justify-center rounded-[0.5rem] bg-[#0A0D0D] px-4 font-sans text-sm font-medium normal-case text-white transition-colors hover:bg-[#1c1c1e]'
   : ctaPrimaryClassName;
 
+/** Login actions share one radius so the stack reads as a single column. */
+export const authStackButtonClassName = oss
+  ? 'h-10 w-full rounded-[0.5rem]'
+  : 'h-11 w-full rounded-[16px]';
+
+/** Email/password fields — same chrome as the stacked auth buttons. */
+export const authStackInputClassName = oss
+  ? 'h-10 rounded-[0.5rem]'
+  : 'h-11 rounded-[16px] border-white/25 bg-transparent';
+
+export const authStackInputOnLightClassName = oss
+  ? 'h-10 rounded-[0.5rem]'
+  : 'h-11 rounded-[16px] border-[#0A0D0D]/30 bg-transparent';
+
 export const authMutedTextClassName = oss
   ? 'text-sm text-[#18181b]/70'
   : uiAuthMutedClassName;

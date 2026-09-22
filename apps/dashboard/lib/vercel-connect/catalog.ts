@@ -2,11 +2,19 @@ import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
 
 export const VERCEL_CONNECT_MESSAGE = 'humaner-vercel-connect';
 
+export type VercelConnectSubject = 'app' | 'user';
+
 export type VercelConnectAppCatalog = {
   id: CompanionIntegrationId;
   name: string;
   envKey: string;
   webhookEnvKey?: string;
+  /**
+   * Linear and GitHub were created as managed app connectors
+   * (`linear/app-humaner`, `github/app-humaner`). User OAuth against those
+   * fails in the Connect portal with "couldn't connect".
+   */
+  subject: VercelConnectSubject;
   scopes?: string[];
 };
 
@@ -19,23 +27,26 @@ export const VERCEL_CONNECT_APPS: Record<
     name: 'Linear',
     envKey: 'VERCEL_CONNECT_LINEAR_UID',
     webhookEnvKey: 'VERCEL_CONNECT_LINEAR_WEBHOOK',
-    scopes: ['read', 'write']
+    subject: 'app'
   },
   stripe: {
     id: 'stripe',
     name: 'Stripe',
-    envKey: 'VERCEL_CONNECT_STRIPE_UID'
+    envKey: 'VERCEL_CONNECT_STRIPE_UID',
+    subject: 'user'
   },
   github: {
     id: 'github',
     name: 'GitHub',
     envKey: 'VERCEL_CONNECT_GITHUB_UID',
-    webhookEnvKey: 'VERCEL_CONNECT_GITHUB_WEBHOOK'
+    webhookEnvKey: 'VERCEL_CONNECT_GITHUB_WEBHOOK',
+    subject: 'app'
   },
   notion: {
     id: 'notion',
     name: 'Notion',
-    envKey: 'VERCEL_CONNECT_NOTION_UID'
+    envKey: 'VERCEL_CONNECT_NOTION_UID',
+    subject: 'user'
   }
 };
 

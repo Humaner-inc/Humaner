@@ -11,7 +11,11 @@ import { dedupedAuth } from '@/lib/auth';
 import { checkSession } from '@/lib/auth/session';
 import { requireWorkspaceOwner } from '@/lib/auth/workspace-permissions';
 import { isCompanionIntegrationId } from '@/lib/inbox/companion-rights';
-import { completeConnectAuthorization } from '@/lib/vercel-connect/client';
+import { VERCEL_CONNECT_APPS } from '@/lib/vercel-connect/catalog';
+import {
+  completeConnectAuthorization,
+  connectErrorMessage
+} from '@/lib/vercel-connect/client';
 
 export default async function InboxConnectCallbackPage({
   searchParams
@@ -26,6 +30,7 @@ export default async function InboxConnectCallbackPage({
   const session = await dedupedAuth();
   const organizationId = session?.user.organizationId;
   let ok = false;
+  let error: string | undefined;
 
   if (checkSession(session) && organizationId) {
     try {
@@ -40,8 +45,9 @@ export default async function InboxConnectCallbackPage({
         ]);
       }
       ok = true;
-    } catch {
+    } catch (caught) {
       ok = false;
+      error = connectErrorMessage(caught, VERCEL_CONNECT_APPS[app].name);
     }
   }
 
@@ -50,6 +56,7 @@ export default async function InboxConnectCallbackPage({
       <ConnectCallbackCloser
         app={app}
         ok={ok}
+        error={error}
       />
     </div>
   );
