@@ -92,6 +92,37 @@ Can you confirm whether Opus is included?
     expect(result.previous[0]?.text).toContain('Other Models pool');
   });
 
+  it('keeps a Linear-style card with From/To chrome as one message', () => {
+    const html = `
+      <style>.mail-dup{display:none!important}</style>
+      <table width="100%">
+        <tr>
+          <td>
+            From: security@updates.linear.app<br>
+            To: you@humaner.io<br>
+            New login to Linear
+          </td>
+        </tr>
+      </table>
+      <table class="mail-dup" width="100%">
+        <tr>
+          <td>
+            From: security@updates.linear.app<br>
+            To: you@humaner.io<br>
+            New login to Linear
+          </td>
+        </tr>
+      </table>
+    `;
+
+    const result = triageMailBody(html, null, 'New login to Linear');
+
+    expect(result.previous).toHaveLength(0);
+    expect(result.latest.html).toContain('<style>');
+    expect(result.latest.html).toContain('mail-dup');
+    expect(result.latest.text).toContain('New login to Linear');
+  });
+
   it('promotes the quoted body when the reply itself is empty', () => {
     const text = `Sent insecurely from Private Email
 From: hi@cursor.com

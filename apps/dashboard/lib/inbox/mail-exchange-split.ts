@@ -1,7 +1,8 @@
 import {
   htmlToPlainText,
+  isRichMailHtml,
   looksLikeMailSource,
-  stripMailSourceBlocks
+  stripMailUnsafeBlocks
 } from '@/lib/inbox/mail-body-display';
 
 export type MailExchange = {
@@ -15,15 +16,19 @@ export type MailBodyTriage = {
   previous: MailExchange[];
 };
 
-const QUOTE_START_RES = [
+const THREAD_QUOTE_START_RES = [
   /<div[^>]*class=["'][^"']*\b(?:gmail_quote|gmail_extra|protonmail_quote|proton-quote|yahoo_quoted|moz-cite-prefix)\b/i,
   /<blockquote\b/i,
   /<div[^>]*id=["']divRplyFwdMsg["']/i,
   /-----Original Message-----/i,
   /Replying to\s+[\w.+@-]+/i,
-  /(?:^|[>\n])\s*On\s[\s\S]{8,180}?wrote:/i,
-  /(?:From|De):\s*[^<\n]{2,160}\s*(?:<br\s*\/?>|\n)\s*(?:To|Sent|Date|Subject)\s*:/i
+  /(?:^|[>\n])\s*On\s[\s\S]{8,180}?wrote:/i
 ];
+
+const HEADER_QUOTE_START_RE =
+  /(?:From|De):\s*[^<\n]{2,160}\s*(?:<br\s*\/?>|\n)\s*(?:To|Sent|Date|Subject)\s*:/i;
+
+const QUOTE_START_RES = [...THREAD_QUOTE_START_RES, HEADER_QUOTE_START_RE];
 
 const OPENING_MARKER_RES = [
   /^\s*<div[^>]*class=["'][^"']*\b(?:gmail_quote|gmail_extra|protonmail_quote|proton-quote|yahoo_quoted)\b[^"']*["'][^>]*>\s*(?:<div[^>]*class=["'][^"']*gmail_attr[^"']*["'][^>]*>[\s\S]*?<\/div>\s*)?(?:<blockquote\b[^>]*>)?/i,
@@ -182,7 +187,11 @@ function toExchange(segment: string, asHtml: boolean): MailExchange {
 }
 
 function shouldSplitHtml(html: string): boolean {
-  return earliestMatchIndex(html, QUOTE_START_RES) >= 0;
+  if (earliestMatchIndex(html, THREAD_QUOTE_START_RES) >= 0) return true;
+  // Designed / table mail often restates From/To in the template. That is
+  // not a quoted reply — splitting it renders the same card twice.
+  if (isRichMailHtml(html)) return false;
+  return HEADER_QUOTE_START_RE.test(html);
 }
 
 /**
@@ -195,7 +204,7 @@ export function triageMailBody(
   subject?: string | null
 ): MailBodyTriage {
   const html = stripMailThreadChrome(
-    stripMailSourceBlocks(bodyHtml?.trim() ?? '')
+    stripMailUnsafeBlocks(bodyHtml?.trim() ?? '')
   );
   const text = stripMailThreadChrome(bodyText?.trim() ?? '');
 

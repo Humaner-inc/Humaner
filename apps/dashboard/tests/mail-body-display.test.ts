@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   htmlToPlainText,
   isRichMailHtml,
-  isStructuredMailHtml
+  isStructuredMailHtml,
+  prepareMailHtmlForDisplay
 } from '@/lib/inbox/mail-body-display';
 
 describe('isStructuredMailHtml', () => {
@@ -25,6 +26,23 @@ describe('isStructuredMailHtml', () => {
     const html = '<table><tr><td bgcolor="#ffffff">Welcome</td></tr></table>';
     expect(isRichMailHtml(html)).toBe(true);
     expect(isStructuredMailHtml(html)).toBe(false);
+  });
+});
+
+describe('prepareMailHtmlForDisplay', () => {
+  it('keeps author CSS that hides a duplicate layout', () => {
+    const html = `
+      <style>.mail-dup{display:none}</style>
+      <script>alert(1)</script>
+      <table><tr><td>New login to Linear</td></tr></table>
+    `;
+
+    const prepared = prepareMailHtmlForDisplay(html, 'New login to Linear');
+
+    expect(prepared).toContain('<style>');
+    expect(prepared).toContain('mail-dup');
+    expect(prepared).not.toMatch(/<script/i);
+    expect(prepared).toContain('New login to Linear');
   });
 });
 

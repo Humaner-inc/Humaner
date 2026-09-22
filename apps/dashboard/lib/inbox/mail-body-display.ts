@@ -57,12 +57,23 @@ export function isStructuredMailHtml(
 
 const SOURCE_BLOCK_RE = /<(style|script|head|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi;
 const UNCLOSED_SOURCE_RE = /<(style|script|head|noscript)\b[^>]*>[\s\S]*$/gi;
+const UNSAFE_BLOCK_RE = /<(script|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi;
+const UNCLOSED_UNSAFE_RE = /<(script|noscript)\b[^>]*>[\s\S]*$/gi;
 const CSS_SOURCE_RE =
   /\{[^}]{0,240}\b(?:font|color|margin|padding|display|background)\s*:/i;
 
 /** Drop `<style>` / `<script>` so CSS source never becomes visible text. */
 export function stripMailSourceBlocks(html: string): string {
   return html.replace(SOURCE_BLOCK_RE, '').replace(UNCLOSED_SOURCE_RE, '');
+}
+
+/**
+ * Drop executable blocks before iframe display. Keep `<style>` — designed
+ * mail (Linear, react-email) hides a second layout with CSS; stripping it
+ * shows the same message twice.
+ */
+export function stripMailUnsafeBlocks(html: string): string {
+  return html.replace(UNSAFE_BLOCK_RE, '').replace(UNCLOSED_UNSAFE_RE, '');
 }
 
 export function looksLikeMailSource(text: string): boolean {
@@ -222,7 +233,7 @@ export function prepareMailHtmlForDisplay(
   subject: string | null | undefined,
   origin?: string
 ): string {
-  let html = stripMailSourceBlocks(stripMailPreviewBlocks(bodyHtml));
+  let html = stripMailUnsafeBlocks(stripMailPreviewBlocks(bodyHtml));
   if (origin) {
     html = rewriteMailAssetUrls(html, origin);
   }

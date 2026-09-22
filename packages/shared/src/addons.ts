@@ -1,11 +1,11 @@
 /**
  * Seat and mailbox add-ons.
  *
- * Inbox includes one seat and one mailbox. Everything beyond that is a separate
- * Polar subscription, priced the same for every workspace — including the
- * Early Access accounts that keep Inbox itself unpaid. The product ids live in
- * `POLAR_PRODUCT_ADDON_*` environment variables, one per kind × interval, so a
- * new product can be created in Polar and pointed at without a code change.
+ * Inbox includes one seat and one mailbox. Extra Member and Extra Inbox are
+ * separate Polar products, both seat-based (1 Polar seat = 1 teammate or 1
+ * mailbox). Priced the same for every workspace — including Early Access
+ * accounts that keep Inbox itself unpaid. Product ids live in
+ * `POLAR_PRODUCT_ADDON_*` environment variables, one per kind × interval.
  */
 
 import {
@@ -149,10 +149,9 @@ export function addOnQuantityFromMetadata(
 }
 
 /**
- * How many units an add-on subscription entitles. Polar reports `seats` for a
- * seat-based product; a flat per-unit product has none, so the count we set at
- * checkout is read from metadata instead. Both are clamped — they arrive over
- * the wire.
+ * How many units an add-on subscription entitles. Extra Member and Extra
+ * Inbox are seat-based on Polar — trust `seats`. Older unit-priced Extra
+ * Inbox rows may still send `units`. Metadata is the last fallback.
  */
 export function addOnQuantityFromSubscription(subscription: {
   seats?: number | null;

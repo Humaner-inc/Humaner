@@ -242,6 +242,15 @@ export function ConnectImapForm({
     },
     [canApplyToBill, connectingProviderId]
   );
+  const mailboxAddOnProviderName =
+    getMailProviderById(
+      mailboxConsent?.providerId ?? connectingProviderId ?? ''
+    )?.name ?? selectedProvider?.name;
+  const mailboxAddOnCopy = addOnConsentCopy('mailbox', {
+    usedSlots: connectionCount,
+    slotLimit: inboxLimit + purchasedSlots,
+    providerName: mailboxAddOnProviderName
+  });
   const preset = connectingProviderId
     ? resolveMailProviderPreset(connectingProviderId)
     : null;
@@ -1444,8 +1453,8 @@ export function ConnectImapForm({
         }}
       >
         <QuickCreateDialogContent
-          title={addOnConsentCopy('mailbox').title}
-          description={addOnConsentCopy('mailbox').description}
+          title={mailboxAddOnCopy.title}
+          description={mailboxAddOnCopy.description}
           hideCardClose
           onClose={() => {
             if (addOnPending == null) {
@@ -1460,6 +1469,9 @@ export function ConnectImapForm({
             quantity={mailboxQuantity}
             onQuantityChange={setMailboxQuantity}
             canApplyToBill={mailboxConsent?.canApplyToBill ?? canApplyToBill}
+            usedSlots={connectionCount}
+            slotLimit={inboxLimit + purchasedSlots}
+            providerName={mailboxAddOnProviderName}
           />
           <QuickCreateFooter className="justify-between">
             <AddOnConsentFooterButtons
