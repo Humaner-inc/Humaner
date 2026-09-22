@@ -179,3 +179,102 @@ export function getXComposeUrl(text: string): string {
 export function getUnsubscribeUrl(): string {
   return `${getAppUrl()}/settings/account/notifications`;
 }
+
+const TRUSTED_NAV_HOSTS = new Set([
+  "accounts.google.com",
+  "auth.calendly.com",
+  "login.microsoftonline.com",
+  "github.com",
+]);
+
+const MAILTO_ADDRESS_RE = /^[^\s@/?]+@[^\s@/?]+\.[^\s@/?]+$/;
+
+function hostnameAllowed(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (TRUSTED_NAV_HOSTS.has(host)) return true;
+  if (host === "polar.sh" || host.endsWith(".polar.sh")) return true;
+  if (host === "vercel.com" || host.endsWith(".vercel.com")) return true;
+  return false;
+}
+
+function isSafeMailtoUrl(url: string): boolean {
+  if (!url.toLowerCase().startsWith("mailto:")) return false;
+  const rest = url.slice("mailto:".length);
+  const [rawAddress, query] = rest.split("?");
+  let address = rawAddress ?? "";
+  try {
+    address = decodeURIComponent(address);
+  } catch {
+    return false;
+  }
+  if (!MAILTO_ADDRESS_RE.test(address)) return false;
+  if (!query) return true;
+  const params = new URLSearchParams(query);
+  for (const key of params.keys()) {
+    if (key.toLowerCase() !== "subject" && key.toLowerCase() !== "body") {
+      return false;
+    }
+  }
+  return true;
+}
+
+function allowedAppOrigins(): string[] {
+  const origins: string[] = [];
+  for (const raw of [getAppUrl(), getLandingUrl(), getDocsUrl()]) {
+    try {
+      origins.push(new URL(raw).origin);
+    } catch {
+      // ignore invalid env URLs
+    }
+  }
+  return origins;
+}
+
+/** Same-origin paths, mailto, or https hosts we generate (OAuth / Polar / Vercel). */
+export function isTrustedNavigationUrl(
+  url: string,
+  currentOrigin?: string,
+): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return !trimmed.includes("\\");
+  }
+  if (trimmed.toLowerCase().startsWith("mailto:")) {
+    return isSafeMailtoUrl(trimmed);
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "https:") {
+      if (currentOrigin && parsed.origin === currentOrigin) return true;
+      if (allowedAppOrigins().includes(parsed.origin)) return true;
+      return hostnameAllowed(parsed.hostname);
+    }
+    if (
+      parsed.protocol === "http:" &&
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
+    ) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function assignTrustedNavigation(url: string): boolean {
+  if (typeof window === "undefined") return false;
+  if (!isTrustedNavigationUrl(url, window.location.origin)) return false;
+  window.location.assign(url);
+  return true;
+}
+
+export function openTrustedPopup(
+  url: string,
+  target: string,
+  features: string,
+): Window | null {
+  if (typeof window === "undefined") return null;
+  if (!isTrustedNavigationUrl(url, window.location.origin)) return null;
+  return window.open(url, target, features);
+}

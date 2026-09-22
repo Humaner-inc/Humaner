@@ -13,6 +13,7 @@ import {
   LockIcon,
   MailIcon
 } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { toast } from 'sonner';
@@ -161,7 +162,7 @@ export function LoginCard({
     });
     // Full navigation so the session cookie from the server action is applied
     // before protected middleware runs (router.push can race).
-    window.location.assign(redirectTo);
+    assignTrustedNavigation(redirectTo);
   };
   const handleSignInWithGoogle = async (): Promise<void> => {
     if (!canSubmit) {
@@ -170,7 +171,7 @@ export function LoginCard({
     setIsLoading(true);
     const result = await continueWithGoogle();
     if (result?.data?.redirectTo) {
-      window.location.assign(result.data.redirectTo);
+      assignTrustedNavigation(result.data.redirectTo);
       return;
     }
     if (result?.serverError || result?.validationErrors) {
@@ -185,7 +186,7 @@ export function LoginCard({
     setIsLoading(true);
     const result = await continueWithGitHub();
     if (result?.data?.redirectTo) {
-      window.location.assign(result.data.redirectTo);
+      assignTrustedNavigation(result.data.redirectTo);
       return;
     }
     if (result?.serverError || result?.validationErrors) {

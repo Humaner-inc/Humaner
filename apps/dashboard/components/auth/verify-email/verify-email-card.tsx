@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { CheckIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -89,7 +90,7 @@ export function VerifyEmailCard({
       });
       // Full navigation so the session cookie from the server action is applied
       // before the next page reads auth (router.push can race → /auth/login).
-      window.location.assign(result.data.redirectTo);
+      assignTrustedNavigation(result.data.redirectTo);
       return;
     }
     if (result?.serverError || result?.validationErrors) {

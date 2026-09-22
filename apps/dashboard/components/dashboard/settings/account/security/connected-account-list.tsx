@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { GlobeLockIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import GitHubLogo from 'public/github-logo.svg';
 import GoogleLogo from 'public/google-logo.svg';
 import { toast } from 'sonner';
@@ -56,7 +57,7 @@ function ConnectedAccountListItem({
       provider: connectedAccount.id as OAuthIdentityProvider
     });
     if (result?.data?.redirectTo) {
-      window.location.assign(result.data.redirectTo);
+      assignTrustedNavigation(result.data.redirectTo);
       return;
     }
     if (result?.serverError || result?.validationErrors) {

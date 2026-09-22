@@ -155,19 +155,23 @@ export const deleteMailThreadNotesAction = pageActionClient('inbox')
       );
     }
 
-    await prisma.$transaction([
-      prisma.mailThreadNote.deleteMany({
-        where: { threadId: parsedInput.threadId }
-      }),
-      prisma.mailThread.update({
+    await prisma.$transaction(async (tx) => {
+      const notes = await tx.mailThreadNote.findMany({
+        where: { threadId: parsedInput.threadId },
+        select: { id: true }
+      });
+      for (const note of notes) {
+        await tx.mailThreadNote.delete({ where: { id: note.id } });
+      }
+      await tx.mailThread.update({
         where: { id: parsedInput.threadId },
         data: {
           sharedNoteDraft: null,
           sharedNoteDraftUpdatedAt: new Date(),
           sharedNoteDraftAuthorId: session.user.id
         }
-      })
-    ]);
+      });
+    });
 
     void publishOrgEvent(organizationId, {
       type: 'thread.updated',

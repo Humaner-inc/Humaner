@@ -42,11 +42,15 @@ export const updateCalendarEvent = pageActionClient('calendar')
         }
       }
 
-      await prisma.$transaction([
-        prisma.calendarEventAttendee.deleteMany({
-          where: { eventId: existing.id }
-        }),
-        prisma.calendarEvent.update({
+      await prisma.$transaction(async (tx) => {
+        const attendees = await tx.calendarEventAttendee.findMany({
+          where: { eventId: existing.id },
+          select: { id: true }
+        });
+        for (const attendee of attendees) {
+          await tx.calendarEventAttendee.delete({ where: { id: attendee.id } });
+        }
+        await tx.calendarEvent.update({
           where: { id: existing.id },
           data: {
             title: parsedInput.title,
@@ -59,8 +63,8 @@ export const updateCalendarEvent = pageActionClient('calendar')
                 ? { create: attendeeIds.map((userId) => ({ userId })) }
                 : undefined
           }
-        })
-      ]);
+        });
+      });
     } else {
       await prisma.calendarEvent.update({
         where: { id: existing.id },

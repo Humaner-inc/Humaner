@@ -20,6 +20,7 @@ import {
   triageMailBody,
   type MailExchange
 } from '@/lib/inbox/mail-exchange-split';
+import { structuredMailNodes } from '@/lib/inbox/structured-mail-html';
 import { cn } from '@/lib/utils';
 
 const MAIL_SANDBOX =
@@ -159,16 +160,6 @@ function stripLeakedPreheader(body: HTMLElement): void {
   }
 }
 
-const SCRIPT_BLOCK_RE = /<script[\s\S]*?>[\s\S]*?<\/script>/gi;
-const EVENT_HANDLER_RE = /\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
-
-function toSafeStructuredHtml(html: string): string {
-  return html
-    .replace(SCRIPT_BLOCK_RE, '')
-    .replace(EVENT_HANDLER_RE, '')
-    .replace(/javascript:/gi, '');
-}
-
 function MailPlainBody({
   text,
   className
@@ -195,11 +186,30 @@ function MailStructuredBody({
   html: string;
   className?: string;
 }): React.JSX.Element {
+  const [nodes, setNodes] = React.useState<React.ReactNode>(null);
+
+  React.useEffect(() => {
+    setNodes(structuredMailNodes(html));
+  }, [html]);
+
+  if (!nodes) {
+    return (
+      <MailPlainBody
+        text={htmlToPlainText(html)}
+        className={className}
+      />
+    );
+  }
+
   return (
     <div
-      className={cn('mail-structured-body', className)}
-      dangerouslySetInnerHTML={{ __html: toSafeStructuredHtml(html) }}
-    />
+      className={cn(
+        'mail-structured-body mt-3 break-words text-[14px] leading-[1.55] text-foreground [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
+        className
+      )}
+    >
+      {nodes}
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { toast } from 'sonner';
 
 import { verifyEmailWithToken } from '@/actions/auth/verify-email-with-token';
@@ -31,7 +32,7 @@ export function VerifyEmailTokenClient({
       try {
         const result = await verifyEmailWithToken({ token });
         if (result?.data?.redirectTo) {
-          window.location.assign(result.data.redirectTo);
+          assignTrustedNavigation(result.data.redirectTo);
           return;
         }
         setStatus('error');

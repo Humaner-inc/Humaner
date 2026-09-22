@@ -21,6 +21,7 @@ import { hashPassword } from '@/lib/auth/password';
 import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { createHash } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
+import { deleteVerificationTokensForEmail } from '@/lib/db/unique-mutations';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
@@ -151,9 +152,7 @@ export const signUp = actionClient
       const hashedOtp = await createHash(`${otp}${requireAuthSecret()}`);
       const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
-      await prisma.verificationToken.deleteMany({
-        where: { identifier: normalizedEmail }
-      });
+      await deleteVerificationTokensForEmail(prisma, normalizedEmail);
 
       await prisma.verificationToken.create({
         data: {

@@ -15,11 +15,15 @@ export async function permanentlyDeleteMailThreads(
 
   await deleteImapMessagesForThreads(threadIds, organizationId);
 
-  const deleted = await prisma.mailThread.deleteMany({
-    where: { id: { in: threadIds }, organizationId }
+  const threads = await prisma.mailThread.findMany({
+    where: { id: { in: threadIds }, organizationId },
+    select: { id: true }
   });
+  for (const thread of threads) {
+    await prisma.mailThread.delete({ where: { id: thread.id } });
+  }
 
-  return deleted.count;
+  return threads.length;
 }
 
 export async function listTrashThreadIds(input: {

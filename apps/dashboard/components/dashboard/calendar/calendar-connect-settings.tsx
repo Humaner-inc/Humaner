@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -114,8 +115,7 @@ export function CalendarConnectSettings({
     startCalendarConnect,
     {
       onSuccess: ({ data }) => {
-        if (data?.url) {
-          window.location.href = data.url;
+        if (data?.url && assignTrustedNavigation(data.url)) {
           return;
         }
         toast.error('No connect URL returned');

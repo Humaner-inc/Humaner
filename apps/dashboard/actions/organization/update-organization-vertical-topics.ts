@@ -6,6 +6,7 @@ import { getVerticalConfig } from '@/services/training/verticals';
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
+import { updateAgentsForOrganization } from '@/lib/db/unique-mutations';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 import { updateOrganizationVerticalTopicsSchema } from '@/schemas/organization/update-organization-vertical-topics-schema';
 
@@ -29,18 +30,16 @@ export const updateOrganizationVerticalTopics = ownerActionClient
     );
     const topics = parsedInput.topics.filter((topic) => catalog.has(topic));
 
-    await prisma.$transaction([
-      prisma.organization.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.organization.update({
         where: { id: session.user.organizationId },
         data: { verticalTopics: topics },
         select: { id: true }
-      }),
-      // Keep agent training focus aligned with workspace selection.
-      prisma.agent.updateMany({
-        where: { organizationId: session.user.organizationId },
-        data: { trainingTopics: topics }
-      })
-    ]);
+      });
+      await updateAgentsForOrganization(tx, session.user.organizationId, {
+        trainingTopics: topics
+      });
+    });
 
     revalidateTag(
       Caching.createOrganizationTag(

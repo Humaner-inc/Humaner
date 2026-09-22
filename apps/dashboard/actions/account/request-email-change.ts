@@ -7,6 +7,7 @@ import { authActionClient } from '@/actions/safe-action';
 import { EMAIL_CHANGE_EXPIRY_HOURS } from '@/constants/limits';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { invalidateChangeEmailRequestsForUser } from '@/lib/db/unique-mutations';
 import { sendConfirmEmailAddressChangeEmail } from '@/lib/smtp/send-confirm-email-address-change-email';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 import { PreConditionError } from '@/lib/validation/exceptions';
@@ -39,12 +40,9 @@ export const requestEmailChange = authActionClient
     const expiry = addHours(new Date(), EMAIL_CHANGE_EXPIRY_HOURS);
     const normalizedEmail = parsedInput.email.toLowerCase();
 
-    const [, request] = await prisma.$transaction([
-      prisma.changeEmailRequest.updateMany({
-        where: { userId: session.user.id },
-        data: { valid: false }
-      }),
-      prisma.changeEmailRequest.create({
+    const request = await prisma.$transaction(async (tx) => {
+      await invalidateChangeEmailRequestsForUser(tx, session.user.id);
+      return tx.changeEmailRequest.create({
         data: {
           userId: session.user.id,
           email: normalizedEmail,
@@ -52,10 +50,10 @@ export const requestEmailChange = authActionClient
           expires: expiry
         },
         select: {
-          id: true // SELECT NONE
+          id: true
         }
-      })
-    ]);
+      });
+    });
 
     await sendConfirmEmailAddressChangeEmail({
       recipient: normalizedEmail,

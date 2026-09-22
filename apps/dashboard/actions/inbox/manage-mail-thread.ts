@@ -9,6 +9,10 @@ import { authActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import {
+  deleteMailThreadTagsForThreads,
+  updateMailThreadsByIds
+} from '@/lib/db/unique-mutations';
+import {
   aliasIdFilter,
   mailThreadAccessWhere,
   resolveMailAliasScope
@@ -298,9 +302,7 @@ export const applyMailThreadTag = authActionClient
       organizationId
     );
 
-    await prisma.mailThreadTag.deleteMany({
-      where: { threadId: parsedInput.threadId }
-    });
+    await deleteMailThreadTagsForThreads(prisma, [parsedInput.threadId]);
 
     if (parsedInput.tagId) {
       const tag = await prisma.mailTag.findFirst({
@@ -387,16 +389,17 @@ export const bulkArchiveMailThreads = authActionClient
     );
     const threadIds = threads.map((thread) => thread.id);
 
-    await prisma.mailThread.updateMany({
-      where: { id: { in: threadIds }, organizationId },
-      data: parsedInput.archive
+    await updateMailThreadsByIds(
+      prisma,
+      threadIds,
+      parsedInput.archive
         ? { archivedAt: new Date() }
         : {
             archivedAt: null,
             folder: MailThreadFolder.INBOX,
             trashedAt: null
           }
-    });
+    );
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
@@ -421,10 +424,11 @@ export const bulkMoveMailThreads = authActionClient
     );
     const threadIds = threads.map((thread) => thread.id);
 
-    await prisma.mailThread.updateMany({
-      where: { id: { in: threadIds }, organizationId },
-      data: mailFolderWriteData(parsedInput.folder)
-    });
+    await updateMailThreadsByIds(
+      prisma,
+      threadIds,
+      mailFolderWriteData(parsedInput.folder)
+    );
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
@@ -454,10 +458,11 @@ export const bulkDeleteMailThreads = authActionClient
       .map((thread) => thread.id);
 
     if (moveIds.length > 0) {
-      await prisma.mailThread.updateMany({
-        where: { id: { in: moveIds }, organizationId },
-        data: mailFolderWriteData(MailThreadFolder.TRASH)
-      });
+      await updateMailThreadsByIds(
+        prisma,
+        moveIds,
+        mailFolderWriteData(MailThreadFolder.TRASH)
+      );
     }
 
     if (trashIds.length > 0) {
@@ -511,12 +516,9 @@ export const bulkAssignMailThreads = authActionClient
       }
     }
 
-    await prisma.mailThread.updateMany({
-      where: { id: { in: threadIds }, organizationId },
-      data: {
-        assigneeKind: next.assigneeKind,
-        assigneeId: next.assigneeId
-      }
+    await updateMailThreadsByIds(prisma, threadIds, {
+      assigneeKind: next.assigneeKind,
+      assigneeId: next.assigneeId
     });
 
     revalidateMailListPaths();
@@ -542,9 +544,7 @@ export const bulkApplyMailThreadTag = authActionClient
     );
     const threadIds = threads.map((thread) => thread.id);
 
-    await prisma.mailThreadTag.deleteMany({
-      where: { threadId: { in: threadIds } }
-    });
+    await deleteMailThreadTagsForThreads(prisma, threadIds);
 
     if (parsedInput.tagId) {
       const tag = await prisma.mailTag.findFirst({

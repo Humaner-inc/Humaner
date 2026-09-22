@@ -11,6 +11,11 @@ import { APP_ASSIGNABLE_ROLE } from '@/lib/auth/roles';
 import { createOrganizationMembership } from '@/lib/auth/workspace-membership';
 import { Tier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
+import {
+  deleteChangeEmailRequestsByEmail,
+  deleteResetPasswordRequestsByEmail,
+  expireVerificationTokensForEmail
+} from '@/lib/db/unique-mutations';
 import { matchLocale } from '@/lib/i18n/match-locale';
 import { PreConditionError } from '@/lib/validation/exceptions';
 
@@ -18,17 +23,21 @@ async function acceptPendingInvitation(
   tx: Prisma.TransactionClient,
   input: { invitationId: string; organizationId: string }
 ): Promise<void> {
-  const accepted = await tx.invitation.updateMany({
-    where: {
-      id: input.invitationId,
-      organizationId: input.organizationId,
-      status: InvitationStatus.PENDING
-    },
-    data: { status: InvitationStatus.ACCEPTED }
+  const invitation = await tx.invitation.findUnique({
+    where: { id: input.invitationId },
+    select: { id: true, organizationId: true, status: true }
   });
-  if (accepted.count !== 1) {
+  if (
+    !invitation ||
+    invitation.organizationId !== input.organizationId ||
+    invitation.status !== InvitationStatus.PENDING
+  ) {
     throw new PreConditionError('Invitation is no longer pending');
   }
+  await tx.invitation.update({
+    where: { id: invitation.id },
+    data: { status: InvitationStatus.ACCEPTED }
+  });
 }
 
 /** Self-Host has no Cloud onboarding wizard — first-run is complete. */
@@ -142,8 +151,8 @@ export async function createOrganizationAndConnectUser(input: {
   const organizationId = v4();
   const initialName = 'My Organization';
 
-  await prisma.$transaction([
-    prisma.organization.create({
+  await prisma.$transaction(async (tx) => {
+    await tx.organization.create({
       data: {
         id: organizationId,
         name: initialName,
@@ -160,22 +169,18 @@ export async function createOrganizationAndConnectUser(input: {
       select: {
         id: true
       }
-    }),
-    prisma.user.update({
+    });
+    await tx.user.update({
       where: { id: input.userId },
       data: {
         organizationId,
         workspaceRole: WorkspaceRole.OWNER,
         tier: Tier.Free
       }
-    }),
-    prisma.changeEmailRequest.deleteMany({
-      where: { email: input.normalizedEmail }
-    }),
-    prisma.resetPasswordRequest.deleteMany({
-      where: { email: input.normalizedEmail }
-    })
-  ]);
+    });
+    await deleteChangeEmailRequestsByEmail(tx, input.normalizedEmail);
+    await deleteResetPasswordRequestsByEmail(tx, input.normalizedEmail);
+  });
 
   await createOrganizationMembership({
     userId: input.userId,
@@ -225,16 +230,9 @@ export async function joinOrganization(input: {
       invitationId: input.invitationId,
       organizationId: input.organizationId
     });
-    await tx.verificationToken.updateMany({
-      where: { identifier: input.normalizedEmail },
-      data: { expires: new Date(+0) }
-    });
-    await tx.changeEmailRequest.deleteMany({
-      where: { email: input.normalizedEmail }
-    });
-    await tx.resetPasswordRequest.deleteMany({
-      where: { email: input.normalizedEmail }
-    });
+    await expireVerificationTokensForEmail(tx, input.normalizedEmail);
+    await deleteChangeEmailRequestsByEmail(tx, input.normalizedEmail);
+    await deleteResetPasswordRequestsByEmail(tx, input.normalizedEmail);
 
     const createdUser = await tx.user.create({
       data: {

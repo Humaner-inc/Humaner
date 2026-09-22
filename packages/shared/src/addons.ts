@@ -70,9 +70,21 @@ export const ADD_ON_LABELS: Record<
 
 /** Receipt / paywall title. Not the Inbox plan name. */
 export const ADD_ON_TITLES: Record<AddOnKind, string> = {
-  seat: "Extra Member",
+  seat: "Extra Seat",
   mailbox: "Extra Inbox",
 };
+
+/** Line under the title: "1 inbox upgrade" / "2 seats upgrade". */
+export function formatAddOnUpgradeLabel(
+  kind: AddOnKind,
+  quantity: number,
+): string {
+  const count = clampAddOnQuantity(quantity);
+  if (kind === "mailbox") {
+    return count === 1 ? "1 inbox upgrade" : `${count} inboxes upgrade`;
+  }
+  return count === 1 ? "1 seat upgrade" : `${count} seats upgrade`;
+}
 
 export type AddOnProduct = {
   kind: AddOnKind;
@@ -143,7 +155,8 @@ export function resolveAddOnKindFromMetadata(
 }
 
 /**
- * Polar product display name. Avoid a bare "inbox" match — that is the plan.
+ * Polar product display name. "Inbox 3K" is the plan — Extra Inbox / Extra
+ * Seat (and Polar aliases) are add-ons.
  */
 export function resolveAddOnKindFromProductName(
   name: string | null | undefined,
@@ -151,11 +164,22 @@ export function resolveAddOnKindFromProductName(
   if (!name) {
     return null;
   }
-  const n = name.toLowerCase();
-  if (/\bextra\s*(member|seat)s?\b|\bteammate\s*seats?\b/.test(n)) {
+  const n = name.toLowerCase().replace(/\s+/g, " ").trim();
+  if (/^inbox(\s+\d|\s+[0-9.]+[km])?$/.test(n)) {
+    return null;
+  }
+  if (
+    /\bextra\s*(member|seat)s?\b|\bteammate\s*seats?\b|\bseat\s*add[- ]?on\b|^seats?$/.test(
+      n,
+    )
+  ) {
     return "seat";
   }
-  if (/\bextra\s*(inbox|mailbox(es)?)\b|\bmailbox\s*add[- ]?on\b/.test(n)) {
+  if (
+    /\bextra\s*(inbox|mailbox(es)?)\b|\b(inbox|mailbox)\s*add[- ]?on\b|^mailbox(es)?$/.test(
+      n,
+    )
+  ) {
     return "mailbox";
   }
   return null;
@@ -170,6 +194,7 @@ export function resolveAddOnFromPurchase(input: {
   productId?: string | null;
   metadata?: Record<string, unknown> | null;
   productName?: string | null;
+  amountCents?: number | null;
   env?: Record<string, string | undefined>;
 }): AddOnProduct | null {
   const fromEnv = resolveAddOnProduct(input.productId, input.env ?? {});
@@ -178,7 +203,8 @@ export function resolveAddOnFromPurchase(input: {
   }
   const kind =
     resolveAddOnKindFromMetadata(input.metadata) ??
-    resolveAddOnKindFromProductName(input.productName);
+    resolveAddOnKindFromProductName(input.productName) ??
+    inferAddOnKindFromAmountCents(input.amountCents);
   if (!kind) {
     return null;
   }
@@ -257,4 +283,44 @@ export function addOnCheckoutAmountCents(
   const monthly = ADD_ON_PRICES[kind][interval];
   const periods = interval === "year" ? 12 : 1;
   return Math.round(monthly * periods * clampAddOnQuantity(quantity) * 100);
+}
+
+/**
+ * Polar often labels Extra Inbox with the Inbox plan name. The catalog
+ * amount ($7 inbox / $12 seat) is unique to these add-ons.
+ */
+export function inferAddOnKindFromAmountCents(
+  cents: number | null | undefined,
+): AddOnKind | null {
+  if (typeof cents !== "number" || !Number.isFinite(cents) || cents <= 0) {
+    return null;
+  }
+  const amount = Math.round(cents);
+  for (const kind of ADD_ON_KINDS) {
+    for (const interval of ["month", "year"] as const) {
+      for (let n = 1; n <= MAX_ADD_ON_QUANTITY; n++) {
+        if (amount === addOnCheckoutAmountCents(kind, interval, n)) {
+          return kind;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+export function inferAddOnFromTotals(
+  totals: {
+    unitPriceCents?: number | null;
+    subtotalCents?: number | null;
+    amountCents?: number | null;
+  } | null,
+): AddOnKind | null {
+  if (!totals) {
+    return null;
+  }
+  return (
+    inferAddOnKindFromAmountCents(totals.unitPriceCents) ??
+    inferAddOnKindFromAmountCents(totals.subtotalCents) ??
+    inferAddOnKindFromAmountCents(totals.amountCents)
+  );
 }

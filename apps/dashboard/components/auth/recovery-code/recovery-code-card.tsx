@@ -7,6 +7,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon
 } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 
 import { submitRecoveryCode } from '@/actions/auth/submit-recovery-code';
 import {
@@ -93,7 +94,7 @@ export function RecoveryCodeCard({
     }
 
     const redirectTo = result?.data?.redirectTo ?? getSignedInHomePath();
-    window.location.assign(redirectTo);
+    assignTrustedNavigation(redirectTo);
   };
 
   return (

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { InfoIcon, MailIcon, XIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 
 import {
   useDashboardDock,
@@ -154,8 +155,8 @@ function DockHelpView(): React.JSX.Element {
         label="Send an email"
         description="Open your mail client"
         onClick={() => {
-          window.location.href = getSupportMailtoUrl(
-            oss ? 'Support' : 'Humaner support'
+          assignTrustedNavigation(
+            getSupportMailtoUrl(oss ? 'Support' : 'Humaner support')
           );
         }}
       />

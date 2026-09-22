@@ -7,6 +7,7 @@ import { dedupedAuth } from '@/lib/auth';
 import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { updateMailThreadsByIds } from '@/lib/db/unique-mutations';
 import {
   aliasIdFilter,
   mailThreadAccessWhere,
@@ -425,10 +426,7 @@ export async function getMailThreads(options?: {
     .map((thread) => thread.id);
   if (staleOpenedIds.length > 0) {
     after(() => {
-      void prisma.mailThread.updateMany({
-        where: { id: { in: staleOpenedIds } },
-        data: { isUnread: false }
-      });
+      void updateMailThreadsByIds(prisma, staleOpenedIds, { isUnread: false });
     });
   }
 

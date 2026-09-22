@@ -40,11 +40,11 @@ export async function purgeExpiredMessages(): Promise<PurgeExpiredMessagesResult
       break;
     }
 
-    const deleted = await prisma.conversation.deleteMany({
-      where: { id: { in: stale.map((row) => row.id) } }
-    });
+    for (const row of stale) {
+      await prisma.conversation.delete({ where: { id: row.id } });
+    }
 
-    conversationsDeleted += deleted.count;
+    conversationsDeleted += stale.length;
 
     if (stale.length < BATCH_SIZE) {
       break;

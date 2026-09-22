@@ -16,6 +16,7 @@ import {
 import { parseCalendarWhen } from '@/lib/calendar/parse-calendar-when';
 import { CONNECT_APPS } from '@/lib/connect-apps';
 import { prisma } from '@/lib/db/prisma';
+import { deleteMailThreadTagsForThreads } from '@/lib/db/unique-mutations';
 import { createHandoffTicketWithNumber } from '@/lib/desk/allocate-ticket-number';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import {
@@ -739,7 +740,7 @@ async function executeTag(
   });
   if (!thread) return { ok: false, error: 'Thread not found.' };
 
-  await prisma.mailThreadTag.deleteMany({ where: { threadId } });
+  await deleteMailThreadTagsForThreads(prisma, [threadId]);
 
   const tagId = asString(args.tagId);
   if (tagId) {

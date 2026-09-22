@@ -1,9 +1,14 @@
 import 'server-only';
 
-import { MailMessageDirection, type MailAssigneeKind } from '@prisma/client';
+import {
+  MailMessageDirection,
+  Prisma,
+  type MailAssigneeKind
+} from '@prisma/client';
 
 import { workspaceAllowsCompanionAction } from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
+import { isPrismaSerializationFailure } from '@/lib/db/unique-mutations';
 import {
   COMPANION_ASSIGNEE,
   type MailAssigneeInput
@@ -63,32 +68,46 @@ export async function applyMailThreadAssignee(input: {
     }
   }
 
-  const current = await prisma.mailThread.findFirst({
-    where: { id: input.threadId, organizationId: input.organizationId },
-    select: { assigneeKind: true, assigneeId: true }
-  });
-  if (!current) {
-    return { ok: false, reason: 'not_found' };
-  }
+  try {
+    return await prisma.$transaction(
+      async (tx) => {
+        const current = await tx.mailThread.findUnique({
+          where: { id: input.threadId },
+          select: {
+            organizationId: true,
+            assigneeKind: true,
+            assigneeId: true
+          }
+        });
+        if (!current || current.organizationId !== input.organizationId) {
+          return { ok: false as const, reason: 'not_found' as const };
+        }
 
-  const expected = input.expected ?? current;
-  const updated = await prisma.mailThread.updateMany({
-    where: {
-      id: input.threadId,
-      organizationId: input.organizationId,
-      assigneeKind: expected.assigneeKind,
-      assigneeId: expected.assigneeId
-    },
-    data: {
-      assigneeKind: next.assigneeKind,
-      assigneeId: next.assigneeId
+        const expected = input.expected ?? current;
+        if (
+          current.assigneeKind !== expected.assigneeKind ||
+          current.assigneeId !== expected.assigneeId
+        ) {
+          return { ok: false as const, reason: 'conflict' as const };
+        }
+
+        await tx.mailThread.update({
+          where: { id: input.threadId },
+          data: {
+            assigneeKind: next.assigneeKind,
+            assigneeId: next.assigneeId
+          }
+        });
+        return { ok: true as const };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+  } catch (error) {
+    if (isPrismaSerializationFailure(error)) {
+      return { ok: false, reason: 'conflict' };
     }
-  });
-
-  if (updated.count === 0) {
-    return { ok: false, reason: 'conflict' };
+    throw error;
   }
-  return { ok: true };
 }
 
 export async function applyCompanionAliasPolicyOnInbound(input: {
@@ -108,14 +127,12 @@ export async function applyCompanionAliasPolicyOnInbound(input: {
   );
   if (!allowed) return;
 
-  const thread = await prisma.mailThread.findFirst({
-    where: {
-      id: input.threadId,
-      organizationId: input.organizationId,
-      assigneeKind: 'UNASSIGNED',
-      assigneeId: null
-    },
+  const thread = await prisma.mailThread.findUnique({
+    where: { id: input.threadId },
     select: {
+      organizationId: true,
+      assigneeKind: true,
+      assigneeId: true,
       subject: true,
       messages: {
         where: { direction: MailMessageDirection.INBOUND },
@@ -125,7 +142,14 @@ export async function applyCompanionAliasPolicyOnInbound(input: {
       }
     }
   });
-  if (!thread) return;
+  if (
+    !thread ||
+    thread.organizationId !== input.organizationId ||
+    thread.assigneeKind !== 'UNASSIGNED' ||
+    thread.assigneeId !== null
+  ) {
+    return;
+  }
 
   const inbound = thread.messages[0];
   const inferred = inferRoutingTopics({
@@ -138,15 +162,31 @@ export async function applyCompanionAliasPolicyOnInbound(input: {
     inferred.length > 0 ? inferred : ['inbox']
   );
 
-  await prisma.mailThread.updateMany({
-    where: {
-      id: input.threadId,
-      organizationId: input.organizationId,
-      assigneeKind: 'UNASSIGNED',
-      assigneeId: null
+  await prisma.$transaction(
+    async (tx) => {
+      const current = await tx.mailThread.findUnique({
+        where: { id: input.threadId },
+        select: {
+          organizationId: true,
+          assigneeKind: true,
+          assigneeId: true
+        }
+      });
+      if (
+        !current ||
+        current.organizationId !== input.organizationId ||
+        current.assigneeKind !== 'UNASSIGNED' ||
+        current.assigneeId !== null
+      ) {
+        return;
+      }
+      await tx.mailThread.update({
+        where: { id: input.threadId },
+        data: teammateId
+          ? { assigneeKind: 'HUMAN', assigneeId: teammateId }
+          : { assigneeKind: 'COMPANION', assigneeId: null }
+      });
     },
-    data: teammateId
-      ? { assigneeKind: 'HUMAN', assigneeId: teammateId }
-      : { assigneeKind: 'COMPANION', assigneeId: null }
-  });
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+  );
 }

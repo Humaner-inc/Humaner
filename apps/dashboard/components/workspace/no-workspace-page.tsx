@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { motion } from 'motion/react';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -209,7 +210,7 @@ export function NoWorkspacePage({
     }
 
     toast.success('Workspace created');
-    window.location.href = result?.data?.redirectTo ?? Routes.Onboarding;
+    assignTrustedNavigation(result?.data?.redirectTo ?? Routes.Onboarding);
   };
 
   const onJoin: SubmitHandler<RequestAccessSchema> = async (values) => {
@@ -235,7 +236,7 @@ export function NoWorkspacePage({
   const handleLogOut = async (): Promise<void> => {
     const result = await logOut({ redirect: false });
     if (!result?.serverError && !result?.validationErrors) {
-      window.location.href = Routes.Login;
+      assignTrustedNavigation(Routes.Login);
       return;
     }
     toast.error("Couldn't log out");

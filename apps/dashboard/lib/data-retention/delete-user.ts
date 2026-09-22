@@ -3,6 +3,7 @@ import 'server-only';
 import { WorkspaceRole } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
+import { deleteUserRelatedRecords } from '@/lib/db/unique-mutations';
 import { PreConditionError } from '@/lib/validation/exceptions';
 
 type DeleteUserAccountInput = {
@@ -16,17 +17,16 @@ export async function deleteUserRecords(
   userId: string,
   email: string
 ): Promise<void> {
-  await prisma.$transaction([
-    prisma.userImage.deleteMany({ where: { userId } }),
-    prisma.invitation.deleteMany({ where: { email } }),
-    prisma.account.deleteMany({ where: { userId } }),
-    prisma.session.deleteMany({ where: { userId } }),
-    prisma.verificationToken.deleteMany({ where: { identifier: email } }),
-    prisma.changeEmailRequest.deleteMany({ where: { userId } }),
-    prisma.resetPasswordRequest.deleteMany({ where: { email } }),
-    prisma.organizationMembership.deleteMany({ where: { userId } }),
-    prisma.user.deleteMany({ where: { id: userId } })
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await deleteUserRelatedRecords(tx, userId, email);
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+    if (user) {
+      await tx.user.delete({ where: { id: userId } });
+    }
+  });
 }
 
 /**
@@ -93,18 +93,7 @@ export async function deleteUserAccount(
       where: { id: input.userId },
       data: { organizationId: null }
     });
-    await tx.userImage.deleteMany({ where: { userId: input.userId } });
-    await tx.invitation.deleteMany({ where: { email: input.email } });
-    await tx.account.deleteMany({ where: { userId: input.userId } });
-    await tx.session.deleteMany({ where: { userId: input.userId } });
-    await tx.verificationToken.deleteMany({
-      where: { identifier: input.email }
-    });
-    await tx.changeEmailRequest.deleteMany({ where: { userId: input.userId } });
-    await tx.resetPasswordRequest.deleteMany({ where: { email: input.email } });
-    await tx.organizationMembership.deleteMany({
-      where: { userId: input.userId }
-    });
+    await deleteUserRelatedRecords(tx, input.userId, input.email);
     await tx.user.delete({ where: { id: input.userId } });
   });
 }

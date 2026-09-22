@@ -33,31 +33,30 @@ export const updateBusinessHours = ownerActionClient
       throw new NotFoundError('Organization not found');
     }
 
-    await prisma.$transaction([
-      prisma.workTimeSlot.deleteMany({
-        where: {
-          workHours: {
-            organization: {
-              id: session.user.organizationId
-            }
-          },
-          workHoursId: {
-            in: organization.businessHours.map((workHours) => workHours.id)
-          }
+    const slotIds = organization.businessHours.flatMap((workHours) =>
+      workHours.timeSlots.map((slot) => slot.id)
+    );
+
+    await prisma.$transaction(async (tx) => {
+      for (const id of slotIds) {
+        await tx.workTimeSlot.delete({ where: { id } });
+      }
+      for (const workHours of parsedInput.businessHours) {
+        const workHoursId = organization.businessHours.find(
+          (item) => item.dayOfWeek === workHours.dayOfWeek
+        )!.id;
+        if (workHours.timeSlots.length === 0) {
+          continue;
         }
-      }),
-      ...parsedInput.businessHours.map((workHours) =>
-        prisma.workTimeSlot.createMany({
+        await tx.workTimeSlot.createMany({
           data: workHours.timeSlots.map((timeSlot) => ({
-            workHoursId: organization.businessHours.find(
-              (w) => w.dayOfWeek === workHours.dayOfWeek
-            )!.id,
+            workHoursId,
             start: timeSlot.start,
             end: timeSlot.end
           }))
-        })
-      )
-    ]);
+        });
+      }
+    });
 
     revalidateTag(
       Caching.createOrganizationTag(

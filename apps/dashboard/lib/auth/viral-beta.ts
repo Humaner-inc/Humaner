@@ -31,11 +31,18 @@ export async function consumeUnusedViralBetaAccessCode(
   }
 
   try {
-    const updated = await prisma.viralBetaAccessCode.updateMany({
-      where: { code, redeemedAt: null },
+    const existing = await prisma.viralBetaAccessCode.findUnique({
+      where: { code },
+      select: { id: true, redeemedAt: true }
+    });
+    if (!existing || existing.redeemedAt) {
+      return false;
+    }
+    await prisma.viralBetaAccessCode.update({
+      where: { id: existing.id },
       data: { redeemedAt: new Date() }
     });
-    return updated.count === 1;
+    return true;
   } catch {
     return false;
   }
@@ -66,8 +73,15 @@ export async function attachViralBetaRedemption(
     return;
   }
 
-  await prisma.viralBetaAccessCode.updateMany({
-    where: { code, redeemedAt: { not: null }, redeemedByOwnerId: null },
+  const existing = await prisma.viralBetaAccessCode.findUnique({
+    where: { code },
+    select: { id: true, redeemedAt: true, redeemedByOwnerId: true }
+  });
+  if (!existing || !existing.redeemedAt || existing.redeemedByOwnerId) {
+    return;
+  }
+  await prisma.viralBetaAccessCode.update({
+    where: { id: existing.id },
     data: { redeemedByOwnerId: ownerId }
   });
 }

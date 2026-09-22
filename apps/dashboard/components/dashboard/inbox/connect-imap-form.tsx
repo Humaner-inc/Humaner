@@ -17,6 +17,7 @@ import {
   PlusIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -407,7 +408,7 @@ export function ConnectImapForm({
           return;
         }
         if (data?.url) {
-          window.location.assign(data.url);
+          assignTrustedNavigation(data.url);
           return;
         }
         toast.error('Google did not return an authorization URL.');

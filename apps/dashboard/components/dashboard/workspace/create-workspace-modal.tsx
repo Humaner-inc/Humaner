@@ -3,6 +3,7 @@
 import * as React from 'react';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { InfoIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -74,7 +75,7 @@ export const CreateWorkspaceModal = NiceModal.create<CreateWorkspaceModalProps>(
       toast.success('Workspace created');
       modal.handleClose();
       if (result?.data?.redirectTo) {
-        window.location.href = result.data.redirectTo;
+        assignTrustedNavigation(result.data.redirectTo);
       }
     };
 

@@ -95,7 +95,7 @@ async function ensureOAuthProfileImage(
 export const events = {
   async signIn({ user, account, profile, isNewUser }) {
     if (user && user.id) {
-      await prisma.user.updateMany({
+      await prisma.user.update({
         where: { id: user.id },
         data: { lastLogin: new Date() }
       });
@@ -239,9 +239,13 @@ export const events = {
   },
   async signOut(message) {
     if ('session' in message && message.session?.sessionToken) {
-      await prisma.session.deleteMany({
-        where: { sessionToken: message.session.sessionToken }
+      const existing = await prisma.session.findUnique({
+        where: { sessionToken: message.session.sessionToken },
+        select: { id: true }
       });
+      if (existing) {
+        await prisma.session.delete({ where: { id: existing.id } });
+      }
     }
   },
   async linkAccount({ user, account, profile }) {

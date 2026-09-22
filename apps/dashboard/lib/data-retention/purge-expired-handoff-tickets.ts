@@ -15,15 +15,19 @@ export async function purgeExpiredHandoffTickets(): Promise<PurgeExpiredTicketsR
   const retentionDays = getMessageRetentionDays();
   const cutoff = subDays(new Date(), retentionDays);
 
-  const deleted = await prisma.handoffTicket.deleteMany({
+  const tickets = await prisma.handoffTicket.findMany({
     where: {
       updatedAt: { lt: cutoff },
       status: { in: ['RESOLVED', 'CLOSED'] }
-    }
+    },
+    select: { id: true }
   });
+  for (const ticket of tickets) {
+    await prisma.handoffTicket.delete({ where: { id: ticket.id } });
+  }
 
   return {
-    ticketsDeleted: deleted.count,
+    ticketsDeleted: tickets.length,
     retentionDays,
     cutoff: cutoff.toISOString()
   };

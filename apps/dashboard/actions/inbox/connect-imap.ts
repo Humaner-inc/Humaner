@@ -15,6 +15,7 @@ import {
 } from '@/lib/inbox/build-mail-endpoints';
 import {
   mailboxConnectQuotaFromOrg,
+  orgWithGrantedAddOns,
   resolveNewMailboxSlot
 } from '@/lib/inbox/mailbox-connect-quota';
 import { testImapAndSmtp } from '@/lib/inbox/test-imap-smtp';
@@ -74,9 +75,12 @@ export const connectImap = ownerActionClient
       throw new PreConditionError('Organization not found');
     }
 
-    const quota = mailboxConnectQuotaFromOrg(organization, {
-      onboardingConnect: !organization.completedOnboarding
-    });
+    const quota = mailboxConnectQuotaFromOrg(
+      await orgWithGrantedAddOns(organizationId, organization),
+      {
+        onboardingConnect: !organization.completedOnboarding
+      }
+    );
     const { effectiveLimit } = quota;
 
     const { primary, endpoints } =
@@ -241,13 +245,11 @@ export const connectImap = ownerActionClient
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       );
     } catch (error) {
-      if (
-        error instanceof ValidationError ||
-        (error instanceof Error && error.name === 'ValidationError')
-      ) {
-        throw error instanceof ValidationError
-          ? error
-          : new ValidationError(error.message);
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      if (error instanceof Error && error.name === 'ValidationError') {
+        throw new ValidationError(error.message);
       }
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

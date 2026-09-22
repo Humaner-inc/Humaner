@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { CompanionMark } from '@humaner/shared/companion-icon';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -58,7 +59,7 @@ export function McpOAuthConsentForm({
   const { execute, isExecuting } = useAction(approveMcpOAuth, {
     onSuccess: ({ data }) => {
       if (data?.redirectTo) {
-        window.location.assign(data.redirectTo);
+        assignTrustedNavigation(data.redirectTo);
       }
     },
     onError: ({ error }) => {

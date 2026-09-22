@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import { deleteMailAliasMembersForUserInOrganization } from '@/lib/db/unique-mutations';
 import { ensureAllAliasMemberships } from '@/lib/inbox/mail-alias-scope';
 
 export async function applyInvitationTimeZone(input: {
@@ -8,8 +9,15 @@ export async function applyInvitationTimeZone(input: {
   const timeZone = input.timeZone?.trim();
   if (!timeZone) return;
 
-  await prisma.user.updateMany({
-    where: { id: input.userId, timeZone: null },
+  const user = await prisma.user.findUnique({
+    where: { id: input.userId },
+    select: { timeZone: true }
+  });
+  if (!user || user.timeZone !== null) {
+    return;
+  }
+  await prisma.user.update({
+    where: { id: input.userId },
     data: { timeZone }
   });
 }
@@ -41,13 +49,12 @@ export async function syncUserAliasMemberships(input: {
   });
   const keepIds = aliases.map((alias) => alias.id);
 
-  await prisma.mailAliasMember.deleteMany({
-    where: {
-      userId: input.userId,
-      alias: { organizationId: input.organizationId },
-      ...(keepIds.length > 0 ? { aliasId: { notIn: keepIds } } : {})
-    }
-  });
+  await deleteMailAliasMembersForUserInOrganization(
+    prisma,
+    input.userId,
+    input.organizationId,
+    keepIds
+  );
 
   if (keepIds.length === 0) {
     return;

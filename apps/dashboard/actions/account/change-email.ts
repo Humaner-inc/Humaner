@@ -6,6 +6,7 @@ import { isAfter } from 'date-fns';
 import { actionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { deleteSessionsForUser } from '@/lib/db/unique-mutations';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { changeEmailSchema } from '@/schemas/account/change-email-schema';
 
@@ -34,20 +35,18 @@ export const changeEmail = actionClient
       return redirect(Routes.ChangeEmailExpired);
     }
 
-    await prisma.$transaction([
-      prisma.changeEmailRequest.updateMany({
+    await prisma.$transaction(async (tx) => {
+      await tx.changeEmailRequest.update({
         where: { id: parsedInput.id },
         data: { valid: false }
-      }),
-      prisma.session.deleteMany({
-        where: { userId: request.userId }
-      }),
-      prisma.user.update({
+      });
+      await deleteSessionsForUser(tx, request.userId);
+      await tx.user.update({
         where: { id: request.userId },
         data: { email: request.email },
         select: {
-          id: true // SELECT NONE
+          id: true
         }
-      })
-    ]);
+      });
+    });
   });

@@ -13,6 +13,7 @@ import {
 import { logVerificationCodeForLocalDev } from '@/lib/auth/log-verification-code';
 import { createHash } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
+import { deleteVerificationTokensForEmail } from '@/lib/db/unique-mutations';
 import { sendVerifyEmailAddressEmail } from '@/lib/smtp/send-verify-email-address-email';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 import { resendEmailConfirmationSchema } from '@/schemas/auth/resend-email-confirmation-schema';
@@ -41,9 +42,7 @@ export const resendEmailConfirmation = actionClient
     const hashedOtp = await createHash(`${otp}${requireAuthSecret()}`);
     const verificationLink = `${getBaseUrl()}${Routes.VerifyEmailRequest}/${hashedOtp}`;
 
-    await prisma.verificationToken.deleteMany({
-      where: { identifier: normalizedEmail }
-    });
+    await deleteVerificationTokensForEmail(prisma, normalizedEmail);
 
     await prisma.verificationToken.create({
       data: {

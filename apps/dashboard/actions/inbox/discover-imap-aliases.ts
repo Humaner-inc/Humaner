@@ -6,6 +6,7 @@ import { buildValidatedMailEndpoints } from '@/lib/inbox/build-mail-endpoints';
 import { discoverMailboxAliases } from '@/lib/inbox/discover-mailbox-aliases';
 import {
   mailboxConnectQuotaFromOrg,
+  orgWithGrantedAddOns,
   resolveNewMailboxSlot
 } from '@/lib/inbox/mailbox-connect-quota';
 import { testImapAndSmtp } from '@/lib/inbox/test-imap-smtp';
@@ -77,7 +78,9 @@ export const discoverImapAliases = ownerActionClient
         userId: session.user.id,
         email: session.user.email,
         name: session.user.name,
-        quota: mailboxConnectQuotaFromOrg(organization)
+        quota: mailboxConnectQuotaFromOrg(
+          await orgWithGrantedAddOns(organizationId, organization)
+        )
       });
       if (decision.kind === 'requiresInbox') {
         throw new PreConditionError('Connecting a mailbox requires Inbox.');

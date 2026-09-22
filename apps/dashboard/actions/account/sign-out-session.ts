@@ -34,11 +34,8 @@ export const signOutSession = authActionClient
           redirectTo: Routes.Logout
         });
       } else {
-        await prisma.session.deleteMany({
-          where: {
-            userId: session.user.id,
-            id: parsedInput.id
-          }
+        await prisma.session.delete({
+          where: { id: parsedInput.id }
         });
       }
     }

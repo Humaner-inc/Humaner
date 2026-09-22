@@ -39,27 +39,35 @@ export const updateAgentImage = pageActionClient('agents')
       const data = await resizeImage(buffer, mimeType);
       const hash = createHash('sha256').update(data).digest('hex');
 
-      await prisma.$transaction([
-        prisma.agentImage.deleteMany({
-          where: { agentId: parsedInput.id }
-        }),
-        prisma.agentImage.create({
+      await prisma.$transaction(async (tx) => {
+        const images = await tx.agentImage.findMany({
+          where: { agentId: parsedInput.id },
+          select: { id: true }
+        });
+        for (const image of images) {
+          await tx.agentImage.delete({ where: { id: image.id } });
+        }
+        await tx.agentImage.create({
           data: {
             agentId: parsedInput.id,
             data,
             contentType: mimeType,
             hash
           }
-        })
-      ]);
+        });
+      });
 
       imageUrl = getAgentImageUrl(parsedInput.id, hash);
     }
 
     if (parsedInput.action === FileUploadAction.Delete) {
-      await prisma.agentImage.deleteMany({
-        where: { agentId: parsedInput.id }
+      const images = await prisma.agentImage.findMany({
+        where: { agentId: parsedInput.id },
+        select: { id: true }
       });
+      for (const image of images) {
+        await prisma.agentImage.delete({ where: { id: image.id } });
+      }
       imageUrl = null;
     }
 

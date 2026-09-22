@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { authActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { updateMailThreadsByIds } from '@/lib/db/unique-mutations';
 import {
   mailThreadAccessWhere,
   resolveMailAliasScope
@@ -66,10 +67,11 @@ async function moveSenderThreadsToSpam(
 
   if (threadIds.length === 0) return 0;
 
-  await prisma.mailThread.updateMany({
-    where: { id: { in: threadIds }, organizationId },
-    data: mailFolderWriteData(MailThreadFolder.SPAM)
-  });
+  await updateMailThreadsByIds(
+    prisma,
+    threadIds,
+    mailFolderWriteData(MailThreadFolder.SPAM)
+  );
 
   return threadIds.length;
 }
@@ -147,9 +149,13 @@ export const unblockMailSender = authActionClient
     if (!organizationId) throw new PreConditionError('No active organization');
 
     const email = extractMailAddress(parsedInput.email);
-    await prisma.mailBlockedSender.deleteMany({
-      where: { organizationId, email }
+    const blocked = await prisma.mailBlockedSender.findUnique({
+      where: { organizationId_email: { organizationId, email } },
+      select: { id: true }
     });
+    if (blocked) {
+      await prisma.mailBlockedSender.delete({ where: { id: blocked.id } });
+    }
 
     revalidateBlockPaths();
     return { success: true };

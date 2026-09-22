@@ -9,6 +9,7 @@ import {
   CheckIcon,
   LockIcon
 } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 
 import { submitTotpCode } from '@/actions/auth/submit-totp-code';
@@ -111,7 +112,7 @@ export function TotpCodeCard({
     await new Promise((resolve) => {
       window.setTimeout(resolve, 450);
     });
-    window.location.assign(redirectTo);
+    assignTrustedNavigation(redirectTo);
   };
 
   return (

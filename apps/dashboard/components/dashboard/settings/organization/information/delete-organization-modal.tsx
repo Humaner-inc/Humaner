@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { FormProvider, type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -83,7 +84,7 @@ export const DeleteOrganizationModal =
       }
       toast.success('Workspace deleted');
       modal.handleClose();
-      window.location.href = result.data?.redirectTo ?? '/workspace';
+      assignTrustedNavigation(result.data?.redirectTo ?? '/workspace');
     };
 
     const renderForm = (
