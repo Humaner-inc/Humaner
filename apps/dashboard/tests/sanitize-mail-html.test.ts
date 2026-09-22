@@ -1,0 +1,54 @@
+import { describe, expect, it } from 'vitest';
+
+import { sanitizeMailHtml } from '@/lib/inbox/sanitize-mail-html';
+
+describe('sanitizeMailHtml', () => {
+  it('returns null for empty input', () => {
+    expect(sanitizeMailHtml(null)).toBeNull();
+    expect(sanitizeMailHtml(undefined)).toBeNull();
+    expect(sanitizeMailHtml('')).toBeNull();
+    expect(sanitizeMailHtml(false)).toBeNull();
+  });
+
+  it('keeps marketing tables, styles, and links', () => {
+    const html = `
+      <style>.hero{color:#111}</style>
+      <table width="100%"><tr><td bgcolor="#ffffff">Welcome to Humaner</td></tr></table>
+      <a href="https://humaner.io/docs">Docs</a>
+    `;
+
+    const sanitized = sanitizeMailHtml(html);
+
+    expect(sanitized).toContain('<style>');
+    expect(sanitized).toContain('Welcome to Humaner');
+    expect(sanitized).toContain('href="https://humaner.io/docs"');
+    expect(sanitized).toContain('rel="noopener noreferrer"');
+    expect(sanitized).toContain('target="_blank"');
+  });
+
+  it('strips scripts, event handlers, and javascript URLs', () => {
+    const html = `
+      <p onclick="alert(1)">Invoice attached</p>
+      <script>alert(1)</script>
+      <a href="javascript:alert(1)">Click</a>
+      <img src="https://cdn.example.com/logo.png" onerror="alert(1)" alt="Logo" />
+    `;
+
+    const sanitized = sanitizeMailHtml(html);
+
+    expect(sanitized).toContain('Invoice attached');
+    expect(sanitized).not.toMatch(/<script/i);
+    expect(sanitized).not.toMatch(/onclick/i);
+    expect(sanitized).not.toMatch(/onerror/i);
+    expect(sanitized).not.toMatch(/javascript:/i);
+    expect(sanitized).toContain('https://cdn.example.com/logo.png');
+  });
+
+  it('rewrites protocol-relative image URLs to https', () => {
+    const sanitized = sanitizeMailHtml(
+      '<img src="//cdn.example.com/banner.png" alt="Banner" />'
+    );
+
+    expect(sanitized).toContain('src="https://cdn.example.com/banner.png"');
+  });
+});

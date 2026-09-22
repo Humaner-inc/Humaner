@@ -68,6 +68,12 @@ export const ADD_ON_LABELS: Record<
   mailbox: { singular: "mailbox", plural: "mailboxes" },
 };
 
+/** Receipt / paywall title. Not the Inbox plan name. */
+export const ADD_ON_TITLES: Record<AddOnKind, string> = {
+  seat: "Extra Member",
+  mailbox: "Extra Inbox",
+};
+
 export type AddOnProduct = {
   kind: AddOnKind;
   interval: AddOnInterval;
@@ -124,6 +130,59 @@ export function resolveAddOnProduct(
     return null;
   }
   return addOnProductsFromEnv(env).get(productId.trim()) ?? null;
+}
+
+export function resolveAddOnKindFromMetadata(
+  metadata: Record<string, unknown> | null | undefined,
+): AddOnKind | null {
+  const raw = metadata?.[ADD_ON_KIND_METADATA_KEY];
+  if (raw === "seat" || raw === "mailbox") {
+    return raw;
+  }
+  return null;
+}
+
+/**
+ * Polar product display name. Avoid a bare "inbox" match — that is the plan.
+ */
+export function resolveAddOnKindFromProductName(
+  name: string | null | undefined,
+): AddOnKind | null {
+  if (!name) {
+    return null;
+  }
+  const n = name.toLowerCase();
+  if (/\bextra\s*(member|seat)s?\b|\bteammate\s*seats?\b/.test(n)) {
+    return "seat";
+  }
+  if (/\bextra\s*(inbox|mailbox(es)?)\b|\bmailbox\s*add[- ]?on\b/.test(n)) {
+    return "mailbox";
+  }
+  return null;
+}
+
+/**
+ * Identify Extra Inbox / Extra Member even when the Polar product UUID is
+ * missing from `POLAR_PRODUCT_ADDON_*`. Checkout metadata is the source of
+ * truth we set ourselves.
+ */
+export function resolveAddOnFromPurchase(input: {
+  productId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  productName?: string | null;
+  env?: Record<string, string | undefined>;
+}): AddOnProduct | null {
+  const fromEnv = resolveAddOnProduct(input.productId, input.env ?? {});
+  if (fromEnv) {
+    return fromEnv;
+  }
+  const kind =
+    resolveAddOnKindFromMetadata(input.metadata) ??
+    resolveAddOnKindFromProductName(input.productName);
+  if (!kind) {
+    return null;
+  }
+  return { kind, interval: "month" };
 }
 
 /**

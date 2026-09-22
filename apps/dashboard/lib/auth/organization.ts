@@ -1,4 +1,9 @@
-import { InvitationStatus, Role, WorkspaceRole } from '@prisma/client';
+import {
+  InvitationStatus,
+  Role,
+  WorkspaceRole,
+  type Prisma
+} from '@prisma/client';
 import { v4 } from 'uuid';
 
 import { createDefaultBusinessHours } from '@/lib/auth/default-business-hours';
@@ -7,6 +12,24 @@ import { createOrganizationMembership } from '@/lib/auth/workspace-membership';
 import { Tier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
 import { matchLocale } from '@/lib/i18n/match-locale';
+import { PreConditionError } from '@/lib/validation/exceptions';
+
+async function acceptPendingInvitation(
+  tx: Prisma.TransactionClient,
+  input: { invitationId: string; organizationId: string }
+): Promise<void> {
+  const accepted = await tx.invitation.updateMany({
+    where: {
+      id: input.invitationId,
+      organizationId: input.organizationId,
+      status: InvitationStatus.PENDING
+    },
+    data: { status: InvitationStatus.ACCEPTED }
+  });
+  if (accepted.count !== 1) {
+    throw new PreConditionError('Invitation is no longer pending');
+  }
+}
 
 /** Self-Host has no Cloud onboarding wizard — first-run is complete. */
 const ONBOARDING_COMPLETE = true;
@@ -198,9 +221,9 @@ export async function joinOrganization(input: {
 }): Promise<void> {
   let createdUserId: string | null = null;
   await prisma.$transaction(async (tx) => {
-    await tx.invitation.updateMany({
-      where: { id: input.invitationId },
-      data: { status: InvitationStatus.ACCEPTED }
+    await acceptPendingInvitation(tx, {
+      invitationId: input.invitationId,
+      organizationId: input.organizationId
     });
     await tx.verificationToken.updateMany({
       where: { identifier: input.normalizedEmail },
@@ -280,9 +303,9 @@ export async function acceptInvitationForExistingUser(input: {
   allowedAliasIds?: string[];
 }): Promise<void> {
   await prisma.$transaction(async (tx) => {
-    await tx.invitation.updateMany({
-      where: { id: input.invitationId },
-      data: { status: InvitationStatus.ACCEPTED }
+    await acceptPendingInvitation(tx, {
+      invitationId: input.invitationId,
+      organizationId: input.organizationId
     });
 
     await tx.organizationMembership.upsert({

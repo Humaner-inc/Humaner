@@ -7,18 +7,17 @@ import {
   type Prisma
 } from '@prisma/client';
 import { simpleParser, type AddressObject, type ParsedMail } from 'mailparser';
-import sanitizeHtml from 'sanitize-html';
 
 import { prisma } from '@/lib/db/prisma';
-import {
-  rewriteMailAssetUrls,
-  stripMailPreviewBlocks
-} from '@/lib/inbox/mail-body-display';
 import {
   folderForNewThread,
   inboundThreadPatch,
   loadBlockedSenderSet
 } from '@/lib/inbox/mail-thread-folder';
+import {
+  MAX_MAIL_BODY_CHARS,
+  sanitizeMailHtml
+} from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
@@ -41,7 +40,7 @@ import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 const CONNECTIONS_PER_RUN = 10;
 const MESSAGES_PER_CONNECTION = 100;
 const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
-const MAX_BODY_CHARS = 500_000;
+const MAX_BODY_CHARS = MAX_MAIL_BODY_CHARS;
 
 const connectionSelect = {
   id: true,
@@ -160,106 +159,6 @@ function headerAddresses(mail: ParsedMail): string[] {
   return [...addresses];
 }
 
-const MAIL_HTML_TAGS = sanitizeHtml.defaults.allowedTags.concat([
-  'img',
-  'table',
-  'thead',
-  'tbody',
-  'tfoot',
-  'tr',
-  'td',
-  'th',
-  'col',
-  'colgroup',
-  'center',
-  'font',
-  'picture',
-  'source',
-  'figure',
-  'figcaption',
-  'button',
-  'u',
-  's',
-  'strike',
-  'small',
-  'big',
-  // Keep author <style> blocks — many templates (incl. react-email) rely on them
-  // for borders/margins that are not fully inlined.
-  'style'
-]);
-
-const MAIL_HTML_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
-  ...sanitizeHtml.defaults.allowedAttributes,
-  '*': [
-    'style',
-    'class',
-    'align',
-    'valign',
-    'bgcolor',
-    'width',
-    'height',
-    'border',
-    'role',
-    'dir',
-    'lang'
-  ],
-  a: ['href', 'name', 'target', 'rel', 'style', 'class'],
-  img: [
-    'src',
-    'srcset',
-    'alt',
-    'title',
-    'width',
-    'height',
-    'style',
-    'class',
-    'align',
-    'border',
-    'loading',
-    'decoding',
-    'referrerpolicy'
-  ],
-  table: [
-    'width',
-    'height',
-    'cellpadding',
-    'cellspacing',
-    'border',
-    'align',
-    'bgcolor',
-    'role',
-    'style',
-    'class'
-  ],
-  td: [
-    'colspan',
-    'rowspan',
-    'width',
-    'height',
-    'align',
-    'valign',
-    'bgcolor',
-    'style',
-    'class'
-  ],
-  th: [
-    'colspan',
-    'rowspan',
-    'width',
-    'height',
-    'align',
-    'valign',
-    'bgcolor',
-    'style',
-    'class'
-  ],
-  tr: ['align', 'valign', 'bgcolor', 'style', 'class'],
-  col: ['span', 'width', 'style', 'class', 'align'],
-  colgroup: ['span', 'width', 'style', 'class', 'align'],
-  font: ['color', 'face', 'size', 'style'],
-  source: ['srcset', 'media', 'type', 'sizes']
-};
-
 const MAX_INLINE_CID_BYTES = 750_000;
 
 function escapeRegExp(value: string): string {
@@ -295,58 +194,12 @@ function inlineCidImages(html: string, mail: ParsedMail): string {
   return next;
 }
 
-function normalizeMailImageSrc(src: string): string {
-  const trimmed = src.trim();
-  if (trimmed.startsWith('//')) return `https:${trimmed}`;
-  return trimmed;
-}
-
 function sanitizedMailHtml(
   value: string | false | undefined,
   mail?: ParsedMail
 ): string | null {
   if (!value) return null;
-
-  const withInlineImages = mail ? inlineCidImages(value, mail) : value;
-
-  const sanitized = sanitizeHtml(withInlineImages, {
-    allowedTags: MAIL_HTML_TAGS,
-    allowedAttributes: MAIL_HTML_ATTRS,
-    allowedSchemes: ['http', 'https', 'mailto'],
-    allowedSchemesByTag: {
-      // Remote + data-URI images (including CID rewritten above).
-      img: ['http', 'https', 'data']
-    },
-    // Required for <style> (we allow the tag; scripts stay disallowed).
-    allowVulnerableTags: true,
-    // Keep marketing-email inline CSS; scripts/handlers are still stripped.
-    parseStyleAttributes: false,
-    transformTags: {
-      a: sanitizeHtml.simpleTransform('a', {
-        rel: 'noopener noreferrer',
-        target: '_blank'
-      }),
-      img: (tagName, attribs) => {
-        const src = attribs.src
-          ? normalizeMailImageSrc(attribs.src)
-          : undefined;
-        return {
-          tagName,
-          attribs: src ? { ...attribs, src } : attribs
-        };
-      }
-    }
-  });
-
-  const origin =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    'https://app.humaner.io';
-
-  return rewriteMailAssetUrls(stripMailPreviewBlocks(sanitized), origin).slice(
-    0,
-    MAX_BODY_CHARS
-  );
+  return sanitizeMailHtml(mail ? inlineCidImages(value, mail) : value);
 }
 
 function threadIdForMail(mail: ParsedMail, fallback: string): string {

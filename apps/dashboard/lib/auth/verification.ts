@@ -1,5 +1,3 @@
-import { InvitationStatus } from '@prisma/client';
-
 import { prisma } from '@/lib/db/prisma';
 
 export async function verifyEmail(email: string): Promise<void> {
@@ -12,10 +10,6 @@ export async function verifyEmail(email: string): Promise<void> {
     }),
     prisma.resetPasswordRequest.deleteMany({
       where: { email }
-    }),
-    prisma.invitation.updateMany({
-      where: { email },
-      data: { status: InvitationStatus.ACCEPTED }
     }),
     prisma.user.updateMany({
       where: { email },

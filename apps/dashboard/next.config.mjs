@@ -112,6 +112,19 @@ const nextConfig = {
       ]
     };
 
+    const dashboardCspReportOnly = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https: wss:",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'"
+    ].join('; ');
+
     return [
       {
         locale: false,
@@ -146,6 +159,10 @@ const nextConfig = {
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin-allow-popups'
+          },
+          {
+            key: 'Content-Security-Policy-Report-Only',
+            value: dashboardCspReportOnly
           }
         ]
       },
