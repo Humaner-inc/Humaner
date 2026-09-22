@@ -8,7 +8,6 @@ import {
 } from '@humaner/shared/cta';
 import {
   AlertCircleIcon,
-  ArrowLeftIcon,
   ArrowRightIcon,
   CheckIcon,
   LockIcon,
@@ -330,17 +329,6 @@ export function LoginCard({
                 void methods.handleSubmit(onSubmit)(event);
               }}
             >
-              <button
-                type="button"
-                className={cn(
-                  authLinkClassName,
-                  'inline-flex items-center gap-1.5 self-start'
-                )}
-                onClick={goToMethods}
-              >
-                <ArrowLeftIcon className="size-3.5 shrink-0" />
-                Back
-              </button>
               <FormField
                 control={methods.control}
                 name="email"
@@ -460,6 +448,13 @@ export function LoginCard({
                   'Log in'
                 )}
               </Button>
+              <button
+                type="button"
+                className={cn(authLinkClassName, 'self-center')}
+                onClick={goToMethods}
+              >
+                Back
+              </button>
             </form>
           </FormProvider>
         </section>

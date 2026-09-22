@@ -132,17 +132,15 @@ async function AuthAccessSwitch({
   );
 }
 
-function AuthLayoutBody({
+async function AuthLayoutBody({
   children
-}: React.PropsWithChildren): React.JSX.Element {
+}: React.PropsWithChildren): Promise<React.JSX.Element> {
+  await AuthLoggedInRedirect();
   const showBackToMarketing = !isOssDeployment() && isLoginOrSignUpRoute();
 
   return (
     <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
       <React.Suspense fallback={null}>
-        <AuthLoggedInRedirect />
-      </React.Suspense>
-      <React.Suspense fallback={children}>
         <AuthAccessSwitch>{children}</AuthAccessSwitch>
       </React.Suspense>
     </AuthLayoutFrame>
@@ -153,11 +151,7 @@ export default function AuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <React.Suspense
-      fallback={
-        <AuthLayoutFrame showBackToMarketing>{children}</AuthLayoutFrame>
-      }
-    >
+    <React.Suspense fallback={<AuthLayoutFrame showBackToMarketing />}>
       <AuthLayoutBody>{children}</AuthLayoutBody>
     </React.Suspense>
   );

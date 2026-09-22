@@ -1,9 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Plug } from '@humaner/shared/icons';
 
+import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
+import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
 import { inboxConnectorRoute } from '@/constants/routes';
 import { CONNECT_APPS } from '@/lib/connect-apps';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
@@ -17,11 +19,36 @@ export type ConnectorNavItem = {
   lastTitle: string | null;
 };
 
+function ConnectorActivityBadge({
+  processing,
+  count
+}: {
+  processing: boolean;
+  count: number;
+}): React.JSX.Element | null {
+  if (processing) {
+    return (
+      <span
+        className="size-1.5 shrink-0 rounded-full bg-[#001afc]"
+        aria-hidden
+      />
+    );
+  }
+  if (count <= 0) {
+    return null;
+  }
+  return (
+    <span className="min-w-4 font-mono text-[10px] leading-none tabular-nums text-sidebar-foreground/50">
+      {Math.min(99, count)}
+    </span>
+  );
+}
+
 export function NavConnectors({
   connectors
 }: {
   connectors: ConnectorNavItem[];
-}): React.JSX.Element | null {
+}): React.JSX.Element {
   const pathname = usePathname();
   const [live, setLive] = React.useState(connectors);
 
@@ -59,47 +86,53 @@ export function NavConnectors({
     };
   }, [connectors.length]);
 
-  if (live.length === 0) return null;
+  const activityById = React.useMemo(() => {
+    const next = new Map<CompanionIntegrationId, ConnectorNavItem>();
+    for (const item of live) {
+      next.set(item.id, item);
+    }
+    return next;
+  }, [live]);
+
+  const connected = CONNECT_APPS.filter((app) => activityById.has(app.id));
+  if (connected.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 px-0.5 pt-1">
-      {live.map((connector) => {
-        const app = CONNECT_APPS.find((item) => item.id === connector.id);
-        if (!app) return null;
-        const href = inboxConnectorRoute(connector.id);
+    <div className="mt-1 space-y-0.5">
+      {connected.map((app) => {
+        const href = inboxConnectorRoute(app.id);
         const active = pathname.startsWith(href);
-        const title = connector.processing
-          ? `${app.name} is processing`
-          : connector.lastTitle
-            ? `${app.name}: ${connector.lastTitle}`
-            : `${app.name} · ${connector.inbound} in / ${connector.outbound} out`;
-
+        const activity = activityById.get(app.id);
+        const count = activity ? activity.inbound + activity.outbound : 0;
         return (
-          <Link
-            key={connector.id}
+          <SidebarNavLink
+            key={app.id}
             href={href}
-            title={title}
-            className={cn(
-              'relative flex size-8 items-center justify-center rounded-lg border border-transparent transition-colors',
-              active ? 'border-foreground/20 bg-muted/60' : 'hover:bg-muted/40'
-            )}
-          >
-            <img
-              src={`https://www.google.com/s2/favicons?domain=${app.logoDomain}&sz=64`}
-              alt=""
-              width={16}
-              height={16}
-              className="size-4 rounded-sm"
-            />
-            <span className="sr-only">{title}</span>
-            {connector.processing ? (
-              <span className="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-[#001afc]" />
-            ) : connector.inbound + connector.outbound > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 min-w-3 rounded-full bg-foreground px-0.5 text-center font-mono text-[8px] leading-3 text-background">
-                {Math.min(99, connector.inbound + connector.outbound)}
-              </span>
-            ) : null}
-          </Link>
+            label={app.name}
+            active={active}
+            mainNavHighlight
+            badge={
+              <ConnectorActivityBadge
+                processing={activity?.processing ?? false}
+                count={count}
+              />
+            }
+            leading={
+              <BrandLogo
+                domain={app.logoDomain}
+                fallbackIcon={Plug}
+                size={32}
+                className={cn(
+                  'size-4 shrink-0',
+                  active
+                    ? 'opacity-100'
+                    : 'opacity-70 group-hover/nav:opacity-100'
+                )}
+              />
+            }
+          />
         );
       })}
     </div>

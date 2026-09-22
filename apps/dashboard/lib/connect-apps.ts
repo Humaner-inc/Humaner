@@ -31,6 +31,53 @@ export const CONNECT_APP_CATEGORIES: Array<{
   { id: 'crm', label: 'CRM' }
 ];
 
+/** Brand accent used on connector notification centers (mark + section tint). */
+export type ConnectorBrand = {
+  accent: string;
+  markClassName: string;
+  surfaceClassName: string;
+};
+
+export const CONNECTOR_BRAND: Record<ConnectAppId, ConnectorBrand> = {
+  linear: {
+    accent: '#5E6AD2',
+    markClassName: 'bg-[#5E6AD2] text-white',
+    surfaceClassName: 'bg-[#5E6AD2]/[0.08] dark:bg-[#5E6AD2]/[0.14]'
+  },
+  github: {
+    accent: '#0969da',
+    markClassName: 'bg-[#0A0D0D] text-white',
+    surfaceClassName: 'bg-[#0969da]/[0.08] dark:bg-[#0969da]/[0.14]'
+  },
+  stripe: {
+    accent: '#635BFF',
+    markClassName: 'bg-[#635BFF] text-white',
+    surfaceClassName: 'bg-[#635BFF]/[0.08] dark:bg-[#635BFF]/[0.14]'
+  },
+  notion: {
+    accent: '#E03E3E',
+    markClassName: 'border border-border/60 bg-[#0A0D0D] text-white',
+    surfaceClassName: 'bg-[#E03E3E]/[0.08] dark:bg-[#E03E3E]/[0.12]'
+  }
+};
+
+/** GitHub’s mark is black — invert it on dark surfaces. */
+export function connectorLogoInvertClassName(domain: string): string {
+  return domain === 'github.com' || domain.endsWith('.github.com')
+    ? 'dark:brightness-0 dark:invert'
+    : '';
+}
+
+export function getConnectApp(
+  id: ConnectAppId
+): ConnectApp & { id: ConnectAppId } {
+  const app = CONNECT_APPS.find((item) => item.id === id);
+  if (!app) {
+    throw new Error(`Unknown connector: ${id}`);
+  }
+  return app;
+}
+
 export const CONNECT_APPS: Array<ConnectApp & { id: ConnectAppId }> = [
   {
     id: 'linear',

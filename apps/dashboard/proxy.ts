@@ -141,8 +141,35 @@ const MCP_ORIGIN_ICON_PATHS = new Set([
   '/apple-touch-icon.png'
 ]);
 
+function isAuthEntryPath(pathname: string): boolean {
+  return (
+    pathname === '/' ||
+    pathname === '/auth/login' ||
+    pathname === '/auth/signup'
+  );
+}
+
+function signedInHomePath(): string {
+  return isOssDeploymentRequest() ? '/organization/overview' : '/inbox/all';
+}
+
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
+
+  // Signed-in visits to the app origin (and login/signup) must never paint
+  // the login card first. Cookie presence is enough — the dashboard shell
+  // still validates the session and sends unfinished onboarding home.
+  if (isAuthEntryPath(pathname) && hasSessionCookie(request)) {
+    const invitation = request.nextUrl.searchParams.get('invitation');
+    if (pathname === '/auth/signup' && invitation) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-pathname', pathname);
+      return NextResponse.next({
+        request: { headers: requestHeaders }
+      });
+    }
+    return NextResponse.redirect(new URL(signedInHomePath(), request.url));
+  }
 
   // Cursor scrapes these well-known paths on the MCP origin and ignores
   // serverInfo.icons. Serve the landing favicon tile — not leftover aliases.
@@ -219,6 +246,9 @@ export function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
+    '/',
+    '/auth/login',
+    '/auth/signup',
     '/favicon.ico',
     '/organization',
     '/organization/:path*',

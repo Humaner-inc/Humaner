@@ -851,12 +851,43 @@ async function executeSearchNotionPages(
   };
 }
 
+function readOnlyContext(organizationId: string): WorkspaceToolContext {
+  return { organizationId, apiKeyId: null, actorUserId: '', allowSend: false };
+}
+
 export async function loadLinearWorkspace(
   organizationId: string
 ): Promise<WorkspaceToolResult> {
-  return fetchLinearIssues(
-    {},
-    { organizationId, apiKeyId: null, actorUserId: '', allowSend: false }
+  return fetchLinearIssues({}, readOnlyContext(organizationId));
+}
+
+export async function loadGithubWorkspace(organizationId: string): Promise<{
+  pullRequests: WorkspaceToolResult;
+  issues: WorkspaceToolResult;
+}> {
+  const context = readOnlyContext(organizationId);
+  const [pullRequests, issues] = await Promise.all([
+    executeListGithubPullRequests({ limit: 20 }, context),
+    executeListGithubIssues({ limit: 20 }, context)
+  ]);
+  return { pullRequests, issues };
+}
+
+export async function loadStripeWorkspace(
+  organizationId: string
+): Promise<WorkspaceToolResult> {
+  return executeListStripeInvoices(
+    { limit: 20 },
+    readOnlyContext(organizationId)
+  );
+}
+
+export async function loadNotionWorkspace(
+  organizationId: string
+): Promise<WorkspaceToolResult> {
+  return executeSearchNotionPages(
+    { limit: 20 },
+    readOnlyContext(organizationId)
   );
 }
 

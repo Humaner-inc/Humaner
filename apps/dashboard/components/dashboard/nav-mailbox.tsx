@@ -357,7 +357,6 @@ export function NavMailbox({
             />
           );
         })}
-        <NavConnectors connectors={connectors} />
         {showMcp ? (
           <SidebarNavLink
             href={Routes.Developers}
@@ -369,6 +368,7 @@ export function NavMailbox({
             }
           />
         ) : null}
+        <NavConnectors connectors={connectors} />
       </div>
     </SidebarGroup>
   );

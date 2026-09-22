@@ -16,6 +16,10 @@ export type BrandLogoProps = {
   className?: string;
 };
 
+function invertOnDark(domain: string): boolean {
+  return domain === 'github.com' || domain.endsWith('.github.com');
+}
+
 export function BrandLogo({
   domain,
   fallbackIcon: FallbackIcon,
@@ -23,9 +27,18 @@ export function BrandLogo({
   className
 }: BrandLogoProps): React.JSX.Element {
   const [failed, setFailed] = React.useState(false);
+  const invert = domain ? invertOnDark(domain) : false;
 
   if (!domain || failed) {
-    return <FallbackIcon className={cn('size-5', className)} />;
+    return (
+      <FallbackIcon
+        className={cn(
+          'size-5',
+          invert && 'dark:brightness-0 dark:invert',
+          className
+        )}
+      />
+    );
   }
 
   return (
@@ -37,7 +50,11 @@ export function BrandLogo({
       height={size}
       loading="lazy"
       onError={() => setFailed(true)}
-      className={cn('size-5 rounded object-contain', className)}
+      className={cn(
+        'size-5 rounded object-contain',
+        invert && 'dark:brightness-0 dark:invert',
+        className
+      )}
     />
   );
 }
