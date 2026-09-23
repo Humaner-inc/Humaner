@@ -6,6 +6,7 @@ import { after } from 'next/server';
 import { dedupedAuth } from '@/lib/auth';
 import { userCanAccessDashboardPage } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
+import { loadUserContactsByEmail } from '@/lib/contacts/contact-record';
 import { prisma } from '@/lib/db/prisma';
 import { updateMailThreadsByIds } from '@/lib/db/unique-mutations';
 import {
@@ -50,6 +51,8 @@ export type MailThreadListItem = {
   messageCount: number;
   awaitingReply: boolean;
   tag: MailTagItem | null;
+  contactId: string | null;
+  contactImage: string | null;
 };
 
 export type MailThreadDetail = {
@@ -77,6 +80,11 @@ export type MailThreadDetail = {
   }>;
   tag: MailTagItem | null;
   sendAliases: MailSendAlias[];
+  savedContacts: Array<{
+    email: string;
+    id: string;
+    image: string | null;
+  }>;
   messages: Array<{
     id: string;
     direction: string;
@@ -395,6 +403,21 @@ export async function getMailThreads(options?: {
     };
   });
 
+  const contactsByEmail = await loadUserContactsByEmail(
+    session.user.id,
+    mapped.flatMap((thread) => (thread.fromAddress ? [thread.fromAddress] : []))
+  );
+  const listed = mapped.map((thread) => {
+    const saved = thread.fromAddress
+      ? contactsByEmail.get(thread.fromAddress)
+      : undefined;
+    return {
+      ...thread,
+      contactId: saved?.id ?? null,
+      contactImage: saved?.image ?? null
+    };
+  });
+
   // Heal stale unread flags for threads we already replied to.
   const staleOpenedIds = threads
     .filter(
@@ -409,10 +432,10 @@ export async function getMailThreads(options?: {
   }
 
   if (options?.unreadOnly) {
-    return mapped.filter((thread) => thread.isUnread);
+    return listed.filter((thread) => thread.isUnread);
   }
 
-  return mapped;
+  return listed;
 }
 
 export const getMailThread = cache(
@@ -545,6 +568,15 @@ export const getMailThread = cache(
     const messages = [...olderMessages, ...openMessages];
     const latest = messages[messages.length - 1];
     const awaitingReply = latest?.direction === 'INBOUND';
+    const counterparties = messages.flatMap((message) => [
+      message.fromAddress,
+      ...message.toAddresses,
+      ...message.ccAddresses
+    ]);
+    const savedByEmail = await loadUserContactsByEmail(
+      session.user.id,
+      counterparties
+    );
 
     return {
       id: thread.id,
@@ -571,6 +603,7 @@ export const getMailThread = cache(
       })),
       tag: thread.tags[0]?.tag ?? null,
       sendAliases: thread.alias.connection.aliases,
+      savedContacts: [...savedByEmail.values()],
       messages
     };
   }

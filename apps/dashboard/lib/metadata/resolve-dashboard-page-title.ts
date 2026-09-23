@@ -38,6 +38,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Tasks]: 'Tasks',
   [Routes.OrganizationWorkspace]: 'Workspace',
   [Routes.Calendar]: 'Calendar',
+  [Routes.Contacts]: 'Contacts',
   [Routes.AdminTickets]: 'Support tickets',
   [Routes.AdminDemos]: 'Demo agents',
   [Routes.Settings]: 'Settings',

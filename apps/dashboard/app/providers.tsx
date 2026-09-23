@@ -13,12 +13,19 @@ export function Providers({
 }: React.PropsWithChildren): React.JSX.Element {
   const pathname = usePathname();
   const isWidget = pathname?.startsWith('/widget') ?? false;
+  const forceInk =
+    pathname === '/onboarding' ||
+    pathname?.startsWith('/onboarding/') ||
+    pathname === '/auth' ||
+    pathname?.startsWith('/auth/') ||
+    false;
 
   return (
     <NuqsAdapter>
       <ThemeProvider
         attribute="class"
         defaultTheme="dark"
+        forcedTheme={forceInk ? 'dark' : undefined}
         enableSystem={false}
         enableColorScheme={!isWidget}
         disableTransitionOnChange

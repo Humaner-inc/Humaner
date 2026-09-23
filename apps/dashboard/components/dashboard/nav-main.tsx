@@ -42,8 +42,6 @@ export type NavMainProps = SidebarGroupProps & {
   handoffOpenCount?: number;
   agentDeskOpenCount?: number;
   mailInboxes?: MailInboxOption[];
-  companionHref?: string | null;
-  showCompanionUpgrade?: boolean;
   connectors?: ConnectorNavItem[];
 };
 
@@ -56,8 +54,6 @@ export function NavMain({
   handoffOpenCount = 0,
   agentDeskOpenCount = 0,
   mailInboxes = [],
-  companionHref,
-  showCompanionUpgrade = false,
   connectors = [],
   ...props
 }: NavMainProps): React.JSX.Element {
@@ -80,8 +76,6 @@ export function NavMain({
               orgTier={orgTier}
               unreadCount={inboxUnreadCount}
               inboxes={mailInboxes}
-              companionHref={companionHref}
-              showCompanionUpgrade={showCompanionUpgrade}
               showMcp={isWorkspaceOwner(profile)}
               canManageTeam={
                 isWorkspaceOwner(profile) || canAccessPage(profile, 'overview')

@@ -65,7 +65,7 @@ export enum Routes {
   AdminTickets = '/admin/tickets',
   AdminDemos = '/admin/demos',
   DemoLanding = '/demo',
-  Contacts = '/organization/overview',
+  Contacts = '/contacts',
   Settings = '/settings',
   Account = '/settings/account',
   Profile = '/settings/account/profile',

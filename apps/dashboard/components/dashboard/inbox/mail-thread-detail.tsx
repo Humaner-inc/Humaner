@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { addContact } from '@/actions/contacts/manage-contacts';
 import { fetchMailMessageBodies } from '@/actions/inbox/get-mail-thread';
 import { blockMailSender } from '@/actions/inbox/manage-blocked-senders';
 import {
@@ -61,6 +62,10 @@ import type {
 } from '@/data/inbox/get-mail-threads';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import {
+  companyDomainFromEmail,
+  normalizeContactEmail
+} from '@/lib/contacts/contact-email';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import {
@@ -249,12 +254,14 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
   subject,
   eager,
   expanded,
+  avatarSrc,
   onToggle
 }: {
   message: MailThreadDetailDto['messages'][number];
   subject: string;
   eager: boolean;
   expanded: boolean;
+  avatarSrc: string | null;
   onToggle: () => void;
 }): React.JSX.Element {
   const outbound = message.direction === 'OUTBOUND';
@@ -264,9 +271,6 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
     message.fromAddress
   );
   const displayName = fromName || fromEmail;
-  const at = fromEmail.lastIndexOf('@');
-  const fromDomain =
-    at >= 0 ? fromEmail.slice(at + 1).toLowerCase() || null : null;
 
   return (
     <li>
@@ -290,9 +294,9 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
           aria-expanded={expanded}
         >
           <Avatar className="size-10 shrink-0">
-            {fromDomain ? (
+            {avatarSrc ? (
               <AvatarImage
-                src={getLogoUrl(fromDomain, 64, true)}
+                src={avatarSrc}
                 alt=""
                 loading={eager ? 'eager' : 'lazy'}
                 decoding="async"
@@ -587,6 +591,35 @@ export function MailThreadDetail({
   });
 
   const { execute: markRead } = useAction(markMailThreadRead);
+  const [addedContact, setAddedContact] = React.useState<{
+    email: string;
+    id: string;
+    image: string | null;
+  } | null>(null);
+  React.useEffect(() => {
+    setAddedContact(null);
+  }, [thread.id]);
+  const { execute: runAddContact, isExecuting: addingContact } = useAction(
+    addContact,
+    {
+      onSuccess: ({ data }) => {
+        if (!data) return;
+        setAddedContact({
+          email: data.email,
+          id: data.id,
+          image: data.image
+        });
+        toast.success(
+          data.created
+            ? `Added ${data.name}`
+            : `${data.name} is already in your contacts`
+        );
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError || 'Could not add contact');
+      }
+    }
+  );
 
   const { execute: runArchive } = useAction(archiveMailThread, {
     onSuccess: () => router.refresh(),
@@ -785,14 +818,19 @@ export function MailThreadDetail({
     (message) => message.direction === 'INBOUND'
   );
   let latestInbound = firstInbound;
+  let latestOutboundTo: string | null = null;
   for (let i = thread.messages.length - 1; i >= 0; i--) {
-    if (thread.messages[i].direction === 'INBOUND') {
-      latestInbound = thread.messages[i];
-      break;
+    const message = thread.messages[i];
+    if (!message) continue;
+    if (message.direction === 'INBOUND' && !latestInbound) {
+      latestInbound = message;
+    }
+    if (message.direction === 'OUTBOUND' && !latestOutboundTo) {
+      latestOutboundTo = message.toAddresses[0] ?? null;
     }
   }
   const senderAddress =
-    firstInbound?.fromAddress ?? latestInbound?.fromAddress ?? null;
+    firstInbound?.fromAddress ?? latestInbound?.fromAddress ?? latestOutboundTo;
   const senderMatch = senderAddress?.match(/^(.*?)\s*<([^>]+)>$/);
   const senderName = senderMatch?.[1]?.trim() || null;
   const senderEmail = (
@@ -804,9 +842,24 @@ export function MailThreadDetail({
   const senderLabel = senderName
     ? `${senderName} · ${senderEmail}`
     : senderEmail;
-  const senderDomain = senderEmail.includes('@')
-    ? senderEmail.slice(senderEmail.lastIndexOf('@') + 1).toLowerCase()
-    : null;
+  const senderMailbox = normalizeContactEmail(senderEmail);
+  const contactByEmail = new Map(
+    (thread.savedContacts ?? []).map((contact) => [contact.email, contact])
+  );
+  if (addedContact) {
+    contactByEmail.set(addedContact.email, addedContact);
+  }
+  const senderContact = senderMailbox
+    ? contactByEmail.get(senderMailbox)
+    : undefined;
+  const avatarForAddress = (raw: string): string | null => {
+    const email = normalizeContactEmail(raw);
+    const saved = email ? contactByEmail.get(email) : undefined;
+    if (saved?.image) return saved.image;
+    const domain = email ? companyDomainFromEmail(email) : null;
+    return domain ? getLogoUrl(domain, 64) : null;
+  };
+  const headerAvatar = avatarForAddress(senderEmail);
   const toName =
     senderMatch?.[1]?.trim() ||
     senderMatch?.[2]?.trim() ||
@@ -967,9 +1020,9 @@ export function MailThreadDetail({
         )}
       >
         <Avatar className="size-9 shrink-0 rounded-md">
-          {senderDomain ? (
+          {headerAvatar ? (
             <AvatarImage
-              src={getLogoUrl(senderDomain, 64, true)}
+              src={headerAvatar}
               alt=""
               loading="eager"
               decoding="async"
@@ -1002,6 +1055,21 @@ export function MailThreadDetail({
           <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
             {senderLabel}
           </p>
+          {senderMailbox ? (
+            <button
+              type="button"
+              className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
+              disabled={Boolean(senderContact) || addingContact}
+              onClick={() =>
+                runAddContact({
+                  email: senderMailbox,
+                  name: senderName ?? undefined
+                })
+              }
+            >
+              {senderContact ? 'In your contacts' : 'Add to contacts'}
+            </button>
+          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
@@ -1039,6 +1107,16 @@ export function MailThreadDetail({
             onArchive={handleArchive}
             onMoveFolder={handleMoveFolder}
             onBlock={handleBlock}
+            onAddContact={
+              senderMailbox
+                ? () =>
+                    runAddContact({
+                      email: senderMailbox,
+                      name: senderName ?? undefined
+                    })
+                : undefined
+            }
+            contactSaved={Boolean(senderContact)}
             onDelete={() => {
               requestMailDelete(
                 skipDeleteWarning,
@@ -1069,6 +1147,7 @@ export function MailThreadDetail({
                     message={message}
                     subject={thread.subject}
                     eager={index >= thread.messages.length - 2}
+                    avatarSrc={avatarForAddress(message.fromAddress)}
                     expanded={expandedIds.has(message.id)}
                     onToggle={() => {
                       setExpandedIds((current) => {

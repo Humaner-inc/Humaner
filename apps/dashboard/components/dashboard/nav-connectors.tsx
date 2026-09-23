@@ -29,7 +29,7 @@ function ConnectorActivityBadge({
   if (processing) {
     return (
       <span
-        className="size-1.5 shrink-0 rounded-full bg-[#001afc]"
+        className="size-1.5 shrink-0 rounded-full bg-[#226342]"
         aria-hidden
       />
     );

@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
+import { addContact } from '@/actions/contacts/manage-contacts';
 import { blockMailSender } from '@/actions/inbox/manage-blocked-senders';
 import {
   applyMailThreadTag,
@@ -63,6 +64,7 @@ import type {
   MailThreadDetail as MailThreadDetailDto,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
+import { companyDomainFromEmail } from '@/lib/contacts/contact-email';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
@@ -103,9 +105,7 @@ function ReadCircle({
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
-  const at = email.lastIndexOf('@');
-  if (at < 0) return null;
-  return email.slice(at + 1).toLowerCase() || null;
+  return companyDomainFromEmail(email);
 }
 
 function senderLabel(thread: MailThreadListItem): string {
@@ -130,7 +130,7 @@ function OpeningThreadPane({
         <Avatar className="size-9 shrink-0 rounded-md">
           {domain ? (
             <AvatarImage
-              src={getLogoUrl(domain, 64, true)}
+              src={getLogoUrl(domain, 64)}
               alt=""
               loading="eager"
               decoding="async"
@@ -214,6 +214,9 @@ export function MailThreadList({
   const [activeThreadId, setActiveThreadId] = React.useState<string | null>(
     null
   );
+  const [addedContacts, setAddedContacts] = React.useState<
+    Record<string, { id: string; image: string | null }>
+  >({});
   const activeThreadIdRef = React.useRef<string | null>(null);
   const [paneThread, setPaneThread] =
     React.useState<MailThreadDetailDto | null>(null);
@@ -392,6 +395,23 @@ export function MailThreadList({
     [requestThread]
   );
 
+  const { execute: runAddContact } = useAction(addContact, {
+    onSuccess: ({ data }) => {
+      if (!data) return;
+      setAddedContacts((current) => ({
+        ...current,
+        [data.email]: { id: data.id, image: data.image }
+      }));
+      toast.success(
+        data.created
+          ? `Added ${data.name}`
+          : `${data.name} is already in your contacts`
+      );
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError || 'Could not add contact');
+    }
+  });
   const { execute: runRowMarkRead } = useAction(markMailThreadRead, {
     onError: ({ error, input }) => {
       patchThreads([input.threadId], { isUnread: true });
@@ -890,6 +910,24 @@ export function MailThreadList({
           patchThreads([thread.id], { isPinned });
           runRowPin({ threadId: thread.id, isPinned });
         }}
+        contactId={
+          (thread.fromAddress && addedContacts[thread.fromAddress]?.id) ||
+          thread.contactId
+        }
+        contactImage={
+          thread.fromAddress && addedContacts[thread.fromAddress]
+            ? (addedContacts[thread.fromAddress]?.image ?? null)
+            : thread.contactImage
+        }
+        onAddContact={
+          thread.fromAddress
+            ? () =>
+                runAddContact({
+                  email: thread.fromAddress ?? '',
+                  name: thread.fromName ?? undefined
+                })
+            : undefined
+        }
       />
     );
   });
@@ -1341,7 +1379,10 @@ function MailThreadRow({
   onAssign,
   onTag,
   onMarkRead,
-  onPin
+  onPin,
+  contactId = null,
+  contactImage = null,
+  onAddContact
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
@@ -1363,6 +1404,9 @@ function MailThreadRow({
   onTag: (tagId: string | null) => void;
   onMarkRead: () => void;
   onPin: (isPinned: boolean) => void;
+  contactId?: string | null;
+  contactImage?: string | null;
+  onAddContact?: () => void;
 }): React.JSX.Element {
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
@@ -1467,9 +1511,9 @@ function MailThreadRow({
         ) : null}
 
         <Avatar className="mt-0.5 size-7 shrink-0 rounded-md">
-          {domain ? (
+          {contactImage || domain ? (
             <AvatarImage
-              src={getLogoUrl(domain, 64, true)}
+              src={contactImage || getLogoUrl(domain ?? '', 64)}
               alt=""
               loading={avatarEager ? 'eager' : 'lazy'}
               decoding="async"
@@ -1628,6 +1672,14 @@ function MailThreadRow({
                   folderView !== 'drafts' ? (
                     <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
                       Report spam
+                    </DropdownMenuItem>
+                  ) : null}
+                  {onAddContact ? (
+                    <DropdownMenuItem
+                      disabled={Boolean(contactId)}
+                      onSelect={onAddContact}
+                    >
+                      {contactId ? 'In your contacts' : 'Add to contacts'}
                     </DropdownMenuItem>
                   ) : null}
                   {folderView !== 'sent' &&

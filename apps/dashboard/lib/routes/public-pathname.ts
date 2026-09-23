@@ -39,6 +39,7 @@ const PROTECTED_APP_PREFIXES = [
   '/human-desk',
   '/tasks',
   '/calendar',
+  '/contacts',
   '/resources',
   '/training',
   '/admin',

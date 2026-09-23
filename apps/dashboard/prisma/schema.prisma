@@ -430,6 +430,8 @@ model User {
   calendarEventAttendance      CalendarEventAttendee[]
   calendarConnections          CalendarConnection[]
   mcpOAuthGrants               McpOAuthGrant[]
+  /// Personal address book. Not workspace-scoped.
+  contacts                     Contact[]
 
   @@index([organizationId], map: "IX_User_organizationId")
 }
@@ -487,6 +489,34 @@ model UserImage {
   hash        String? @db.VarChar(64)
 
   @@index([userId], map: "IX_UserImage_userId")
+}
+
+/// Address book row owned by a user account. Follows the person across workspaces.
+model Contact {
+  id        String        @id(map: "PK_Contact") @default(uuid()) @db.Uuid
+  userId    String        @db.Uuid
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  email     String        @db.VarChar(255)
+  name      String        @db.VarChar(128)
+  company   String?       @db.VarChar(128)
+  notes     String?       @db.Text
+  /// Local path `/api/contact-images/:id?v=hash` after the email picture is imported.
+  image     String?       @db.VarChar(2048)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  imageFile ContactImage?
+
+  @@unique([userId, email], map: "UQ_Contact_user_email")
+  @@index([userId, name], map: "IX_Contact_userId_name")
+}
+
+model ContactImage {
+  id          String  @id(map: "PK_ContactImage") @default(uuid()) @db.Uuid
+  contactId   String  @unique(map: "UQ_ContactImage_contactId") @db.Uuid
+  contact     Contact @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  data        Bytes
+  contentType String  @db.VarChar(255)
+  hash        String? @db.VarChar(64)
 }
 
 model VerificationToken {

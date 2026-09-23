@@ -381,7 +381,8 @@ async function persistMessages(
         threadId: importedInboundThreadId,
         subject: message.subject,
         bodyText: message.bodyText,
-        bodyHtml: message.bodyHtml
+        bodyHtml: message.bodyHtml,
+        sentAt: message.sentAt
       });
     }
   }

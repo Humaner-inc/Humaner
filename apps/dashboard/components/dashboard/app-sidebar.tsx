@@ -4,7 +4,6 @@ import * as React from 'react';
 import { XIcon } from '@humaner/shared/icons';
 
 import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
-import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavMain } from '@/components/dashboard/nav-main';
@@ -70,11 +69,19 @@ export function AppSidebar({
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
         <div className="relative flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
-            <HumanerLogoImage
-              width={32}
-              height={32}
-              className="size-7 shrink-0"
-              tone="light"
+            <span
+              aria-hidden
+              className="inline-block size-7 shrink-0 bg-[#0A0D0D] dark:bg-[#f2f2f2]"
+              style={{
+                WebkitMaskImage: 'url(/brandmark_blue.svg)',
+                maskImage: 'url(/brandmark_blue.svg)',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain'
+              }}
             />
           ) : (
             <HumanerBrandTitle
@@ -111,14 +118,18 @@ export function AppSidebar({
             handoffOpenCount={handoffOpenCount}
             agentDeskOpenCount={agentDeskOpenCount}
             mailInboxes={mailInboxes}
-            companionHref={companionHref}
-            showCompanionUpgrade={showCompanionUpgrade}
             connectors={connectors}
           />
         </ScrollArea>
       </SidebarContent>
       <div className="mt-auto min-w-0">
-        {!oss ? <SidebarMessageUsage usage={messageUsage} /> : null}
+        {!oss ? (
+          <SidebarMessageUsage
+            usage={messageUsage}
+            companionHref={companionHref}
+            showCompanionUpgrade={showCompanionUpgrade}
+          />
+        ) : null}
         <SidebarFooter className="min-w-0 p-2">
           <WorkspaceSwitcher
             variant="sidebar"

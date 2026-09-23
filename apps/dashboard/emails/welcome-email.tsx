@@ -22,8 +22,8 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => {
     >
       <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
       <EmailText>
-        I wanted to run my emails while still being kind of personal and here
-        we're, reinventing mailing with you.
+        I wanted to automate my emails while still being kind of personal and
+        here we're, reinventing mailing with you.
       </EmailText>
       <EmailText>
         Follow the onboarding and connect your mail provider(s). You can then

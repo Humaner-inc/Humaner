@@ -47,7 +47,7 @@ export function CompanionMark({
   return (
     <svg
       aria-hidden
-      className={className}
+      className={joinClassNames("block", className)}
       fill="currentColor"
       height={size}
       style={style}
@@ -150,7 +150,7 @@ export function CompanionFigure({
     <motion.span
       aria-hidden
       className={joinClassNames(
-        "inline-flex items-center justify-center overflow-visible",
+        "inline-flex items-center justify-center overflow-visible leading-none",
         className,
       )}
       style={style}
@@ -169,15 +169,6 @@ export function CompanionFigure({
                 opacity: [1, 1, 0.85, 0],
               }
           : { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
-      }
-      whileHover={
-        reduceMotion || exiting || thinking
-          ? undefined
-          : {
-              y: [0, -5, 0],
-              scale: [1, 1.12, 1],
-              transition: { duration: 0.42, ease: ENTER_EASE },
-            }
       }
       transition={
         exiting

@@ -1,14 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { CompanionMark } from '@humaner/shared/companion-icon';
 import { PlusIcon } from '@humaner/shared/icons';
+import { AddressBook } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
-import { ChatCircle } from '@phosphor-icons/react/dist/ssr/ChatCircle';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
@@ -21,7 +19,6 @@ import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
 import { User } from '@phosphor-icons/react/dist/ssr/User';
 import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 
-import { useDashboardDock } from '@/components/dashboard/dock/dashboard-dock-context';
 import { InboxMailboxMenu } from '@/components/dashboard/inbox-mailbox-menu';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { MailboxNavIcon } from '@/components/dashboard/mailbox-nav-icon';
@@ -36,7 +33,7 @@ import {
   SidebarNavLink,
   SidebarNavTree
 } from '@/components/dashboard/sidebar-nav-tree';
-import { SidebarGroup, useSidebar } from '@/components/ui/sidebar';
+import { SidebarGroup } from '@/components/ui/sidebar';
 import { isInboxLocked } from '@/constants/inbox-nav-items';
 import {
   getActiveMailboxFolder,
@@ -112,8 +109,6 @@ export function NavMailbox({
   orgTier,
   unreadCount = 0,
   inboxes = [],
-  companionHref = null,
-  showCompanionUpgrade = false,
   showMcp = false,
   canManageTeam = true,
   canManageProviders = true,
@@ -122,19 +117,14 @@ export function NavMailbox({
   orgTier: string;
   unreadCount?: number;
   inboxes?: MailInboxOption[];
-  companionHref?: string | null;
-  showCompanionUpgrade?: boolean;
   showMcp?: boolean;
   canManageTeam?: boolean;
   canManageProviders?: boolean;
   connectors?: ConnectorNavItem[];
 }): React.JSX.Element {
   const pathname = usePathname();
-  const { toggleDock, activeMode } = useDashboardDock();
   const searchParams = useSearchParams();
   const { openCompose } = useComposeMail();
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
   const locked = isInboxLocked(orgTier);
   const mailboxes = React.useMemo(() => groupMailInboxes(inboxes), [inboxes]);
   const mailboxParam = searchParams.get('mailbox');
@@ -147,7 +137,6 @@ export function NavMailbox({
   const activeWorkspace = getActiveMailboxWorkspace(pathname);
   const activeWorkspaceItem = getActiveWorkspaceDrawerItem(pathname);
   const activeSection = getActiveWorkspaceSectionItem(pathname);
-  const companionActive = activeWorkspaceItem === 'companion';
   const workspaceActive = activeSection !== null;
   const inboxActive = activeFolder !== null;
   const composeAliasId = primaryAliasForMailbox(inboxes, activeMailboxId);
@@ -265,56 +254,20 @@ export function NavMailbox({
           })}
         </SidebarNavTree>
 
-        {showCompanionUpgrade ? (
-          <Link
-            href={Routes.Billing}
-            title="Try Companion"
-            className={cn(
-              'mx-0.5 flex h-8 items-center justify-center gap-2 border border-sidebar-border bg-transparent font-fellix text-xs text-sidebar-foreground/70 transition-colors hover:bg-muted/30 hover:text-sidebar-foreground',
-              collapsed
-                ? 'w-[calc(100%-0.25rem)] rounded-full px-0'
-                : 'rounded-full px-3'
-            )}
-          >
-            <CompanionMark
-              size={14}
-              className="size-3.5 shrink-0"
-            />
-            {collapsed ? null : <span>Try Companion</span>}
-          </Link>
-        ) : companionHref ? (
-          <SidebarNavLink
-            href={companionHref}
-            label="Companion"
-            active={companionActive}
-            mainNavHighlight
-            leading={
-              <CompanionMark
-                size={16}
-                className={cn(
-                  'size-4 shrink-0 transition-colors',
-                  companionActive
-                    ? 'text-[#001afc]'
-                    : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground'
-                )}
-              />
-            }
-          />
-        ) : null}
         <SidebarNavLink
-          href="#team"
-          label="Messages"
-          active={activeMode === 'team'}
+          href={Routes.Contacts}
+          label="Contacts"
+          active={pathname.startsWith(Routes.Contacts)}
           mainNavHighlight
-          onClick={() => toggleDock('team', { teamTab: 'messages' })}
           leading={
             <MailboxNavIcon
-              icon={ChatCircle}
-              active={activeMode === 'team'}
+              icon={AddressBook}
+              active={pathname.startsWith(Routes.Contacts)}
               color={HUMANER_NAV_COLORS.info}
             />
           }
         />
+
         {WORKSPACE_DRAWER_ITEMS.map((item) => {
           const active = activeWorkspaceItem === item.id;
           return (

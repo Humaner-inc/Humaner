@@ -294,16 +294,6 @@ const nextConfig = {
         permanent: true
       },
       {
-        source: '/dashboard/contacts',
-        destination: signedInHome,
-        permanent: false
-      },
-      {
-        source: '/dashboard/contacts/:path*',
-        destination: signedInHome,
-        permanent: false
-      },
-      {
         source: '/dashboard',
         destination: signedInHome,
         permanent: true
@@ -415,6 +405,14 @@ const nextConfig = {
       {
         source: '/calendar',
         destination: '/dashboard/calendar'
+      },
+      {
+        source: '/contacts',
+        destination: '/dashboard/contacts'
+      },
+      {
+        source: '/contacts/:path*',
+        destination: '/dashboard/contacts/:path*'
       },
       {
         source: '/calendar/:path*',

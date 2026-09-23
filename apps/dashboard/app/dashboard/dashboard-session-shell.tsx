@@ -23,7 +23,7 @@ import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-conne
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { Routes } from '@/constants/routes';
+import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task-proposals';
@@ -257,8 +257,9 @@ export async function DashboardSessionShell({
 
   // Companion mirrors the persona the workspace configured on its primary
   // (oldest) agent. getAgents() orders desc, so that's the last item.
-  const companionCharacter =
-    agents.length > 0 ? agents[agents.length - 1].character : undefined;
+  const companionAgent =
+    agents.length > 0 ? agents[agents.length - 1] : undefined;
+  const companionCharacter = companionAgent?.character;
 
   const sidebarAgents = agents.map((agent) => ({
     id: agent.id,
@@ -281,7 +282,11 @@ export async function DashboardSessionShell({
         agentDeskOpenCount={handoffOpenCounts.agentOpen}
         mailInboxes={mailInboxes}
         agents={sidebarAgents}
-        companionHref={copilotEnabled ? Routes.Knowledge : null}
+        companionHref={
+          copilotEnabled && companionAgent
+            ? agentPersonaRoute(companionAgent.id)
+            : null
+        }
         showCompanionUpgrade={isCloudFreePlan(
           userFromDb!.organization!.tier ?? 'free'
         )}

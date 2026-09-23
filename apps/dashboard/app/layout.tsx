@@ -11,6 +11,8 @@ import { isOssDeployment } from '@/lib/deployment-mode';
 import { comfortaaBold, fellix, humanerMono } from '@/lib/fonts';
 import { getBaseUrl } from '@/lib/urls/get-base-url';
 
+const themeBootScript = `(function(){try{var p=location.pathname||'';var ink=p==='/onboarding'||p.indexOf('/onboarding/')===0||p==='/auth'||p.indexOf('/auth/')===0;var t=localStorage.getItem('theme');localStorage.removeItem('humaner-theme');if(ink||t!=='light'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}}catch(e){}})();`;
+
 const oss = isOssDeployment();
 const description = oss
   ? `${AppInfo.APP_NAME} — customer support kit (Helpdesk, BYO agent, team & org).`
@@ -76,10 +78,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`size-full min-h-screen ${fellix.variable} ${comfortaaBold.variable} ${humanerMono.variable}`}
+      className={`dark size-full min-h-screen ${fellix.variable} ${comfortaaBold.variable} ${humanerMono.variable}`}
       suppressHydrationWarning
     >
       <body className="size-full font-sans">
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <React.Suspense>
           <Providers>
             {children}

@@ -146,7 +146,6 @@ const LEGACY_DEFAULT_LANDING = new Set<string>([
 const CLOUD_RETIRED_LANDING = new Set<string>([
   Routes.Home,
   Routes.Dashboard,
-  Routes.Contacts,
   '/organization/overview'
 ]);
 

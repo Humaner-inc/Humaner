@@ -101,7 +101,8 @@ export const OWNER_ONLY_ROUTE_PREFIXES = [
 export const ACCOUNT_ROUTE_PREFIXES = [
   Routes.Profile,
   Routes.Security,
-  Routes.Notifications
+  Routes.Notifications,
+  Routes.Contacts
 ] as const;
 
 const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [

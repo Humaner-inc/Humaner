@@ -147,7 +147,9 @@ export function MailThreadHeaderMenu({
   onArchive,
   onMoveFolder,
   onBlock,
-  onDelete
+  onDelete,
+  onAddContact,
+  contactSaved = false
 }: {
   threadId: string;
   subject: string;
@@ -176,6 +178,8 @@ export function MailThreadHeaderMenu({
   onMoveFolder: (folder: 'INBOX' | 'SPAM') => void;
   onBlock: () => void;
   onDelete: () => void;
+  onAddContact?: () => void;
+  contactSaved?: boolean;
 }): React.JSX.Element {
   const [open, setOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<
@@ -688,6 +692,14 @@ export function MailThreadHeaderMenu({
           {!inSpam && !inTrash && folder !== 'SENT' ? (
             <DropdownMenuItem onSelect={() => onMoveFolder('SPAM')}>
               Report spam
+            </DropdownMenuItem>
+          ) : null}
+          {onAddContact ? (
+            <DropdownMenuItem
+              disabled={contactSaved}
+              onSelect={onAddContact}
+            >
+              {contactSaved ? 'In your contacts' : 'Add to contacts'}
             </DropdownMenuItem>
           ) : null}
           {folder !== 'SENT' && !inTrash ? (

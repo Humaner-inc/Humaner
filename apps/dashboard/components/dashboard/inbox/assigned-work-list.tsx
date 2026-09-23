@@ -12,6 +12,7 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import type { MailThreadListItem } from '@/data/inbox/get-mail-threads';
 import type { AssignedTaskItem } from '@/data/tasks/get-assigned-tasks';
+import { companyDomainFromEmail } from '@/lib/contacts/contact-email';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -27,9 +28,7 @@ const FILTERS: Array<{ id: AssignedFilter; label: string }> = [
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
-  const at = email.lastIndexOf('@');
-  if (at < 0) return null;
-  return email.slice(at + 1).toLowerCase() || null;
+  return companyDomainFromEmail(email);
 }
 
 function senderLabel(thread: MailThreadListItem): string {
@@ -175,7 +174,7 @@ function AssignedMailRow({
         <Avatar className="mt-0.5 size-7 shrink-0 rounded-[12px]">
           {domain ? (
             <AvatarImage
-              src={getLogoUrl(domain, 64, true)}
+              src={getLogoUrl(domain, 64)}
               alt=""
             />
           ) : null}

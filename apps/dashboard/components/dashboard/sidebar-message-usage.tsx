@@ -2,21 +2,32 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { formatCreditUsd } from '@humaner/shared/credits';
+import { PencilIcon } from '@humaner/shared/icons';
 
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
-import { Switch } from '@/components/ui/switch';
 import { Routes } from '@/constants/routes';
-import { PLAN_TIER_ACCENT } from '@/lib/billing/plan-tier-accent';
+import { companionPersonaColor } from '@/lib/companion-persona';
 import { cn } from '@/lib/utils';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 const USAGE_UPGRADE_THRESHOLD_PERCENT = 90;
 const CREDITS_BAR_MS = 700;
-const CREDITS_BAR_BLUE = PLAN_TIER_ACCENT.classic;
+
+function personaWash(
+  color: string | undefined,
+  alpha: number
+): string | undefined {
+  if (!color || !/^#[0-9a-fA-F]{6}$/.test(color)) return undefined;
+  const r = Number.parseInt(color.slice(1, 3), 16);
+  const g = Number.parseInt(color.slice(3, 5), 16);
+  const b = Number.parseInt(color.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
@@ -117,7 +128,7 @@ function SidebarUsageProgress({
 }): React.JSX.Element {
   return (
     <div
-      className="relative h-1.5 w-full min-w-0 overflow-hidden rounded-full bg-muted"
+      className="relative mt-2 h-px w-full min-w-0 overflow-hidden bg-foreground/15"
       role="progressbar"
       aria-label="Companion fuel"
       aria-valuenow={value}
@@ -126,11 +137,8 @@ function SidebarUsageProgress({
       aria-hidden={!expanded}
     >
       <div
-        className="absolute inset-y-0 left-0 rounded-full will-change-[width]"
-        style={{
-          width: `${fillPercent}%`,
-          backgroundColor: CREDITS_BAR_BLUE
-        }}
+        className="absolute inset-y-0 left-0 bg-foreground will-change-[width]"
+        style={{ width: `${fillPercent}%` }}
       />
     </div>
   );
@@ -138,15 +146,24 @@ function SidebarUsageProgress({
 
 export type SidebarMessageUsageProps = {
   usage: SidebarMessageUsageDto;
+  companionHref?: string | null;
+  showCompanionUpgrade?: boolean;
   className?: string;
 };
 
 export function SidebarMessageUsage({
   usage,
+  companionHref = null,
+  showCompanionUpgrade = false,
   className
 }: SidebarMessageUsageProps): React.JSX.Element {
+  const pathname = usePathname();
   const { state, isMobile } = useSidebar();
   const chat = useHumanerChatOptional();
+  const companionLink = showCompanionUpgrade ? Routes.Billing : companionHref;
+  const companionActive = Boolean(
+    companionHref && !showCompanionUpgrade && pathname.startsWith(companionHref)
+  );
   const isIconRail = !isMobile && state === 'collapsed';
   const usagePercent = Math.min(
     100,
@@ -171,19 +188,29 @@ export function SidebarMessageUsage({
   });
   const remainingLabel = `${formatCreditUsd(meter.remainingCents)} fuel remaining`;
 
+  const fuelAmount = operatorOwned
+    ? usage.messagesUsed.toLocaleString()
+    : formatCreditUsd(meter.remainingCents);
+  const fuelCaption = operatorOwned ? 'replies' : 'fuel remaining';
+
   return (
     <div
       className={cn(
-        'min-w-0 px-2',
-        !isMobile && 'group-data-[collapsible=icon]:px-1',
+        'min-w-0 px-2.5 pb-2.5 pt-1',
+        !isMobile && 'group-data-[collapsible=icon]:px-1.5',
         className
       )}
       title={isIconRail && companionOn ? remainingLabel : undefined}
     >
       {chat ? (
-        <div className="flex justify-center py-1.5">
-          <CompanionVisibilityToggle compact={isIconRail} />
-        </div>
+        <CompanionStatus
+          compact={isIconRail}
+          href={companionLink}
+          active={companionActive}
+          upgrade={showCompanionUpgrade}
+          fuelAmount={companionOn && !isIconRail ? fuelAmount : null}
+          fuelCaption={fuelCaption}
+        />
       ) : null}
 
       <div
@@ -201,7 +228,7 @@ export function SidebarMessageUsage({
               asChild
               size="sm"
               variant="upgrade"
-              className="mb-1.5 h-8 w-full min-w-0"
+              className="mb-2 mt-2 h-8 w-full min-w-0"
             >
               <Link href={Routes.Billing}>
                 {isFreePlan ? 'Upgrade plan' : 'Add fuel'}
@@ -210,26 +237,27 @@ export function SidebarMessageUsage({
           ) : null}
 
           {isIconRail ? (
-            <p className="pb-1 text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-muted-foreground">
+            <p className="pt-1.5 text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-foreground/55">
               {operatorOwned
                 ? usage.messagesUsed.toLocaleString()
                 : formatCreditUsd(usage.creditsRemainingCents)}
             </p>
-          ) : (
-            <div className="space-y-1.5 pb-1.5">
-              <p className="text-center font-mono text-[10px] font-medium tabular-nums">
-                {operatorOwned
-                  ? `${usage.messagesUsed.toLocaleString()} replies`
-                  : remainingLabel}
-              </p>
-              {operatorOwned ? null : (
-                <SidebarUsageProgress
-                  expanded
-                  value={usagePercent}
-                  fillPercent={meter.fillPercent}
-                />
-              )}
-            </div>
+          ) : operatorOwned || chat ? null : (
+            <p className="flex items-baseline gap-1 leading-none">
+              <span className="font-mono text-[11px] tabular-nums text-foreground">
+                {fuelAmount}
+              </span>
+              <span className="font-fellix text-[10px] text-foreground/45">
+                {fuelCaption}
+              </span>
+            </p>
+          )}
+          {operatorOwned || isIconRail ? null : (
+            <SidebarUsageProgress
+              expanded
+              value={usagePercent}
+              fillPercent={meter.fillPercent}
+            />
           )}
         </div>
       </div>
@@ -237,38 +265,109 @@ export function SidebarMessageUsage({
   );
 }
 
-function CompanionVisibilityToggle({
-  compact = false
+function CompanionStatus({
+  compact = false,
+  href,
+  active = false,
+  upgrade = false,
+  fuelAmount,
+  fuelCaption
 }: {
   compact?: boolean;
+  href: string | null;
+  active?: boolean;
+  upgrade?: boolean;
+  fuelAmount: string | null;
+  fuelCaption: string;
 }): React.JSX.Element | null {
   const chat = useHumanerChatOptional();
   if (!chat) return null;
 
+  const visible = chat.companionVisible;
+  const [iconHot, setIconHot] = React.useState(false);
+  const persona = companionPersonaColor(chat.companionCharacter);
+  const wash = personaWash(
+    persona,
+    visible ? (iconHot ? 0.34 : 0.18) : iconHot ? 0.16 : 0.08
+  );
+  const openLabel = 'Edit persona';
+
   return (
-    <span
+    <div
       className={cn(
-        'inline-flex shrink-0 items-center',
-        compact ? 'gap-1' : 'gap-1.5'
+        'flex min-w-0 items-center',
+        compact ? 'justify-center' : 'gap-2.5'
       )}
     >
-      <CompanionIcon
-        active={chat.companionVisible}
-        character={chat.companionCharacter}
-        size={16}
-        className="size-4"
-      />
-      <Switch
-        checked={chat.companionVisible}
-        onCheckedChange={chat.setCompanionVisible}
-        aria-label={
-          chat.companionVisible ? 'Turn Companion off' : 'Turn Companion on'
-        }
-        className={compact ? 'h-3.5 w-6' : undefined}
-        thumbClassName={
-          compact ? 'size-2.5 data-[state=checked]:translate-x-2.5' : undefined
-        }
-      />
-    </span>
+      <button
+        type="button"
+        aria-pressed={visible}
+        aria-label={visible ? 'Turn Companion off' : 'Turn Companion on'}
+        onClick={() => chat.setCompanionVisible(!visible)}
+        onMouseEnter={() => setIconHot(true)}
+        onMouseLeave={() => setIconHot(false)}
+        onFocus={() => setIconHot(true)}
+        onBlur={() => setIconHot(false)}
+        className={cn(
+          'flex size-8 shrink-0 items-center justify-center rounded-[12px] transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          wash
+            ? null
+            : visible
+              ? 'bg-foreground/10 hover:bg-foreground/20'
+              : 'bg-foreground/5 hover:bg-foreground/10'
+        )}
+        style={wash ? { backgroundColor: wash } : undefined}
+      >
+        <CompanionIcon
+          active={visible}
+          character={chat.companionCharacter}
+          size={16}
+          className={cn(
+            'size-4 transition-opacity',
+            visible ? 'opacity-100' : iconHot ? 'opacity-80' : 'opacity-40'
+          )}
+        />
+      </button>
+      {compact ? null : (
+        <div className="min-w-0 flex-1">
+          <div className="group/name flex min-w-0 items-center gap-1.5">
+            <span
+              className={cn(
+                'truncate font-fellix text-[13px] leading-none tracking-tight text-foreground',
+                active &&
+                  'underline decoration-foreground/30 underline-offset-4'
+              )}
+            >
+              Companion
+            </span>
+            {visible && href && !upgrade ? (
+              <Link
+                href={href}
+                title={openLabel}
+                aria-label={openLabel}
+                className="inline-flex size-4 shrink-0 items-center justify-center text-foreground/50 opacity-0 transition-opacity group-hover/name:opacity-100 focus-visible:opacity-100 hover:text-foreground"
+              >
+                <PencilIcon className="size-3.5" />
+              </Link>
+            ) : null}
+          </div>
+          {fuelAmount ? (
+            <p className="mt-1 flex items-baseline gap-1 leading-none">
+              <span className="font-mono text-[11px] tabular-nums text-foreground/80">
+                {fuelAmount}
+              </span>
+              <span className="font-fellix text-[10px] text-foreground/40">
+                {fuelCaption}
+              </span>
+            </p>
+          ) : (
+            <p className="mt-1 font-fellix text-[10px] leading-none text-foreground/35">
+              Off
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
