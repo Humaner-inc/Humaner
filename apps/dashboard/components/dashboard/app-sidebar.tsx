@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { BrandMark, HUMANER_ICON_BLACK_PATH } from '@humaner/shared/brand-mark';
 import { XIcon } from '@humaner/shared/icons';
 
 import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
+import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavMain } from '@/components/dashboard/nav-main';
@@ -70,10 +70,11 @@ export function AppSidebar({
       <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
         <div className="relative flex size-full min-w-0 items-center justify-center overflow-hidden">
           {isCollapsed ? (
-            <BrandMark
-              src={HUMANER_ICON_BLACK_PATH}
-              alt=""
-              className="size-7 shrink-0 dark:brightness-0 dark:invert"
+            <HumanerLogoImage
+              width={32}
+              height={32}
+              className="size-7 shrink-0"
+              tone="light"
             />
           ) : (
             <HumanerBrandTitle

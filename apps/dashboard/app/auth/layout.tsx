@@ -132,17 +132,6 @@ async function AuthAccessSwitch({
   );
 }
 
-function authInitialAppearance(): 'light' | 'dark' {
-  const pathname = getPathname();
-  if (pathname === Routes.Login) {
-    return 'light';
-  }
-  if (pathname === Routes.SignUp) {
-    return getSearchParam('intent') === 'team_member' ? 'dark' : 'light';
-  }
-  return 'dark';
-}
-
 async function AuthLayoutBody({
   children
 }: React.PropsWithChildren): Promise<React.JSX.Element> {
@@ -150,10 +139,7 @@ async function AuthLayoutBody({
   const showBackToMarketing = !isOssDeployment() && isLoginOrSignUpRoute();
 
   return (
-    <AuthLayoutFrame
-      showBackToMarketing={showBackToMarketing}
-      initialAppearance={authInitialAppearance()}
-    >
+    <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
       <React.Suspense fallback={null}>
         <AuthAccessSwitch>{children}</AuthAccessSwitch>
       </React.Suspense>
@@ -165,14 +151,7 @@ export default function AuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (
-    <React.Suspense
-      fallback={
-        <AuthLayoutFrame
-          showBackToMarketing
-          initialAppearance={authInitialAppearance()}
-        />
-      }
-    >
+    <React.Suspense fallback={<AuthLayoutFrame showBackToMarketing />}>
       <AuthLayoutBody>{children}</AuthLayoutBody>
     </React.Suspense>
   );

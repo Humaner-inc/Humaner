@@ -6,15 +6,12 @@ import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
 import { AuthHeroPanel } from '@/components/auth/auth-hero-panel';
 import {
   AuthThemeProvider,
-  useAuthThemeClasses,
-  type AuthAppearance
+  useAuthThemeClasses
 } from '@/components/auth/auth-theme-context';
-import { GrainAmbient } from '@/components/ui/grain-ambient';
 import { cn } from '@/lib/utils';
 
 export type AuthLayoutFrameProps = React.PropsWithChildren<{
   showBackToMarketing?: boolean;
-  initialAppearance?: AuthAppearance;
 }>;
 
 function AuthLayoutChrome({
@@ -30,9 +27,6 @@ function AuthLayoutChrome({
         theme.pageBg
       )}
     >
-      {theme.isInverted && theme.showGrain ? (
-        <GrainAmbient className="absolute inset-0" />
-      ) : null}
       {showBackToMarketing ? <AuthBackToMarketing /> : null}
       <div
         className={cn(
@@ -53,14 +47,10 @@ function AuthLayoutChrome({
 
 export function AuthLayoutFrame({
   children,
-  showBackToMarketing = false,
-  initialAppearance
+  showBackToMarketing = false
 }: AuthLayoutFrameProps): React.JSX.Element {
   return (
-    <AuthThemeProvider
-      className="min-h-screen"
-      initialAppearance={initialAppearance}
-    >
+    <AuthThemeProvider className="min-h-screen">
       <AuthLayoutChrome showBackToMarketing={showBackToMarketing}>
         {children}
       </AuthLayoutChrome>
