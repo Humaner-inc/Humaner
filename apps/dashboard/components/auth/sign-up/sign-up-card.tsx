@@ -68,7 +68,7 @@ export type SignUpCardProps = {
   lockIntent?: boolean;
   /** Hide the page title when the form slides in from login. */
   embedded?: boolean;
-  /** When embedded, only invert the page while this panel is showing. */
+  /** Embedded on login: only retint while the create-account panel is open. */
   active?: boolean;
   onBackToLogin?: () => void;
 };
@@ -99,20 +99,15 @@ export function SignUpCard({
   const password = methods.watch('password');
   const intent = methods.watch('intent') ?? 'business_owner';
   const emailLocked = Boolean(invitationEmail);
-  const inverted = intent === 'team_member';
   const { setAppearance } = useAuthTheme();
+  // Business owner keeps the light login canvas. Team member twists back to dark.
+  const inverted = intent !== 'team_member';
 
   React.useLayoutEffect(() => {
     if (embedded && !active) {
-      setAppearance('dark');
       return;
     }
     setAppearance(inverted ? 'light' : 'dark');
-    return () => {
-      if (embedded) {
-        setAppearance('dark');
-      }
-    };
   }, [active, embedded, inverted, setAppearance]);
 
   const persistIntent = async (next: SignUpIntent): Promise<void> => {
@@ -123,9 +118,14 @@ export function SignUpCard({
   };
 
   React.useEffect(() => {
+    // Hidden on the login methods screen — don't stamp an intent before
+    // Google or GitHub, or a new account skips the same color choice.
+    if (embedded && !active) {
+      return;
+    }
     void persistIntent(intent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed cookie once on mount / intent change
-  }, [intent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed cookie when the panel is open
+  }, [active, embedded, intent]);
 
   const onSubmit: SubmitHandler<SignUpSchema> = async (values) => {
     const result = await signUp(values);

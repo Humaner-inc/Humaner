@@ -18,7 +18,8 @@ export function Providers({
     <NuqsAdapter>
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="light"
+        storageKey="humaner-theme"
         enableSystem={false}
         enableColorScheme={!isWidget}
         disableTransitionOnChange

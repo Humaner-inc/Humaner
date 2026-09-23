@@ -1051,6 +1051,12 @@ input[type='password'],
   white-space: nowrap;
 }
 
+/* Stage captions sit on the page, not inside the dark product tiles. */
+.onboarding-root[data-onboarding-appearance='light'] .auth-hero-feature__label,
+.onboarding-root[data-onboarding-appearance='light'] .onboarding-page-ink {
+  color: #0a0d0d;
+}
+
 .auth-hero-wheel__slot {
   position: absolute;
   left: 50%;

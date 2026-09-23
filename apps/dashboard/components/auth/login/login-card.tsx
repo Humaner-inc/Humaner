@@ -26,14 +26,17 @@ import {
   authDestructiveMessageClassName,
   authHighlightButtonClassName,
   authInputAdornmentClassName,
+  authInputAdornmentOnLightClassName,
   authInputClassName,
+  authInputOnLightClassName,
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
   authOutlineButtonClassName,
   authPageTitleClassName,
   authStackButtonClassName,
-  authStackInputClassName
+  authStackInputClassName,
+  authStackInputOnLightClassName
 } from '@/components/auth/auth-form-styles';
 import { useAuthTheme } from '@/components/auth/auth-theme-context';
 import { SignUpCard } from '@/components/auth/sign-up/sign-up-card';
@@ -79,9 +82,16 @@ export function LoginCard({
   const showSignupForm = authPage === '3';
   const { isInverted, setAppearance } = useAuthTheme();
   const goToMethods = (): void => {
-    setAppearance('dark');
+    setAppearance('light');
     setAuthPage('1');
   };
+
+  React.useLayoutEffect(() => {
+    if (showSignupForm) {
+      return;
+    }
+    setAppearance('light');
+  }, [setAppearance, showSignupForm]);
   const [unverifiedEmail, setUnverifiedEmail] = React.useState<
     string | undefined
   >();
@@ -209,6 +219,30 @@ export function LoginCard({
     authStackButtonClassName,
     'justify-center gap-2.5'
   );
+  const labelClassName = cn(
+    authLabelClassName,
+    isInverted && 'text-[#0A0D0D]/65'
+  );
+  const linkClassName = cn(
+    authLinkClassName,
+    isInverted && 'text-[#0A0D0D]/50 hover:text-[#0A0D0D]'
+  );
+  const inputClassName = cn(
+    isInverted ? authInputOnLightClassName : authInputClassName,
+    isInverted ? authStackInputOnLightClassName : authStackInputClassName,
+    highlightInputs && 'auth-input--highlight'
+  );
+  const adornmentClassName = isInverted
+    ? authInputAdornmentOnLightClassName
+    : authInputAdornmentClassName;
+  const alertClassName = isInverted
+    ? 'border-red-500/25 bg-red-500/[0.08] text-red-700'
+    : authAlertDestructiveClassName;
+  const verifyLinkClassName = cn(
+    buttonVariants({ variant: 'link' }),
+    'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
+    isInverted ? 'text-red-700' : 'text-red-300'
+  );
 
   return (
     <div className={cn('flex flex-col', oss ? 'gap-4' : 'gap-6')}>
@@ -240,7 +274,7 @@ export function LoginCard({
       {errorMessage && authPage === '1' ? (
         <Alert
           variant="destructive"
-          className={authAlertDestructiveClassName}
+          className={alertClassName}
         >
           <div className="flex flex-row items-center gap-2">
             <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -248,11 +282,7 @@ export function LoginCard({
               {errorMessage}
               {unverifiedEmail ? (
                 <Link
-                  className={cn(
-                    buttonVariants({ variant: 'link' }),
-                    'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
-                    oss ? 'text-foreground' : 'text-red-300'
-                  )}
+                  className={verifyLinkClassName}
                   href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
                 >
                   Verify email
@@ -270,7 +300,7 @@ export function LoginCard({
           showSignupForm
             ? 'h-[min(38rem,72vh)]'
             : showEmailForm
-              ? 'h-[20rem]'
+              ? 'h-[16.5rem]'
               : 'h-[10.25rem]'
         )}
         data-page={authPage}
@@ -335,7 +365,7 @@ export function LoginCard({
                 name="email"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className={authLabelClassName}>Email</FormLabel>
+                    <FormLabel className={labelClassName}>Email</FormLabel>
                     <FormControl>
                       <InputWithAdornments
                         {...field}
@@ -344,16 +374,17 @@ export function LoginCard({
                         autoCapitalize="off"
                         autoComplete="username"
                         placeholder="Enter your email address"
-                        className={cn(
-                          authInputClassName,
-                          authStackInputClassName,
-                          highlightInputs && 'auth-input--highlight'
-                        )}
+                        className={inputClassName}
+                        containerClassName={
+                          isInverted
+                            ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40'
+                            : undefined
+                        }
                         startAdornment={
                           <MailIcon
                             className={cn(
                               'size-4 shrink-0',
-                              authInputAdornmentClassName
+                              adornmentClassName
                             )}
                           />
                         }
@@ -370,12 +401,10 @@ export function LoginCard({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <div className="flex flex-row items-center justify-between">
-                      <FormLabel className={authLabelClassName}>
-                        Password
-                      </FormLabel>
+                      <FormLabel className={labelClassName}>Password</FormLabel>
                       <Link
                         href={Routes.ForgotPassword}
-                        className={authLinkClassName}
+                        className={linkClassName}
                       >
                         Forgot your password?
                       </Link>
@@ -387,16 +416,17 @@ export function LoginCard({
                         autoCapitalize="off"
                         autoComplete="current-password"
                         placeholder="Enter your password"
-                        className={cn(
-                          authInputClassName,
-                          authStackInputClassName,
-                          highlightInputs && 'auth-input--highlight'
-                        )}
+                        className={inputClassName}
+                        containerClassName={
+                          isInverted
+                            ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40 [&_button]:text-[#0A0D0D]/40'
+                            : undefined
+                        }
                         startAdornment={
                           <LockIcon
                             className={cn(
                               'size-4 shrink-0',
-                              authInputAdornmentClassName
+                              adornmentClassName
                             )}
                           />
                         }
@@ -410,7 +440,7 @@ export function LoginCard({
               {errorMessage && showEmailForm ? (
                 <Alert
                   variant="destructive"
-                  className={authAlertDestructiveClassName}
+                  className={alertClassName}
                 >
                   <div className="flex flex-row items-center gap-2">
                     <AlertCircleIcon className="size-[18px] shrink-0" />
@@ -418,11 +448,7 @@ export function LoginCard({
                       {errorMessage}
                       {unverifiedEmail ? (
                         <Link
-                          className={cn(
-                            buttonVariants({ variant: 'link' }),
-                            'ml-0.5 h-fit gap-0.5 px-0.5 py-0 underline',
-                            oss ? 'text-foreground' : 'text-red-300'
-                          )}
+                          className={verifyLinkClassName}
                           href={`${Routes.VerifyEmail}?email=${encodeURIComponent(unverifiedEmail)}`}
                         >
                           Verify email
@@ -451,7 +477,7 @@ export function LoginCard({
               </Button>
               <button
                 type="button"
-                className={cn(authLinkClassName, 'self-center')}
+                className={cn(linkClassName, 'self-center')}
                 onClick={goToMethods}
               >
                 Back

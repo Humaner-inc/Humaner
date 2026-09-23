@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { ctaPrimaryOnLightClassName } from '@humaner/shared/cta';
 import { LockIcon } from '@humaner/shared/icons';
 
 import { submitAuthAccessCode } from '@/actions/auth/submit-auth-access-code';
@@ -9,11 +10,14 @@ import {
   authDestructiveMessageClassName,
   authHighlightButtonClassName,
   authInputAdornmentClassName,
+  authInputAdornmentOnLightClassName,
   authInputClassName,
+  authInputOnLightClassName,
   authMutedTextClassName,
   authPageTitleClassName
 } from '@/components/auth/auth-form-styles';
 import { AuthOnboardingCardShell } from '@/components/auth/auth-onboarding-card-shell';
+import { useAuthTheme } from '@/components/auth/auth-theme-context';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -33,6 +37,7 @@ import {
 
 export function AuthAccessWall(): React.JSX.Element {
   const router = useRouter();
+  const { isInverted } = useAuthTheme();
   const [isLoading, setIsLoading] = React.useState(false);
   const methods = useZodForm({
     schema: submitAuthAccessCodeSchema,
@@ -97,8 +102,20 @@ export function AuthAccessWall(): React.JSX.Element {
               />
             </span>
           </div>
-          <h1 className={authPageTitleClassName}>Early Access</h1>
-          <p className={authMutedTextClassName}>
+          <h1
+            className={cn(
+              authPageTitleClassName,
+              isInverted && 'text-[#0A0D0D]'
+            )}
+          >
+            Early Access
+          </h1>
+          <p
+            className={cn(
+              authMutedTextClassName,
+              isInverted && 'text-[#0A0D0D]/50'
+            )}
+          >
             Enter your access code to join. Each shared code works once.
           </p>
         </div>
@@ -123,25 +140,47 @@ export function AuthAccessWall(): React.JSX.Element {
                       placeholder="Access code"
                       aria-label="Access code"
                       className={cn(
-                        authInputClassName,
+                        isInverted
+                          ? authInputOnLightClassName
+                          : authInputClassName,
                         'font-mono tracking-[0.18em]'
                       )}
+                      containerClassName={
+                        isInverted
+                          ? '[&_.auth-input-adornment-slot]:text-[#0A0D0D]/40'
+                          : undefined
+                      }
                       startAdornment={
                         <LockIcon
-                          className={cn(authInputAdornmentClassName, 'size-4')}
+                          className={cn(
+                            isInverted
+                              ? authInputAdornmentOnLightClassName
+                              : authInputAdornmentClassName,
+                            'size-4'
+                          )}
                         />
                       }
                       disabled={isLoading}
                     />
                   </FormControl>
-                  <FormMessage className={authDestructiveMessageClassName} />
+                  <FormMessage
+                    className={
+                      isInverted
+                        ? 'text-red-600'
+                        : authDestructiveMessageClassName
+                    }
+                  />
                 </FormItem>
               )}
             />
             <Button
               type="submit"
               disabled={isLoading}
-              className={authHighlightButtonClassName}
+              className={
+                isInverted
+                  ? `${ctaPrimaryOnLightClassName} h-11 w-full`
+                  : authHighlightButtonClassName
+              }
             >
               {isLoading ? 'Checking…' : 'Continue'}
             </Button>

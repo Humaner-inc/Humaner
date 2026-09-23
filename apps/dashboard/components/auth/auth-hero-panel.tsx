@@ -191,7 +191,13 @@ function FeatureTileView({
     <div
       className={cn(
         'relative flex size-full items-center justify-center overflow-hidden rounded-[12px] border',
-        front ? 'border-white/15' : 'border-white/10'
+        colors.fill === TILE.fg
+          ? front
+            ? 'border-[#0A0D0D]/15'
+            : 'border-[#0A0D0D]/10'
+          : front
+            ? 'border-white/15'
+            : 'border-white/10'
       )}
       style={{
         backgroundColor: colors.fill,
