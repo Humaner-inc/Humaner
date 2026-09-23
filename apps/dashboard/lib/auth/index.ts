@@ -44,7 +44,7 @@ export const authConfig = {
     signIn: Routes.Login,
     signOut: Routes.Logout,
     error: Routes.AuthError, // Error code passed in query string as ?error=ERROR_CODE
-    newUser: Routes.OnboardingConnectGmail
+    newUser: Routes.Onboarding
   },
   cookies: {
     sessionToken: {

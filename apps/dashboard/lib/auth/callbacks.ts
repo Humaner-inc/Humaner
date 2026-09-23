@@ -10,10 +10,7 @@ import {
 } from '@/lib/auth/callback-url';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
-import {
-  hasGmailConnectPrompt,
-  markGmailConnectPrompt
-} from '@/lib/auth/gmail-connect-prompt';
+import { markGmailConnectPrompt } from '@/lib/auth/gmail-connect-prompt';
 import {
   clearSessionCookies,
   writeSessionCookie
@@ -235,10 +232,6 @@ export const callbacks = {
     const mfa = toMfaChallengeRedirect(url);
     if (mfa) {
       return new URL(mfa, baseUrl).toString();
-    }
-
-    if (await hasGmailConnectPrompt()) {
-      return new URL(Routes.OnboardingConnectGmail, baseUrl).toString();
     }
 
     const safe = getSafeAuthCallbackUrl(url);

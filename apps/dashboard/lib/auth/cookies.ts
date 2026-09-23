@@ -39,10 +39,10 @@ export class AuthCookies {
   /** Optional invitation UUID when signing up via invite link. */
   public static SignUpInvitationId = 'humaner.signup-invitation';
 
-  /** Set on Google sign-up so the next hop is the Gmail inbox consent page. */
+  /** Set on Google sign-up so the mailbox step can offer Gmail connect. */
   public static GmailConnectPrompt = 'humaner.gmail-connect-prompt';
 
-  /** Set when the user skips the post-signup Gmail consent page. */
+  /** Set when the user skips the Gmail connect offer on the mailbox step. */
   public static GmailConnectDismissed = 'humaner.gmail-connect-dismissed';
 
   /** Temporary early-access unlock for /auth/login and /auth/signup. */

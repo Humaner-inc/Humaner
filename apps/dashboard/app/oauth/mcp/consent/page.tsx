@@ -39,7 +39,7 @@ export default async function McpOAuthConsentPage({
     );
   }
   if (!checkSession(session)) {
-    redirect(Routes.OnboardingConnectGmail);
+    redirect(Routes.Onboarding);
   }
 
   const clientId = query.get('client_id') ?? '';

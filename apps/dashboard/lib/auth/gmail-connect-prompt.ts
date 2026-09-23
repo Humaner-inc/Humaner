@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 import { AuthCookies } from '@/lib/auth/cookies';
 
-const COOKIE_MAX_AGE_SECONDS = 60 * 30;
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 function cookieOptions(): {
   httpOnly: true;
