@@ -123,9 +123,14 @@ export function SignUpCard({
   };
 
   React.useEffect(() => {
+    // Login keeps this card mounted while Google/GitHub stay on the methods
+    // page. Don't write an account-type cookie until signup is actually open.
+    if (embedded && !active) {
+      return;
+    }
     void persistIntent(intent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed cookie once on mount / intent change
-  }, [intent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed cookie when the visible intent changes
+  }, [active, embedded, intent, invitationId]);
 
   const onSubmit: SubmitHandler<SignUpSchema> = async (values) => {
     const result = await signUp(values);

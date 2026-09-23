@@ -29,13 +29,22 @@ export const setSignupIntent = actionClient
       ...(AuthCookies.domain ? { domain: AuthCookies.domain } : {})
     };
 
+    const invitationId = parsedInput.invitationId?.trim();
+
+    // Business owner is chosen on the onboarding account step, after OAuth.
+    // A cookie here used to create the workspace before that screen.
+    if (parsedInput.intent === 'business_owner' && !invitationId) {
+      cookieStore.delete(AuthCookies.SignUpIntent);
+      cookieStore.delete(AuthCookies.SignUpInvitationId);
+      return { ok: true as const };
+    }
+
     cookieStore.set({
       name: AuthCookies.SignUpIntent,
       value: parsedInput.intent satisfies SignUpIntent,
       ...options
     });
 
-    const invitationId = parsedInput.invitationId?.trim();
     if (invitationId) {
       cookieStore.set({
         name: AuthCookies.SignUpInvitationId,

@@ -4,10 +4,7 @@ import type { NextAuthConfig, User } from 'next-auth';
 
 import { AuthCookies } from '@/lib/auth/cookies';
 import { markGmailConnectPrompt } from '@/lib/auth/gmail-connect-prompt';
-import {
-  acceptInvitationForExistingUser,
-  createOrganizationAndConnectUser
-} from '@/lib/auth/organization';
+import { acceptInvitationForExistingUser } from '@/lib/auth/organization';
 import { reassertSessionCookieForUser } from '@/lib/auth/reassert-session-cookie';
 import { revalidateWorkspaceMembership } from '@/lib/auth/revalidate-workspace-membership';
 import { verifyEmail } from '@/lib/auth/verification';
@@ -197,14 +194,10 @@ export const events = {
             // onboarding can skip the account-type chooser.
           }
           cookieStore.delete(AuthCookies.SignUpInvitationId);
-        } else if (signupIntent === 'business_owner' && !user.organizationId) {
-          await createOrganizationAndConnectUser({
-            userId: user.id,
-            normalizedEmail: user.email.toLowerCase()
-          });
-          cookieStore.delete(AuthCookies.SignUpIntent);
-          cookieStore.delete(AuthCookies.SignUpInvitationId);
         } else {
+          // First Google/GitHub sign-in has not chosen Business owner vs
+          // Team member. Leave workspace creation to that onboarding step.
+          cookieStore.delete(AuthCookies.SignUpIntent);
           cookieStore.delete(AuthCookies.SignUpInvitationId);
         }
         if (account?.provider === OAuthIdentityProvider.Google) {
