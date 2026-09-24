@@ -97,8 +97,7 @@ export async function issueViralBetaShareCodesForOwner(
     where: { id: ownerId },
     select: {
       id: true,
-      workspaceRole: true,
-      viralBetaExpiresAt: true
+      workspaceRole: true
     }
   });
   if (!owner || owner.workspaceRole !== WorkspaceRole.OWNER) {
@@ -114,10 +113,6 @@ export async function issueViralBetaShareCodesForOwner(
     take: VIRAL_BETA_SHARE_CODE_COUNT
   });
   if (existing.length >= VIRAL_BETA_SHARE_CODE_COUNT) {
-    return existing.map((row) => row.code);
-  }
-
-  if (!owner.viralBetaExpiresAt) {
     return existing.map((row) => row.code);
   }
 

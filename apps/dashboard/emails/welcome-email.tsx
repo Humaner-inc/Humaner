@@ -5,7 +5,6 @@ import {
 } from '@humaner/shared/email-ui';
 
 import { AppInfo } from '@/constants/app-info';
-import { isViralBetaInboxFree } from '@/lib/auth/viral-beta-constants';
 
 export type WelcomeEmailData = {
   recipient: string;
@@ -13,8 +12,6 @@ export type WelcomeEmailData = {
 };
 
 export const WelcomeEmail = (_data: WelcomeEmailData) => {
-  const earlyAccess = isViralBetaInboxFree();
-
   return (
     <EmailLayout
       preview="Ready for the inbox(ing)?"
