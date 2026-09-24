@@ -87,10 +87,26 @@ export const authConfig = {
 // All those actions need to be called server-side
 export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);
 
+function isAuthSessionLookupError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const name = (error as { name?: string }).name;
+  // Auth.js wraps a failed `session.findUnique()` as both of these. A Neon
+  // blip (P1001) otherwise crashes the dashboard shell instead of signing out.
+  return name === 'AdapterError' || name === 'SessionTokenError';
+}
+
 // Deduplicated per-request session. Await cookies first so Cache Components
 // postpones before Auth.js calls `crypto.getRandomValues()` (CSRF / session).
 // Do not use `connection()` here — it blocks instant client navigations.
 export const dedupedAuth = cache(async () => {
   await cookies();
-  return auth();
+  try {
+    return await auth();
+  } catch (error) {
+    if (!isAuthSessionLookupError(error)) {
+      throw error;
+    }
+    console.error('[auth] session lookup failed', error);
+    return null;
+  }
 });

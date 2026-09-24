@@ -15,7 +15,7 @@ export type MailboxFolderId =
 
 export type MailboxWorkspaceId = 'providers';
 
-export type WorkspaceSectionId = 'tasks' | 'assigned' | 'team' | 'calendar';
+export type WorkspaceSectionId = 'tasks' | 'assigned' | 'team';
 
 export type WorkspaceDrawerId = WorkspaceSectionId | 'resources' | 'companion';
 
@@ -101,7 +101,7 @@ export const MAILBOX_WORKSPACE_ITEMS: MailboxWorkspaceItem[] = [
   }
 ];
 
-/** Collapsible Workspace section — Tasks, Assigned, Team, Calendar. */
+/** Collapsible Workspace section — Tasks, Assigned, Team. */
 export const WORKSPACE_SECTION_ITEMS: WorkspaceSectionItem[] = [
   {
     id: 'tasks',
@@ -120,12 +120,6 @@ export const WORKSPACE_SECTION_ITEMS: WorkspaceSectionItem[] = [
     label: 'Team',
     href: Routes.OrganizationTeam,
     color: HUMANER_NAV_COLORS.success
-  },
-  {
-    id: 'calendar',
-    label: 'Calendar',
-    href: Routes.Calendar,
-    color: HUMANER_NAV_COLORS.warning
   }
 ];
 
@@ -184,6 +178,20 @@ export function getActiveMailboxFolder(
   return null;
 }
 
+/** Connectors, MCP, resources, and providers — the Utilities section. */
+export function isUtilitiesPath(pathname: string): boolean {
+  if (pathname.startsWith(Routes.InboxProviders)) return true;
+  if (pathname.startsWith(Routes.InboxConnectors)) return true;
+  if (pathname.startsWith(Routes.Developers)) return true;
+  if (
+    pathname.startsWith(Routes.Resources) ||
+    pathname.startsWith('/resources')
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function getActiveMailboxWorkspace(
   pathname: string
 ): MailboxWorkspaceId | null {
@@ -197,7 +205,6 @@ export function isWorkspaceDrawerPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return true;
   }
-  if (pathname.startsWith(Routes.Calendar)) return true;
   if (pathname.startsWith(Routes.InboxAssigned)) return true;
   return false;
 }
@@ -209,7 +216,6 @@ export function getActiveWorkspaceSectionItem(
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return 'tasks';
   }
-  if (pathname.startsWith(Routes.Calendar)) return 'calendar';
   if (pathname.startsWith(Routes.InboxAssigned)) return 'assigned';
   return null;
 }

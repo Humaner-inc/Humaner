@@ -16,7 +16,7 @@ import {
   getSessionExpiryFromNow
 } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { isOssDeployment } from '@/lib/deployment-mode';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 
 async function isAuthenticatorAppEnabled(userId: string): Promise<boolean> {
   const count = await prisma.authenticatorApp.count({
@@ -81,7 +81,7 @@ export function getPostVerificationRedirect(input: {
   }
 
   if (input.completedOnboarding && input.organizationCompletedOnboarding) {
-    return isOssDeployment() ? Routes.Home : Routes.InboxAll;
+    return getSignedInHomePath();
   }
 
   return Routes.Onboarding;

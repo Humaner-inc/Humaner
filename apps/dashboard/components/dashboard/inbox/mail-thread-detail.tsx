@@ -599,27 +599,24 @@ export function MailThreadDetail({
   React.useEffect(() => {
     setAddedContact(null);
   }, [thread.id]);
-  const { execute: runAddContact, isExecuting: addingContact } = useAction(
-    addContact,
-    {
-      onSuccess: ({ data }) => {
-        if (!data) return;
-        setAddedContact({
-          email: data.email,
-          id: data.id,
-          image: data.image
-        });
-        toast.success(
-          data.created
-            ? `Added ${data.name}`
-            : `${data.name} is already in your contacts`
-        );
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError || 'Could not add contact');
-      }
+  const { execute: runAddContact } = useAction(addContact, {
+    onSuccess: ({ data }) => {
+      if (!data) return;
+      setAddedContact({
+        email: data.email,
+        id: data.id,
+        image: data.image
+      });
+      toast.success(
+        data.created
+          ? `Added ${data.name}`
+          : `${data.name} is already in your contacts`
+      );
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError || 'Could not add contact');
     }
-  );
+  });
 
   const { execute: runArchive } = useAction(archiveMailThread, {
     onSuccess: () => router.refresh(),
@@ -1037,46 +1034,30 @@ export function MailThreadDetail({
             <h1 className="min-w-0 truncate font-display text-lg font-normal tracking-tight">
               {thread.subject || '(no subject)'}
             </h1>
-            {thread.tag ? (
-              <span
-                className="size-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: thread.tag.color }}
-                title={thread.tag.name}
-                aria-label={thread.tag.name}
-              />
-            ) : null}
             <span
               className="shrink-0"
-              title={mailThreadStatusLabel(thread.status)}
+              title={
+                thread.tag
+                  ? `${thread.tag.name} · ${mailThreadStatusLabel(thread.status)}`
+                  : mailThreadStatusLabel(thread.status)
+              }
             >
-              <StatusGlyph kind={mailStatusToGlyph(thread.status)} />
+              <StatusGlyph
+                kind={mailStatusToGlyph(thread.status)}
+                color={thread.tag?.color}
+              />
             </span>
           </div>
           <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
             {senderLabel}
           </p>
-          {senderMailbox ? (
-            <button
-              type="button"
-              className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground"
-              disabled={Boolean(senderContact) || addingContact}
-              onClick={() =>
-                runAddContact({
-                  email: senderMailbox,
-                  name: senderName ?? undefined
-                })
-              }
-            >
-              {senderContact ? 'In your contacts' : 'Add to contacts'}
-            </button>
-          ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
           {thread.isUnread ? (
             <span
               className="mr-1 size-1.5 rounded-full"
-              style={{ backgroundColor: thread.tag?.color ?? '#001afc' }}
+              style={{ backgroundColor: '#001afc' }}
               title="Unread"
             />
           ) : null}

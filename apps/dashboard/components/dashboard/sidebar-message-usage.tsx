@@ -281,10 +281,10 @@ function CompanionStatus({
   fuelCaption: string;
 }): React.JSX.Element | null {
   const chat = useHumanerChatOptional();
+  const [iconHot, setIconHot] = React.useState(false);
   if (!chat) return null;
 
   const visible = chat.companionVisible;
-  const [iconHot, setIconHot] = React.useState(false);
   const persona = companionPersonaColor(chat.companionCharacter);
   const wash = personaWash(
     persona,

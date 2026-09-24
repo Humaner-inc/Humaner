@@ -30,6 +30,7 @@ const PROTECTED_APP_PREFIXES = [
   '/organization',
   '/agents',
   '/desk',
+  '/overview',
   '/inbox',
   '/integrations',
   '/settings',

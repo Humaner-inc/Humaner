@@ -189,12 +189,12 @@ const nextConfig = {
   async redirects() {
     const signedInHome = isSelfHostBuild
       ? '/organization/overview'
-      : '/inbox/all';
+      : '/overview';
 
     return [
       {
         source: '/',
-        // Cloud: send unsigned visitors straight to login (no /inbox/all bounce).
+        // Cloud: send unsigned visitors straight to login (no /overview bounce).
         // Signed-in users on /auth/login are redirected home by the auth layout.
         destination: isSelfHostBuild ? signedInHome : '/auth/login',
         permanent: false
@@ -208,7 +208,7 @@ const nextConfig = {
         ? [
             {
               source: '/organization/overview',
-              destination: '/inbox/all',
+              destination: '/overview',
               permanent: false
             }
           ]
@@ -385,6 +385,10 @@ const nextConfig = {
       {
         source: '/desk/:path*',
         destination: '/dashboard/desk/:path*'
+      },
+      {
+        source: '/overview',
+        destination: '/dashboard/overview'
       },
       {
         source: '/inbox',

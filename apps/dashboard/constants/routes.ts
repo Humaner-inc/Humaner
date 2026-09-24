@@ -46,6 +46,8 @@ export enum Routes {
   DeskSettings = '/desk/settings',
   HumanDesk = '/human-desk',
   Inbox = '/inbox',
+  /** Cloud home — mailbox snapshot. Self-Host keeps {@link Routes.Home}. */
+  Overview = '/overview',
   InboxAll = '/inbox/all',
   InboxAssigned = '/inbox/assigned',
   InboxArchive = '/inbox/archive',

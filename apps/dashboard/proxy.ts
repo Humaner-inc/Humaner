@@ -53,6 +53,7 @@ function hasSessionCookie(request: NextRequest): boolean {
 function isDefaultSignedInHome(pathname: string): boolean {
   return (
     pathname === '/' ||
+    pathname === '/overview' ||
     pathname === '/inbox' ||
     pathname === '/inbox/all' ||
     pathname === '/organization' ||
@@ -92,6 +93,9 @@ function isOssBlockedPath(pathname: string): boolean {
       path === '/settings/organization/billing' ||
       path.startsWith('/settings/organization/billing/')
     ) {
+      return true;
+    }
+    if (path === '/overview' || path.startsWith('/overview/')) {
       return true;
     }
     if (path === '/inbox' || path.startsWith('/inbox/')) {
@@ -150,7 +154,7 @@ function isAuthEntryPath(pathname: string): boolean {
 }
 
 function signedInHomePath(): string {
-  return isOssDeploymentRequest() ? '/organization/overview' : '/inbox/all';
+  return isOssDeploymentRequest() ? '/organization/overview' : '/overview';
 }
 
 export function proxy(request: NextRequest): NextResponse {
@@ -254,6 +258,7 @@ export const config = {
     '/organization/:path*',
     '/agents/:path*',
     '/desk/:path*',
+    '/overview',
     '/inbox/:path*',
     '/tasks',
     '/tasks/:path*',

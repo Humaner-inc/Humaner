@@ -21,6 +21,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.DeskEscalation]: 'Escalation',
   [Routes.DeskTeam]: 'Desk team',
   [Routes.HumanDesk]: 'Human Desk',
+  [Routes.Overview]: 'Overview',
   [Routes.Inbox]: 'Mails',
   [Routes.InboxAll]: 'Inbox',
   [Routes.InboxAssigned]: 'Assigned to me',

@@ -26,6 +26,7 @@ import {
 } from '@/lib/contacts/contact-email';
 import type { ContactHistoryThread } from '@/lib/contacts/contact-history';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
+import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -284,7 +285,10 @@ export function ContactsBrowser({
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3.5">
-          <PresentationPageMark className="bg-[#001afc] text-[#fcf4ec]">
+          <PresentationPageMark
+            className="text-[#fcf4ec]"
+            style={{ backgroundColor: HUMANER_NAV_COLORS.success }}
+          >
             <AddressBook
               className="size-6"
               weight="duotone"

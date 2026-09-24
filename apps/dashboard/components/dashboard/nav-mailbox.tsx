@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { PlusIcon } from '@humaner/shared/icons';
+import { ChevronRightIcon, PlusIcon } from '@humaner/shared/icons';
 import { AddressBook } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
+import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
@@ -33,20 +34,17 @@ import {
   SidebarNavLink,
   SidebarNavTree
 } from '@/components/dashboard/sidebar-nav-tree';
-import { SidebarGroup } from '@/components/ui/sidebar';
+import { SidebarGroup, useSidebar } from '@/components/ui/sidebar';
 import { isInboxLocked } from '@/constants/inbox-nav-items';
 import {
   getActiveMailboxFolder,
   getActiveMailboxWorkspace,
-  getActiveWorkspaceDrawerItem,
   getActiveWorkspaceSectionItem,
+  isUtilitiesPath,
   MAILBOX_FOLDER_ITEMS,
-  MAILBOX_WORKSPACE_ITEMS,
   mailboxConnectionHref,
-  WORKSPACE_DRAWER_ITEMS,
   WORKSPACE_SECTION_ITEMS,
   type MailboxFolderId,
-  type MailboxWorkspaceId,
   type WorkspaceSectionId
 } from '@/constants/mailbox-nav-items';
 import { Routes } from '@/constants/routes';
@@ -94,15 +92,10 @@ const FOLDER_ICONS: Record<MailboxFolderId, typeof Tray> = {
   tags: Tag
 };
 
-const WORKSPACE_ICONS: Record<MailboxWorkspaceId, typeof CalendarBlank> = {
-  providers: Plugs
-};
-
-const SECTION_ICONS: Record<WorkspaceSectionId, typeof CalendarBlank> = {
+const SECTION_ICONS: Record<WorkspaceSectionId, typeof Checks> = {
   tasks: Checks,
   assigned: User,
-  team: Users,
-  calendar: CalendarBlank
+  team: Users
 };
 
 export function NavMailbox({
@@ -133,10 +126,13 @@ export function NavMailbox({
     mailboxes[0] ??
     null;
   const activeMailboxId = activeMailbox?.connectionId ?? null;
+  const { state: sidebarState } = useSidebar();
+  const iconRail = sidebarState === 'collapsed';
+  const [utilitiesOpen, setUtilitiesOpen] = React.useState(true);
   const activeFolder = getActiveMailboxFolder(pathname);
   const activeWorkspace = getActiveMailboxWorkspace(pathname);
-  const activeWorkspaceItem = getActiveWorkspaceDrawerItem(pathname);
   const activeSection = getActiveWorkspaceSectionItem(pathname);
+  const utilitiesActive = isUtilitiesPath(pathname);
   const workspaceActive = activeSection !== null;
   const inboxActive = activeFolder !== null;
   const composeAliasId = primaryAliasForMailbox(inboxes, activeMailboxId);
@@ -153,107 +149,26 @@ export function NavMailbox({
     else openCompose();
   };
 
+  React.useEffect(() => {
+    if (utilitiesActive) setUtilitiesOpen(true);
+  }, [utilitiesActive]);
+
   return (
     <SidebarGroup className="p-0">
       <div className="space-y-0.5">
-        <SidebarNavTree
-          drawerId={SIDEBAR_DRAWER_IDS.inbox}
-          label="Inbox"
-          active={inboxActive}
-          parentHref={inboxHref}
-          mainNavHighlight
-          leading={
-            mailboxConnected && !locked && unread > 0 ? (
-              <InboxCountIcon
-                count={unread}
-                active={inboxActive}
-              />
-            ) : (
-              <MailboxNavIcon
-                icon={Tray}
-                active={inboxActive}
-                color={HUMANER_NAV_COLORS.info}
-              />
-            )
-          }
-          quickAction={
-            locked
-              ? undefined
-              : {
-                  label: 'New message',
-                  icon: <PlusIcon className="size-3.5" />,
-                  onClick: openNewMessage
-                }
-          }
-        >
-          {hasMultipleInboxes ? (
-            <InboxMailboxMenu
-              mailboxes={mailboxes}
-              activeMailboxId={activeMailboxId}
-              activeFolder={activeFolder}
-              locked={locked}
-            />
-          ) : null}
-          {inboxFolders.map((item) => {
-            const Icon = FOLDER_ICONS[item.id];
-            const active = activeFolder === item.id;
-            return (
-              <SidebarNavChild
-                key={item.id}
-                href={mailboxConnectionHref(item.href, activeMailboxId)}
-                label={item.label}
-                active={active}
-                disabled={locked}
-                leading={
-                  <MailboxNavIcon
-                    icon={Icon}
-                    active={active}
-                    color={item.color}
-                  />
-                }
-              />
-            );
-          })}
-        </SidebarNavTree>
-
-        <SidebarNavTree
-          drawerId={SIDEBAR_DRAWER_IDS.workspace}
-          label="Workspace"
-          active={workspaceActive}
-          parentHref={Routes.Tasks}
+        <SidebarNavLink
+          href={Routes.Overview}
+          label="Overview"
+          active={pathname === Routes.Overview}
           mainNavHighlight
           leading={
             <MailboxNavIcon
-              icon={SquaresFour}
-              active={workspaceActive}
-              color={HUMANER_NAV_COLORS.foreground}
+              icon={Globe}
+              active={pathname === Routes.Overview}
+              color={HUMANER_NAV_COLORS.info}
             />
           }
-        >
-          {WORKSPACE_SECTION_ITEMS.filter(
-            (item) => item.id !== 'team' || canManageTeam
-          ).map((item) => {
-            const Icon = SECTION_ICONS[item.id];
-            const active = activeSection === item.id;
-            return (
-              <SidebarNavChild
-                key={item.id}
-                href={item.href}
-                label={item.label}
-                active={active}
-                disabled={locked && item.id === 'assigned'}
-                leading={
-                  <MailboxNavIcon
-                    icon={Icon}
-                    active={active}
-                    color={item.color}
-                  />
-                }
-              />
-            );
-          })}
-        </SidebarNavTree>
-
+        />
         <SidebarNavLink
           href={Routes.Contacts}
           label="Contacts"
@@ -263,66 +178,230 @@ export function NavMailbox({
             <MailboxNavIcon
               icon={AddressBook}
               active={pathname.startsWith(Routes.Contacts)}
-              color={HUMANER_NAV_COLORS.info}
+              color={HUMANER_NAV_COLORS.success}
             />
           }
         />
-
-        {WORKSPACE_DRAWER_ITEMS.map((item) => {
-          const active = activeWorkspaceItem === item.id;
-          return (
-            <SidebarNavLink
-              key={item.id}
-              href={item.href}
-              label={item.label}
-              active={active}
-              mainNavHighlight
-              leading={
-                <MailboxNavIcon
-                  icon={Books}
-                  active={active}
-                  color={item.color}
-                />
-              }
+        <SidebarNavLink
+          href={Routes.Calendar}
+          label="Calendar"
+          active={pathname.startsWith(Routes.Calendar)}
+          mainNavHighlight
+          leading={
+            <MailboxNavIcon
+              icon={CalendarBlank}
+              active={pathname.startsWith(Routes.Calendar)}
+              color={HUMANER_NAV_COLORS.warning}
             />
-          );
-        })}
-        {MAILBOX_WORKSPACE_ITEMS.filter(
-          (item) => item.id !== 'providers' || canManageProviders
-        ).map((item) => {
-          const Icon = WORKSPACE_ICONS[item.id];
-          const active = activeWorkspace === item.id;
-          return (
-            <SidebarNavLink
-              key={item.id}
-              href={item.href}
-              label={item.label}
-              active={active}
-              disabled={locked && item.id === 'providers'}
-              mainNavHighlight
-              leading={
-                <MailboxNavIcon
-                  icon={Icon}
-                  active={active}
-                  color={item.color}
-                />
-              }
-            />
-          );
-        })}
-        {showMcp ? (
-          <SidebarNavLink
-            href={Routes.Developers}
-            label="MCP"
-            active={pathname.startsWith(Routes.Developers)}
+          }
+        />
+        <div className="space-y-0.5 pt-3">
+          <SidebarNavTree
+            drawerId={SIDEBAR_DRAWER_IDS.inbox}
+            label="Inbox"
+            active={inboxActive}
+            parentHref={inboxHref}
             mainNavHighlight
             leading={
-              <McpNavIcon active={pathname.startsWith(Routes.Developers)} />
+              mailboxConnected && !locked && unread > 0 ? (
+                <InboxCountIcon
+                  count={unread}
+                  active={inboxActive}
+                />
+              ) : (
+                <MailboxNavIcon
+                  icon={Tray}
+                  active={inboxActive}
+                  color={HUMANER_NAV_COLORS.info}
+                />
+              )
             }
-          />
-        ) : null}
-        <NavConnectors connectors={connectors} />
+            quickAction={
+              locked
+                ? undefined
+                : {
+                    label: 'New message',
+                    icon: <PlusIcon className="size-3.5" />,
+                    onClick: openNewMessage
+                  }
+            }
+          >
+            {hasMultipleInboxes ? (
+              <InboxMailboxMenu
+                mailboxes={mailboxes}
+                activeMailboxId={activeMailboxId}
+                activeFolder={activeFolder}
+                locked={locked}
+              />
+            ) : null}
+            {inboxFolders.map((item) => {
+              const Icon = FOLDER_ICONS[item.id];
+              const active = activeFolder === item.id;
+              return (
+                <SidebarNavChild
+                  key={item.id}
+                  href={mailboxConnectionHref(item.href, activeMailboxId)}
+                  label={item.label}
+                  active={active}
+                  disabled={locked}
+                  leading={
+                    <MailboxNavIcon
+                      icon={Icon}
+                      active={active}
+                      color={item.color}
+                    />
+                  }
+                />
+              );
+            })}
+          </SidebarNavTree>
+
+          <SidebarNavTree
+            drawerId={SIDEBAR_DRAWER_IDS.workspace}
+            label="Workspace"
+            active={workspaceActive}
+            parentHref={Routes.Tasks}
+            mainNavHighlight
+            leading={
+              iconRail ? (
+                <MailboxNavIcon
+                  icon={SquaresFour}
+                  active={workspaceActive}
+                  color={HUMANER_NAV_COLORS.foreground}
+                />
+              ) : null
+            }
+          >
+            {WORKSPACE_SECTION_ITEMS.filter(
+              (item) => item.id !== 'team' || canManageTeam
+            ).map((item) => {
+              const Icon = SECTION_ICONS[item.id];
+              const active = activeSection === item.id;
+              return (
+                <SidebarNavChild
+                  key={item.id}
+                  href={item.href}
+                  label={item.label}
+                  active={active}
+                  disabled={locked && item.id === 'assigned'}
+                  leading={
+                    <MailboxNavIcon
+                      icon={Icon}
+                      active={active}
+                      color={item.color}
+                    />
+                  }
+                />
+              );
+            })}
+          </SidebarNavTree>
+        </div>
+        {iconRail ? (
+          <div className="pt-3">
+            <UtilitiesLinks
+              pathname={pathname}
+              connectors={connectors}
+              showMcp={showMcp}
+              canManageProviders={canManageProviders}
+              providersActive={activeWorkspace === 'providers'}
+              providersLocked={locked}
+            />
+          </div>
+        ) : (
+          <div className="pt-3">
+            <button
+              type="button"
+              onClick={() => setUtilitiesOpen((open) => !open)}
+              className="flex w-full items-center gap-1 px-3 py-1 text-left font-fellix text-[13px] text-sidebar-foreground/45 transition-colors hover:text-sidebar-foreground"
+              aria-expanded={utilitiesOpen}
+            >
+              <span className="min-w-0 flex-1 truncate">Utilities</span>
+              <ChevronRightIcon
+                className={cn(
+                  'size-3 shrink-0 transition-transform duration-200',
+                  utilitiesOpen && 'rotate-90'
+                )}
+                strokeWidth={1.75}
+              />
+            </button>
+            {utilitiesOpen ? (
+              <UtilitiesLinks
+                pathname={pathname}
+                connectors={connectors}
+                showMcp={showMcp}
+                canManageProviders={canManageProviders}
+                providersActive={activeWorkspace === 'providers'}
+                providersLocked={locked}
+              />
+            ) : null}
+          </div>
+        )}
       </div>
     </SidebarGroup>
+  );
+}
+
+function UtilitiesLinks({
+  pathname,
+  connectors,
+  showMcp,
+  canManageProviders,
+  providersActive,
+  providersLocked
+}: {
+  pathname: string;
+  connectors: ConnectorNavItem[];
+  showMcp: boolean;
+  canManageProviders: boolean;
+  providersActive: boolean;
+  providersLocked: boolean;
+}): React.JSX.Element {
+  const resourcesActive =
+    pathname.startsWith(Routes.Resources) || pathname.startsWith('/resources');
+
+  return (
+    <div className="space-y-0.5">
+      <NavConnectors connectors={connectors} />
+      {showMcp ? (
+        <SidebarNavLink
+          href={Routes.Developers}
+          label="MCP"
+          active={pathname.startsWith(Routes.Developers)}
+          mainNavHighlight
+          leading={
+            <McpNavIcon active={pathname.startsWith(Routes.Developers)} />
+          }
+        />
+      ) : null}
+      <SidebarNavLink
+        href={Routes.Resources}
+        label="Resources"
+        active={resourcesActive}
+        mainNavHighlight
+        leading={
+          <MailboxNavIcon
+            icon={Books}
+            active={resourcesActive}
+            color={HUMANER_NAV_COLORS.info}
+          />
+        }
+      />
+      {canManageProviders ? (
+        <SidebarNavLink
+          href={Routes.InboxProviders}
+          label="Providers"
+          active={providersActive}
+          disabled={providersLocked}
+          mainNavHighlight
+          leading={
+            <MailboxNavIcon
+              icon={Plugs}
+              active={providersActive}
+              color={HUMANER_NAV_COLORS.foreground}
+            />
+          }
+        />
+      ) : null}
+    </div>
   );
 }

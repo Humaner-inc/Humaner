@@ -9,6 +9,7 @@ import { persistAuthCallbackUrl } from '@/lib/auth/persist-auth-callback-url';
  * Cookie writes are illegal during RSC render in Next.js 15+.
  */
 const DEFAULT_HOME_CALLBACKS = new Set([
+  '/overview',
   '/inbox',
   '/inbox/all',
   '/organization',

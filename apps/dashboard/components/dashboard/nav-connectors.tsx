@@ -100,7 +100,7 @@ export function NavConnectors({
   }
 
   return (
-    <div className="mt-1 space-y-0.5">
+    <div className="space-y-0.5">
       {connected.map((app) => {
         const href = inboxConnectorRoute(app.id);
         const active = pathname.startsWith(href);

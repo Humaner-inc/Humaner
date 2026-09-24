@@ -13,11 +13,15 @@ export type StatusGlyphKind =
 
 export function StatusGlyph({
   kind,
-  className
+  className,
+  color
 }: {
   kind: StatusGlyphKind;
   className?: string;
+  color?: string;
 }): React.JSX.Element {
+  const tone = color ? { color } : undefined;
+
   if (kind === 'unopened') {
     return (
       <span
@@ -25,6 +29,7 @@ export function StatusGlyph({
           'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
           className
         )}
+        style={tone}
         aria-hidden
       >
         <span className="size-2 rounded-full bg-current" />
@@ -39,6 +44,7 @@ export function StatusGlyph({
           'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
           className
         )}
+        style={tone}
         aria-hidden
       >
         <span className="size-2 rounded-full border-[1.5px] border-current" />
@@ -53,6 +59,7 @@ export function StatusGlyph({
           'inline-flex size-3.5 shrink-0 items-center justify-center text-warning',
           className
         )}
+        style={tone}
         aria-hidden
       >
         <span className="h-[2px] w-2.5 shrink-0 rounded-full bg-current" />
@@ -67,6 +74,7 @@ export function StatusGlyph({
           'inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground',
           className
         )}
+        style={tone}
         aria-hidden
       >
         <span className="size-2 rounded-full border border-dashed border-current" />
@@ -81,6 +89,7 @@ export function StatusGlyph({
           'inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground',
           className
         )}
+        style={tone}
         aria-hidden
       >
         <XIcon className="size-3.5" />
@@ -94,6 +103,7 @@ export function StatusGlyph({
         'inline-flex size-3.5 shrink-0 items-center justify-center text-success',
         className
       )}
+      style={tone}
       aria-hidden
     >
       <CheckIcon className="size-3.5" />
