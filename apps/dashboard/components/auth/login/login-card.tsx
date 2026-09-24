@@ -492,7 +492,13 @@ export function LoginCard({
           <Button
             type="button"
             variant="ghost"
-            className={cn(methodButtonClassName)}
+            className={cn(
+              methodButtonClassName,
+              'relative z-10 cursor-pointer',
+              isInverted
+                ? 'hover:!border-transparent hover:!bg-[#0A0D0D] hover:!text-[#fcf4ec]'
+                : 'hover:!border-transparent hover:!bg-[#fcf4ec] hover:!text-[#0A0D0D]'
+            )}
             onClick={() => setAuthPage('3')}
           >
             Create account
