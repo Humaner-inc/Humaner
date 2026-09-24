@@ -146,7 +146,7 @@ export function DashboardOverviewStrip({
               size="sm"
               variant="upgrade"
             >
-              <Link href={Routes.Billing}>Upgrade plan</Link>
+              <Link href={Routes.Billing}>Start 7-day trial</Link>
             </Button>
           ) : (
             <Link

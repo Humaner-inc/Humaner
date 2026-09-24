@@ -231,7 +231,7 @@ export function SidebarMessageUsage({
               className="mb-2 mt-2 h-8 w-full min-w-0"
             >
               <Link href={Routes.Billing}>
-                {isFreePlan ? 'Upgrade plan' : 'Add fuel'}
+                {isFreePlan ? 'Start 7-day trial' : 'Add fuel'}
               </Link>
             </Button>
           ) : null}

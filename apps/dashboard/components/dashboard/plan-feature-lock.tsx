@@ -1,12 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getPlanCapabilities } from '@humaner/shared/plans';
+import { getPlanCapabilities, INBOX_TRIAL_DAYS } from '@humaner/shared/plans';
 
-import { Button } from '@/components/ui/button';
-import { Routes } from '@/constants/routes';
+import { StartInboxTrialButton } from '@/components/billing/start-inbox-trial-button';
 import {
   LOCKED_FEATURE_COPY,
   resolveLockedWorkspaceFeature
@@ -42,12 +40,9 @@ export function PlanFeatureLock({
             {copy.title}
           </p>
           <p className="text-sm text-white/55">{copy.body}</p>
-          <Button
-            asChild
-            className="mt-1 rounded-full"
-          >
-            <Link href={Routes.Billing}>Upgrade to Inbox</Link>
-          </Button>
+          <StartInboxTrialButton className="mt-1 rounded-full">
+            Start {INBOX_TRIAL_DAYS}-day trial
+          </StartInboxTrialButton>
         </div>
       </div>
     </div>

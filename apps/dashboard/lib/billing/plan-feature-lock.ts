@@ -62,18 +62,18 @@ export const LOCKED_FEATURE_COPY: Record<
 > = {
   tasks: {
     title: 'Tasks are on Inbox',
-    body: 'Look around — upgrade to create and assign work.'
+    body: 'Start the 7-day Inbox trial to create and assign work.'
   },
   resources: {
     title: 'Resources are on Inbox',
-    body: 'Companion retrieves from these sources after you upgrade.'
+    body: 'Companion retrieves from these sources on the Inbox trial.'
   },
   mcp: {
     title: 'MCP is on Inbox',
-    body: 'Point your own agent at the mailbox after you upgrade.'
+    body: 'Point your own agent at the mailbox on the Inbox trial.'
   },
   companion: {
     title: 'Companion is on Inbox',
-    body: 'Upgrade to draft, assign, and remember from the mailbox.'
+    body: 'Start the trial to draft, assign, and remember from the mailbox.'
   }
 };
