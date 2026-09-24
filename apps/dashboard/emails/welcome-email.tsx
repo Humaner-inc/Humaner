@@ -1,3 +1,4 @@
+import { HUMANER_LEGAL_CONTACT_EMAIL } from '@humaner/shared/company';
 import {
   EmailInlineLink,
   EmailLayout,
@@ -27,6 +28,14 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => {
         customize Companion's behavior, or use your own agent with our MCP
         server.
       </EmailText>
+      <EmailText>
+        If you need anything just reach out to me at{' '}
+        <EmailInlineLink href={`mailto:${HUMANER_LEGAL_CONTACT_EMAIL}`}>
+          {HUMANER_LEGAL_CONTACT_EMAIL}
+        </EmailInlineLink>
+        .
+      </EmailText>
+      <EmailText>Until then, have a fast, and happy emailing.</EmailText>
       <EmailText>
         You were granted some credits to try everything Humaner has to offer,
         enjoy!

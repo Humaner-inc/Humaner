@@ -97,6 +97,10 @@ export function LoginCard({
     }
   });
   const canSubmit = !isLoading && !loginSuccess;
+  const emailFormHasFeedback =
+    Boolean(errorMessage) ||
+    Boolean(methods.formState.errors.email) ||
+    Boolean(methods.formState.errors.password);
 
   React.useEffect(() => {
     return () => {
@@ -477,7 +481,22 @@ export function LoginCard({
       </div>
 
       {showSignupForm ? null : (
-        <div className="space-y-3">
+        <div
+          className="space-y-3"
+          style={
+            showEmailForm && !emailFormHasFeedback
+              ? { marginTop: '-4rem' }
+              : undefined
+          }
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            className={cn(methodButtonClassName)}
+            onClick={() => setAuthPage('3')}
+          >
+            Create account
+          </Button>
           <p
             className={cn(
               authMutedTextClassName,
@@ -487,14 +506,6 @@ export function LoginCard({
           >
             Don&apos;t have an account?
           </p>
-          <Button
-            type="button"
-            variant="ghost"
-            className={cn(methodButtonClassName)}
-            onClick={() => setAuthPage('3')}
-          >
-            Create account
-          </Button>
         </div>
       )}
     </div>
