@@ -149,6 +149,12 @@ const CLOUD_RETIRED_LANDING = new Set<string>([
   '/organization/overview'
 ]);
 
+/** Rewrite destinations. Navigating here 308s back to the public URL. */
+const INTERNAL_APP_HOMES = new Set<string>([
+  '/dashboard/overview',
+  '/dashboard/home'
+]);
+
 export function getSafeAuthCallbackUrl(
   callbackUrl: string | undefined,
   fallback: string = getSignedInHomePath()
@@ -159,7 +165,10 @@ export function getSafeAuthCallbackUrl(
   }
 
   const pathname = relative.split('?')[0]?.split('#')[0] ?? '';
-  if (LEGACY_DEFAULT_LANDING.has(pathname)) {
+  if (
+    LEGACY_DEFAULT_LANDING.has(pathname) ||
+    INTERNAL_APP_HOMES.has(pathname)
+  ) {
     return fallback;
   }
 

@@ -1,5 +1,7 @@
 import { Routes } from '@/constants/routes';
+import { getSafeAuthCallbackUrl } from '@/lib/auth/callback-url';
 import { getPathname } from '@/lib/network/get-pathname';
+import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 
 /**
  * Send unauthenticated users to the app login page (not Auth.js /api/auth/signin).
@@ -7,9 +9,10 @@ import { getPathname } from '@/lib/network/get-pathname';
  * path we need for MFA / middleware.
  */
 export function getLoginRedirect(): string {
-  const callbackUrl = getPathname();
+  const pathname = getPathname();
+  const callbackUrl = pathname
+    ? getSafeAuthCallbackUrl(pathname)
+    : getSignedInHomePath();
 
-  return callbackUrl
-    ? `${Routes.Login}?${new URLSearchParams({ callbackUrl })}`
-    : Routes.Login;
+  return `${Routes.Login}?${new URLSearchParams({ callbackUrl })}`;
 }

@@ -157,6 +157,32 @@ function signedInHomePath(): string {
   return isOssDeploymentRequest() ? '/organization/overview' : '/overview';
 }
 
+/**
+ * Overview sends a failed session lookup to login with this callback. Bouncing
+ * that request straight back to /overview because a cookie exists is the freeze.
+ */
+function callbackTargetsSignedInHome(callbackUrl: string | null): boolean {
+  if (!callbackUrl) {
+    return false;
+  }
+
+  let path = callbackUrl;
+  if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+    try {
+      path = new URL(callbackUrl).pathname;
+    } catch {
+      return false;
+    }
+  }
+
+  const pathname = (path.split('?')[0] ?? path).replace(/\/$/, '') || '/';
+  return (
+    isDefaultSignedInHome(pathname) ||
+    pathname === '/dashboard/overview' ||
+    pathname === '/dashboard/home'
+  );
+}
+
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
@@ -166,6 +192,17 @@ export function proxy(request: NextRequest): NextResponse {
   if (isAuthEntryPath(pathname) && hasSessionCookie(request)) {
     const invitation = request.nextUrl.searchParams.get('invitation');
     if (pathname === '/auth/signup' && invitation) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set('x-pathname', pathname);
+      return NextResponse.next({
+        request: { headers: requestHeaders }
+      });
+    }
+    if (
+      callbackTargetsSignedInHome(
+        request.nextUrl.searchParams.get('callbackUrl')
+      )
+    ) {
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-pathname', pathname);
       return NextResponse.next({

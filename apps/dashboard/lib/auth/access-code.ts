@@ -28,12 +28,11 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /**
- * Gate is on unless AUTH_ACCESS_GATE=off.
- * Reusable seed: AUTH_ACCESS_CODE (11 chars) or default `earlyaccess`.
- * Generated one-time share codes are stored in the database.
+ * Early Access code wall is off. Login and signup are the normal forms.
+ * Reusable seed and one-time share codes stay in place for the follow step.
  */
 export function isAuthAccessGateEnabled(): boolean {
-  return process.env.AUTH_ACCESS_GATE !== 'off';
+  return false;
 }
 
 export function getExpectedAuthAccessCode(): string {
