@@ -55,7 +55,24 @@ export const EMAIL_OTP_CLASS =
 
 export const EMAIL_OTP_SECTION_CLASS = "my-[24px] text-left";
 
-export const EMAIL_FOOTER_TEXT_CLASS =
-  "m-0 text-left text-[14px] leading-[22px] text-[#71717a]";
+/** Sign-off above the footer rule — smaller and greyer than the mail body. */
+export const EMAIL_SIGNOFF_TEXT_CLASS =
+  "m-0 text-left text-[13px] leading-[20px] text-[#a1a1aa]";
 
-export const EMAIL_FOOTER_LINK_CLASS = "text-[#71717a] underline";
+export const EMAIL_SIGNOFF_LINK_CLASS = "text-[#a1a1aa] underline";
+
+/** Social line between the two footer rules — same size as the mail body. */
+export const EMAIL_SOCIAL_TEXT_CLASS =
+  "m-0 text-left text-[15px] leading-[24px] text-[#3f3f46]";
+
+export const EMAIL_SOCIAL_LINK_CLASS = "text-[#001afc] underline";
+
+/** Quiet meta block under the last rule. */
+export const EMAIL_META_TEXT_CLASS =
+  "m-0 text-left text-[13px] leading-[20px] text-[#a1a1aa]";
+
+export const EMAIL_META_LINK_CLASS = "text-[#a1a1aa] no-underline";
+
+export const EMAIL_FOOTER_TEXT_CLASS = EMAIL_SIGNOFF_TEXT_CLASS;
+
+export const EMAIL_FOOTER_LINK_CLASS = EMAIL_SIGNOFF_LINK_CLASS;

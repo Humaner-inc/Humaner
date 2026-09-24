@@ -23,19 +23,29 @@ import {
   EMAIL_BUTTON_SECTION_CLASS,
   EMAIL_COLORS,
   EMAIL_CONTAINER_CLASS,
-  EMAIL_FOOTER_LINK_CLASS,
-  EMAIL_FOOTER_TEXT_CLASS,
   EMAIL_HR_CLASS,
   EMAIL_LINK_CLASS,
   EMAIL_LOGO_SIZE,
+  EMAIL_META_LINK_CLASS,
+  EMAIL_META_TEXT_CLASS,
   EMAIL_MUTED_CLASS,
   EMAIL_OTP_CLASS,
   EMAIL_OTP_SECTION_CLASS,
+  EMAIL_SIGNOFF_LINK_CLASS,
+  EMAIL_SIGNOFF_TEXT_CLASS,
+  EMAIL_SOCIAL_LINK_CLASS,
+  EMAIL_SOCIAL_TEXT_CLASS,
   EMAIL_TEXT_CLASS,
   EMAIL_TITLE_CLASS,
   EMAIL_WORDMARK_CLASS,
 } from "./email-brand";
-import { getEmailLogoUrl, getUnsubscribeUrl } from "./urls";
+import {
+  getEmailLogoUrl,
+  getLandingUrl,
+  getLinkedInUrl,
+  getUnsubscribeUrl,
+  getXUrl,
+} from "./urls";
 
 const EMAIL_BRAND_NAME = "Humaner";
 
@@ -81,9 +91,12 @@ export function EmailLayout({
           >
             <EmailBrandRow src={logoSrc} />
             {children}
-            <EmailDivider />
             {footerNote ? <EmailMuted>{footerNote}</EmailMuted> : null}
-            <EmailFooter showUnsubscribe={showUnsubscribe} />
+            <EmailSignOff />
+            <EmailDivider />
+            <EmailUpdates />
+            <EmailDivider />
+            <EmailMetaFooter showUnsubscribe={showUnsubscribe} />
           </Container>
         </Body>
       </Tailwind>
@@ -130,36 +143,70 @@ function EmailBrandRow({ src }: { src: string }): React.JSX.Element {
   );
 }
 
-function EmailFooter({
+function EmailSignOff(): React.JSX.Element {
+  return (
+    <Text className={`${EMAIL_SIGNOFF_TEXT_CLASS} mt-[32px]`}>
+      If you need anything just reach out to us at{" "}
+      <Link href="mailto:hello@humaner.io" className={EMAIL_SIGNOFF_LINK_CLASS}>
+        hello@humaner.io
+      </Link>
+      .<br />
+      Until then, have a fast, and happy emailing.
+      <br />
+      <br />
+      Humaner Team.
+    </Text>
+  );
+}
+
+function EmailUpdates(): React.JSX.Element {
+  return (
+    <Text className={EMAIL_SOCIAL_TEXT_CLASS}>
+      Get Humaner&apos;s updates on{" "}
+      <Link href={getXUrl()} className={EMAIL_SOCIAL_LINK_CLASS}>
+        X
+      </Link>{" "}
+      or{" "}
+      <Link href={getLinkedInUrl()} className={EMAIL_SOCIAL_LINK_CLASS}>
+        LinkedIn
+      </Link>
+      .
+    </Text>
+  );
+}
+
+function EmailMetaFooter({
   showUnsubscribe,
 }: {
   showUnsubscribe: boolean;
 }): React.JSX.Element {
   return (
     <>
-      <Text className={EMAIL_FOOTER_TEXT_CLASS}>
-        If you need anything just reach out to us at{" "}
-        <Link
-          href="mailto:hello@humaner.io"
-          className={EMAIL_FOOTER_LINK_CLASS}
-        >
-          hello@humaner.io
+      <Text className={EMAIL_META_TEXT_CLASS}>
+        <Link href={getLandingUrl()} className={EMAIL_META_LINK_CLASS}>
+          humaner.io
         </Link>
-        .<br />
-        Until then, have a fast, and happy emailing.
+        {" / "}
+        <Link href={getXUrl()} className={EMAIL_META_LINK_CLASS}>
+          @usehumaner
+        </Link>
       </Text>
-      <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
-        Humaner Team.
+      <Text className={`${EMAIL_META_TEXT_CLASS} mt-[4px]`}>
+        You&apos;re receiving this because you signed up for Humaner.
       </Text>
       {showUnsubscribe ? (
-        <Text className={`${EMAIL_FOOTER_TEXT_CLASS} mt-[16px]`}>
-          If you no longer want to receive mails from us simply{" "}
-          <Link href={getUnsubscribeUrl()} className={EMAIL_FOOTER_LINK_CLASS}>
+        <Text className={`${EMAIL_META_TEXT_CLASS} mt-[4px]`}>
+          You can{" "}
+          <Link href={getUnsubscribeUrl()} className={EMAIL_META_LINK_CLASS}>
             unsubscribe
-          </Link>
-          .
+          </Link>{" "}
+          at any time.
         </Text>
-      ) : null}
+      ) : (
+        <Text className={`${EMAIL_META_TEXT_CLASS} mt-[4px]`}>
+          You can unsubscribe at any time.
+        </Text>
+      )}
     </>
   );
 }

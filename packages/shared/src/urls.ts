@@ -166,6 +166,10 @@ export function getXUrl(): string {
   return "https://x.com/usehumaner";
 }
 
+export function getLinkedInUrl(): string {
+  return "https://www.linkedin.com/company/usehumaner/";
+}
+
 export function getXFollowUrl(): string {
   return "https://x.com/intent/follow?screen_name=usehumaner";
 }
