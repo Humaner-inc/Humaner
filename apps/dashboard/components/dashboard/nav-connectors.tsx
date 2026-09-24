@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Plug } from '@humaner/shared/icons';
 
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
-import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
+import { SidebarNavChild } from '@/components/dashboard/sidebar-nav-tree';
 import { inboxConnectorRoute } from '@/constants/routes';
 import { CONNECT_APPS } from '@/lib/connect-apps';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
@@ -107,12 +107,11 @@ export function NavConnectors({
         const activity = activityById.get(app.id);
         const count = activity ? activity.inbound + activity.outbound : 0;
         return (
-          <SidebarNavLink
+          <SidebarNavChild
             key={app.id}
             href={href}
             label={app.name}
             active={active}
-            mainNavHighlight
             badge={
               <ConnectorActivityBadge
                 processing={activity?.processing ?? false}

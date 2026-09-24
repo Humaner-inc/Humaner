@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ChevronRightIcon, PlusIcon } from '@humaner/shared/icons';
+import { PlusIcon } from '@humaner/shared/icons';
 import { AddressBook } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { Archive } from '@phosphor-icons/react/dist/ssr/Archive';
 import { Books } from '@phosphor-icons/react/dist/ssr/Books';
@@ -31,7 +31,9 @@ import {
 import { SIDEBAR_DRAWER_IDS } from '@/components/dashboard/sidebar-nav-accordion';
 import {
   SidebarNavChild,
+  SidebarNavChildren,
   SidebarNavLink,
+  SidebarNavParent,
   SidebarNavTree
 } from '@/components/dashboard/sidebar-nav-tree';
 import { SidebarGroup, useSidebar } from '@/components/ui/sidebar';
@@ -195,7 +197,7 @@ export function NavMailbox({
             />
           }
         />
-        <div className="space-y-0.5 pt-3">
+        <div className="pt-3">
           <SidebarNavTree
             drawerId={SIDEBAR_DRAWER_IDS.inbox}
             label="Inbox"
@@ -255,7 +257,8 @@ export function NavMailbox({
               );
             })}
           </SidebarNavTree>
-
+        </div>
+        <div className="pt-3">
           <SidebarNavTree
             drawerId={SIDEBAR_DRAWER_IDS.workspace}
             label="Workspace"
@@ -309,22 +312,14 @@ export function NavMailbox({
           </div>
         ) : (
           <div className="pt-3">
-            <button
-              type="button"
-              onClick={() => setUtilitiesOpen((open) => !open)}
-              className="flex w-full items-center gap-1 px-3 py-1 text-left font-fellix text-[13px] text-sidebar-foreground/45 transition-colors hover:text-sidebar-foreground"
-              aria-expanded={utilitiesOpen}
-            >
-              <span className="min-w-0 flex-1 truncate">Utilities</span>
-              <ChevronRightIcon
-                className={cn(
-                  'size-3 shrink-0 transition-transform duration-200',
-                  utilitiesOpen && 'rotate-90'
-                )}
-                strokeWidth={1.75}
-              />
-            </button>
-            {utilitiesOpen ? (
+            <SidebarNavParent
+              label="Utilities"
+              active={utilitiesActive}
+              expanded={utilitiesOpen}
+              onToggle={() => setUtilitiesOpen((open) => !open)}
+              mainNavHighlight
+            />
+            <SidebarNavChildren expanded={utilitiesOpen}>
               <UtilitiesLinks
                 pathname={pathname}
                 connectors={connectors}
@@ -333,7 +328,7 @@ export function NavMailbox({
                 providersActive={activeWorkspace === 'providers'}
                 providersLocked={locked}
               />
-            ) : null}
+            </SidebarNavChildren>
           </div>
         )}
       </div>
@@ -363,21 +358,19 @@ function UtilitiesLinks({
     <div className="space-y-0.5">
       <NavConnectors connectors={connectors} />
       {showMcp ? (
-        <SidebarNavLink
+        <SidebarNavChild
           href={Routes.Developers}
           label="MCP"
           active={pathname.startsWith(Routes.Developers)}
-          mainNavHighlight
           leading={
             <McpNavIcon active={pathname.startsWith(Routes.Developers)} />
           }
         />
       ) : null}
-      <SidebarNavLink
+      <SidebarNavChild
         href={Routes.Resources}
         label="Resources"
         active={resourcesActive}
-        mainNavHighlight
         leading={
           <MailboxNavIcon
             icon={Books}
@@ -387,12 +380,11 @@ function UtilitiesLinks({
         }
       />
       {canManageProviders ? (
-        <SidebarNavLink
+        <SidebarNavChild
           href={Routes.InboxProviders}
           label="Providers"
           active={providersActive}
           disabled={providersLocked}
-          mainNavHighlight
           leading={
             <MailboxNavIcon
               icon={Plugs}

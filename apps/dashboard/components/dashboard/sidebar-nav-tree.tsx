@@ -31,7 +31,7 @@ export function sidebarNavChildClassName(
   disabled?: boolean
 ): string {
   return cn(
-    'mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2 px-2.5 py-1.5 text-left font-fellix text-sm font-light transition-colors',
+    'group/nav mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2 px-2.5 py-1.5 text-left font-fellix text-sm font-light transition-colors',
     dashboardRadiusClassName,
     active
       ? 'text-sidebar-foreground'
