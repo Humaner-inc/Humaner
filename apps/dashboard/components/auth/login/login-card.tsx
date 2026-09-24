@@ -170,8 +170,10 @@ export function LoginCard({
     }
     setIsLoading(true);
     const result = await continueWithGoogle();
-    if (result?.data?.redirectTo) {
-      assignTrustedNavigation(result.data.redirectTo);
+    if (
+      result?.data?.redirectTo &&
+      assignTrustedNavigation(result.data.redirectTo)
+    ) {
       return;
     }
     if (result?.serverError || result?.validationErrors) {
@@ -185,8 +187,10 @@ export function LoginCard({
     }
     setIsLoading(true);
     const result = await continueWithGitHub();
-    if (result?.data?.redirectTo) {
-      assignTrustedNavigation(result.data.redirectTo);
+    if (
+      result?.data?.redirectTo &&
+      assignTrustedNavigation(result.data.redirectTo)
+    ) {
       return;
     }
     if (result?.serverError || result?.validationErrors) {

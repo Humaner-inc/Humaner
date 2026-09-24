@@ -157,51 +157,23 @@ function signedInHomePath(): string {
   return isOssDeploymentRequest() ? '/organization/overview' : '/overview';
 }
 
-/**
- * Overview sends a failed session lookup to login with this callback. Bouncing
- * that request straight back to /overview because a cookie exists is the freeze.
- */
-function callbackTargetsSignedInHome(callbackUrl: string | null): boolean {
-  if (!callbackUrl) {
-    return false;
-  }
-
-  let path = callbackUrl;
-  if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
-    try {
-      path = new URL(callbackUrl).pathname;
-    } catch {
-      return false;
-    }
-  }
-
-  const pathname = (path.split('?')[0] ?? path).replace(/\/$/, '') || '/';
-  return (
-    isDefaultSignedInHome(pathname) ||
-    pathname === '/dashboard/overview' ||
-    pathname === '/dashboard/home'
-  );
-}
-
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
-  // Signed-in visits to the app origin (and login/signup) must never paint
-  // the login card first. Cookie presence is enough — the dashboard shell
-  // still validates the session and sends unfinished onboarding home.
-  if (isAuthEntryPath(pathname) && hasSessionCookie(request)) {
+  // A session cookie on / or a bare login URL goes home. Do not apply that
+  // to server actions, RSC flights, invite signup, or a login URL that already
+  // carries callbackUrl — those are in-app and must not bounce back to /overview.
+  if (
+    isAuthEntryPath(pathname) &&
+    hasSessionCookie(request) &&
+    !request.headers.has('next-action') &&
+    !isRscNavigationRequest(request)
+  ) {
     const invitation = request.nextUrl.searchParams.get('invitation');
-    if (pathname === '/auth/signup' && invitation) {
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.set('x-pathname', pathname);
-      return NextResponse.next({
-        request: { headers: requestHeaders }
-      });
-    }
+    const callbackUrl = request.nextUrl.searchParams.get('callbackUrl');
     if (
-      callbackTargetsSignedInHome(
-        request.nextUrl.searchParams.get('callbackUrl')
-      )
+      (pathname === '/auth/signup' && invitation) ||
+      (pathname !== '/' && callbackUrl)
     ) {
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set('x-pathname', pathname);
