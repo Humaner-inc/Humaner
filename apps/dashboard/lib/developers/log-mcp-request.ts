@@ -12,6 +12,7 @@ const MAX_ERROR_LENGTH = 500;
 export type McpLogActor = {
   organizationId: string;
   apiKeyId: string | null;
+  oauthGrantId?: string | null;
 };
 
 export type McpRequestLogInput = {
@@ -21,6 +22,7 @@ export type McpRequestLogInput = {
   status: number;
   durationMs: number;
   apiKeyId?: string | null;
+  oauthGrantId?: string | null;
   errorMessage?: string;
 };
 
@@ -56,6 +58,7 @@ export function logMcpRequest(input: McpRequestLogInput): void {
           status: input.status,
           durationMs: input.durationMs,
           apiKeyId: input.apiKeyId ?? undefined,
+          mcpOAuthGrantId: input.oauthGrantId ?? undefined,
           errorMessage: input.errorMessage?.slice(0, MAX_ERROR_LENGTH)
         }
       });

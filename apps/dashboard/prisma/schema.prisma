@@ -836,6 +836,7 @@ model McpRequestLog {
   status         Int
   durationMs     Int
   apiKeyId       String?      @db.Uuid
+  mcpOAuthGrantId String?     @db.Uuid
   errorMessage   String?      @db.VarChar(500)
   createdAt      DateTime     @default(now())
 

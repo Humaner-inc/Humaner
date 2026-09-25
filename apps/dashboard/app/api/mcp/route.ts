@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { readMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { readCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
+import { apiKeyHasScope } from '@/lib/auth/api-key-scopes';
 import {
   logMcpRequest,
   type McpLogActor
@@ -21,7 +22,11 @@ import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import {
   authorizeMcpClient,
   authorizeMcpIntelligence,
-  authorizeWorkspaceRequest
+  authorizeWorkspaceRequest,
+  scopeForWorkspaceTool,
+  type IntelligenceMcpAuthSuccess,
+  type WorkspaceAuthFailure,
+  type WorkspaceAuthSuccess
 } from '@/lib/workspace-api/authorize';
 import { WORKSPACE_TOOLS } from '@/lib/workspace-api/catalog';
 import { executeWorkspaceTool } from '@/lib/workspace-api/execute-tools';
@@ -101,18 +106,20 @@ function requireHttps(request: NextRequest): Response | null {
 }
 
 function actorFromAuth(
-  auth: Awaited<ReturnType<typeof authorizeMcpClient>>
+  auth: WorkspaceAuthSuccess | IntelligenceMcpAuthSuccess | WorkspaceAuthFailure
 ): McpLogActor | null {
   if (auth.ok) {
     return {
       organizationId: auth.context.organizationId,
-      apiKeyId: auth.context.apiKeyId
+      apiKeyId: auth.context.apiKeyId,
+      oauthGrantId: auth.oauthGrantId
     };
   }
   if (auth.organizationId) {
     return {
       organizationId: auth.organizationId,
-      apiKeyId: auth.apiKeyId ?? null
+      apiKeyId: auth.apiKeyId ?? null,
+      oauthGrantId: auth.oauthGrantId ?? null
     };
   }
   return null;
@@ -134,6 +141,7 @@ function recordMcpLog(
   logMcpRequest({
     organizationId: actor.organizationId,
     apiKeyId: actor.apiKeyId,
+    oauthGrantId: actor.oauthGrantId,
     method: fields.method,
     tool: fields.tool,
     status: fields.status,
@@ -283,21 +291,25 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   if (method === 'tools/list') {
-    // Hybrid RAG is only advertised when the workspace handed the intelligence
-    // layer to MCP (Companion is hidden in that mode). Connector tools follow
-    // the same rule as Companion: an app that is not activated is not listed,
-    // so a client never sees a tool whose every call would be refused.
+    // A client never sees a tool whose every call would be refused: the
+    // credential's scopes, activated connectors, and the workspace's
+    // intelligence mode (Companion is hidden when MCP owns it) all gate the list.
+    const { scopes } = handshake;
     const [intelligenceOn, { integrations }] = await Promise.all([
       readMcpIntelligenceEnabled(handshake.context.organizationId),
       readCompanionWorkspaceRights(handshake.context.organizationId)
     ]);
     const availableWorkspaceTools = WORKSPACE_TOOLS.filter((tool) => {
+      if (!apiKeyHasScope(scopes, scopeForWorkspaceTool(tool.name))) {
+        return false;
+      }
       const integration = integrationForConnectorTool(tool.name);
       return !integration || integrations.includes(integration);
     });
-    const listedTools = intelligenceOn
-      ? [...availableWorkspaceTools, ...MCP_INTELLIGENCE_TOOLS]
-      : [...availableWorkspaceTools];
+    const listedTools =
+      intelligenceOn && apiKeyHasScope(scopes, 'intelligence')
+        ? [...availableWorkspaceTools, ...MCP_INTELLIGENCE_TOOLS]
+        : [...availableWorkspaceTools];
     recordMcpLog(startedAt, actorFromAuth(handshake), {
       method,
       status: 200
@@ -326,17 +338,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     // Hybrid RAG is read-only and org-scoped — separate scope from mailbox.
     if (resolveMcpIntelligenceToolName(name)) {
       const intel = await authorizeMcpIntelligence(request);
-      const intelActor: McpLogActor | null = intel.ok
-        ? {
-            organizationId: intel.context.organizationId,
-            apiKeyId: intel.context.apiKeyId
-          }
-        : intel.organizationId
-          ? {
-              organizationId: intel.organizationId,
-              apiKeyId: intel.apiKeyId ?? null
-            }
-          : null;
+      const intelActor = actorFromAuth(intel);
 
       if (!intel.ok) {
         recordMcpLog(startedAt, intelActor, {
@@ -409,17 +411,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     const auth = await authorizeWorkspaceRequest({ request, tool: name });
-    const actor: McpLogActor | null = auth.ok
-      ? {
-          organizationId: auth.context.organizationId,
-          apiKeyId: auth.context.apiKeyId
-        }
-      : auth.organizationId
-        ? {
-            organizationId: auth.organizationId,
-            apiKeyId: auth.apiKeyId ?? null
-          }
-        : null;
+    const actor = actorFromAuth(auth);
 
     if (!auth.ok) {
       recordMcpLog(startedAt, actor, {

@@ -22,7 +22,7 @@ export async function getMcpRequestLogs(): Promise<McpRequestLogDto[]> {
   }
 
   const organizationId = session.user.organizationId;
-  const [recent, apiKeys] = await Promise.all([
+  const [recent, apiKeys, grants] = await Promise.all([
     prisma.mcpRequestLog.findMany({
       where: { organizationId },
       select: {
@@ -32,6 +32,7 @@ export async function getMcpRequestLogs(): Promise<McpRequestLogDto[]> {
         status: true,
         durationMs: true,
         apiKeyId: true,
+        mcpOAuthGrantId: true,
         errorMessage: true,
         createdAt: true
       },
@@ -41,11 +42,18 @@ export async function getMcpRequestLogs(): Promise<McpRequestLogDto[]> {
     prisma.apiKey.findMany({
       where: { organizationId },
       select: { id: true, description: true }
+    }),
+    prisma.mcpOAuthGrant.findMany({
+      where: { organizationId },
+      select: { id: true, client: { select: { clientName: true } } }
     })
   ]);
 
   const descriptionById = new Map(
     apiKeys.map((key) => [key.id, key.description])
+  );
+  const clientNameByGrantId = new Map(
+    grants.map((grant) => [grant.id, grant.client.clientName])
   );
 
   return recent.map((row) => ({
@@ -56,6 +64,9 @@ export async function getMcpRequestLogs(): Promise<McpRequestLogDto[]> {
     durationMs: row.durationMs,
     apiKeyDescription: row.apiKeyId
       ? (descriptionById.get(row.apiKeyId) ?? undefined)
+      : undefined,
+    clientName: row.mcpOAuthGrantId
+      ? (clientNameByGrantId.get(row.mcpOAuthGrantId) ?? undefined)
       : undefined,
     errorMessage: row.errorMessage ?? undefined,
     createdAt: row.createdAt

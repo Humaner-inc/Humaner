@@ -59,9 +59,9 @@ export function McpRequestLogs({
               {row.method}
             </span>
           ) : null}
-          {row.apiKeyDescription ? (
+          {row.clientName || row.apiKeyDescription ? (
             <span className="truncate text-muted-foreground">
-              {row.apiKeyDescription}
+              {row.clientName ?? row.apiKeyDescription}
             </span>
           ) : null}
           <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">

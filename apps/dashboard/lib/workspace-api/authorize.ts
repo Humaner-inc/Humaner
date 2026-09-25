@@ -37,12 +37,15 @@ export type IntelligenceMcpAuthSuccess = {
   ok: true;
   allowOrigin: string | null;
   context: IntelligenceMcpContext;
+  oauthGrantId: string | null;
 };
 
 export type WorkspaceAuthSuccess = {
   ok: true;
   allowOrigin: string | null;
   context: WorkspaceToolContext;
+  scopes: readonly string[];
+  oauthGrantId: string | null;
 };
 
 export type WorkspaceAuthFailure = {
@@ -52,11 +55,13 @@ export type WorkspaceAuthFailure = {
   allowOrigin: string | null;
   organizationId?: string;
   apiKeyId?: string;
+  oauthGrantId?: string;
 };
 
 type ResolvedMcpCaller = {
   organizationId: string;
   apiKeyId: string | null;
+  oauthGrantId: string | null;
   actorUserId: string;
   scopes: readonly string[];
   timeZone?: string;
@@ -64,7 +69,7 @@ type ResolvedMcpCaller = {
 };
 
 /** Tasks are inbox work items, so they ride the mailbox scope. */
-function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
+export function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
   return tool === 'list_calendar_events' || tool === 'create_calendar_event'
     ? 'calendar'
     : 'mailbox';
@@ -191,6 +196,7 @@ async function resolveMcpCaller(
       caller: {
         organizationId: organization.id,
         apiKeyId: verified.id,
+        oauthGrantId: null,
         actorUserId: actor.actorUserId,
         scopes: verified.scopes,
         industry: organization.industry,
@@ -252,6 +258,7 @@ async function resolveMcpCaller(
     caller: {
       organizationId: organization.id,
       apiKeyId: null,
+      oauthGrantId: grant.grantId,
       actorUserId: actor.id,
       scopes: grant.scopes,
       industry: organization.industry,
@@ -279,7 +286,8 @@ export async function authorizeMcpClient(
         'This credential does not have Mailbox, Calendar, or Intelligence access.',
       allowOrigin: resolved.allowOrigin,
       organizationId: resolved.caller.organizationId,
-      apiKeyId: resolved.caller.apiKeyId ?? undefined
+      apiKeyId: resolved.caller.apiKeyId ?? undefined,
+      oauthGrantId: resolved.caller.oauthGrantId ?? undefined
     };
   }
   return {
@@ -293,7 +301,9 @@ export async function authorizeMcpClient(
       ...(resolved.caller.timeZone
         ? { timeZone: resolved.caller.timeZone }
         : {})
-    }
+    },
+    scopes: resolved.caller.scopes,
+    oauthGrantId: resolved.caller.oauthGrantId
   };
 }
 
@@ -321,7 +331,8 @@ export async function authorizeMcpIntelligence(
       message: 'This credential does not have Intelligence access.',
       allowOrigin: resolved.allowOrigin,
       organizationId: resolved.caller.organizationId,
-      apiKeyId: resolved.caller.apiKeyId ?? undefined
+      apiKeyId: resolved.caller.apiKeyId ?? undefined,
+      oauthGrantId: resolved.caller.oauthGrantId ?? undefined
     };
   }
   return {
@@ -331,7 +342,8 @@ export async function authorizeMcpIntelligence(
       organizationId: resolved.caller.organizationId,
       apiKeyId: resolved.caller.apiKeyId,
       industry: resolved.caller.industry
-    }
+    },
+    oauthGrantId: resolved.caller.oauthGrantId
   };
 }
 
@@ -372,7 +384,8 @@ export async function authorizeWorkspaceRequest(input: {
           : 'This credential does not have Mailbox access.',
       allowOrigin: resolved.allowOrigin,
       organizationId: resolved.caller.organizationId,
-      apiKeyId: resolved.caller.apiKeyId ?? undefined
+      apiKeyId: resolved.caller.apiKeyId ?? undefined,
+      oauthGrantId: resolved.caller.oauthGrantId ?? undefined
     };
   }
 
@@ -387,6 +400,8 @@ export async function authorizeWorkspaceRequest(input: {
       ...(resolved.caller.timeZone
         ? { timeZone: resolved.caller.timeZone }
         : {})
-    }
+    },
+    scopes: resolved.caller.scopes,
+    oauthGrantId: resolved.caller.oauthGrantId
   };
 }

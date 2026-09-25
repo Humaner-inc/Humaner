@@ -5,6 +5,7 @@ export type McpRequestLogDto = {
   status: number;
   durationMs: number;
   apiKeyDescription?: string;
+  clientName?: string;
   errorMessage?: string;
   createdAt: Date;
 };
