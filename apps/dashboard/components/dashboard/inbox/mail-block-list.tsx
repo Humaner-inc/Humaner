@@ -66,10 +66,12 @@ export function MailBlockList({
   );
 
   return (
-    <section className="overflow-hidden rounded-md border">
-      <div className="border-b bg-muted px-4 py-2.5">
-        <p className="font-mono text-sm font-medium">Blocked senders</p>
-        <p className="text-xs text-muted-foreground">
+    <section className="overflow-hidden rounded-md border border-destructive/35">
+      <div className="border-b border-destructive/25 bg-destructive/10 px-4 py-2.5 dark:bg-red-500/10">
+        <p className="font-mono text-sm font-medium text-destructive dark:text-red-400">
+          Blocked senders
+        </p>
+        <p className="text-xs text-destructive/70 dark:text-red-400/70">
           New mail from these addresses goes to Spam.
         </p>
       </div>
