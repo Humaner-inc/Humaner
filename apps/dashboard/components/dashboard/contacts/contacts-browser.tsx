@@ -333,27 +333,27 @@ export function ContactsBrowser({
         )}
       </header>
 
-      <section
-        ref={cardRef}
-        className={cn(
-          dashboardSurfaceClassName,
-          't-reveal-swap overflow-hidden'
-        )}
-      >
-        {selected ? (
-          <>
-            <div className="flex items-center gap-3 border-b border-border/60 px-5 py-3 sm:px-6">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="-ml-2"
-                onClick={() => showContact(null)}
-              >
-                <ArrowLeftIcon className="mr-1.5 size-4" />
-                Contacts
-              </Button>
-            </div>
+      {selected ? (
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => showContact(null)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-foreground/80"
+          >
+            <ArrowLeftIcon
+              className="size-4 shrink-0"
+              aria-hidden
+            />
+            Back
+          </button>
+
+          <section
+            ref={cardRef}
+            className={cn(
+              dashboardSurfaceClassName,
+              't-reveal-swap overflow-hidden'
+            )}
+          >
             <div className="flex items-start gap-4 px-5 py-4 sm:px-6">
               <ContactAvatar
                 contact={selected}
@@ -472,91 +472,97 @@ export function ContactsBrowser({
                 </ul>
               )}
             </div>
-          </>
-        ) : (
-          <>
-            <div
-              ref={addShellRef}
-              className="t-reveal-height"
-              data-open={adding ? 'true' : 'false'}
-              inert={adding ? undefined : true}
+          </section>
+        </div>
+      ) : (
+        <section
+          ref={cardRef}
+          className={cn(
+            dashboardSurfaceClassName,
+            't-reveal-swap overflow-hidden'
+          )}
+        >
+          <div
+            ref={addShellRef}
+            className="t-reveal-height"
+            data-open={adding ? 'true' : 'false'}
+            inert={adding ? undefined : true}
+          >
+            <form
+              className="space-y-2 border-b border-border/60 px-5 py-4 sm:px-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                runAdd({
+                  email: draftEmail,
+                  name: draftName || undefined
+                });
+              }}
             >
-              <form
-                className="space-y-2 border-b border-border/60 px-5 py-4 sm:px-6"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  runAdd({
-                    email: draftEmail,
-                    name: draftName || undefined
-                  });
-                }}
-              >
-                <Input
-                  value={draftName}
-                  onChange={(event) => setDraftName(event.target.value)}
-                  placeholder="Name"
-                  aria-label="Contact name"
-                />
-                <Input
-                  value={draftEmail}
-                  onChange={(event) => setDraftEmail(event.target.value)}
-                  placeholder="email@company.com"
-                  type="email"
-                  required
-                  aria-label="Contact email"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={savingNew || draftEmail.trim().length === 0}
-                  >
-                    Save
-                  </Button>
-                </div>
-              </form>
-            </div>
+              <Input
+                value={draftName}
+                onChange={(event) => setDraftName(event.target.value)}
+                placeholder="Name"
+                aria-label="Contact name"
+              />
+              <Input
+                value={draftEmail}
+                onChange={(event) => setDraftEmail(event.target.value)}
+                placeholder="email@company.com"
+                type="email"
+                required
+                aria-label="Contact email"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={savingNew || draftEmail.trim().length === 0}
+                >
+                  Save
+                </Button>
+              </div>
+            </form>
+          </div>
 
-            {visible.length === 0 ? (
-              <p className="px-5 py-8 text-sm text-muted-foreground sm:px-6">
-                {contacts.length === 0
-                  ? 'No contacts yet. Add a sender from the inbox, or save someone here.'
-                  : 'No contacts match that search.'}
-              </p>
-            ) : (
-              <ul className="divide-y divide-border/60">
-                {visible.map((contact) => {
-                  const contactCompany = companyFromEmail(contact.email);
-                  return (
-                    <li key={contact.id}>
-                      <button
-                        type="button"
-                        onClick={() => showContact(contact.id)}
-                        className="flex w-full items-start gap-4 px-5 py-3 text-left hover:bg-muted/40 sm:px-6"
-                      >
-                        <ContactAvatar contact={contact} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium">
-                            {contact.name}
-                          </span>
-                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                            {contact.email}
-                          </span>
+          {visible.length === 0 ? (
+            <p className="px-5 py-8 text-sm text-muted-foreground sm:px-6">
+              {contacts.length === 0
+                ? 'No contacts yet. Add a sender from the inbox, or save someone here.'
+                : 'No contacts match that search.'}
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/60">
+              {visible.map((contact) => {
+                const contactCompany = companyFromEmail(contact.email);
+                return (
+                  <li key={contact.id}>
+                    <button
+                      type="button"
+                      onClick={() => showContact(contact.id)}
+                      className="flex w-full items-start gap-4 px-5 py-3 text-left hover:bg-muted/40 sm:px-6"
+                    >
+                      <ContactAvatar contact={contact} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">
+                          {contact.name}
                         </span>
-                        {contactCompany ? (
-                          <span className="shrink-0 text-xs text-muted-foreground">
-                            {contactCompany}
-                          </span>
-                        ) : null}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </>
-        )}
-      </section>
+                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                          {contact.email}
+                        </span>
+                      </span>
+                      {contactCompany ? (
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {contactCompany}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }

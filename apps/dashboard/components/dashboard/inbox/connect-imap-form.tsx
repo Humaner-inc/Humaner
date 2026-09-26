@@ -34,6 +34,10 @@ import { AddOnGrantedDialog } from '@/components/billing/add-on-granted-dialog';
 import { FeatureIntroEmpty } from '@/components/dashboard/desk/feature-intro-empty';
 import { AppPasswordTitleHint } from '@/components/dashboard/inbox/app-password-title-hint';
 import { DetectedImapProviderBanner } from '@/components/dashboard/inbox/detected-imap-provider-banner';
+import {
+  InboxSettingsGroupCard,
+  InboxSettingsGroupRow
+} from '@/components/dashboard/inbox/inbox-settings-group-card';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
@@ -128,6 +132,47 @@ function ConnectionStatusChip({
     <span className="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-400">
       {label}
     </span>
+  );
+}
+
+function ConnectedMailboxesCard({
+  providerName,
+  logoDomain,
+  connections,
+  renderActions
+}: {
+  providerName: string;
+  logoDomain: string;
+  connections: ConnectedMailboxItem[];
+  renderActions: (connection: ConnectedMailboxItem) => React.ReactNode;
+}): React.JSX.Element | null {
+  if (connections.length === 0) {
+    return null;
+  }
+
+  return (
+    <InboxSettingsGroupCard
+      className="mb-5"
+      title={providerName}
+      subtitle={`${connections.length} mailbox${
+        connections.length === 1 ? '' : 'es'
+      } connected`}
+      logoDomain={logoDomain}
+    >
+      {connections.map((connection) => (
+        <InboxSettingsGroupRow key={connection.id}>
+          <div className="group flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0 truncate font-mono text-sm">
+              {connection.email}
+            </span>
+            <div className="flex shrink-0 items-center gap-1">
+              <ConnectionStatusChip status={connection.status} />
+              {renderActions(connection)}
+            </div>
+          </div>
+        </InboxSettingsGroupRow>
+      ))}
+    </InboxSettingsGroupCard>
   );
 }
 
@@ -703,75 +748,60 @@ export function ConnectImapForm({
         ) : null}
       </div>
       <div className="flex-1 p-5 sm:p-6">
-        {providerConnections.length > 0 ? (
-          <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              Active on {selectedProvider.name}
-            </p>
-            <ul className="space-y-1">
-              {providerConnections.map((connection) => (
-                <li
-                  key={connection.id}
-                  className="flex items-center justify-between gap-2"
-                >
-                  <span className="min-w-0 truncate font-mono text-xs">
-                    {connection.email}
-                  </span>
-                  <ConnectionStatusChip status={connection.status} />
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 rounded-lg px-2 font-mono text-[10px]"
-                      asChild
-                    >
-                      <Link href={Routes.InboxSettings}>Aliases</Link>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          disabled={isRemoving}
-                        >
-                          <MoreHorizontalIcon className="size-3.5" />
-                          <span className="sr-only">Mailbox actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={() =>
-                            beginGmailConnect(selectedProvider.id, {
-                              reconnect: true
-                            })
-                          }
-                        >
-                          Reconnect
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={Routes.InboxSettings}>
-                            Manage aliases
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onSelect={() => setPendingRemove(connection)}
-                        >
-                          <Trash2Icon className="mr-2 size-4" />
-                          Remove mailbox
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+        <ConnectedMailboxesCard
+          providerName={selectedProvider.name}
+          logoDomain={selectedProvider.logoDomain}
+          connections={providerConnections}
+          renderActions={(connection) => (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 rounded-lg px-2 font-mono text-[10px]"
+                asChild
+              >
+                <Link href={Routes.InboxSettings}>Aliases</Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    disabled={isRemoving}
+                  >
+                    <MoreHorizontalIcon className="size-3.5" />
+                    <span className="sr-only">Mailbox actions</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      beginGmailConnect(selectedProvider.id, {
+                        reconnect: true
+                      })
+                    }
+                  >
+                    Reconnect
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={Routes.InboxSettings}>Manage aliases</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={() => setPendingRemove(connection)}
+                  >
+                    <Trash2Icon className="mr-2 size-4" />
+                    Remove mailbox
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        />
         <p className="mb-5 text-sm text-muted-foreground">
           Google opens in this window. Humaner stores encrypted tokens and
           imports verified send-as aliases.
@@ -893,71 +923,56 @@ export function ConnectImapForm({
         </div>
 
         <div className="flex-1 p-5 sm:p-6">
-          {providerConnections.length > 0 ? (
-            <div className="mb-5 space-y-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Active on {selectedProvider.name}
-              </p>
-              <ul className="space-y-1">
-                {providerConnections.map((connection) => (
-                  <li
-                    key={connection.id}
-                    className="group flex items-center justify-between gap-2"
-                  >
-                    <span className="min-w-0 truncate font-mono text-xs">
-                      {connection.email}
-                    </span>
-                    <ConnectionStatusChip status={connection.status} />
-                    <div className="flex shrink-0 items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 rounded-lg px-2 font-mono text-[10px]"
-                        onClick={() => editConnection(connection)}
-                      >
-                        Edit
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-7"
-                            disabled={isRemoving}
-                          >
-                            <MoreHorizontalIcon className="size-3.5" />
-                            <span className="sr-only">Mailbox actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onSelect={() => editConnection(connection)}
-                          >
-                            Edit credentials
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={Routes.InboxSettings}>
-                              Manage aliases
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onSelect={() => setPendingRemove(connection)}
-                          >
-                            <Trash2Icon className="mr-2 size-4" />
-                            Remove mailbox
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <ConnectedMailboxesCard
+            providerName={selectedProvider.name}
+            logoDomain={selectedProvider.logoDomain}
+            connections={providerConnections}
+            renderActions={(connection) => (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 rounded-lg px-2 font-mono text-[10px]"
+                  onClick={() => editConnection(connection)}
+                >
+                  Edit
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7"
+                      disabled={isRemoving}
+                    >
+                      <MoreHorizontalIcon className="size-3.5" />
+                      <span className="sr-only">Mailbox actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onSelect={() => editConnection(connection)}
+                    >
+                      Edit credentials
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={Routes.InboxSettings}>Manage aliases</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={() => setPendingRemove(connection)}
+                    >
+                      <Trash2Icon className="mr-2 size-4" />
+                      Remove mailbox
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+          />
 
           {!selectedProvider.setupNote ? (
             <div className="mb-5 text-sm text-muted-foreground">

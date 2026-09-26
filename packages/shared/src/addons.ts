@@ -321,7 +321,7 @@ export function addOnCheckoutAmountCents(
 
 /**
  * Polar often labels Extra Inbox with the Inbox plan name. The catalog
- * amount ($7 inbox / $12 seat) is unique to these add-ons.
+ * amount ($5 inbox / $10 seat) is unique to these add-ons.
  */
 export function inferAddOnKindFromAmountCents(
   cents: number | null | undefined,

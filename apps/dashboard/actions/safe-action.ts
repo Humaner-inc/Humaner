@@ -115,9 +115,13 @@ export const authActionClient = authenticatedActionClient.use(
 
     const session = ctx.session as WorkspaceSession;
 
-    return runWithTenantScope(session.user.organizationId, () =>
-      next({ ctx: { session } })
-    );
+    return runWithTenantScope(session.user.organizationId, async () => {
+      const { assertWorkspaceWritable } = await import(
+        '@/lib/billing/workspace-billing-access'
+      );
+      await assertWorkspaceWritable(session.user.organizationId);
+      return next({ ctx: { session } });
+    });
   }
 );
 
@@ -151,13 +155,20 @@ export function pageActionClientAny(...pageKeys: DashboardPageKey[]) {
   });
 }
 
-export const ownerActionClient = authActionClient.use(async ({ next, ctx }) => {
-  await requireWorkspaceOwner(
-    ctx.session.user.id,
-    ctx.session.user.organizationId
-  );
-  return next({ ctx });
-});
+export const ownerActionClient = authenticatedActionClient.use(
+  async ({ next, ctx }) => {
+    if (!checkSession(ctx.session)) {
+      throw new ForbiddenError('Select or create a workspace to continue');
+    }
+
+    const session = ctx.session as WorkspaceSession;
+
+    return runWithTenantScope(session.user.organizationId, async () => {
+      await requireWorkspaceOwner(session.user.id, session.user.organizationId);
+      return next({ ctx: { session } });
+    });
+  }
+);
 
 /** Humaner platform operators only (Role.ADMIN). */
 export const adminActionClient = authActionClient.use(async ({ next, ctx }) => {

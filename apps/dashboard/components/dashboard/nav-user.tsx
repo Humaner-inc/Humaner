@@ -4,15 +4,14 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
-import { CheckIcon, PlusIcon } from '@humaner/shared/icons';
+import { CreditCardIcon, StoreIcon, UserIcon } from '@humaner/shared/icons';
+import type { LucideIcon } from '@humaner/shared/icons';
 import { WorkspaceRole } from '@prisma/client';
 import { ExitIcon } from '@radix-ui/react-icons';
 import { toast } from 'sonner';
 
 import { logOut } from '@/actions/auth/log-out';
-import { switchWorkspace } from '@/actions/workspaces/switch-workspace';
 import { CommandMenu } from '@/components/dashboard/command-menu';
-import { CreateWorkspaceModal } from '@/components/dashboard/workspace/create-workspace-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,10 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { adminProfileItems } from '@/constants/nav-items';
 import { Routes } from '@/constants/routes';
-import { isPlatformAdmin, isWorkspaceOwner } from '@/lib/auth/workspace-access';
-import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
+import { isWorkspaceAdmin } from '@/lib/auth/workspace-access';
 import { isDialogOpen } from '@/lib/browser/is-dialog-open';
 import { isInputFocused } from '@/lib/browser/is-input-focused';
 import { isMac } from '@/lib/browser/is-mac';
@@ -39,7 +36,6 @@ import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type NavUserProps = {
   profile: ProfileDto;
-  workspaces: UserWorkspaceSummary[];
   planName: string;
   audienceLabel: string | null;
   className?: string;
@@ -54,17 +50,23 @@ function workspaceRoleLabel(role: WorkspaceRole): string {
 
 function MenuRow({
   label,
-  href
+  href,
+  icon: Icon
 }: {
   label: string;
   href: string;
+  icon: LucideIcon;
 }): React.JSX.Element {
   return (
     <DropdownMenuItem
       asChild
       className={cn(dashboardItemRadiusClassName, 'px-2.5 py-2')}
     >
-      <Link href={href}>
+      <Link
+        href={href}
+        className="flex items-center gap-2"
+      >
+        <Icon className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate">{label}</span>
       </Link>
     </DropdownMenuItem>
@@ -73,17 +75,12 @@ function MenuRow({
 
 export function NavUser({
   profile,
-  workspaces,
   planName,
   audienceLabel,
   className
 }: NavUserProps): React.JSX.Element {
   const router = useRouter();
-  const canManageWorkspaces =
-    isWorkspaceOwner(profile) || isPlatformAdmin(profile);
-  const showAdminTools = isPlatformAdmin(profile);
-  const activeWorkspace =
-    workspaces.find((workspace) => workspace.isActive) ?? workspaces[0];
+  const showBilling = isWorkspaceAdmin(profile) && !isOssDeployment();
 
   const handleNavigateToProfilePage = (): void => {
     router.push(Routes.Profile);
@@ -99,40 +96,12 @@ export function NavUser({
   const handleShowCommandMenu = (): void => {
     NiceModal.show(CommandMenu, { profile });
   };
-  const handleCreateWorkspace = (): void => {
-    NiceModal.show(CreateWorkspaceModal);
-  };
   const handleLogOut = async (): Promise<void> => {
     const result = await logOut({ redirect: true });
     if (result?.serverError || result?.validationErrors) {
       toast.error("Couldn't log out");
     }
   };
-  const handleSwitchWorkspace = async (
-    organizationId: string
-  ): Promise<void> => {
-    if (organizationId === activeWorkspace?.id) {
-      return;
-    }
-
-    const result = await switchWorkspace({ organizationId });
-    if (result?.serverError) {
-      toast.error(result.serverError);
-      return;
-    }
-    if (result?.validationErrors) {
-      toast.error("Couldn't switch workspace");
-      return;
-    }
-
-    toast.success('Workspace switched');
-    if (result?.data?.redirectTo) {
-      router.push(result.data.redirectTo);
-    } else {
-      router.refresh();
-    }
-  };
-
   React.useEffect(() => {
     const mac = isMac();
     const hotkeys: Record<string, { action: () => void; shift: boolean }> = {
@@ -234,67 +203,23 @@ export function NavUser({
 
         <div className="py-1">
           <MenuRow
-            label="Account Settings"
+            label="Account"
             href={Routes.Profile}
+            icon={UserIcon}
           />
-          {canManageWorkspaces ? (
+          <MenuRow
+            label="Workspace"
+            href={Routes.InboxSettings}
+            icon={StoreIcon}
+          />
+          {showBilling ? (
             <MenuRow
-              label="Workspace Settings"
-              href={Routes.InboxSettings}
+              label="Billing"
+              href={Routes.Billing}
+              icon={CreditCardIcon}
             />
           ) : null}
-          {showAdminTools
-            ? adminProfileItems.map((item) => (
-                <MenuRow
-                  key={item.href}
-                  label={item.title}
-                  href={item.href}
-                />
-              ))
-            : null}
         </div>
-
-        {canManageWorkspaces && workspaces.length > 0 ? (
-          <>
-            <DropdownMenuSeparator className="my-1" />
-            <div className="py-1">
-              {workspaces.map((workspace) => (
-                <DropdownMenuItem
-                  key={workspace.id}
-                  className={cn(dashboardItemRadiusClassName, 'px-2.5 py-2')}
-                  onClick={() => void handleSwitchWorkspace(workspace.id)}
-                >
-                  <span className="min-w-0 flex-1 truncate">
-                    {workspace.name}
-                  </span>
-                  {workspace.isActive ? (
-                    <CheckIcon
-                      className="size-4 shrink-0"
-                      style={{
-                        color: 'var(--accent-color, hsl(var(--brand)))'
-                      }}
-                    />
-                  ) : null}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuItem
-                className={cn(
-                  dashboardItemRadiusClassName,
-                  'justify-between gap-2 px-2.5 py-2'
-                )}
-                onClick={handleCreateWorkspace}
-              >
-                <span>New Workspace</span>
-                <PlusIcon
-                  className="size-4 shrink-0"
-                  style={{
-                    color: 'var(--accent-color, hsl(var(--brand)))'
-                  }}
-                />
-              </DropdownMenuItem>
-            </div>
-          </>
-        ) : null}
 
         <DropdownMenuSeparator className="my-1" />
         <Button

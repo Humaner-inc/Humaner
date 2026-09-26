@@ -10,7 +10,6 @@ import { NavUser } from '@/components/dashboard/nav-user';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTeamUnreadCount } from '@/hooks/use-team-unread-count';
-import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -19,7 +18,6 @@ const oss = isOssDeployment();
 
 export type DashboardTopNavProps = {
   profile: ProfileDto;
-  workspaces: UserWorkspaceSummary[];
   planName: string;
   audienceLabel: string | null;
   teamFeed?: {
@@ -31,7 +29,6 @@ export type DashboardTopNavProps = {
 
 export function DashboardTopNav({
   profile,
-  workspaces,
   planName,
   audienceLabel,
   teamFeed,
@@ -116,7 +113,6 @@ export function DashboardTopNav({
       <div className="flex h-7 items-center gap-1.5">
         <NavUser
           profile={profile}
-          workspaces={workspaces}
           planName={planName}
           audienceLabel={audienceLabel}
         />

@@ -12,6 +12,7 @@ import { getPrivacyUrl } from '@humaner/shared/urls';
 import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
+import { BillingAccessBanner } from '@/components/dashboard/billing-access-banner';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DashboardWorkspaceColumn } from '@/components/dashboard/dashboard-workspace-column';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
@@ -22,12 +23,15 @@ import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-c
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
 import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
+import { WorkspaceBillingAccessProvider } from '@/components/dashboard/workspace-billing-access-context';
+import { WorkspaceReadOnlyGate } from '@/components/dashboard/workspace-read-only-gate';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
 import { getCompanionTaskProposals } from '@/data/ask-humaner/get-companion-task-proposals';
 import { getSidebarMessageUsage } from '@/data/billing/get-sidebar-message-usage';
+import { getWorkspaceBillingAccess } from '@/data/billing/get-workspace-billing-access';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { getHandoffOpenCounts } from '@/data/handoff/get-handoff-open-count';
 import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
@@ -158,11 +162,16 @@ export async function DashboardSessionShell({
     operatorOwnedQuota: false
   };
   const notificationsPromise = getDashboardNotifications();
+  const billingAccessPromise = oss
+    ? Promise.resolve({ readOnly: false, banner: null })
+    : getWorkspaceBillingAccess(session.user.organizationId);
+
   const [
     profile,
     agents,
     workspaces,
     messageUsage,
+    billingAccess,
     notificationsResult,
     inboxUnreadCount,
     handoffOpenCounts,
@@ -177,6 +186,7 @@ export async function DashboardSessionShell({
     getAgents(),
     getWorkspaceSwitcherData(),
     oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
+    billingAccessPromise,
     notificationsPromise,
     oss || !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
     canDesk
@@ -298,20 +308,24 @@ export async function DashboardSessionShell({
       >
         <DashboardTopNav
           profile={profile}
-          workspaces={workspaces}
           teamFeed={teamFeed}
           planName={getPlanForTier(userFromDb!.organization!.tier).name}
           audienceLabel={
             oss ? (userFromDb!.organization!.targetAudience ?? null) : null
           }
         />
+        {!oss && billingAccess.banner ? (
+          <BillingAccessBanner access={billingAccess} />
+        ) : null}
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <DashboardWorkspaceColumn
-            profile={profile}
-            orgTier={userFromDb!.organization!.tier ?? 'free'}
-          >
-            {children}
-          </DashboardWorkspaceColumn>
+          <WorkspaceBillingAccessProvider access={billingAccess}>
+            <DashboardWorkspaceColumn
+              profile={profile}
+              orgTier={userFromDb!.organization!.tier ?? 'free'}
+            >
+              <WorkspaceReadOnlyGate>{children}</WorkspaceReadOnlyGate>
+            </DashboardWorkspaceColumn>
+          </WorkspaceBillingAccessProvider>
           <DashboardDockPanel
             workspaceName={companionOrganizationName}
             teamFeed={teamFeed}

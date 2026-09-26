@@ -15,6 +15,8 @@ export type MailAliasListItem = {
   connectionEmail: string;
   provider: string;
   providerName: string;
+  providerPresetId: string | null;
+  logoDomain: string;
   memberCount: number;
 };
 
@@ -63,6 +65,8 @@ export async function getMailAliases(): Promise<MailAliasListItem[]> {
       connectionEmail: alias.connection.email,
       provider: alias.connection.provider,
       providerName: preset?.name ?? alias.connection.provider,
+      providerPresetId: alias.connection.providerPresetId,
+      logoDomain: preset?.logoDomain ?? 'humaner.io',
       memberCount: alias._count.members
     };
   });

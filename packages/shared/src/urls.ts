@@ -127,7 +127,7 @@ export function getFreeToolsUrl(): string {
 }
 
 export function getPricingUrl(): string {
-  return `${getLandingUrl()}/pricing`;
+  return `${getLandingUrl()}/#pricing`;
 }
 
 export function getDocsUrl(): string {
