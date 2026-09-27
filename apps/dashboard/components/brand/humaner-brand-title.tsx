@@ -12,7 +12,7 @@ export type HumanerBrandTitleProps = {
   className?: string;
   wordmarkClassName?: string;
   markClassName?: string;
-  /** Kept for call-site compatibility — Companion mark uses currentColor. */
+  /** Kept for call-site compatibility — Companion mark is the fixed brand SVG. */
   markTone?: 'light' | 'dark';
   name?: string;
 };

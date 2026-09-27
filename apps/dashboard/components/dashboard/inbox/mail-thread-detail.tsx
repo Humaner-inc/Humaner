@@ -396,7 +396,6 @@ export function MailThreadDetail({
   const router = useRouter();
   const dock = useDashboardDockOptional();
   const companionChat = useHumanerChatOptional();
-  const companionCharacter = companionChat?.companionCharacter ?? 'CASUAL';
   const { autoSuggestReplies } = useInboxPreferences();
   const { openCompose } = useComposeMail();
   const { play } = useOnboardingSound();
@@ -959,7 +958,6 @@ export function MailThreadDetail({
           <CompanionIcon
             active
             size={16}
-            character={companionCharacter}
             state="idle"
             className="size-4"
           />
@@ -1154,7 +1152,6 @@ export function MailThreadDetail({
                         <CompanionIcon
                           active
                           size={20}
-                          character={companionCharacter}
                           state={suggestionsLoading ? 'thinking' : 'enter'}
                           className="size-5"
                         />

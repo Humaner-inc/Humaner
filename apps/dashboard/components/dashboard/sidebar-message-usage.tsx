@@ -11,23 +11,11 @@ import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/human
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
-import { companionPersonaColor } from '@/lib/companion-persona';
 import { cn } from '@/lib/utils';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
 const USAGE_UPGRADE_THRESHOLD_PERCENT = 90;
 const CREDITS_BAR_MS = 700;
-
-function personaWash(
-  color: string | undefined,
-  alpha: number
-): string | undefined {
-  if (!color || !/^#[0-9a-fA-F]{6}$/.test(color)) return undefined;
-  const r = Number.parseInt(color.slice(1, 3), 16);
-  const g = Number.parseInt(color.slice(3, 5), 16);
-  const b = Number.parseInt(color.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
@@ -285,11 +273,6 @@ function CompanionStatus({
   if (!chat) return null;
 
   const visible = chat.companionVisible;
-  const persona = companionPersonaColor(chat.companionCharacter);
-  const wash = personaWash(
-    persona,
-    visible ? (iconHot ? 0.34 : 0.18) : iconHot ? 0.16 : 0.08
-  );
   const openLabel = 'Edit persona';
 
   return (
@@ -311,17 +294,13 @@ function CompanionStatus({
         className={cn(
           'flex size-8 shrink-0 items-center justify-center rounded-[12px] transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          wash
-            ? null
-            : visible
-              ? 'bg-foreground/10 hover:bg-foreground/20'
-              : 'bg-foreground/5 hover:bg-foreground/10'
+          visible
+            ? 'bg-foreground/10 hover:bg-foreground/20'
+            : 'bg-foreground/5 hover:bg-foreground/10'
         )}
-        style={wash ? { backgroundColor: wash } : undefined}
       >
         <CompanionIcon
           active={visible}
-          character={chat.companionCharacter}
           size={16}
           className={cn(
             'size-4 transition-opacity',
