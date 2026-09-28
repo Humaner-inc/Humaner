@@ -1,5 +1,5 @@
 /** Primary product line — browser title, OG titles, hero, and positioning. */
-export const HUMANER_TITLE = "The agentic inbox, for humans.";
+export const HUMANER_TITLE = "Your inbox, humanly automated.";
 
 export const HUMANER_TAGLINE = HUMANER_TITLE;
 
