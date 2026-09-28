@@ -1,6 +1,11 @@
 import * as React from 'react';
+import type { Metadata } from 'next';
 
 import { SectionPage } from '@/components/ui/section-shell';
+import { Routes } from '@/constants/routes';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+
+export const metadata: Metadata = createDashboardPageMetadata(Routes.Tasks);
 
 /** Full-bleed workspace board — matches Calendar / Assigned chrome. */
 export default function TasksLayout({

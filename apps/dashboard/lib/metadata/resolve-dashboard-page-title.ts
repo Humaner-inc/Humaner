@@ -20,6 +20,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.DeskClusters]: 'Loops',
   [Routes.DeskEscalation]: 'Escalation',
   [Routes.DeskTeam]: 'Desk team',
+  [Routes.DeskSettings]: 'Desk settings',
   [Routes.HumanDesk]: 'Human Desk',
   [Routes.Overview]: 'Overview',
   [Routes.Inbox]: 'Mails',
@@ -33,23 +34,28 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.InboxSettings]: 'Workspace settings',
   [Routes.InboxConnectors]: 'Connectors',
   [Routes.Resources]: 'Resources',
+  '/resources': 'Resources',
   [Routes.InboxProviders]: 'Providers',
   [Routes.InboxTags]: 'Tags',
   [Routes.InboxDrafts]: 'Drafts',
   [Routes.Tasks]: 'Tasks',
+  '/tasks': 'Tasks',
   [Routes.OrganizationWorkspace]: 'Workspace',
   [Routes.Calendar]: 'Calendar',
   [Routes.Contacts]: 'Contacts',
   [Routes.AdminTickets]: 'Support tickets',
   [Routes.AdminDemos]: 'Demo agents',
   [Routes.Settings]: 'Settings',
+  [Routes.Account]: 'Account',
   [Routes.Profile]: 'Profile',
   [Routes.Security]: 'Security',
   [Routes.Notifications]: 'Notifications',
+  [Routes.Organization]: 'Organization settings',
   [Routes.OrganizationInformation]: 'Workspace',
   [Routes.Members]: 'Team members',
   [Routes.Billing]: 'Billing',
-  [Routes.Developers]: 'MCP'
+  [Routes.Developers]: 'MCP',
+  [Routes.AuditLogs]: 'Audit logs'
 };
 
 const AGENT_TAB_TITLES: Record<string, string> = {

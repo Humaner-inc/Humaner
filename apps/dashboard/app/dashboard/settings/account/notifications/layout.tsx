@@ -1,8 +1,15 @@
 import * as React from 'react';
+import type { Metadata } from 'next';
 
 import { AnnotatedLayout } from '@/components/ui/annotated';
 import { Separator } from '@/components/ui/separator';
+import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+
+export const metadata: Metadata = createDashboardPageMetadata(
+  Routes.Notifications
+);
 
 export type NotificationsLayoutProps = {
   transactionalEmails: React.ReactNode;

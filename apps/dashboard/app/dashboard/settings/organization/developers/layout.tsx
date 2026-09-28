@@ -1,19 +1,21 @@
 import * as React from 'react';
-import { type Metadata } from 'next';
+import type { Metadata } from 'next';
 
 import { McpIcon } from '@/components/brand/mcp-icon';
 import { McpIntelligenceToggle } from '@/components/dashboard/settings/organization/developers/mcp-intelligence-toggle';
 import { McpOAuthClientsCard } from '@/components/dashboard/settings/organization/developers/mcp-oauth-clients-card';
 import { McpServerConfigPanel } from '@/components/dashboard/settings/organization/developers/mcp-server-config-panel';
 import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
+import { Routes } from '@/constants/routes';
 import { getMcpOAuthGrants } from '@/data/developers/get-mcp-oauth-grants';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
-import { cn, createTitle } from '@/lib/utils';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = {
-  title: createTitle('MCP')
-};
+export const metadata: Metadata = createDashboardPageMetadata(
+  Routes.Developers
+);
 
 export type DevelopersLayoutProps = {
   apiKeys: React.ReactNode;

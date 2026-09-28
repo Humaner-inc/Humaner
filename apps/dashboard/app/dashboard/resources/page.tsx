@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { Metadata } from 'next';
 import { after, connection } from 'next/server';
 import { processPendingKnowledgeSources } from '@/services/knowledge/process-knowledge-source';
 import { BookOpenIcon } from '@humaner/shared/icons';
@@ -13,11 +14,15 @@ import {
 import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionPage } from '@/components/ui/section-shell';
+import { Routes } from '@/constants/routes';
 import { getWorkspaceKnowledgeData } from '@/data/knowledge/get-workspace-knowledge';
 import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { cn } from '@/lib/utils';
+
+export const metadata: Metadata = createDashboardPageMetadata(Routes.Resources);
 
 function ResourcesHeader({
   action

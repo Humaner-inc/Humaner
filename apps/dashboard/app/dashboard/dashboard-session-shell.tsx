@@ -13,6 +13,7 @@ import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { BillingAccessBanner } from '@/components/dashboard/billing-access-banner';
+import { DashboardDocumentTitle } from '@/components/dashboard/dashboard-document-title';
 import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DashboardWorkspaceColumn } from '@/components/dashboard/dashboard-workspace-column';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
@@ -354,6 +355,7 @@ export async function DashboardSessionShell({
           />
         ) : null}
         <SidebarProvider>
+          <DashboardDocumentTitle />
           <OrgRealtimeBridge />
           <ComposeMailProvider
             inboxes={mailInboxes}

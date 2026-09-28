@@ -1,16 +1,15 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 
-import { Routes } from '@/constants/routes';
-import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+import { AppInfo } from '@/constants/app-info';
 
 import { DashboardSessionShell } from './dashboard-session-shell';
 import { InboxAllPendingFallback } from './inbox-all-pending-fallback';
 
-export const metadata: Metadata = createDashboardPageMetadata(
-  Routes.Home,
-  'Organization'
-);
+/** Neutral shell default — leaf routes set the real page title. */
+export const metadata: Metadata = {
+  title: AppInfo.APP_NAME
+};
 
 export default function DashboardLayout({
   children

@@ -1,13 +1,18 @@
 import * as React from 'react';
+import type { Metadata } from 'next';
 import { WorkspaceRole } from '@prisma/client';
 
 import { MfaRecommendedBanner } from '@/components/dashboard/settings/account/security/mfa-required-banner';
 import { AnnotatedLayout } from '@/components/ui/annotated';
 import { Separator } from '@/components/ui/separator';
+import { Routes } from '@/constants/routes';
 import { dedupedAuth } from '@/lib/auth';
 import { shouldRecommendMfa } from '@/lib/auth/recommend-mfa';
 import { checkSession, session } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
+import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
+
+export const metadata: Metadata = createDashboardPageMetadata(Routes.Security);
 
 export type SecurityLayoutProps = {
   changePassword: React.ReactNode;
