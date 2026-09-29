@@ -17,6 +17,7 @@ export async function sendMailboxMail(input: {
   cc?: string[];
   subject: string;
   text: string;
+  html?: string;
   attachments?: MailAttachment[];
   inReplyTo?: string;
   references?: string;
@@ -32,6 +33,7 @@ export async function sendMailboxMail(input: {
         cc: input.cc,
         subject: input.subject,
         text: input.text,
+        html: input.html,
         attachments: input.attachments,
         inReplyTo: input.inReplyTo,
         references: input.references
@@ -52,6 +54,7 @@ export async function sendMailboxMail(input: {
     cc: input.cc,
     subject: input.subject,
     text: input.text,
+    html: input.html,
     attachments: input.attachments,
     inReplyTo: input.inReplyTo,
     references: input.references

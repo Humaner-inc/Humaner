@@ -12,6 +12,7 @@ export type OutboundMailInput = {
   cc?: string[];
   subject: string;
   text: string;
+  html?: string;
   attachments?: MailAttachment[];
   inReplyTo?: string;
   references?: string;
@@ -82,11 +83,14 @@ export async function sendOutboundMail(
         : undefined,
       subject: input.subject,
       text: input.text,
+      html: input.html,
       attachments: input.attachments?.length
         ? input.attachments.map((attachment) => ({
             filename: attachment.name,
             content: Buffer.from(attachment.data, 'base64'),
-            contentType: attachment.mediaType
+            contentType: attachment.mediaType,
+            cid: attachment.cid,
+            contentDisposition: attachment.cid ? 'inline' : 'attachment'
           }))
         : undefined,
       inReplyTo: formatMessageId(input.inReplyTo),

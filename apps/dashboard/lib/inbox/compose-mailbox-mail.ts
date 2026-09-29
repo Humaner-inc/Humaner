@@ -12,6 +12,7 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
+import { applyMailboxSignature } from '@/lib/inbox/mailbox-signature';
 import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
@@ -40,6 +41,7 @@ export async function composeMailboxMail(input: {
   to: string;
   subject: string;
   body: string;
+  bodyHtml?: string;
   attachments?: MailAttachment[];
   draftThreadId?: string;
 }): Promise<ComposeMailboxMailResult> {
@@ -65,7 +67,10 @@ export async function composeMailboxMail(input: {
           smtpPassword: true,
           smtpTls: true,
           imapPassword: true,
-          imapTls: true
+          imapTls: true,
+          signatureText: true,
+          signatureIconData: true,
+          signatureIconContentType: true
         }
       }
     }
@@ -83,6 +88,25 @@ export async function composeMailboxMail(input: {
     throw new Error('Enter a valid email address.');
   }
 
+  const signed = await applyMailboxSignature(
+    input.body,
+    {
+      text: connection.signatureText,
+      icon:
+        connection.signatureIconData && connection.signatureIconContentType
+          ? {
+              data: Buffer.from(connection.signatureIconData),
+              contentType: connection.signatureIconContentType
+            }
+          : null
+    },
+    { bodyHtml: input.bodyHtml }
+  );
+  const outboundAttachments = [
+    ...(input.attachments ?? []),
+    ...(signed.inlineIcon ? [signed.inlineIcon] : [])
+  ];
+
   let messageId: string;
   let providerThreadId: string;
 
@@ -94,8 +118,9 @@ export async function composeMailboxMail(input: {
         from: fromAddress,
         to: [toAddress],
         subject: input.subject,
-        text: input.body,
-        attachments: input.attachments
+        text: signed.text,
+        html: signed.html,
+        attachments: outboundAttachments
       });
       messageId = sent.messageId;
       providerThreadId = (sent.threadId ?? `outbound-${messageId}`).slice(
@@ -152,8 +177,9 @@ export async function composeMailboxMail(input: {
         from: fromAddress,
         to: [toAddress],
         subject: input.subject,
-        text: input.body,
-        attachments: input.attachments
+        text: signed.text,
+        html: signed.html,
+        attachments: outboundAttachments
       });
       messageId = sent.messageId;
       providerThreadId = `outbound-${messageId}`.slice(0, 512);
@@ -211,7 +237,8 @@ export async function composeMailboxMail(input: {
                     fromAddress,
                     toAddresses: [toAddress],
                     ccAddresses: [],
-                    bodyText: input.body,
+                    bodyText: signed.text,
+                    bodyHtml: signed.html ?? null,
                     sentAt
                   }
                 }
@@ -223,7 +250,8 @@ export async function composeMailboxMail(input: {
                   fromAddress,
                   toAddresses: [toAddress],
                   ccAddresses: [],
-                  bodyText: input.body,
+                  bodyText: signed.text,
+                  bodyHtml: signed.html ?? null,
                   sentAt
                 }
               }
@@ -249,7 +277,8 @@ export async function composeMailboxMail(input: {
               fromAddress,
               toAddresses: [toAddress],
               ccAddresses: [],
-              bodyText: input.body,
+              bodyText: signed.text,
+              bodyHtml: signed.html ?? null,
               sentAt
             }
           }

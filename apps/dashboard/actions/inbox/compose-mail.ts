@@ -62,6 +62,7 @@ export const composeMail = pageActionClient('inbox')
         to: parsedInput.to,
         subject: parsedInput.subject,
         body: parsedInput.body,
+        ...(parsedInput.bodyHtml ? { bodyHtml: parsedInput.bodyHtml } : {}),
         ...(parsedInput.attachments?.length
           ? { attachments: parsedInput.attachments }
           : {}),

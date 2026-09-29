@@ -10,6 +10,8 @@ export type MailAttachment = {
   name: string;
   mediaType: string;
   data: string;
+  /** When set, the part is inline (e.g. signature logo via cid:). */
+  cid?: string;
 };
 
 export const MAIL_ATTACHMENT_MAX_COUNT = CHAT_ATTACHMENT_MAX_COUNT;

@@ -39,6 +39,7 @@ export const saveMailDraft = pageActionClient('inbox')
         to: parsedInput.to,
         subject: parsedInput.subject,
         body: parsedInput.body,
+        ...(parsedInput.bodyHtml ? { bodyHtml: parsedInput.bodyHtml } : {}),
         ...(parsedInput.draftThreadId
           ? { draftThreadId: parsedInput.draftThreadId }
           : {})

@@ -5,6 +5,7 @@ import { MailMessageDirection, MailProvider } from '@prisma/client';
 import { workspaceAllowsCompanionAction } from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
+import { applyMailboxSignature } from '@/lib/inbox/mailbox-signature';
 import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
@@ -29,6 +30,7 @@ export async function sendMailThreadReply(input: {
   threadId: string;
   organizationId: string;
   body: string;
+  bodyHtml?: string;
   attachments?: MailAttachment[];
   aliasId?: string;
 }): Promise<{ messageId: string }> {
@@ -57,7 +59,10 @@ export async function sendMailThreadReply(input: {
               smtpPassword: true,
               smtpTls: true,
               imapPassword: true,
-              imapTls: true
+              imapTls: true,
+              signatureText: true,
+              signatureIconData: true,
+              signatureIconContentType: true
             }
           }
         }
@@ -113,6 +118,25 @@ export async function sendMailThreadReply(input: {
     .filter(Boolean)
     .join(' ');
 
+  const signed = await applyMailboxSignature(
+    input.body,
+    {
+      text: connection.signatureText,
+      icon:
+        connection.signatureIconData && connection.signatureIconContentType
+          ? {
+              data: Buffer.from(connection.signatureIconData),
+              contentType: connection.signatureIconContentType
+            }
+          : null
+    },
+    { bodyHtml: input.bodyHtml }
+  );
+  const outboundAttachments = [
+    ...(input.attachments ?? []),
+    ...(signed.inlineIcon ? [signed.inlineIcon] : [])
+  ];
+
   let messageId: string;
   if (connection.provider === MailProvider.GMAIL) {
     const sent = await sendMailboxMail({
@@ -121,8 +145,9 @@ export async function sendMailThreadReply(input: {
       from: fromAddress,
       to: toAddresses,
       subject: replySubject(thread.subject),
-      text: input.body,
-      attachments: input.attachments,
+      text: signed.text,
+      html: signed.html,
+      attachments: outboundAttachments,
       inReplyTo: lastInbound?.providerMessageId,
       references: references || undefined,
       providerThreadId: thread.providerThreadId.startsWith('outbound-')
@@ -172,8 +197,9 @@ export async function sendMailThreadReply(input: {
       from: fromAddress,
       to: toAddresses,
       subject: replySubject(thread.subject),
-      text: input.body,
-      attachments: input.attachments,
+      text: signed.text,
+      html: signed.html,
+      attachments: outboundAttachments,
       inReplyTo: lastInbound?.providerMessageId,
       references: references || undefined
     });
@@ -190,7 +216,8 @@ export async function sendMailThreadReply(input: {
         fromAddress,
         toAddresses,
         ccAddresses: [],
-        bodyText: input.body,
+        bodyText: signed.text,
+        bodyHtml: signed.html ?? null,
         sentAt
       }
     }),

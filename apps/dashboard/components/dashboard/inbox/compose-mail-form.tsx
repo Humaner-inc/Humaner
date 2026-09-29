@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { composeMail } from '@/actions/inbox/compose-mail';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { saveMailDraft } from '@/actions/inbox/save-mail-draft';
+import { MailComposeBodyEditor } from '@/components/dashboard/inbox/mail-compose-body-editor';
 import {
   QUICK_CREATE_BODY_CLASS,
   QUICK_CREATE_CHIP_CLASS,
@@ -91,6 +92,7 @@ export function ComposeMailForm({
   const [to, setTo] = React.useState(initialTo);
   const [subject, setSubject] = React.useState(initialSubject);
   const [body, setBody] = React.useState(initialBody);
+  const [bodyHtml, setBodyHtml] = React.useState<string | null>(null);
   const [draftThreadId, setDraftThreadId] = React.useState(
     initialDraftThreadId ?? ''
   );
@@ -108,6 +110,7 @@ export function ComposeMailForm({
     setTo(initialTo);
     setSubject(initialSubject);
     setBody(initialBody);
+    setBodyHtml(null);
     setDraftThreadId(initialDraftThreadId ?? '');
   }, [initialTo, initialSubject, initialBody, initialDraftThreadId]);
 
@@ -221,6 +224,7 @@ export function ComposeMailForm({
         threadId,
         ...(aliasId ? { aliasId } : {}),
         body: values.body,
+        ...(bodyHtml ? { bodyHtml } : {}),
         ...(attachments.length > 0 ? { attachments } : {})
       });
       return;
@@ -230,6 +234,7 @@ export function ComposeMailForm({
       to: values.to,
       subject: values.subject,
       body: values.body,
+      ...(bodyHtml ? { bodyHtml } : {}),
       ...(attachments.length > 0 ? { attachments } : {}),
       ...(draftThreadId ? { draftThreadId } : {})
     });
@@ -265,6 +270,7 @@ export function ComposeMailForm({
       to: values.to,
       subject: values.subject,
       body: values.body,
+      ...(bodyHtml ? { bodyHtml } : {}),
       ...(draftThreadId ? { draftThreadId } : {})
     });
   };
@@ -313,16 +319,17 @@ export function ComposeMailForm({
             isQuick ? cn(QUICK_CREATE_TITLE_CLASS, 'py-1') : COMPOSE_FIELD_CLASS
           }
         />
-        <textarea
-          id="compose-body"
+        <MailComposeBodyEditor
           value={body}
-          onChange={(event) => setBody(event.target.value)}
+          onChange={(next) => {
+            setBody(next.text);
+            setBodyHtml(next.html);
+          }}
           disabled={isExecuting}
           placeholder="Write the message…"
-          className={
-            isQuick
-              ? cn(QUICK_CREATE_BODY_CLASS, 'min-h-32 flex-1')
-              : 'min-h-32 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground/60'
+          className={isQuick ? 'min-h-32 flex-1' : 'min-h-32 flex-1'}
+          contentClassName={
+            isQuick ? cn(QUICK_CREATE_BODY_CLASS, 'min-h-32') : undefined
           }
         />
         {attachments.length > 0 ? (

@@ -28,6 +28,7 @@ export async function saveMailboxDraft(input: {
   to: string;
   subject: string;
   body: string;
+  bodyHtml?: string;
   draftThreadId?: string;
 }): Promise<SaveMailboxDraftResult> {
   const alias = await prisma.mailAlias.findFirst({
@@ -91,6 +92,7 @@ export async function saveMailboxDraft(input: {
               fromAddress,
               toAddresses: toAddress ? [toAddress] : [],
               bodyText: body || null,
+              bodyHtml: input.bodyHtml ?? null,
               sentAt: now
             }
           })
@@ -106,6 +108,7 @@ export async function saveMailboxDraft(input: {
               toAddresses: toAddress ? [toAddress] : [],
               ccAddresses: [],
               bodyText: body || null,
+              bodyHtml: input.bodyHtml ?? null,
               sentAt: now
             }
           })
@@ -138,6 +141,7 @@ export async function saveMailboxDraft(input: {
           toAddresses: toAddress ? [toAddress] : [],
           ccAddresses: [],
           bodyText: body || null,
+          bodyHtml: input.bodyHtml ?? null,
           sentAt: now
         }
       }

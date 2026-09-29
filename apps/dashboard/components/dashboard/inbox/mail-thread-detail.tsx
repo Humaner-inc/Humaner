@@ -39,6 +39,7 @@ import {
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
+import { MailComposeBodyEditor } from '@/components/dashboard/inbox/mail-compose-body-editor';
 import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import { MailThreadHeaderMenu } from '@/components/dashboard/inbox/mail-thread-task-menu';
@@ -54,7 +55,6 @@ import {
 } from '@/components/ui/select';
 import { SendIcon, type SendIconHandle } from '@/components/ui/send-icon';
 import { mailStatusToGlyph, StatusGlyph } from '@/components/ui/status-glyph';
-import { Textarea } from '@/components/ui/textarea';
 import { Routes } from '@/constants/routes';
 import type {
   MailTagItem,
@@ -517,9 +517,10 @@ export function MailThreadDetail({
   const sendIconRef = React.useRef<SendIconHandle>(null);
   const successTimerRef = React.useRef<number | null>(null);
   const [body, setBody] = React.useState('');
+  const [bodyHtml, setBodyHtml] = React.useState<string | null>(null);
   const [composerOpen, setComposerOpen] = React.useState(false);
   const [sendAliasId, setSendAliasId] = React.useState(threadProp.aliasId);
-  const composerRef = React.useRef<HTMLTextAreaElement>(null);
+  const composerRef = React.useRef<HTMLDivElement>(null);
   const threadScrollRef = React.useRef<HTMLDivElement>(null);
   const dockedAtBottom = useThreadScrollDocked(threadScrollRef, thread.id);
   const showFloatingBar = !composerOpen && !dockedAtBottom;
@@ -573,6 +574,7 @@ export function MailThreadDetail({
       }
       successTimerRef.current = window.setTimeout(() => {
         setBody('');
+        setBodyHtml(null);
         setComposerOpen(false);
         setSuggesting(false);
         setSuggestions([]);
@@ -778,13 +780,17 @@ export function MailThreadDetail({
     setSelectedIndex(null);
     setComposerOpen(false);
     setBody('');
+    setBodyHtml(null);
     setSendAliasId(thread.aliasId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread.id]);
 
   React.useEffect(() => {
     if (!composerOpen) return;
-    composerRef.current?.focus();
+    const editable = composerRef.current?.querySelector(
+      '[contenteditable="true"]'
+    ) as HTMLElement | null;
+    editable?.focus();
   }, [composerOpen]);
 
   React.useEffect(() => {
@@ -873,6 +879,7 @@ export function MailThreadDetail({
     setSelectedIndex(null);
     setComposerOpen(false);
     setBody('');
+    setBodyHtml(null);
     setSuggesting(true);
     loadSuggestions({ threadId: thread.id });
   };
@@ -882,6 +889,7 @@ export function MailThreadDetail({
     if (!suggestion) return;
     setSelectedIndex(index);
     setBody(suggestion.draft);
+    setBodyHtml(null);
     setComposerOpen(true);
   };
 
@@ -892,7 +900,8 @@ export function MailThreadDetail({
     sendReply({
       threadId: thread.id,
       aliasId: sendAliasId,
-      body
+      body,
+      ...(bodyHtml ? { bodyHtml } : {})
     });
   };
 
@@ -1294,14 +1303,18 @@ export function MailThreadDetail({
                       </Button>
                     ) : null}
                   </div>
-                  <Textarea
-                    ref={composerRef}
-                    value={body}
-                    onChange={(event) => setBody(event.target.value)}
-                    placeholder="Write your reply…"
-                    rows={8}
-                    className="min-h-40 resize-y rounded-lg border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-                  />
+                  <div ref={composerRef}>
+                    <MailComposeBodyEditor
+                      value={body}
+                      onChange={(next) => {
+                        setBody(next.text);
+                        setBodyHtml(next.html);
+                      }}
+                      disabled={sendPhase !== 'idle'}
+                      placeholder="Write your reply…"
+                      contentClassName="min-h-40 px-0"
+                    />
+                  </div>
                   <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                     <Button
                       type="button"

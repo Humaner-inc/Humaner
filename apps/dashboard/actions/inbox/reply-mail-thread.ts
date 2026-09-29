@@ -85,6 +85,7 @@ export const replyMailThread = pageActionClient('inbox')
         threadId: thread.id,
         organizationId,
         body: parsedInput.body,
+        ...(parsedInput.bodyHtml ? { bodyHtml: parsedInput.bodyHtml } : {}),
         ...(parsedInput.attachments?.length
           ? { attachments: parsedInput.attachments }
           : {}),

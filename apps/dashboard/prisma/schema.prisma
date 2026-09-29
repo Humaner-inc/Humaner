@@ -1171,6 +1171,12 @@ model MailboxConnection {
   smtpTls           Boolean              @default(true)
   lastSyncedAt      DateTime?
   lastError         String?              @db.VarChar(2000)
+  /// Plain-text email signature appended on outbound mail from this mailbox.
+  signatureText     String?              @db.Text
+  /// Optional signature logo (.png / .svg) stored as bytes.
+  signatureIconData Bytes?
+  signatureIconContentType String?       @db.VarChar(255)
+  signatureIconHash String?              @db.VarChar(64)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   aliases           MailAlias[]

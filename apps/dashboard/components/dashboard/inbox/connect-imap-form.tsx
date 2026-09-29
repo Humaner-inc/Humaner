@@ -39,6 +39,7 @@ import {
   InboxSettingsGroupRow
 } from '@/components/dashboard/inbox/inbox-settings-group-card';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
+import { MailboxSignatureDialog } from '@/components/dashboard/inbox/mailbox-signature-dialog';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
   QuickCreateDialogContent,
@@ -256,6 +257,8 @@ export function ConnectImapForm({
   const [smtpUser, setSmtpUser] = React.useState('');
   const [smtpPassword, setSmtpPassword] = React.useState('');
   const [pendingRemove, setPendingRemove] =
+    React.useState<ConnectedMailboxItem | null>(null);
+  const [pendingSignature, setPendingSignature] =
     React.useState<ConnectedMailboxItem | null>(null);
   const [removeConfirmEmail, setRemoveConfirmEmail] = React.useState('');
   const [copiedMailboxEmail, setCopiedMailboxEmail] = React.useState(false);
@@ -786,6 +789,11 @@ export function ConnectImapForm({
                   >
                     Reconnect
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => setPendingSignature(connection)}
+                  >
+                    Signature
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href={Routes.InboxSettings}>Manage aliases</Link>
                   </DropdownMenuItem>
@@ -956,6 +964,11 @@ export function ConnectImapForm({
                       onSelect={() => editConnection(connection)}
                     >
                       Edit credentials
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => setPendingSignature(connection)}
+                    >
+                      Signature
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href={Routes.InboxSettings}>Manage aliases</Link>
@@ -1455,6 +1468,15 @@ export function ConnectImapForm({
         </div>
       </div>
       {removeDialog}
+      <MailboxSignatureDialog
+        connection={pendingSignature}
+        open={pendingSignature != null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setPendingSignature(null);
+          }
+        }}
+      />
       <Suspense fallback={null}>
         <MailboxUpgradeFromQuery
           onNeedMailbox={() => openMailboxUpgrade('gmail')}

@@ -25,6 +25,7 @@ import {
   type MailListFolder
 } from '@/lib/inbox/mail-thread-folder';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
+import { getMailboxSignatureIconUrl } from '@/lib/urls/get-mailbox-signature-icon-url';
 
 export type MailTagItem = {
   id: string;
@@ -674,6 +675,8 @@ export type ConnectedMailboxItem = {
   /** Why sync or send last failed — shown next to a broken connection. */
   lastError: string | null;
   lastSyncedAt: string | null;
+  signatureText: string | null;
+  signatureIconUrl: string | null;
 };
 
 function normalizeHost(host: string | null | undefined): string | null {
@@ -775,6 +778,8 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       lastSyncedAt: true,
       imapHost: true,
       smtpHost: true,
+      signatureText: true,
+      signatureIconHash: true,
       _count: { select: { aliases: true } }
     }
   });
@@ -795,7 +800,14 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       aliasCount: connection._count.aliases,
       status: connection.status,
       lastError: connection.lastError,
-      lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null
+      lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null,
+      signatureText: connection.signatureText,
+      signatureIconUrl: connection.signatureIconHash
+        ? getMailboxSignatureIconUrl(
+            connection.id,
+            connection.signatureIconHash
+          )
+        : null
     };
   });
 }
