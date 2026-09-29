@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { updateMailboxSignature } from '@/actions/inbox/update-mailbox-signature';
@@ -15,10 +16,16 @@ import { ImageDropzone } from '@/components/ui/image-dropzone';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MAX_IMAGE_SIZE } from '@/constants/limits';
-import type { ConnectedMailboxItem } from '@/data/inbox/get-mail-threads';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 import { FileUploadAction } from '@/types/file-upload-action';
+
+export type MailboxSignatureTarget = {
+  id: string;
+  email: string;
+  signatureText: string | null;
+  signatureIconUrl: string | null;
+};
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -40,10 +47,11 @@ export function MailboxSignatureDialog({
   open,
   onOpenChange
 }: {
-  connection: ConnectedMailboxItem | null;
+  connection: MailboxSignatureTarget | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }): React.JSX.Element {
+  const router = useRouter();
   const [text, setText] = React.useState('');
   const [iconPreview, setIconPreview] = React.useState<string | null>(null);
   const [iconDataUrl, setIconDataUrl] = React.useState<string | null>(null);
@@ -117,6 +125,7 @@ export function MailboxSignatureDialog({
 
     toast.success('Signature saved');
     onOpenChange(false);
+    router.refresh();
   };
 
   return (

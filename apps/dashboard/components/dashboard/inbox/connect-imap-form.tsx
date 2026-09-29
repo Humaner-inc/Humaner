@@ -39,7 +39,6 @@ import {
   InboxSettingsGroupRow
 } from '@/components/dashboard/inbox/inbox-settings-group-card';
 import { MailProviderPicker } from '@/components/dashboard/inbox/mail-provider-picker';
-import { MailboxSignatureDialog } from '@/components/dashboard/inbox/mailbox-signature-dialog';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
   QuickCreateDialogContent,
@@ -258,8 +257,6 @@ export function ConnectImapForm({
   const [smtpPassword, setSmtpPassword] = React.useState('');
   const [pendingRemove, setPendingRemove] =
     React.useState<ConnectedMailboxItem | null>(null);
-  const [pendingSignature, setPendingSignature] =
-    React.useState<ConnectedMailboxItem | null>(null);
   const [removeConfirmEmail, setRemoveConfirmEmail] = React.useState('');
   const [copiedMailboxEmail, setCopiedMailboxEmail] = React.useState(false);
   const copyToClipboard = useCopyToClipboard();
@@ -435,7 +432,7 @@ export function ConnectImapForm({
       toast.success(
         `Connected — ${data?.aliasCount ?? 1} alias${(data?.aliasCount ?? 1) === 1 ? '' : 'es'} ready`
       );
-      router.push(Routes.InboxSettings);
+      router.push(`${Routes.InboxSettings}?tab=inbox`);
       router.refresh();
     },
     onError: ({ error }) => {
@@ -764,7 +761,7 @@ export function ConnectImapForm({
                 className="h-7 rounded-lg px-2 font-mono text-[10px]"
                 asChild
               >
-                <Link href={Routes.InboxSettings}>Aliases</Link>
+                <Link href={`${Routes.InboxSettings}?tab=inbox`}>Aliases</Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -789,13 +786,10 @@ export function ConnectImapForm({
                   >
                     Reconnect
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => setPendingSignature(connection)}
-                  >
-                    Signature
-                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href={Routes.InboxSettings}>Manage aliases</Link>
+                    <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                      Signature & aliases
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -924,7 +918,9 @@ export function ConnectImapForm({
                 className="hidden font-mono sm:inline-flex"
                 asChild
               >
-                <Link href={Routes.InboxSettings}>Manage aliases</Link>
+                <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                  Signature & aliases
+                </Link>
               </Button>
             ) : null}
           </div>
@@ -965,13 +961,10 @@ export function ConnectImapForm({
                     >
                       Edit credentials
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => setPendingSignature(connection)}
-                    >
-                      Signature
-                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={Routes.InboxSettings}>Manage aliases</Link>
+                      <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                        Signature & aliases
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -1468,15 +1461,6 @@ export function ConnectImapForm({
         </div>
       </div>
       {removeDialog}
-      <MailboxSignatureDialog
-        connection={pendingSignature}
-        open={pendingSignature != null}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            setPendingSignature(null);
-          }
-        }}
-      />
       <Suspense fallback={null}>
         <MailboxUpgradeFromQuery
           onNeedMailbox={() => openMailboxUpgrade('gmail')}

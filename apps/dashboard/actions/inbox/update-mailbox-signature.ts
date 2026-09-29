@@ -79,6 +79,7 @@ export const updateMailboxSignature = pageActionClient('inbox')
       }
     });
 
+    revalidatePath(Routes.InboxSettings);
     revalidatePath(Routes.InboxProviders);
 
     return {
