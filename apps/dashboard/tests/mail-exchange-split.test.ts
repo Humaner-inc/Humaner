@@ -13,6 +13,25 @@ describe('triageMailBody', () => {
     expect(result.latest.html).toContain('Welcome to Cursor');
   });
 
+  it('keeps HTML-only marketing mail when plain text is missing', () => {
+    const html = `
+      <table role="presentation">
+        <tr><td>
+          <img src="https://cdn.example.com/logo.png" alt="Kobbe" />
+          <h1>Welcome to Kobbe</h1>
+          <p>Add your first site and install the tracker.</p>
+          <a href="https://app.kobbe.io">Open Kobbe</a>
+        </td></tr>
+      </table>
+    `;
+
+    const result = triageMailBody(html, null);
+
+    expect(result.latest.html).toContain('Welcome to Kobbe');
+    expect(result.latest.html).toContain('Open Kobbe');
+    expect(result.previous).toHaveLength(0);
+  });
+
   it('folds a Gmail quote under previous', () => {
     const html = `
       <div>Thanks — that clears it up.</div>

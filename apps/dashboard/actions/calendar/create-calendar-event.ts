@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { notifyCalendarAttendees } from '@/lib/calendar/notify-attendees';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { createCalendarEventSchema } from '@/schemas/calendar/create-calendar-event-schema';
@@ -45,6 +46,16 @@ export const createCalendarEvent = pageActionClient('calendar')
       select: { id: true }
     });
 
+    await notifyCalendarAttendees({
+      authorId: session.user.id,
+      authorName: session.user.name ?? 'A teammate',
+      eventId: event.id,
+      title: parsedInput.title,
+      startsAt: parsedInput.startsAt,
+      attendeeIds
+    });
+
     revalidatePath(Routes.Calendar);
+    revalidatePath(Routes.Overview);
     return { id: event.id };
   });

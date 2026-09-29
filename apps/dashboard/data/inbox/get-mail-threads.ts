@@ -134,10 +134,12 @@ function compactMailBodies(message: {
   bodyHtml: string | null;
   bodyText: string | null;
 }): { bodyHtml: string | null; bodyText: string | null } {
-  if (message.bodyHtml) {
-    return { bodyHtml: message.bodyHtml, bodyText: null };
-  }
-  return { bodyHtml: null, bodyText: message.bodyText };
+  // Keep both parts — HTML-only mail still needs bodyHtml for the iframe,
+  // and bodyText backs suggestions / forward / plain fallbacks.
+  return {
+    bodyHtml: message.bodyHtml,
+    bodyText: message.bodyText
+  };
 }
 
 function parseFromDisplay(fromAddress: string | null): {

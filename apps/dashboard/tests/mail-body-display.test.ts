@@ -27,6 +27,12 @@ describe('isStructuredMailHtml', () => {
     expect(isRichMailHtml(html)).toBe(true);
     expect(isStructuredMailHtml(html)).toBe(false);
   });
+
+  it('treats button CTAs as designed mail', () => {
+    expect(isRichMailHtml('<button type="button">Open Kobbe</button>')).toBe(
+      true
+    );
+  });
 });
 
 describe('prepareMailHtmlForDisplay', () => {

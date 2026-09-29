@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { sanitizeMailHtml } from '@/lib/inbox/sanitize-mail-html';
+import {
+  resolveStoredMailBodies,
+  sanitizeMailHtml
+} from '@/lib/inbox/sanitize-mail-html';
 
 describe('sanitizeMailHtml', () => {
   it('returns null for empty input', () => {
@@ -50,5 +53,33 @@ describe('sanitizeMailHtml', () => {
     );
 
     expect(sanitized).toContain('src="https://cdn.example.com/banner.png"');
+  });
+});
+
+describe('resolveStoredMailBodies', () => {
+  it('derives plain text when the sender omitted text/plain', () => {
+    const html = `
+      <table><tr><td>
+        <h1>Welcome to Kobbe</h1>
+        <p>Add your first site and install the tracker.</p>
+        <a href="https://app.kobbe.io">Open Kobbe</a>
+      </td></tr></table>
+    `;
+
+    const bodies = resolveStoredMailBodies({ html, text: null });
+
+    expect(bodies.bodyHtml).toContain('Welcome to Kobbe');
+    expect(bodies.bodyText).toContain('Welcome to Kobbe');
+    expect(bodies.bodyText).toContain('Add your first site');
+  });
+
+  it('keeps authored plain text when both parts exist', () => {
+    const bodies = resolveStoredMailBodies({
+      html: '<p>HTML version</p>',
+      text: 'Plain version'
+    });
+
+    expect(bodies.bodyText).toBe('Plain version');
+    expect(bodies.bodyHtml).toContain('HTML version');
   });
 });

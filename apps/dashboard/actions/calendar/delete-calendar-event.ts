@@ -26,5 +26,6 @@ export const deleteCalendarEvent = pageActionClient('calendar')
 
     await prisma.calendarEvent.delete({ where: { id: existing.id } });
     revalidatePath(Routes.Calendar);
+    revalidatePath(Routes.Overview);
     return { id: existing.id };
   });

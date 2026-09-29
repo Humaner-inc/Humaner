@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { authActionClient } from '@/actions/safe-action';
 import { prisma } from '@/lib/db/prisma';
+import { htmlToPlainText } from '@/lib/inbox/mail-body-display';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 
 export const suggestMailThreadReplies = authActionClient
@@ -29,6 +30,7 @@ export const suggestMailThreadReplies = authActionClient
           select: {
             fromAddress: true,
             bodyText: true,
+            bodyHtml: true,
             direction: true
           }
         }
@@ -41,11 +43,16 @@ export const suggestMailThreadReplies = authActionClient
       thread.messages.find((message) => message.direction === 'INBOUND') ??
       thread.messages[0];
 
+    const bodyText =
+      latest?.bodyText?.trim() ||
+      (latest?.bodyHtml ? htmlToPlainText(latest.bodyHtml) : '') ||
+      '';
+
     const suggestions = await suggestMailReplies({
       subject: thread.subject,
       fromAddress: latest?.fromAddress ?? 'unknown',
       aliasAddress: thread.alias.address,
-      bodyText: latest?.bodyText ?? ''
+      bodyText
     });
 
     return { suggestions };

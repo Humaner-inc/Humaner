@@ -14,10 +14,7 @@ import {
   inboundThreadPatch,
   loadBlockedSenderSet
 } from '@/lib/inbox/mail-thread-folder';
-import {
-  MAX_MAIL_BODY_CHARS,
-  sanitizeMailHtml
-} from '@/lib/inbox/sanitize-mail-html';
+import { resolveStoredMailBodies } from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
@@ -40,7 +37,6 @@ import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 const CONNECTIONS_PER_RUN = 10;
 const MESSAGES_PER_CONNECTION = 100;
 const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
-const MAX_BODY_CHARS = MAX_MAIL_BODY_CHARS;
 
 const connectionSelect = {
   id: true,
@@ -194,14 +190,6 @@ function inlineCidImages(html: string, mail: ParsedMail): string {
   return next;
 }
 
-function sanitizedMailHtml(
-  value: string | false | undefined,
-  mail?: ParsedMail
-): string | null {
-  if (!value) return null;
-  return sanitizeMailHtml(mail ? inlineCidImages(value, mail) : value);
-}
-
 function threadIdForMail(mail: ParsedMail, fallback: string): string {
   const references = Array.isArray(mail.references)
     ? mail.references
@@ -240,6 +228,13 @@ function parseForSync(
     connection.aliases.map((item) => normalizeAddress(item.address))
   );
 
+  const rawHtml =
+    typeof mail.html === 'string' && mail.html.trim() ? mail.html : null;
+  const bodies = resolveStoredMailBodies({
+    html: rawHtml ? inlineCidImages(rawHtml, mail) : null,
+    text: mail.text ?? null
+  });
+
   return {
     aliasId: alias.id,
     providerThreadId: threadIdForMail(mail, fallbackId),
@@ -251,8 +246,8 @@ function parseForSync(
     fromAddress: fromAddress.slice(0, 255),
     toAddresses,
     ccAddresses,
-    bodyText: mail.text?.slice(0, MAX_BODY_CHARS) || null,
-    bodyHtml: sanitizedMailHtml(mail.html, mail),
+    bodyText: bodies.bodyText,
+    bodyHtml: bodies.bodyHtml,
     sentAt: mail.date ?? new Date()
   };
 }

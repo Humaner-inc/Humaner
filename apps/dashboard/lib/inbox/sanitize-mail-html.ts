@@ -3,6 +3,7 @@ import 'server-only';
 import sanitizeHtml from 'sanitize-html';
 
 import {
+  htmlToPlainText,
   rewriteMailAssetUrls,
   stripMailPreviewBlocks
 } from '@/lib/inbox/mail-body-display';
@@ -156,4 +157,27 @@ export function sanitizeMailHtml(
     0,
     MAX_MAIL_BODY_CHARS
   );
+}
+
+/**
+ * Normalize MIME parts for storage. Prefer authored HTML; when the sender
+ * omitted a text/plain part, derive plain text from the HTML so suggestions
+ * and plain fallbacks still work.
+ */
+export function resolveStoredMailBodies(input: {
+  html?: string | false | null;
+  text?: string | null;
+}): { bodyHtml: string | null; bodyText: string | null } {
+  const bodyHtml = sanitizeMailHtml(
+    typeof input.html === 'string' ? input.html : null
+  );
+  const rawText = input.text?.trim()
+    ? input.text.slice(0, MAX_MAIL_BODY_CHARS)
+    : null;
+  const bodyText =
+    rawText ||
+    (bodyHtml
+      ? htmlToPlainText(bodyHtml).slice(0, MAX_MAIL_BODY_CHARS) || null
+      : null);
+  return { bodyHtml, bodyText };
 }

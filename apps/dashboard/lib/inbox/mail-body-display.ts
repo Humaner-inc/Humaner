@@ -2,9 +2,9 @@
  * Display helpers for collaborative inbox message bodies.
  */
 
-/** Tags that indicate a designed / marketing HTML email (keep white iframe). */
+/** Tags that indicate a designed / marketing HTML email (keep iframe). */
 const RICH_MAIL_TAG_RE =
-  /<\s*(table|thead|tbody|tfoot|tr|td|th|img|picture|svg|video|source|style|font|center)\b/i;
+  /<\s*(table|thead|tbody|tfoot|tr|td|th|img|picture|svg|video|source|style|font|center|button)\b/i;
 
 /** Background styling — only these force the white HTML shell. */
 const RICH_MAIL_BG_ATTR_RE = /\s(?:bgcolor|background)\s*=/i;

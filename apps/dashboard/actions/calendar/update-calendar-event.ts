@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { notifyCalendarAttendees } from '@/lib/calendar/notify-attendees';
 import { prisma } from '@/lib/db/prisma';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 import { updateCalendarEventSchema } from '@/schemas/calendar/update-calendar-event-schema';
@@ -15,7 +16,13 @@ export const updateCalendarEvent = pageActionClient('calendar')
     const organizationId = session.user.organizationId;
     const existing = await prisma.calendarEvent.findFirst({
       where: { id: parsedInput.id, organizationId },
-      select: { id: true, startsAt: true, endsAt: true }
+      select: {
+        id: true,
+        title: true,
+        startsAt: true,
+        endsAt: true,
+        attendees: { select: { userId: true } }
+      }
     });
 
     if (!existing) {
@@ -27,6 +34,10 @@ export const updateCalendarEvent = pageActionClient('calendar')
     if (endsAt <= startsAt) {
       throw new PreConditionError('End time must be after start time.');
     }
+
+    const previousAttendeeIds = existing.attendees.map(
+      (attendee) => attendee.userId
+    );
 
     if (parsedInput.attendeeIds) {
       const attendeeIds = [...new Set(parsedInput.attendeeIds)];
@@ -65,6 +76,16 @@ export const updateCalendarEvent = pageActionClient('calendar')
           }
         });
       });
+
+      await notifyCalendarAttendees({
+        authorId: session.user.id,
+        authorName: session.user.name ?? 'A teammate',
+        eventId: existing.id,
+        title: parsedInput.title ?? existing.title,
+        startsAt,
+        attendeeIds,
+        previousAttendeeIds
+      });
     } else {
       await prisma.calendarEvent.update({
         where: { id: existing.id },
@@ -79,5 +100,6 @@ export const updateCalendarEvent = pageActionClient('calendar')
     }
 
     revalidatePath(Routes.Calendar);
+    revalidatePath(Routes.Overview);
     return { id: existing.id };
   });

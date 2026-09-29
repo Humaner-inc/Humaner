@@ -412,7 +412,11 @@ function MailExchangeView({
     return stripLeadingSubjectFromText(exchange.text, subject);
   }, [exchange.text, rawHtml, subject]);
 
-  if (preparedHtml && isRichMailHtml(rawHtml)) {
+  const plain = text?.trim() || '';
+
+  // Designed / marketing HTML, or HTML-only messages with no plain part —
+  // always render the authored HTML (Proton-style), never an empty plain stub.
+  if (preparedHtml && (isRichMailHtml(rawHtml) || !plain)) {
     return (
       <MailHtmlFrame
         html={preparedHtml}
@@ -434,7 +438,7 @@ function MailExchangeView({
 
   return (
     <MailPlainBody
-      text={text || ''}
+      text={plain}
       className={className}
     />
   );

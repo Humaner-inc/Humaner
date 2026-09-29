@@ -22,11 +22,12 @@ async function CalendarPageContent({
     date?: string;
     view?: string;
     calendar?: string;
+    event?: string;
   }>;
 }): Promise<React.JSX.Element> {
   await connection();
   await requireDashboardPageOrRedirect('calendar');
-  const { week, date, view } = await searchParams;
+  const { week, date, view, event } = await searchParams;
   const data = await getWorkspaceCalendarWeek(date ?? week, view);
 
   return (
@@ -40,6 +41,7 @@ async function CalendarPageContent({
       view={data.view}
       connections={data.connections}
       mailAutomation={data.mailAutomation}
+      initialEventId={event}
     />
   );
 }
@@ -52,6 +54,7 @@ export default function CalendarPage({
     date?: string;
     view?: string;
     calendar?: string;
+    event?: string;
   }>;
 }): React.JSX.Element {
   return (
