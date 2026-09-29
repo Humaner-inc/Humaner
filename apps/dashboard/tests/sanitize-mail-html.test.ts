@@ -82,4 +82,31 @@ describe('resolveStoredMailBodies', () => {
     expect(bodies.bodyText).toBe('Plain version');
     expect(bodies.bodyHtml).toContain('HTML version');
   });
+
+  it('drops hollow HTML shells and keeps plain text', () => {
+    const bodies = resolveStoredMailBodies({
+      html: '<section style="padding:32px 20px"></section>',
+      text: 'Your 15-day Kobbe trial has started\n\nYour 15 days start counting.'
+    });
+
+    expect(bodies.bodyHtml).toBeNull();
+    expect(bodies.bodyText).toContain('15 days start counting');
+  });
+
+  it('keeps marketing HTML wrapped in overflow:hidden', () => {
+    const html = `
+      <section style="padding:32px 20px">
+        <div style="overflow: hidden; max-width: 600px">
+          <h1>Welcome to Kobbe</h1>
+          <p>Add your first site and install the tracker.</p>
+        </div>
+      </section>
+    `;
+
+    const bodies = resolveStoredMailBodies({ html, text: null });
+
+    expect(bodies.bodyHtml).toContain('Welcome to Kobbe');
+    expect(bodies.bodyHtml).toContain('overflow: hidden');
+    expect(bodies.bodyText).toContain('Welcome to Kobbe');
+  });
 });

@@ -4,6 +4,7 @@ import sanitizeHtml from 'sanitize-html';
 
 import {
   htmlToPlainText,
+  mailHtmlHasVisibleContent,
   rewriteMailAssetUrls,
   stripMailPreviewBlocks
 } from '@/lib/inbox/mail-body-display';
@@ -168,16 +169,19 @@ export function resolveStoredMailBodies(input: {
   html?: string | false | null;
   text?: string | null;
 }): { bodyHtml: string | null; bodyText: string | null } {
-  const bodyHtml = sanitizeMailHtml(
+  const sanitized = sanitizeMailHtml(
     typeof input.html === 'string' ? input.html : null
   );
+  // Drop emptied shells (e.g. preview strip left `<section></section>`) so
+  // the reading pane falls back to plain text instead of a blank iframe.
+  const bodyHtml =
+    sanitized && mailHtmlHasVisibleContent(sanitized) ? sanitized : null;
   const rawText = input.text?.trim()
     ? input.text.slice(0, MAX_MAIL_BODY_CHARS)
     : null;
-  const bodyText =
-    rawText ||
-    (bodyHtml
-      ? htmlToPlainText(bodyHtml).slice(0, MAX_MAIL_BODY_CHARS) || null
-      : null);
+  const fromHtml = sanitized
+    ? htmlToPlainText(sanitized).slice(0, MAX_MAIL_BODY_CHARS) || null
+    : null;
+  const bodyText = rawText || fromHtml;
   return { bodyHtml, bodyText };
 }

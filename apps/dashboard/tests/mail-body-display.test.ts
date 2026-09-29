@@ -4,6 +4,7 @@ import {
   htmlToPlainText,
   isRichMailHtml,
   isStructuredMailHtml,
+  mailHtmlHasVisibleContent,
   prepareMailHtmlForDisplay
 } from '@/lib/inbox/mail-body-display';
 
@@ -49,6 +50,54 @@ describe('prepareMailHtmlForDisplay', () => {
     expect(prepared).toContain('mail-dup');
     expect(prepared).not.toMatch(/<script/i);
     expect(prepared).toContain('New login to Linear');
+  });
+
+  it('does not strip marketing bodies wrapped in overflow:hidden', () => {
+    const html = `
+      <section style="padding:32px 20px">
+        <div style="overflow: hidden; max-width: 600px">
+          <h1>Your 15-day Kobbe trial has started</h1>
+          <p>Your 15 days start counting the moment Kobbe sees the first visit.</p>
+          <a href="https://app.kobbe.io">Open Kobbe</a>
+        </div>
+      </section>
+    `;
+
+    const prepared = prepareMailHtmlForDisplay(
+      html,
+      'Your 15-day Kobbe trial has started'
+    );
+
+    expect(prepared).toContain('Open Kobbe');
+    expect(prepared).toContain('first visit');
+    expect(prepared).toContain('overflow: hidden');
+  });
+
+  it('still strips real preheader dumps', () => {
+    const html = `
+      <div style="display:none;max-height:0;overflow:hidden;opacity:0">
+        Hidden preheader copy
+      </div>
+      <p>Visible body</p>
+    `;
+
+    const prepared = prepareMailHtmlForDisplay(html, null);
+
+    expect(prepared).not.toContain('Hidden preheader copy');
+    expect(prepared).toContain('Visible body');
+  });
+});
+
+describe('mailHtmlHasVisibleContent', () => {
+  it('rejects emptied marketing shells', () => {
+    expect(
+      mailHtmlHasVisibleContent('<section style="padding:32px 20px"></section>')
+    ).toBe(false);
+    expect(
+      mailHtmlHasVisibleContent(
+        '<table><tr><td>Welcome to Kobbe</td></tr></table>'
+      )
+    ).toBe(true);
   });
 });
 

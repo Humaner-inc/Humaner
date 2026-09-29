@@ -12,8 +12,13 @@ const RICH_MAIL_BG_STYLE_RE =
   /style\s*=\s*["'][^"']*\bbackground(?:-color)?\s*:/i;
 
 const PREVIEW_OPEN_RE = /<(div|span|p)\b([^>]*?)>/gi;
+/**
+ * Preheader / inbox-preview dumps only. Do NOT match `overflow:hidden` alone —
+ * marketing layouts (Kobbe, many ESPs) wrap the real body in that style, and
+ * stripping it leaves an empty shell in the reading pane.
+ */
 const PREVIEW_ATTR_RE =
-  /id\s*=\s*["']__react-email-preview["']|class\s*=\s*["'][^"']*(?:preheader|preview-text|previewtext|mcnPreviewText)[^"']*["']|display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|overflow\s*:\s*hidden|visibility\s*:\s*hidden|mso-hide/i;
+  /id\s*=\s*["']__react-email-preview["']|class\s*=\s*["'][^"']*(?:preheader|preview-text|previewtext|mcnPreviewText)[^"']*["']|display\s*:\s*none|max-height\s*:\s*0|opacity\s*:\s*0|visibility\s*:\s*hidden|mso-hide/i;
 
 /** Localhost / relative app asset URLs that break when the mail is viewed later. */
 const BROKEN_APP_ASSET_SRC_RE =
@@ -80,7 +85,17 @@ export function looksLikeMailSource(text: string): boolean {
   const sample = text.replace(/\s+/g, ' ').trim();
   if (sample.length < 8) return false;
   if (CSS_SOURCE_RE.test(sample)) return true;
-  return /^(?:body|html|@media|@font-face)\b/i.test(sample);
+  // CSS selector dumps only — not prose that happens to start with "HTML".
+  return /^(?:body|html)\s*[{.#:[]|^@(?:media|font-face)\b/i.test(sample);
+}
+
+/** True when HTML still has readable copy (not an emptied shell). */
+export function mailHtmlHasVisibleContent(
+  bodyHtml: string | null | undefined
+): boolean {
+  if (!bodyHtml?.trim()) return false;
+  const text = htmlToPlainText(bodyHtml).replace(/\s+/g, ' ').trim();
+  return text.length >= 8 && !looksLikeMailSource(text);
 }
 
 /** Best-effort plain text from simple HTML when `bodyText` is missing. */

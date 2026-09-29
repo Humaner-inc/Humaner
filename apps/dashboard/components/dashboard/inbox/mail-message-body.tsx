@@ -13,6 +13,7 @@ import {
   htmlToPlainText,
   isRichMailHtml,
   isStructuredMailHtml,
+  mailHtmlHasVisibleContent,
   prepareMailHtmlForDisplay,
   stripLeadingSubjectFromText
 } from '@/lib/inbox/mail-body-display';
@@ -413,10 +414,12 @@ function MailExchangeView({
   }, [exchange.text, rawHtml, subject]);
 
   const plain = text?.trim() || '';
+  const htmlUsable =
+    Boolean(preparedHtml) && mailHtmlHasVisibleContent(preparedHtml);
 
   // Designed / marketing HTML, or HTML-only messages with no plain part —
   // always render the authored HTML (Proton-style), never an empty plain stub.
-  if (preparedHtml && (isRichMailHtml(rawHtml) || !plain)) {
+  if (htmlUsable && preparedHtml && (isRichMailHtml(rawHtml) || !plain)) {
     return (
       <MailHtmlFrame
         html={preparedHtml}
@@ -427,7 +430,7 @@ function MailExchangeView({
     );
   }
 
-  if (preparedHtml && isStructuredMailHtml(rawHtml)) {
+  if (htmlUsable && preparedHtml && isStructuredMailHtml(rawHtml)) {
     return (
       <MailStructuredBody
         html={preparedHtml}

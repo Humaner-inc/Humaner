@@ -155,4 +155,15 @@ Opus and Fable both use the Other Models pool.
     expect(result.latest.text).toContain('Other Models pool');
     expect(result.previous).toHaveLength(0);
   });
+
+  it('falls back to plain text when HTML is an emptied shell', () => {
+    const result = triageMailBody(
+      '<section style="padding:32px 20px"></section>',
+      'Your 15 days start counting the moment Kobbe sees the first visit.'
+    );
+
+    expect(result.latest.html).toBeNull();
+    expect(result.latest.text).toContain('15 days start counting');
+    expect(result.previous).toHaveLength(0);
+  });
 });

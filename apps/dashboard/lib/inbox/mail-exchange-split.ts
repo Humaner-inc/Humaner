@@ -2,6 +2,7 @@ import {
   htmlToPlainText,
   isRichMailHtml,
   looksLikeMailSource,
+  mailHtmlHasVisibleContent,
   stripMailUnsafeBlocks
 } from '@/lib/inbox/mail-body-display';
 
@@ -210,14 +211,19 @@ export function triageMailBody(
 
   let rawParts: string[] = [];
   let treatAsHtml = false;
-  if (html && shouldSplitHtml(html)) {
+  // Prefer plain text when HTML is a hollow shell (empty section / stripped
+  // layout) so the reading pane is not a blank iframe.
+  if (html && mailHtmlHasVisibleContent(html) && shouldSplitHtml(html)) {
     rawParts = splitSource(html);
     treatAsHtml = true;
-  } else if (html) {
+  } else if (html && mailHtmlHasVisibleContent(html)) {
     rawParts = [html];
     treatAsHtml = true;
   } else if (text) {
     rawParts = splitSource(text);
+  } else if (html) {
+    rawParts = [html];
+    treatAsHtml = true;
   }
 
   const exchanges = rawParts
