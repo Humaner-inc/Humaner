@@ -18,6 +18,7 @@ function CompanionTabIcon({
     <CompanionFigure
       size={14}
       state="idle"
+      tone="color"
       className={className}
     />
   );

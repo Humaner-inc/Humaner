@@ -2,6 +2,12 @@ import 'server-only';
 
 import sharp from 'sharp';
 
+import {
+  SIGNATURE_ICON_HEIGHT_DEFAULT,
+  SIGNATURE_ICON_HEIGHT_MAX,
+  SIGNATURE_ICON_HEIGHT_MIN
+} from '@/schemas/inbox/update-mailbox-signature-schema';
+
 export const MAILBOX_SIGNATURE_ICON_CID = 'signature-icon@humaner';
 
 export type MailboxSignatureIcon = {
@@ -12,6 +18,8 @@ export type MailboxSignatureIcon = {
 export type MailboxSignature = {
   text: string | null;
   icon: MailboxSignatureIcon | null;
+  /** Display height in px for HTML mail (default 48). */
+  iconHeight?: number | null;
 };
 
 export type AppliedMailboxSignature = {
@@ -35,6 +43,18 @@ function escapeHtml(value: string): string {
 
 function toHtmlParagraphs(value: string): string {
   return escapeHtml(value).replace(/\r\n|\r|\n/g, '<br>\n');
+}
+
+export function clampSignatureIconHeight(
+  value: number | null | undefined
+): number {
+  if (value == null || !Number.isFinite(value)) {
+    return SIGNATURE_ICON_HEIGHT_DEFAULT;
+  }
+  return Math.min(
+    SIGNATURE_ICON_HEIGHT_MAX,
+    Math.max(SIGNATURE_ICON_HEIGHT_MIN, Math.round(value))
+  );
 }
 
 /** Decode a data-URL image, including `image/svg+xml`. */
@@ -185,6 +205,7 @@ export async function applyMailboxSignature(
   }
 
   const emailIcon = await prepareSignatureIconForEmail(signature.icon);
+  const iconHeight = clampSignatureIconHeight(signature.iconHeight);
   const baseHtml =
     existingHtml ?? `<div>${toHtmlParagraphs(body.replace(/\s+$/u, ''))}</div>`;
   const html = [
@@ -192,7 +213,7 @@ export async function applyMailboxSignature(
     '<br>',
     '<div>',
     '--<br>',
-    `<img src="cid:${MAILBOX_SIGNATURE_ICON_CID}" alt="" style="max-height:64px;max-width:200px;" />`,
+    `<img src="cid:${MAILBOX_SIGNATURE_ICON_CID}" alt="" height="${iconHeight}" style="height:${iconHeight}px;width:auto;max-width:240px;" />`,
     hasText ? `<br>${toHtmlParagraphs(trimmedText)}` : '',
     '</div>'
   ].join('');

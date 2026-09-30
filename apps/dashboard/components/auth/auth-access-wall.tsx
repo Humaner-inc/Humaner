@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { CompanionMark } from '@humaner/shared/companion-icon';
 import { LockIcon } from '@humaner/shared/icons';
 
 import { submitAuthAccessCode } from '@/actions/auth/submit-auth-access-code';
@@ -87,14 +88,7 @@ export function AuthAccessWall(): React.JSX.Element {
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-[radial-gradient(ellipse_90%_90%_at_50%_0%,rgb(255_255_255_/_0.18),transparent)]"
               />
-              {/* eslint-disable-next-line @next/next/no-img-element -- public companion mark */}
-              <img
-                src="/companion.svg"
-                alt=""
-                width={36}
-                height={36}
-                className="relative z-10 size-8 brightness-0 invert sm:size-9"
-              />
+              <CompanionMark className="relative z-10 size-8 text-[#F2F2F2] sm:size-9" />
             </span>
           </div>
           <h1 className={authPageTitleClassName}>Early Access</h1>

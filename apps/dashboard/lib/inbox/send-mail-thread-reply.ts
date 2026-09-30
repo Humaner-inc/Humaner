@@ -62,7 +62,8 @@ export async function sendMailThreadReply(input: {
               imapTls: true,
               signatureText: true,
               signatureIconData: true,
-              signatureIconContentType: true
+              signatureIconContentType: true,
+              signatureIconHeight: true
             }
           }
         }
@@ -122,6 +123,7 @@ export async function sendMailThreadReply(input: {
     input.body,
     {
       text: connection.signatureText,
+      iconHeight: connection.signatureIconHeight,
       icon:
         connection.signatureIconData && connection.signatureIconContentType
           ? {

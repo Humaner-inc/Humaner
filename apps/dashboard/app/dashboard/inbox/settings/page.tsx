@@ -67,6 +67,7 @@ export default async function InboxSettingsPage({
       logoDomain: string;
       signatureText: string | null;
       signatureIconUrl: string | null;
+      signatureIconHeight: number;
       aliases: typeof aliases;
     }
   >();
@@ -87,6 +88,7 @@ export default async function InboxSettingsPage({
         logoDomain: alias.logoDomain,
         signatureText: connection?.signatureText ?? null,
         signatureIconUrl: connection?.signatureIconUrl ?? null,
+        signatureIconHeight: connection?.signatureIconHeight ?? 48,
         aliases: [alias]
       });
     }

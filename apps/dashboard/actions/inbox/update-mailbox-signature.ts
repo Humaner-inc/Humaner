@@ -39,6 +39,7 @@ export const updateMailboxSignature = pageActionClient('inbox')
 
     const data: {
       signatureText?: string | null;
+      signatureIconHeight?: number;
       signatureIconData?: Buffer | null;
       signatureIconContentType?: string | null;
       signatureIconHash?: string | null;
@@ -46,6 +47,10 @@ export const updateMailboxSignature = pageActionClient('inbox')
 
     if (signatureText !== undefined) {
       data.signatureText = signatureText;
+    }
+
+    if (parsedInput.signatureIconHeight !== undefined) {
+      data.signatureIconHeight = parsedInput.signatureIconHeight;
     }
 
     let signatureIconUrl: string | null | undefined;
@@ -75,7 +80,8 @@ export const updateMailboxSignature = pageActionClient('inbox')
       data,
       select: {
         signatureText: true,
-        signatureIconHash: true
+        signatureIconHash: true,
+        signatureIconHeight: true
       }
     });
 
@@ -84,6 +90,7 @@ export const updateMailboxSignature = pageActionClient('inbox')
 
     return {
       signatureText: updated.signatureText,
+      signatureIconHeight: updated.signatureIconHeight,
       signatureIconUrl:
         signatureIconUrl !== undefined
           ? signatureIconUrl

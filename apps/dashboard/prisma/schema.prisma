@@ -1177,6 +1177,8 @@ model MailboxConnection {
   signatureIconData Bytes?
   signatureIconContentType String?       @db.VarChar(255)
   signatureIconHash String?              @db.VarChar(64)
+  /// Display height (px) for the signature icon in outbound HTML mail.
+  signatureIconHeight Int                @default(48)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
   aliases           MailAlias[]

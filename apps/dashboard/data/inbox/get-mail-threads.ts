@@ -677,6 +677,7 @@ export type ConnectedMailboxItem = {
   lastSyncedAt: string | null;
   signatureText: string | null;
   signatureIconUrl: string | null;
+  signatureIconHeight: number;
 };
 
 function normalizeHost(host: string | null | undefined): string | null {
@@ -780,6 +781,7 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       smtpHost: true,
       signatureText: true,
       signatureIconHash: true,
+      signatureIconHeight: true,
       _count: { select: { aliases: true } }
     }
   });
@@ -807,7 +809,8 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
             connection.id,
             connection.signatureIconHash
           )
-        : null
+        : null,
+      signatureIconHeight: connection.signatureIconHeight
     };
   });
 }

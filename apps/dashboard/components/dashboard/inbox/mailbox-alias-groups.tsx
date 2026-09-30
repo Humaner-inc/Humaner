@@ -22,6 +22,7 @@ export type MailboxAliasGroup = {
   logoDomain: string;
   signatureText: string | null;
   signatureIconUrl: string | null;
+  signatureIconHeight: number;
   aliases: MailAliasListItem[];
 };
 
@@ -53,7 +54,8 @@ export function MailboxAliasGroups({
       id: mailbox.connectionId,
       email: mailbox.email,
       signatureText: mailbox.signatureText,
-      signatureIconUrl: mailbox.signatureIconUrl
+      signatureIconUrl: mailbox.signatureIconUrl,
+      signatureIconHeight: mailbox.signatureIconHeight
     });
   };
 
