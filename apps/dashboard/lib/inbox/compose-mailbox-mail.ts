@@ -12,7 +12,10 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
-import { applyMailboxSignature } from '@/lib/inbox/mailbox-signature';
+import {
+  applyMailboxSignature,
+  signatureHtmlForStorage
+} from '@/lib/inbox/mailbox-signature';
 import { sendMailboxMail } from '@/lib/inbox/send-mailbox-mail';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
@@ -108,6 +111,7 @@ export async function composeMailboxMail(input: {
     ...(input.attachments ?? []),
     ...(signed.inlineIcon ? [signed.inlineIcon] : [])
   ];
+  const storedHtml = signatureHtmlForStorage(signed);
 
   let messageId: string;
   let providerThreadId: string;
@@ -227,8 +231,8 @@ export async function composeMailboxMail(input: {
           archivedAt: null,
           trashedAt: null,
           lastMessageAt: sentAt,
-          assigneeKind: 'HUMAN',
-          assigneeId: input.actorUserId,
+          assigneeKind: 'UNASSIGNED',
+          assigneeId: null,
           messages: draft.messages[0]
             ? {
                 update: {
@@ -240,7 +244,7 @@ export async function composeMailboxMail(input: {
                     toAddresses: [toAddress],
                     ccAddresses: [],
                     bodyText: signed.text,
-                    bodyHtml: signed.html ?? null,
+                    bodyHtml: storedHtml,
                     sentAt
                   }
                 }
@@ -253,7 +257,7 @@ export async function composeMailboxMail(input: {
                   toAddresses: [toAddress],
                   ccAddresses: [],
                   bodyText: signed.text,
-                  bodyHtml: signed.html ?? null,
+                  bodyHtml: storedHtml,
                   sentAt
                 }
               }
@@ -270,8 +274,8 @@ export async function composeMailboxMail(input: {
           isUnread: false,
           folder: MailThreadFolder.SENT,
           lastMessageAt: sentAt,
-          assigneeKind: 'HUMAN',
-          assigneeId: input.actorUserId,
+          assigneeKind: 'UNASSIGNED',
+          assigneeId: null,
           messages: {
             create: {
               providerMessageId: messageId.slice(0, 512),
@@ -280,7 +284,7 @@ export async function composeMailboxMail(input: {
               toAddresses: [toAddress],
               ccAddresses: [],
               bodyText: signed.text,
-              bodyHtml: signed.html ?? null,
+              bodyHtml: storedHtml,
               sentAt
             }
           }

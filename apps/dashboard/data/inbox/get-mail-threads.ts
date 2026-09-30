@@ -26,6 +26,25 @@ import {
 } from '@/lib/inbox/mail-thread-folder';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 import { getMailboxSignatureIconUrl } from '@/lib/urls/get-mailbox-signature-icon-url';
+import { SIGNATURE_ICON_HEIGHT_DEFAULT } from '@/schemas/inbox/update-mailbox-signature-schema';
+
+/** Must match `MAILBOX_SIGNATURE_ICON_CID` in mailbox-signature.ts */
+const SIGNATURE_ICON_CID = 'signature-icon@humaner';
+
+function rewriteSignatureCidForDisplay(
+  html: string | null,
+  iconUrl: string | null
+): string | null {
+  if (!html || !iconUrl) return html;
+  if (!html.includes(SIGNATURE_ICON_CID)) return html;
+  return html.replace(
+    new RegExp(
+      `(?:cid:)${SIGNATURE_ICON_CID.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+      'gi'
+    ),
+    iconUrl
+  );
+}
 
 export type MailTagItem = {
   id: string;
@@ -81,6 +100,9 @@ export type MailThreadDetail = {
   }>;
   tag: MailTagItem | null;
   sendAliases: MailSendAlias[];
+  signatureText: string | null;
+  signatureIconUrl: string | null;
+  signatureIconHeight: number;
   savedContacts: Array<{
     email: string;
     id: string;
@@ -106,6 +128,9 @@ export type MailInboxOption = {
   connectionId: string;
   connectionEmail: string;
   providerName: string;
+  signatureText: string | null;
+  signatureIconUrl: string | null;
+  signatureIconHeight: number;
 };
 
 export type MailSendAlias = {
@@ -209,7 +234,10 @@ export const getMailInboxes = cache(async (): Promise<MailInboxOption[]> => {
             id: true,
             email: true,
             provider: true,
-            providerPresetId: true
+            providerPresetId: true,
+            signatureText: true,
+            signatureIconHash: true,
+            signatureIconHeight: true
           }
         }
       }
@@ -239,7 +267,16 @@ export const getMailInboxes = cache(async (): Promise<MailInboxOption[]> => {
       unreadCount: unreadByAlias.get(alias.id) ?? 0,
       connectionId: alias.connection.id,
       connectionEmail: alias.connection.email,
-      providerName: preset?.name ?? alias.connection.provider
+      providerName: preset?.name ?? alias.connection.provider,
+      signatureText: alias.connection.signatureText,
+      signatureIconUrl: alias.connection.signatureIconHash
+        ? getMailboxSignatureIconUrl(
+            alias.connection.id,
+            alias.connection.signatureIconHash
+          )
+        : null,
+      signatureIconHeight:
+        alias.connection.signatureIconHeight || SIGNATURE_ICON_HEIGHT_DEFAULT
     };
   });
 });
@@ -490,6 +527,10 @@ export const getMailThread = cache(
               address: true,
               connection: {
                 select: {
+                  id: true,
+                  signatureText: true,
+                  signatureIconHash: true,
+                  signatureIconHeight: true,
                   aliases: {
                     where: {
                       enabled: true,
@@ -545,6 +586,12 @@ export const getMailThread = cache(
 
     if (!thread) return null;
 
+    const signatureIconUrl = thread.alias.connection.signatureIconHash
+      ? getMailboxSignatureIconUrl(
+          thread.alias.connection.id,
+          thread.alias.connection.signatureIconHash
+        )
+      : null;
     const olderMessages = olderHeaders.toReversed().map((message) => ({
       id: message.id,
       direction: message.direction,
@@ -564,7 +611,10 @@ export const getMailThread = cache(
         toAddresses: message.toAddresses,
         ccAddresses: message.ccAddresses,
         bodyText: bodies.bodyText,
-        bodyHtml: bodies.bodyHtml,
+        bodyHtml: rewriteSignatureCidForDisplay(
+          bodies.bodyHtml,
+          signatureIconUrl
+        ),
         sentAt: message.sentAt.toISOString()
       };
     });
@@ -606,6 +656,11 @@ export const getMailThread = cache(
       })),
       tag: thread.tags[0]?.tag ?? null,
       sendAliases: thread.alias.connection.aliases,
+      signatureText: thread.alias.connection.signatureText,
+      signatureIconUrl,
+      signatureIconHeight:
+        thread.alias.connection.signatureIconHeight ||
+        SIGNATURE_ICON_HEIGHT_DEFAULT,
       savedContacts: [...savedByEmail.values()],
       messages
     };
@@ -641,13 +696,39 @@ export async function getMailMessageBodies(
         scope
       })
     },
-    select: { id: true, bodyText: true, bodyHtml: true }
+    select: {
+      id: true,
+      bodyText: true,
+      bodyHtml: true,
+      thread: {
+        select: {
+          alias: {
+            select: {
+              connection: {
+                select: {
+                  id: true,
+                  signatureIconHash: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   });
 
-  return rows.map((row) => ({
-    id: row.id,
-    ...compactMailBodies(row)
-  }));
+  return rows.map((row) => {
+    const bodies = compactMailBodies(row);
+    const connection = row.thread.alias.connection;
+    const iconUrl = connection.signatureIconHash
+      ? getMailboxSignatureIconUrl(connection.id, connection.signatureIconHash)
+      : null;
+    return {
+      id: row.id,
+      bodyText: bodies.bodyText,
+      bodyHtml: rewriteSignatureCidForDisplay(bodies.bodyHtml, iconUrl)
+    };
+  });
 }
 
 export async function getMailTags(): Promise<MailTagItem[]> {

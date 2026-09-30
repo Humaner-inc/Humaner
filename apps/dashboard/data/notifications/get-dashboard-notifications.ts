@@ -230,7 +230,7 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             organizationId,
             assigneeId: userId,
             archivedAt: null,
-            folder: { in: ['INBOX', 'SENT'] },
+            folder: 'INBOX',
             status: { in: ['OPEN', 'PENDING'] }
           },
           select: {

@@ -42,6 +42,7 @@ import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferen
 import { MailComposeBodyEditor } from '@/components/dashboard/inbox/mail-compose-body-editor';
 import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
+import { MailSignaturePreview } from '@/components/dashboard/inbox/mail-signature-preview';
 import { MailThreadHeaderMenu } from '@/components/dashboard/inbox/mail-thread-task-menu';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -1313,6 +1314,12 @@ export function MailThreadDetail({
                       disabled={sendPhase !== 'idle'}
                       placeholder="Write your reply…"
                       contentClassName="min-h-40 px-0"
+                    />
+                    <MailSignaturePreview
+                      text={thread.signatureText}
+                      iconUrl={thread.signatureIconUrl}
+                      iconHeight={thread.signatureIconHeight}
+                      className="mt-3"
                     />
                   </div>
                   <div className="mt-3 flex flex-wrap items-center justify-end gap-2">

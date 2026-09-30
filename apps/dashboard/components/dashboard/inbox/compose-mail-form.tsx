@@ -11,6 +11,7 @@ import { composeMail } from '@/actions/inbox/compose-mail';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { saveMailDraft } from '@/actions/inbox/save-mail-draft';
 import { MailComposeBodyEditor } from '@/components/dashboard/inbox/mail-compose-body-editor';
+import { MailSignaturePreview } from '@/components/dashboard/inbox/mail-signature-preview';
 import {
   QUICK_CREATE_BODY_CLASS,
   QUICK_CREATE_CHIP_CLASS,
@@ -198,6 +199,9 @@ export function ComposeMailForm({
       ? `${selectedInbox.displayName} <${selectedInbox.address}>`
       : selectedInbox.address
     : null;
+  const signatureText = selectedInbox?.signatureText ?? null;
+  const signatureIconUrl = selectedInbox?.signatureIconUrl ?? null;
+  const signatureIconHeight = selectedInbox?.signatureIconHeight ?? 48;
 
   const values: ComposeMailFormValues = {
     aliasId,
@@ -331,6 +335,11 @@ export function ComposeMailForm({
           contentClassName={
             isQuick ? cn(QUICK_CREATE_BODY_CLASS, 'min-h-32') : undefined
           }
+        />
+        <MailSignaturePreview
+          text={signatureText}
+          iconUrl={signatureIconUrl}
+          iconHeight={signatureIconHeight}
         />
         {attachments.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1.5 pt-1">

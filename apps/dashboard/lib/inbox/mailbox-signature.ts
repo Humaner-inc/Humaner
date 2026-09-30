@@ -229,3 +229,24 @@ export async function applyMailboxSignature(
     }
   };
 }
+
+/**
+ * HTML for our DB / reading pane: replace cid: with a data URI so the logo
+ * renders without MIME attachments (recipients still get the cid MIME part).
+ */
+export function signatureHtmlForStorage(
+  signed: AppliedMailboxSignature
+): string | null {
+  if (!signed.html) return null;
+  if (!signed.inlineIcon) return signed.html;
+
+  const dataUri = `data:${signed.inlineIcon.mediaType};base64,${signed.inlineIcon.data}`;
+  return signed.html.replace(
+    new RegExp(`(?:cid:)${escapeRegExp(signed.inlineIcon.cid)}`, 'gi'),
+    dataUri
+  );
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
