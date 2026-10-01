@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { InvitationStatus } from '@prisma/client';
 import { validate as uuidValidate } from 'uuid';
@@ -13,6 +14,7 @@ import {
   isAuthAccessGateEnabled
 } from '@/lib/auth/access-code';
 import { getPostVerificationRedirect } from '@/lib/auth/establish-user-session';
+import { readCollabInboxSvg } from '@/lib/collab-inbox-svg';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { createPageMetadata } from '@/lib/metadata/create-page-metadata';
@@ -133,13 +135,21 @@ async function AuthAccessSwitch({
 }
 
 async function AuthLayoutBody({
-  children
-}: React.PropsWithChildren): Promise<React.JSX.Element> {
+  children,
+  mailboxSvg
+}: React.PropsWithChildren<{
+  mailboxSvg: string;
+}>): Promise<React.JSX.Element> {
+  // Postpone before Auth.js session work hits crypto during prerender.
+  await cookies();
   await AuthLoggedInRedirect();
   const showBackToMarketing = !isOssDeployment() && isLoginOrSignUpRoute();
 
   return (
-    <AuthLayoutFrame showBackToMarketing={showBackToMarketing}>
+    <AuthLayoutFrame
+      showBackToMarketing={showBackToMarketing}
+      mailboxSvg={mailboxSvg}
+    >
       <React.Suspense fallback={null}>
         <AuthAccessSwitch>{children}</AuthAccessSwitch>
       </React.Suspense>
@@ -150,9 +160,18 @@ async function AuthLayoutBody({
 export default function AuthLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
+  const mailboxSvg = readCollabInboxSvg();
+
   return (
-    <React.Suspense fallback={<AuthLayoutFrame showBackToMarketing />}>
-      <AuthLayoutBody>{children}</AuthLayoutBody>
+    <React.Suspense
+      fallback={
+        <AuthLayoutFrame
+          showBackToMarketing
+          mailboxSvg={mailboxSvg}
+        />
+      }
+    >
+      <AuthLayoutBody mailboxSvg={mailboxSvg}>{children}</AuthLayoutBody>
     </React.Suspense>
   );
 }

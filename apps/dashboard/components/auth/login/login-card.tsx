@@ -3,10 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  ctaPrimaryOnLightClassName,
-  ctaSecondaryOnLightClassName
-} from '@humaner/shared/cta';
-import {
   AlertCircleIcon,
   ArrowRightIcon,
   CheckIcon,
@@ -24,13 +20,15 @@ import { logIn } from '@/actions/auth/log-in';
 import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authHighlightButtonClassName,
+  authGlassButtonClassName,
+  authGlassButtonOnLightClassName,
+  authGlassPrimaryButtonClassName,
+  authGlassPrimaryButtonOnLightClassName,
   authInputAdornmentClassName,
   authInputClassName,
   authLabelClassName,
   authLinkClassName,
   authMutedTextClassName,
-  authOutlineButtonClassName,
   authPageTitleClassName,
   authStackButtonClassName,
   authStackInputClassName
@@ -204,18 +202,14 @@ export function LoginCard({
   };
   const oss = false; // Humaner brand chrome
   const methodButtonClassName = cn(
-    isInverted
-      ? `${ctaSecondaryOnLightClassName} h-11 w-full`
-      : authOutlineButtonClassName,
-    authStackButtonClassName,
-    'justify-center gap-2.5'
+    isInverted ? authGlassButtonOnLightClassName : authGlassButtonClassName,
+    authStackButtonClassName
   );
   const primaryButtonClassName = cn(
     isInverted
-      ? `${ctaPrimaryOnLightClassName} h-11 w-full`
-      : authHighlightButtonClassName,
-    authStackButtonClassName,
-    'justify-center gap-2.5'
+      ? authGlassPrimaryButtonOnLightClassName
+      : authGlassPrimaryButtonClassName,
+    authStackButtonClassName
   );
 
   return (
@@ -494,10 +488,7 @@ export function LoginCard({
             variant="ghost"
             className={cn(
               methodButtonClassName,
-              'relative z-10 cursor-pointer',
-              isInverted
-                ? 'hover:!border-transparent hover:!bg-[#0A0D0D] hover:!text-[#fcf4ec]'
-                : 'hover:!border-transparent hover:!bg-[#fcf4ec] hover:!text-[#0A0D0D]'
+              'relative z-10 cursor-pointer'
             )}
             onClick={() => setAuthPage('3')}
           >

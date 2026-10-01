@@ -4,46 +4,66 @@ import * as React from 'react';
 
 import { AuthBackToMarketing } from '@/components/auth/auth-back-to-marketing';
 import { AuthHeroPanel } from '@/components/auth/auth-hero-panel';
-import { AuthThemeProvider } from '@/components/auth/auth-theme-context';
+import {
+  AuthThemeProvider,
+  useAuthThemeClasses
+} from '@/components/auth/auth-theme-context';
 import { cn } from '@/lib/utils';
 
 export type AuthLayoutFrameProps = React.PropsWithChildren<{
   showBackToMarketing?: boolean;
+  /** CollabInbox SVG markup from the server — keeps the scene out of client fetch. */
+  mailboxSvg?: string;
 }>;
 
 function AuthLayoutChrome({
   children,
-  showBackToMarketing = false
+  showBackToMarketing = false,
+  mailboxSvg = ''
 }: AuthLayoutFrameProps): React.JSX.Element {
+  const theme = useAuthThemeClasses();
+  const inverted = theme.isInverted;
+
   return (
-    <div className="relative min-h-screen lg:grid lg:grid-cols-2">
+    <div
+      className={cn(
+        'relative min-h-screen transition-colors duration-300',
+        inverted ? 'bg-white' : 'bg-[#0A0D0D]'
+      )}
+    >
       {showBackToMarketing ? <AuthBackToMarketing /> : null}
 
-      {/* Left — black, form */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center bg-[#0a0d0d] px-6 py-8">
+      {/* Portal stays vertically centered; art is pinned to the page bottom. */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-10 sm:py-14">
         <main className="w-full max-w-sm">{children}</main>
       </div>
 
-      {/* Right — light, CollabInbox */}
-      <div
-        className={cn(
-          'relative hidden min-h-screen overflow-hidden bg-[#f2f2f2]',
-          'lg:flex lg:items-end lg:justify-center'
-        )}
-      >
-        <AuthHeroPanel className="auth-collab-inbox--panel w-full max-w-[42rem] px-6 pb-0" />
-      </div>
+      {mailboxSvg ? (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 flex justify-center overflow-hidden"
+          aria-hidden
+        >
+          <AuthHeroPanel
+            markup={mailboxSvg}
+            className="auth-collab-inbox--bottom w-full max-w-[min(42rem,92vw)]"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function AuthLayoutFrame({
   children,
-  showBackToMarketing = false
+  showBackToMarketing = false,
+  mailboxSvg = ''
 }: AuthLayoutFrameProps): React.JSX.Element {
   return (
     <AuthThemeProvider className="min-h-screen">
-      <AuthLayoutChrome showBackToMarketing={showBackToMarketing}>
+      <AuthLayoutChrome
+        showBackToMarketing={showBackToMarketing}
+        mailboxSvg={mailboxSvg}
+      >
         {children}
       </AuthLayoutChrome>
     </AuthThemeProvider>

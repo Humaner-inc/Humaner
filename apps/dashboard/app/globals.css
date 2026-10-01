@@ -1008,8 +1008,24 @@ input[type='password'],
 }
 
 .auth-collab-inbox--panel {
-  /* Seat hands on the bottom edge of the light panel. */
+  /* Seat hands on the bottom edge of a split light panel. */
   margin-bottom: -6%;
+}
+
+.auth-collab-inbox--backdrop {
+  /* Legacy absolute backdrop mode. */
+  transform: translateY(8%);
+  opacity: 0.9;
+}
+
+.auth-collab-inbox--below {
+  /* Legacy flow-below mode. */
+  margin-top: -2.5rem;
+}
+
+.auth-collab-inbox--bottom {
+  /* Pin hands to the viewport bottom; portal stays centered above. */
+  margin-bottom: -10%;
 }
 
 .auth-collab-inbox .hero-mailbox-scene {

@@ -5,28 +5,16 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * CollabInbox scene for the auth right panel — same art/motion as the
- * landing hero, without scroll-driven fly-away.
+ * CollabInbox scene for the auth page — same art/motion as the landing
+ * hero, without scroll-driven fly-away. Markup is passed from the server.
  */
 export function AuthHeroPanel({
+  markup,
   className
 }: {
+  markup: string;
   className?: string;
-} = {}): React.JSX.Element {
-  const [markup, setMarkup] = React.useState('');
-
-  React.useEffect(() => {
-    let cancelled = false;
-    void fetch('/CollabInbox.svg')
-      .then((res) => res.text())
-      .then((svg) => {
-        if (!cancelled) setMarkup(svg);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+}): React.JSX.Element {
   return (
     <div
       className={cn('auth-collab-inbox', className)}

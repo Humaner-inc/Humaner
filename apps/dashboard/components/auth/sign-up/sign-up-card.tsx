@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ctaPrimaryOnLightClassName } from '@humaner/shared/cta';
 import {
   AlertCircleIcon,
   LockIcon,
@@ -18,7 +17,8 @@ import { signUp } from '@/actions/auth/sign-up';
 import {
   authAlertDestructiveClassName,
   authDestructiveMessageClassName,
-  authHighlightButtonClassName,
+  authGlassPrimaryButtonClassName,
+  authGlassPrimaryButtonOnLightClassName,
   authInputAdornmentClassName,
   authInputAdornmentOnLightClassName,
   authInputClassName,
@@ -104,15 +104,9 @@ export function SignUpCard({
 
   React.useLayoutEffect(() => {
     if (embedded && !active) {
-      setAppearance('dark');
       return;
     }
     setAppearance(inverted ? 'light' : 'dark');
-    return () => {
-      if (embedded) {
-        setAppearance('dark');
-      }
-    };
   }, [active, embedded, inverted, setAppearance]);
 
   const persistIntent = async (next: SignUpIntent): Promise<void> => {
@@ -176,10 +170,9 @@ export function SignUpCard({
     : authInputAdornmentClassName;
   const primaryButtonClassName = cn(
     inverted
-      ? `${ctaPrimaryOnLightClassName} h-11 w-full`
-      : authHighlightButtonClassName,
-    authStackButtonClassName,
-    'justify-center gap-2.5'
+      ? authGlassPrimaryButtonOnLightClassName
+      : authGlassPrimaryButtonClassName,
+    authStackButtonClassName
   );
   const destructiveClassName = inverted
     ? 'text-red-600'
