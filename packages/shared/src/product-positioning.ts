@@ -1,7 +1,10 @@
-/** Primary product line — browser title, OG titles, hero, and positioning. */
-export const HUMANER_TITLE = "Your inbox, humanly automated.";
+/** Primary product line — browser title, OG titles, and metadata. */
+export const HUMANER_TITLE = "The collab inbox for the AI era";
 
 export const HUMANER_TAGLINE = HUMANER_TITLE;
+
+/** Hero / slogan line — display copy (not the browser title). */
+export const HUMANER_SLOGAN = "The collab inbox(es) for agents, and humans.";
 
 export const HUMANER_META_DESCRIPTION =
   "Automated but never impersonal. Powered by Companion, our agent built for support or by your own. Automate, connect and collaborate to run your emails better, faster.";
