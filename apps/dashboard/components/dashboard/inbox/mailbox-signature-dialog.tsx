@@ -6,6 +6,7 @@ import { UploadIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { updateMailboxSignature } from '@/actions/inbox/update-mailbox-signature';
+import { MailboxSignatureIconImg } from '@/components/dashboard/inbox/mail-signature-preview';
 import {
   QuickCreateDialogContent,
   QuickCreateFooter
@@ -77,12 +78,10 @@ function SignatureMailPreview({
         <div className="border-t border-border/40 pt-3">
           <p className="mb-2 text-muted-foreground">--</p>
           {iconUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <MailboxSignatureIconImg
               src={iconUrl}
-              alt=""
-              style={{ height: iconHeight, width: 'auto', maxWidth: 240 }}
-              className="mb-2 block object-contain"
+              height={iconHeight}
+              className="mb-2"
             />
           ) : null}
           {lines.length > 0 ? (

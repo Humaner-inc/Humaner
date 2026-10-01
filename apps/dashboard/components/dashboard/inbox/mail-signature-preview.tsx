@@ -11,6 +11,52 @@ export type MailSignaturePreviewProps = {
   className?: string;
 };
 
+const ICON_MAX_WIDTH = 240;
+
+/** Keeps upload aspect ratio — same math as outbound HTML mail. */
+export function MailboxSignatureIconImg({
+  src,
+  height,
+  className
+}: {
+  src: string;
+  height: number;
+  className?: string;
+}): React.JSX.Element {
+  const [width, setWidth] = React.useState<number | null>(null);
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- mailbox signature asset
+    <img
+      src={src}
+      alt=""
+      width={width ?? undefined}
+      height={height}
+      onLoad={(event) => {
+        const img = event.currentTarget;
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        setWidth(
+          Math.min(
+            ICON_MAX_WIDTH,
+            Math.max(
+              1,
+              Math.round((height * img.naturalWidth) / img.naturalHeight)
+            )
+          )
+        );
+      }}
+      className={className}
+      style={{
+        display: 'block',
+        height,
+        width: width ?? 'auto',
+        maxWidth: ICON_MAX_WIDTH,
+        objectFit: 'contain'
+      }}
+    />
+  );
+}
+
 export function MailSignaturePreview({
   text,
   iconUrl,
@@ -34,13 +80,9 @@ export function MailSignaturePreview({
       <div className="space-y-2">
         <p aria-hidden>—</p>
         {iconUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- mailbox signature asset
-          <img
+          <MailboxSignatureIconImg
             src={iconUrl}
-            alt=""
             height={iconHeight}
-            style={{ height: iconHeight, width: 'auto', maxWidth: 240 }}
-            className="object-contain"
           />
         ) : null}
         {trimmed ? (

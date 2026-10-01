@@ -118,8 +118,8 @@ export async function prepareSignatureIconForStorage(
 
   const data = await sharp(buffer)
     .resize({
-      width: 320,
-      height: 128,
+      width: 480,
+      height: 192,
       fit: 'inside',
       withoutEnlargement: true
     })
@@ -134,12 +134,14 @@ export async function prepareSignatureIconForEmail(
   icon: MailboxSignatureIcon
 ): Promise<MailboxSignatureIcon & { name: string }> {
   if (icon.contentType.includes('svg')) {
-    const data = await sharp(icon.data)
+    // Density matters for SVG → PNG; then fit inside a box that preserves
+    // aspect ratio (square marks stay square).
+    const data = await sharp(icon.data, { density: 300 })
       .resize({
-        width: 320,
-        height: 128,
+        width: 480,
+        height: 192,
         fit: 'inside',
-        withoutEnlargement: true
+        withoutEnlargement: false
       })
       .png()
       .toBuffer();
@@ -159,6 +161,33 @@ export async function prepareSignatureIconForEmail(
     contentType: icon.contentType,
     name: `signature.${extension}`
   };
+}
+
+const SIGNATURE_ICON_MAX_WIDTH = 240;
+
+/**
+ * Display size for HTML mail. Gmail and others ignore `width:auto` and
+ * stretch images — always set both width and height in px.
+ */
+export async function signatureIconDisplaySize(
+  iconData: Buffer,
+  iconHeight: number | null | undefined
+): Promise<{ width: number; height: number }> {
+  const height = clampSignatureIconHeight(iconHeight);
+  const meta = await sharp(iconData).metadata();
+  const naturalWidth = meta.width ?? height;
+  const naturalHeight = meta.height ?? height;
+
+  if (!naturalWidth || !naturalHeight) {
+    return { width: height, height };
+  }
+
+  const width = Math.min(
+    SIGNATURE_ICON_MAX_WIDTH,
+    Math.max(1, Math.round((height * naturalWidth) / naturalHeight))
+  );
+
+  return { width, height };
 }
 
 export async function applyMailboxSignature(
@@ -205,7 +234,10 @@ export async function applyMailboxSignature(
   }
 
   const emailIcon = await prepareSignatureIconForEmail(signature.icon);
-  const iconHeight = clampSignatureIconHeight(signature.iconHeight);
+  const { width, height } = await signatureIconDisplaySize(
+    emailIcon.data,
+    signature.iconHeight
+  );
   const baseHtml =
     existingHtml ?? `<div>${toHtmlParagraphs(body.replace(/\s+$/u, ''))}</div>`;
   const html = [
@@ -213,7 +245,7 @@ export async function applyMailboxSignature(
     '<br>',
     '<div>',
     '--<br>',
-    `<img src="cid:${MAILBOX_SIGNATURE_ICON_CID}" alt="" height="${iconHeight}" style="height:${iconHeight}px;width:auto;max-width:240px;" />`,
+    `<img src="cid:${MAILBOX_SIGNATURE_ICON_CID}" alt="" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;max-width:100%;border:0;outline:none;text-decoration:none;" />`,
     hasText ? `<br>${toHtmlParagraphs(trimmedText)}` : '',
     '</div>'
   ].join('');
