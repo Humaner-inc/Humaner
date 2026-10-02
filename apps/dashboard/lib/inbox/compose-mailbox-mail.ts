@@ -11,6 +11,7 @@ import {
 import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import {
   applyMailboxSignature,
@@ -134,10 +135,10 @@ export async function composeMailboxMail(input: {
         512
       );
     } catch (error) {
-      const detail =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Reconnect Gmail and try again.';
+      const detail = humanizeMailboxActionError(
+        error,
+        'Reconnect Gmail and try again.'
+      );
       throw new Error(`Could not send this email. ${detail}`);
     }
   } else {
@@ -190,10 +191,10 @@ export async function composeMailboxMail(input: {
       messageId = sent.messageId;
       providerThreadId = `outbound-${messageId}`.slice(0, 512);
     } catch (error) {
-      const detail =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Check SMTP settings and try again.';
+      const detail = humanizeMailboxActionError(
+        error,
+        'Check SMTP settings and try again.'
+      );
       throw new Error(`Could not send this email. ${detail}`);
     }
   }

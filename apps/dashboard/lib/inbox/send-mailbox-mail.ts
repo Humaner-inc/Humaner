@@ -2,7 +2,9 @@ import 'server-only';
 
 import { MailProvider } from '@prisma/client';
 
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import { sendGmailMessage } from '@/lib/inbox/gmail/api';
+import { isGmailQuotaError, sleep } from '@/lib/inbox/gmail/quota';
 import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
@@ -25,22 +27,50 @@ export async function sendMailboxMail(input: {
 }): Promise<{ messageId: string; threadId?: string }> {
   if (input.provider === MailProvider.GMAIL) {
     const accessToken = await getGmailAccessToken(input.connectionId);
-    const sent = await sendGmailMessage(
-      accessToken,
-      {
-        from: input.from,
-        to: input.to,
-        cc: input.cc,
-        subject: input.subject,
-        text: input.text,
-        html: input.html,
-        attachments: input.attachments,
-        inReplyTo: input.inReplyTo,
-        references: input.references
-      },
-      input.providerThreadId
-    );
-    return { messageId: sent.id, threadId: sent.threadId };
+    const payload = {
+      from: input.from,
+      to: input.to,
+      cc: input.cc,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
+      attachments: input.attachments,
+      inReplyTo: input.inReplyTo,
+      references: input.references
+    };
+
+    try {
+      const sent = await sendGmailMessage(
+        accessToken,
+        payload,
+        input.providerThreadId
+      );
+      return { messageId: sent.id, threadId: sent.threadId };
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : '';
+      // One short retry — sync may have just burned the minute budget.
+      if (isGmailQuotaError(raw)) {
+        await sleep(2500);
+        try {
+          const sent = await sendGmailMessage(
+            accessToken,
+            payload,
+            input.providerThreadId
+          );
+          return { messageId: sent.id, threadId: sent.threadId };
+        } catch (retryError) {
+          throw new Error(
+            humanizeMailboxActionError(
+              retryError,
+              'Reconnect Gmail and try again.'
+            )
+          );
+        }
+      }
+      throw new Error(
+        humanizeMailboxActionError(error, 'Reconnect Gmail and try again.')
+      );
+    }
   }
 
   if (!input.endpoints) {

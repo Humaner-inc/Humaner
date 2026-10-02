@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import { modifyGmailThread } from '@/lib/inbox/gmail/api';
 import {
   GMAIL_MODIFY_SCOPE_HINT,
@@ -110,7 +111,7 @@ async function applyGmailThreadAction(input: {
       await markGmailNeedsModifyScope(input.connectionId);
       throw new Error(GMAIL_MODIFY_SCOPE_HINT);
     }
-    throw error;
+    throw new Error(humanizeMailboxActionError(error, 'Gmail sync failed'));
   }
 }
 

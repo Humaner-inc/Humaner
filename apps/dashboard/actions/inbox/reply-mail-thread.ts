@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import {
   aliasIdFilter,
   resolveMailAliasScope
@@ -96,10 +97,10 @@ export const replyMailThread = pageActionClient('inbox')
       if (error instanceof ValidationError) {
         throw error;
       }
-      const detail =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Check mailbox settings and try again.';
+      const detail = humanizeMailboxActionError(
+        error,
+        'Check mailbox settings and try again.'
+      );
       throw new ValidationError(`Could not send this reply. ${detail}`);
     }
 

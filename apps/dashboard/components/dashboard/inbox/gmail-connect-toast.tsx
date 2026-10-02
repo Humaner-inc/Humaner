@@ -2,10 +2,8 @@
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
-import { syncInboxNow } from '@/actions/inbox/sync-inbox-now';
 import { Routes } from '@/constants/routes';
 
 const GMAIL_TOASTS: Record<
@@ -44,16 +42,12 @@ export function GmailConnectToast(): React.JSX.Element | null {
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get('gmail');
-  const { execute: runPostConnectSync } = useAction(syncInboxNow);
-  const postConnectSyncRef = React.useRef(runPostConnectSync);
-  postConnectSyncRef.current = runPostConnectSync;
 
   React.useEffect(() => {
     if (!status) return;
     const toastCopy = GMAIL_TOASTS[status];
     if (toastCopy?.type === 'success') {
       toast.success(toastCopy.message);
-      void postConnectSyncRef.current({});
     } else if (toastCopy) {
       toast.error(toastCopy.message);
     }
