@@ -300,22 +300,32 @@ export function InboxListHeader({
   const hasSelection = Boolean(selection?.selectMode);
 
   const filterItems = React.useMemo<FilterChipItem[]>(
-    () => [
-      ...FILTERS.map((filter) => ({
+    () => {
+      const statusItems = FILTERS.map((filter) => ({
         key: filter.id,
         href: hrefFor({ filter: filter.id }),
         label: filter.label,
         active: !activeTagId && activeFilter === filter.id,
         color: filter.id === 'unread' ? '#001afc' : undefined
-      })),
-      ...tags.map((tag) => ({
+      }));
+      const tagItems = tags.map((tag) => ({
         key: tag.id,
         href: hrefFor({ tagId: activeTagId === tag.id ? null : tag.id }),
         label: tag.name,
         active: activeTagId === tag.id,
         color: tag.color
-      }))
-    ],
+      }));
+      const unreadIndex = statusItems.findIndex(
+        (item) => item.key === 'unread'
+      );
+      const insertAt = unreadIndex >= 0 ? unreadIndex + 1 : statusItems.length;
+
+      return [
+        ...statusItems.slice(0, insertAt),
+        ...tagItems,
+        ...statusItems.slice(insertAt)
+      ];
+    },
     // hrefFor is rebuilt from the current route + selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeMailboxId, activeFilter, activeTagId, pathname, tags]

@@ -30,6 +30,11 @@ const GMAIL_TOASTS: Record<
   failed: {
     type: 'error',
     message: 'Could not connect Google mail. Try again.'
+  },
+  scopes: {
+    type: 'error',
+    message:
+      'Google did not grant mail modify access. Reconnect and allow Gmail permission to archive and move mail.'
   }
 };
 

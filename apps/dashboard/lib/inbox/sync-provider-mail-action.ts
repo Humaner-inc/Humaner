@@ -8,13 +8,14 @@ import {
 
 import { prisma } from '@/lib/db/prisma';
 import { modifyGmailThread } from '@/lib/inbox/gmail/api';
-import { GMAIL_MODIFY_SCOPE_HINT } from '@/lib/inbox/gmail/oauth';
+import {
+  GMAIL_MODIFY_SCOPE_HINT,
+  hasGmailModifyScope
+} from '@/lib/inbox/gmail/oauth';
 import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+import { applyImapMailActionForThread } from '@/lib/inbox/imap-mail-actions';
 
 const SYNTHETIC_THREAD_RE = /^(outbound-|draft-)/i;
-
-const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
-const GMAIL_FULL_SCOPE = 'https://mail.google.com/';
 
 export type ProviderMailAction =
   | 'archive'
@@ -30,13 +31,19 @@ function isProviderThreadId(value: string): boolean {
   return trimmed.length > 0 && !SYNTHETIC_THREAD_RE.test(trimmed);
 }
 
-function connectionHasGmailModifyScope(scopes: string | null): boolean {
-  if (!scopes) {
-    // Legacy rows may omit scopes; connect flow always requested gmail.modify.
-    return true;
-  }
-  const granted = new Set(scopes.split(/[\s,]+/).filter(Boolean));
-  return granted.has(GMAIL_MODIFY_SCOPE) || granted.has(GMAIL_FULL_SCOPE);
+/**
+ * Legacy rows may omit scopes (connect always requested modify). Explicit
+ * scopes without modify must fail closed.
+ */
+function connectionAllowsGmailModify(scopes: string | null): boolean {
+  if (!scopes?.trim()) return true;
+  return hasGmailModifyScope(scopes);
+}
+
+function isInsufficientScopeError(message: string): boolean {
+  return /insufficient.*(auth|scope)|ACCESS_TOKEN_SCOPE_INSUFFICIENT|Request had insufficient authentication scopes/i.test(
+    message
+  );
 }
 
 function gmailLabelPatch(action: ProviderMailAction): {
@@ -45,6 +52,7 @@ function gmailLabelPatch(action: ProviderMailAction): {
 } {
   switch (action) {
     case 'archive':
+      // Gmail archive = leave All Mail / Sent, drop Inbox.
       return { addLabelIds: [], removeLabelIds: ['INBOX'] };
     case 'unarchive':
     case 'inbox':
@@ -69,31 +77,46 @@ function gmailLabelPatch(action: ProviderMailAction): {
   }
 }
 
+async function markGmailNeedsModifyScope(connectionId: string): Promise<void> {
+  await prisma.mailboxConnection.update({
+    where: { id: connectionId },
+    data: {
+      status: MailConnectionStatus.NEEDS_REAUTH,
+      lastError: GMAIL_MODIFY_SCOPE_HINT
+    }
+  });
+}
+
 async function applyGmailThreadAction(input: {
   connectionId: string;
   scopes: string | null;
   providerThreadId: string;
   action: ProviderMailAction;
 }): Promise<void> {
-  if (!connectionHasGmailModifyScope(input.scopes)) {
-    await prisma.mailboxConnection.update({
-      where: { id: input.connectionId },
-      data: {
-        status: MailConnectionStatus.NEEDS_REAUTH,
-        lastError: GMAIL_MODIFY_SCOPE_HINT
-      }
-    });
+  if (!connectionAllowsGmailModify(input.scopes)) {
+    await markGmailNeedsModifyScope(input.connectionId);
     throw new Error(GMAIL_MODIFY_SCOPE_HINT);
   }
 
   const accessToken = await getGmailAccessToken(input.connectionId);
   const patch = gmailLabelPatch(input.action);
-  await modifyGmailThread(accessToken, input.providerThreadId, patch);
+
+  try {
+    await modifyGmailThread(accessToken, input.providerThreadId, patch);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Gmail sync failed';
+    if (isInsufficientScopeError(message)) {
+      await markGmailNeedsModifyScope(input.connectionId);
+      throw new Error(GMAIL_MODIFY_SCOPE_HINT);
+    }
+    throw error;
+  }
 }
 
 /**
- * Mirror a Humaner inbox action onto the connected provider (Gmail today).
- * Synthetic / draft threads are skipped. Missing remote threads are ignored.
+ * Mirror a Humaner inbox action onto the connected provider (Gmail + IMAP).
+ * Synthetic / draft threads are skipped. Missing remote Gmail threads are ignored.
  */
 export async function syncProviderMailAction(input: {
   threadId: string;
@@ -118,29 +141,40 @@ export async function syncProviderMailAction(input: {
     }
   });
 
-  if (!thread || !isProviderThreadId(thread.providerThreadId)) {
+  if (!thread) {
     return;
   }
 
   const connection = thread.alias.connection;
-  if (connection.provider !== MailProvider.GMAIL) {
+
+  if (connection.provider === MailProvider.GMAIL) {
+    if (!isProviderThreadId(thread.providerThreadId)) {
+      return;
+    }
+    try {
+      await applyGmailThreadAction({
+        connectionId: connection.id,
+        scopes: connection.scopes,
+        providerThreadId: thread.providerThreadId,
+        action: input.action
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Gmail sync failed';
+      if (/notFound|404/i.test(message)) {
+        return;
+      }
+      throw error;
+    }
     return;
   }
 
-  try {
-    await applyGmailThreadAction({
-      connectionId: connection.id,
-      scopes: connection.scopes,
-      providerThreadId: thread.providerThreadId,
+  if (connection.provider === MailProvider.IMAP) {
+    await applyImapMailActionForThread({
+      threadId: input.threadId,
+      organizationId: input.organizationId,
       action: input.action
     });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Gmail sync failed';
-    if (/notFound|404/i.test(message)) {
-      return;
-    }
-    throw error;
   }
 }
 

@@ -4,16 +4,13 @@ import {
   MailConnectionStatus,
   MailMessageDirection,
   MailProvider,
+  MailThreadFolder,
   type Prisma
 } from '@prisma/client';
 import { simpleParser, type AddressObject, type ParsedMail } from 'mailparser';
 
 import { prisma } from '@/lib/db/prisma';
-import {
-  folderForNewThread,
-  inboundThreadPatch,
-  loadBlockedSenderSet
-} from '@/lib/inbox/mail-thread-folder';
+import { loadBlockedSenderSet } from '@/lib/inbox/mail-thread-folder';
 import { resolveStoredMailBodies } from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
@@ -71,6 +68,17 @@ type ParsedSyncMessage = {
   bodyText: string | null;
   bodyHtml: string | null;
   sentAt: Date;
+  folder: MailThreadFolder;
+  archivedAt: Date | null;
+  trashedAt: Date | null;
+  isUnread: boolean;
+};
+
+type ImapSyncFolder = {
+  path: string;
+  folder: MailThreadFolder;
+  archivedAt: Date | null;
+  trashedAt: Date | null;
 };
 
 export type ImapSyncResult = {
@@ -203,7 +211,9 @@ function threadIdForMail(mail: ParsedMail, fallback: string): string {
 function parseForSync(
   mail: ParsedMail,
   connection: SyncableConnection,
-  fallbackId: string
+  fallbackId: string,
+  folderMeta: Omit<ImapSyncFolder, 'path'>,
+  flags: string[] | undefined
 ): ParsedSyncMessage | null {
   const toAddresses = addressObjectValues(mail.to);
   const ccAddresses = addressObjectValues(mail.cc);
@@ -212,21 +222,25 @@ function parseForSync(
     ...ccAddresses,
     ...headerAddresses(mail)
   ]);
-  const alias = connection.aliases.find((item) =>
-    recipientAddresses.has(normalizeAddress(item.address))
-  );
-
-  if (!alias) return null;
-
   const fromAddress = addressObjectValues(mail.from)[0];
   if (!fromAddress) return null;
-
-  const providerMessageId = normalizeMessageId(mail.messageId ?? fallbackId);
-  if (!providerMessageId) return null;
 
   const aliasAddresses = new Set(
     connection.aliases.map((item) => normalizeAddress(item.address))
   );
+
+  const alias =
+    connection.aliases.find((item) =>
+      recipientAddresses.has(normalizeAddress(item.address))
+    ) ??
+    connection.aliases.find(
+      (item) => normalizeAddress(item.address) === fromAddress
+    );
+
+  if (!alias) return null;
+
+  const providerMessageId = normalizeMessageId(mail.messageId ?? fallbackId);
+  if (!providerMessageId) return null;
 
   const rawHtml =
     typeof mail.html === 'string' && mail.html.trim() ? mail.html : null;
@@ -234,6 +248,8 @@ function parseForSync(
     html: rawHtml ? inlineCidImages(rawHtml, mail) : null,
     text: mail.text ?? null
   });
+
+  const seen = (flags ?? []).some((flag) => flag.toLowerCase() === '\\seen');
 
   return {
     aliasId: alias.id,
@@ -248,7 +264,11 @@ function parseForSync(
     ccAddresses,
     bodyText: bodies.bodyText,
     bodyHtml: bodies.bodyHtml,
-    sentAt: mail.date ?? new Date()
+    sentAt: mail.date ?? new Date(),
+    folder: folderMeta.folder,
+    archivedAt: folderMeta.archivedAt,
+    trashedAt: folderMeta.trashedAt,
+    isUnread: !seen
   };
 }
 
@@ -263,6 +283,18 @@ async function persistMessages(
     let importedInboundThreadId: string | null = null;
     await prisma.$transaction(async (tx) => {
       const isInbound = message.direction === MailMessageDirection.INBOUND;
+
+      let folder = message.folder;
+      let archivedAt = message.archivedAt;
+      let trashedAt = message.trashedAt;
+      if (
+        isInbound &&
+        folder === MailThreadFolder.INBOX &&
+        !archivedAt &&
+        blocked.has(normalizeAddress(message.fromAddress))
+      ) {
+        folder = MailThreadFolder.SPAM;
+      }
 
       // Upsert must not rewind lastMessageAt or re-flag read threads as unread
       // when IMAP re-delivers older messages after a reply.
@@ -279,15 +311,17 @@ async function persistMessages(
           providerThreadId: message.providerThreadId,
           subject: message.subject,
           lastMessageAt: message.sentAt,
-          isUnread: isInbound,
-          folder: folderForNewThread({
-            direction: message.direction,
-            fromAddress: message.fromAddress,
-            blocked
-          })
+          isUnread: isInbound ? message.isUnread : false,
+          folder,
+          archivedAt,
+          trashedAt
         },
         update: {
-          subject: message.subject
+          subject: message.subject,
+          folder,
+          archivedAt,
+          trashedAt,
+          isUnread: message.isUnread
         },
         select: { id: true, lastMessageAt: true, folder: true }
       });
@@ -325,13 +359,10 @@ async function persistMessages(
           where: { id: thread.id },
           data: {
             ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
-            ...(isInbound
-              ? inboundThreadPatch({
-                  currentFolder: thread.folder,
-                  fromAddress: message.fromAddress,
-                  blocked
-                })
-              : { isUnread: false })
+            folder,
+            archivedAt,
+            trashedAt,
+            isUnread: isInbound ? message.isUnread : false
           }
         });
       } else {
@@ -439,39 +470,122 @@ export async function syncImapConnection(
 
   try {
     await client.connect();
-    const lock = await client.getMailboxLock('INBOX');
+    const mailboxes = await client.list();
+    const now = new Date();
+    const syncFolders: ImapSyncFolder[] = [];
+
+    const pushUnique = (folder: ImapSyncFolder) => {
+      if (syncFolders.some((entry) => entry.path === folder.path)) return;
+      syncFolders.push(folder);
+    };
+
+    pushUnique({
+      path: 'INBOX',
+      folder: MailThreadFolder.INBOX,
+      archivedAt: null,
+      trashedAt: null
+    });
+
+    for (const box of mailboxes) {
+      if (
+        box.specialUse === '\\Junk' ||
+        /(?:^|[/\s])(junk|spam)$/i.test(box.path)
+      ) {
+        pushUnique({
+          path: box.path,
+          folder: MailThreadFolder.SPAM,
+          archivedAt: null,
+          trashedAt: null
+        });
+      } else if (box.specialUse === '\\Trash') {
+        pushUnique({
+          path: box.path,
+          folder: MailThreadFolder.TRASH,
+          archivedAt: null,
+          trashedAt: now
+        });
+      } else if (box.specialUse === '\\Sent') {
+        pushUnique({
+          path: box.path,
+          folder: MailThreadFolder.SENT,
+          archivedAt: null,
+          trashedAt: null
+        });
+      } else if (box.specialUse === '\\Archive') {
+        pushUnique({
+          path: box.path,
+          folder: MailThreadFolder.INBOX,
+          archivedAt: now,
+          trashedAt: null
+        });
+      }
+    }
+
     const parsedMessages: ParsedSyncMessage[] = [];
 
-    try {
-      const mailbox = client.mailbox;
-      const messageCount = mailbox === false ? 0 : (mailbox?.exists ?? 0);
-      const start = Math.max(1, messageCount - MESSAGES_PER_CONNECTION + 1);
-
-      if (messageCount > 0) {
-        for await (const item of client.fetch(`${start}:*`, {
-          uid: true,
-          source: true
-        })) {
-          if (!item.source || item.source.length > MAX_SOURCE_BYTES) continue;
-
-          const fallbackId = `${connection.id}:${item.uid ?? item.seq}`;
-          const parsed = parseForSync(
-            await simpleParser(item.source),
-            connection,
-            fallbackId
-          );
-          if (parsed) parsedMessages.push(parsed);
-        }
+    for (const syncFolder of syncFolders) {
+      let lock;
+      try {
+        lock = await client.getMailboxLock(syncFolder.path);
+      } catch {
+        continue;
       }
-    } finally {
-      lock.release();
+
+      try {
+        const mailbox = client.mailbox;
+        const messageCount = mailbox === false ? 0 : (mailbox?.exists ?? 0);
+        const start = Math.max(1, messageCount - MESSAGES_PER_CONNECTION + 1);
+
+        if (messageCount > 0) {
+          for await (const item of client.fetch(`${start}:*`, {
+            uid: true,
+            source: true,
+            flags: true
+          })) {
+            if (!item.source || item.source.length > MAX_SOURCE_BYTES) continue;
+
+            const fallbackId = `${connection.id}:${item.uid ?? item.seq}`;
+            const parsed = parseForSync(
+              await simpleParser(item.source),
+              connection,
+              fallbackId,
+              {
+                folder: syncFolder.folder,
+                archivedAt: syncFolder.archivedAt,
+                trashedAt: syncFolder.trashedAt
+              },
+              item.flags ? [...item.flags] : undefined
+            );
+            if (parsed) parsedMessages.push(parsed);
+          }
+        }
+      } finally {
+        lock.release();
+      }
     }
 
     await client.logout();
-    parsedMessages.sort(
+    // Prefer authoritative folder: Trash > Spam > Inbox > Sent > Archive.
+    const folderRank = (message: ParsedSyncMessage): number => {
+      if (message.folder === MailThreadFolder.TRASH) return 5;
+      if (message.folder === MailThreadFolder.SPAM) return 4;
+      if (message.folder === MailThreadFolder.INBOX && !message.archivedAt)
+        return 3;
+      if (message.folder === MailThreadFolder.SENT) return 2;
+      return 1;
+    };
+    const deduped = new Map<string, ParsedSyncMessage>();
+    for (const message of parsedMessages) {
+      const key = `${message.aliasId}:${message.providerMessageId}`;
+      const existing = deduped.get(key);
+      if (!existing || folderRank(message) >= folderRank(existing)) {
+        deduped.set(key, message);
+      }
+    }
+    const uniqueMessages = [...deduped.values()].sort(
       (left, right) => left.sentAt.getTime() - right.sentAt.getTime()
     );
-    const imported = await persistMessages(connection, parsedMessages);
+    const imported = await persistMessages(connection, uniqueMessages);
 
     await prisma.mailboxConnection.update({
       where: { id: connection.id },

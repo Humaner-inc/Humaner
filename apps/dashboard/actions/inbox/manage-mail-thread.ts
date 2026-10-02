@@ -95,11 +95,6 @@ export const markMailThreadRead = authActionClient
       organizationId
     );
 
-    await prisma.mailThread.update({
-      where: { id: parsedInput.threadId },
-      data: { isUnread: parsedInput.isUnread }
-    });
-
     try {
       await syncProviderMailAction({
         threadId: parsedInput.threadId,
@@ -113,6 +108,11 @@ export const markMailThreadRead = authActionClient
           : 'Could not sync read state to the mailbox'
       );
     }
+
+    await prisma.mailThread.update({
+      where: { id: parsedInput.threadId },
+      data: { isUnread: parsedInput.isUnread }
+    });
 
     try {
       after(() => {
@@ -175,17 +175,6 @@ export const archiveMailThread = authActionClient
       organizationId
     );
 
-    await prisma.mailThread.update({
-      where: { id: parsedInput.threadId },
-      data: parsedInput.archive
-        ? { archivedAt: new Date() }
-        : {
-            archivedAt: null,
-            folder: MailThreadFolder.INBOX,
-            trashedAt: null
-          }
-    });
-
     try {
       await syncProviderMailAction({
         threadId: parsedInput.threadId,
@@ -199,6 +188,17 @@ export const archiveMailThread = authActionClient
           : 'Could not sync archive to the mailbox'
       );
     }
+
+    await prisma.mailThread.update({
+      where: { id: parsedInput.threadId },
+      data: parsedInput.archive
+        ? { archivedAt: new Date() }
+        : {
+            archivedAt: null,
+            folder: MailThreadFolder.INBOX,
+            trashedAt: null
+          }
+    });
 
     revalidateMailPaths(parsedInput.threadId);
     return { success: true };
@@ -231,10 +231,6 @@ export const deleteMailThread = authActionClient
         );
       }
     } else {
-      await prisma.mailThread.update({
-        where: { id: parsedInput.threadId },
-        data: mailFolderWriteData(MailThreadFolder.TRASH)
-      });
       try {
         await syncProviderMailAction({
           threadId: parsedInput.threadId,
@@ -248,6 +244,10 @@ export const deleteMailThread = authActionClient
             : 'Could not sync trash to the mailbox'
         );
       }
+      await prisma.mailThread.update({
+        where: { id: parsedInput.threadId },
+        data: mailFolderWriteData(MailThreadFolder.TRASH)
+      });
     }
 
     revalidateMailPaths(parsedInput.threadId);
@@ -274,11 +274,6 @@ export const moveMailThreadFolder = authActionClient
       organizationId
     );
 
-    await prisma.mailThread.update({
-      where: { id: parsedInput.threadId },
-      data: mailFolderWriteData(parsedInput.folder)
-    });
-
     const providerAction = providerActionForFolder(parsedInput.folder);
     if (providerAction) {
       try {
@@ -295,6 +290,11 @@ export const moveMailThreadFolder = authActionClient
         );
       }
     }
+
+    await prisma.mailThread.update({
+      where: { id: parsedInput.threadId },
+      data: mailFolderWriteData(parsedInput.folder)
+    });
 
     revalidateMailPaths(parsedInput.threadId);
     return { success: true };
@@ -452,18 +452,6 @@ export const bulkArchiveMailThreads = authActionClient
     );
     const threadIds = threads.map((thread) => thread.id);
 
-    await updateMailThreadsByIds(
-      prisma,
-      threadIds,
-      parsedInput.archive
-        ? { archivedAt: new Date() }
-        : {
-            archivedAt: null,
-            folder: MailThreadFolder.INBOX,
-            trashedAt: null
-          }
-    );
-
     try {
       await syncProviderMailActions({
         threadIds,
@@ -477,6 +465,18 @@ export const bulkArchiveMailThreads = authActionClient
           : 'Could not sync archive to the mailbox'
       );
     }
+
+    await updateMailThreadsByIds(
+      prisma,
+      threadIds,
+      parsedInput.archive
+        ? { archivedAt: new Date() }
+        : {
+            archivedAt: null,
+            folder: MailThreadFolder.INBOX,
+            trashedAt: null
+          }
+    );
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
@@ -501,12 +501,6 @@ export const bulkMoveMailThreads = authActionClient
     );
     const threadIds = threads.map((thread) => thread.id);
 
-    await updateMailThreadsByIds(
-      prisma,
-      threadIds,
-      mailFolderWriteData(parsedInput.folder)
-    );
-
     const providerAction = providerActionForFolder(parsedInput.folder);
     if (providerAction) {
       try {
@@ -523,6 +517,12 @@ export const bulkMoveMailThreads = authActionClient
         );
       }
     }
+
+    await updateMailThreadsByIds(
+      prisma,
+      threadIds,
+      mailFolderWriteData(parsedInput.folder)
+    );
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
@@ -552,11 +552,6 @@ export const bulkDeleteMailThreads = authActionClient
       .map((thread) => thread.id);
 
     if (moveIds.length > 0) {
-      await updateMailThreadsByIds(
-        prisma,
-        moveIds,
-        mailFolderWriteData(MailThreadFolder.TRASH)
-      );
       try {
         await syncProviderMailActions({
           threadIds: moveIds,
@@ -570,6 +565,11 @@ export const bulkDeleteMailThreads = authActionClient
             : 'Could not sync trash to the mailbox'
         );
       }
+      await updateMailThreadsByIds(
+        prisma,
+        moveIds,
+        mailFolderWriteData(MailThreadFolder.TRASH)
+      );
     }
 
     if (trashIds.length > 0) {

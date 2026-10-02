@@ -59,6 +59,11 @@ export const syncInboxNow = pageActionClient('inbox')
 
     revalidatePath(Routes.InboxAll);
     revalidatePath(Routes.InboxAssigned);
+    revalidatePath(Routes.InboxArchive);
+    revalidatePath(Routes.InboxSent);
+    revalidatePath(Routes.InboxSpam);
+    revalidatePath(Routes.InboxTrash);
+    revalidatePath(Routes.InboxDrafts);
 
     return result;
   });
