@@ -385,14 +385,14 @@ export function WorkspaceCalendarWeek({
 
         <div
           className={cn(
-            'shrink-0 overflow-hidden border-l border-border/50 transition-[width] duration-300 ease-out',
+            'flex min-h-0 shrink-0 flex-col overflow-hidden border-l border-border/50 transition-[width] duration-300 ease-out',
             selectedEvent
               ? 'w-96 max-lg:fixed max-lg:inset-y-0 max-lg:right-0 max-lg:z-50 max-lg:w-full max-lg:border-l-0'
               : 'w-0 border-l-0'
           )}
         >
           {selectedEvent ? (
-            <div className="h-full w-96 max-lg:w-full">
+            <div className="flex h-full min-h-0 w-96 flex-col max-lg:w-full">
               <EventDetailSidebar
                 event={selectedEvent}
                 teamMembers={teamMembers}

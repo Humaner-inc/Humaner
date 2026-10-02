@@ -32,12 +32,17 @@ export const createCalendarEvent = pageActionClient('calendar')
 
     let sourceKey: string | null = null;
     try {
+      const user = await prisma.user.findFirst({
+        where: { id: session.user.id },
+        select: { timeZone: true }
+      });
       sourceKey = await pushCalendarEventToGoogle({
         organizationId,
         title: parsedInput.title,
         description: parsedInput.description,
         startsAt: parsedInput.startsAt,
-        endsAt: parsedInput.endsAt
+        endsAt: parsedInput.endsAt,
+        timeZone: user?.timeZone
       });
     } catch (error) {
       throw new ValidationError(

@@ -54,6 +54,10 @@ export const updateCalendarEvent = pageActionClient('calendar')
     let sourceKey = existing.sourceKey;
     if (shouldSyncSourceKeyToGoogle(existing.sourceKey)) {
       try {
+        const user = await prisma.user.findFirst({
+          where: { id: session.user.id },
+          select: { timeZone: true }
+        });
         const pushed = await pushCalendarEventToGoogle({
           organizationId,
           title,
@@ -61,7 +65,8 @@ export const updateCalendarEvent = pageActionClient('calendar')
           startsAt,
           endsAt,
           allDay: existing.allDay,
-          sourceKey: existing.sourceKey
+          sourceKey: existing.sourceKey,
+          timeZone: user?.timeZone
         });
         if (pushed) {
           sourceKey = pushed;

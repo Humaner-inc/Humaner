@@ -1093,7 +1093,8 @@ async function executeCreateCalendar(
       title: eventTitle,
       description: eventDescription,
       startsAt,
-      endsAt
+      endsAt,
+      timeZone
     });
   } catch (error) {
     return {

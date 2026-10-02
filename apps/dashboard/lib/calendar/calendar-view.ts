@@ -95,8 +95,16 @@ export function toLocalDateTimeInput(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+/** Parse datetime-local value as the browser's local wall clock (never UTC-as-local). */
 export function fromLocalDateTimeInput(value: string): Date {
-  return new Date(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value.trim());
+  if (!match) return new Date(Number.NaN);
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
 export function snapMinutes(totalMinutes: number, step = 30): number {
