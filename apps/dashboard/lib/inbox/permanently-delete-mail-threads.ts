@@ -1,15 +1,28 @@
 import 'server-only';
 
-import { MailProvider, MailThreadFolder } from '@prisma/client';
+import {
+  MailConnectionStatus,
+  MailProvider,
+  MailThreadFolder
+} from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import { deleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
+import { permanentlyDeleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
+import { isInsufficientScopeErrorMessage } from '@/lib/inbox/gmail-sync-errors';
 import { deleteGmailThread } from '@/lib/inbox/gmail/api';
+import {
+  GMAIL_FULL_MAIL_SCOPE_HINT,
+  hasGmailFullMailScope
+} from '@/lib/inbox/gmail/oauth';
 import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
 
 const BATCH_SIZE = 50;
 const SYNTHETIC_THREAD_RE = /^(outbound-|draft-)/i;
 
+/**
+ * Permanently delete threads on Gmail (`users.threads.delete`).
+ * Requires `https://mail.google.com/` — reconnect if missing.
+ */
 async function deleteGmailThreadsForThreads(
   threadIds: string[],
   organizationId: string
@@ -25,7 +38,9 @@ async function deleteGmailThreadsForThreads(
           connection: {
             select: {
               id: true,
-              provider: true
+              provider: true,
+              scopes: true,
+              status: true
             }
           }
         }
@@ -33,19 +48,67 @@ async function deleteGmailThreadsForThreads(
     }
   });
 
-  const byConnection = new Map<string, string[]>();
+  const byConnection = new Map<
+    string,
+    { scopes: string | null; status: MailConnectionStatus; ids: string[] }
+  >();
+
   for (const thread of threads) {
     if (thread.alias.connection.provider !== MailProvider.GMAIL) continue;
     if (SYNTHETIC_THREAD_RE.test(thread.providerThreadId)) continue;
-    const list = byConnection.get(thread.alias.connection.id) ?? [];
-    list.push(thread.providerThreadId);
-    byConnection.set(thread.alias.connection.id, list);
+    const connectionId = thread.alias.connection.id;
+    let bucket = byConnection.get(connectionId);
+    if (!bucket) {
+      bucket = {
+        scopes: thread.alias.connection.scopes,
+        status: thread.alias.connection.status,
+        ids: []
+      };
+      byConnection.set(connectionId, bucket);
+    }
+    bucket.ids.push(thread.providerThreadId);
   }
 
-  for (const [connectionId, providerThreadIds] of byConnection) {
+  for (const [connectionId, bucket] of byConnection) {
+    if (bucket.status !== MailConnectionStatus.ACTIVE) {
+      throw new Error(
+        'Reconnect this mailbox before deleting messages from Gmail.'
+      );
+    }
+
+    if (!hasGmailFullMailScope(bucket.scopes)) {
+      await prisma.mailboxConnection.update({
+        where: { id: connectionId },
+        data: {
+          status: MailConnectionStatus.NEEDS_REAUTH,
+          lastError: GMAIL_FULL_MAIL_SCOPE_HINT
+        }
+      });
+      throw new Error(GMAIL_FULL_MAIL_SCOPE_HINT);
+    }
+
     const accessToken = await getGmailAccessToken(connectionId);
-    for (const providerThreadId of [...new Set(providerThreadIds)]) {
-      await deleteGmailThread(accessToken, providerThreadId);
+    for (const providerThreadId of [...new Set(bucket.ids)]) {
+      try {
+        await deleteGmailThread(accessToken, providerThreadId);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Gmail delete failed';
+        if (isInsufficientScopeErrorMessage(message)) {
+          await prisma.mailboxConnection.update({
+            where: { id: connectionId },
+            data: {
+              status: MailConnectionStatus.NEEDS_REAUTH,
+              lastError: GMAIL_FULL_MAIL_SCOPE_HINT
+            }
+          });
+          throw new Error(GMAIL_FULL_MAIL_SCOPE_HINT);
+        }
+        if (/notFound|404/i.test(message)) {
+          continue;
+        }
+        throw error;
+      }
     }
   }
 }
@@ -56,10 +119,9 @@ export async function permanentlyDeleteMailThreads(
 ): Promise<number> {
   if (threadIds.length === 0) return 0;
 
-  await Promise.all([
-    deleteImapMessagesForThreads(threadIds, organizationId),
-    deleteGmailThreadsForThreads(threadIds, organizationId)
-  ]);
+  // Provider first — only remove Humaner rows after remote delete succeeds.
+  await permanentlyDeleteImapMessagesForThreads(threadIds, organizationId);
+  await deleteGmailThreadsForThreads(threadIds, organizationId);
 
   const threads = await prisma.mailThread.findMany({
     where: { id: { in: threadIds }, organizationId },

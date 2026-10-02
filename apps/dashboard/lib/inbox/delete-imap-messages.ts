@@ -25,35 +25,88 @@ type ConnectionForDelete = {
   smtpPort: number | null;
 };
 
+type SpecialUse =
+  | '\\Inbox'
+  | '\\Trash'
+  | '\\Junk'
+  | '\\Archive'
+  | '\\Sent'
+  | '\\Drafts';
+
 function formatMessageIdHeader(value: string): string {
   const bare = value.trim().replace(/^<|>$/g, '');
   return `<${bare}>`;
 }
 
-async function resolveTrashPath(
-  client: import('imapflow').ImapFlow
-): Promise<string | null> {
-  const mailboxes = await client.list();
-  const trash = mailboxes.find((box) => box.specialUse === '\\Trash');
-  return trash?.path ?? null;
-}
-
-async function removeUidsFromMailbox(
-  client: import('imapflow').ImapFlow,
-  uids: number[],
-  trashPath: string | null
+async function withImapClient(
+  connection: ConnectionForDelete,
+  run: (client: import('imapflow').ImapFlow) => Promise<void>
 ): Promise<void> {
-  if (uids.length === 0) return;
+  const imapHost = decryptSensitiveField(connection.imapHost);
+  const imapUser = decryptSensitiveField(connection.imapUser);
+  const imapPassword = decryptSensitiveField(connection.imapPassword);
+  const smtpHost = decryptSensitiveField(connection.smtpHost);
 
-  if (trashPath) {
-    await client.messageMove(uids, trashPath, { uid: true });
-    return;
+  if (
+    !imapHost ||
+    !imapUser ||
+    !imapPassword ||
+    !connection.imapPort ||
+    !smtpHost ||
+    !connection.smtpPort
+  ) {
+    throw new Error('Mailbox connection is missing encrypted IMAP settings.');
   }
 
-  await client.messageDelete(uids, { uid: true });
+  const validatedHosts = await validateMailEndpoints({
+    imapHost,
+    imapPort: connection.imapPort,
+    smtpHost,
+    smtpPort: connection.smtpPort
+  });
+
+  const { ImapFlow } = await import('imapflow');
+  const client = new ImapFlow({
+    host: validatedHosts.imap.address,
+    servername: validatedHosts.imap.hostname,
+    port: connection.imapPort,
+    secure: connection.imapTls,
+    auth: { user: imapUser, pass: imapPassword },
+    logger: false,
+    tls: {
+      rejectUnauthorized: true,
+      minVersion: 'TLSv1.2'
+    },
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000
+  });
+
+  try {
+    await client.connect();
+    await run(client);
+    await client.logout();
+  } catch (error) {
+    try {
+      await client.close();
+    } catch {
+      // Ignore cleanup errors.
+    }
+
+    const message =
+      error instanceof Error ? error.message : 'Mailbox delete failed';
+    if (isImapAuthError(error)) {
+      await markMailboxNeedsReauth(connection.id, message);
+    } else {
+      await prisma.mailboxConnection.update({
+        where: { id: connection.id },
+        data: { lastError: message.slice(0, 2000) }
+      });
+    }
+    throw error;
+  }
 }
 
-async function collectUidsForMessageIds(
+async function collectUidsInOpenMailbox(
   client: import('imapflow').ImapFlow,
   connectionId: string,
   providerMessageIds: string[]
@@ -88,9 +141,37 @@ async function collectUidsForMessageIds(
   return [...uidSet];
 }
 
+async function resolveMailboxPaths(
+  client: import('imapflow').ImapFlow
+): Promise<string[]> {
+  const mailboxes = await client.list();
+  const paths = new Set<string>(['INBOX']);
+  const preferred: SpecialUse[] = [
+    '\\Inbox',
+    '\\Trash',
+    '\\Junk',
+    '\\Sent',
+    '\\Archive',
+    '\\Drafts'
+  ];
+
+  for (const use of preferred) {
+    const box = mailboxes.find((entry) => entry.specialUse === use);
+    if (box?.path) paths.add(box.path);
+  }
+
+  for (const box of mailboxes) {
+    if (/junk|spam|trash|deleted|archive|sent|draft/i.test(box.path)) {
+      paths.add(box.path);
+    }
+  }
+
+  return [...paths];
+}
+
 /**
  * Moves matching INBOX messages to Trash (or expunges if no Trash mailbox).
- * Missing messages are treated as already gone.
+ * Used when Humaner soft-deletes into Trash. Missing messages are ignored.
  */
 export async function deleteImapInboxMessages(input: {
   connection: ConnectionForDelete;
@@ -101,86 +182,74 @@ export async function deleteImapInboxMessages(input: {
   ];
   if (ids.length === 0) return;
 
-  const imapHost = decryptSensitiveField(input.connection.imapHost);
-  const imapUser = decryptSensitiveField(input.connection.imapUser);
-  const imapPassword = decryptSensitiveField(input.connection.imapPassword);
-  const smtpHost = decryptSensitiveField(input.connection.smtpHost);
-
-  if (
-    !imapHost ||
-    !imapUser ||
-    !imapPassword ||
-    !input.connection.imapPort ||
-    !smtpHost ||
-    !input.connection.smtpPort
-  ) {
-    throw new Error('Mailbox connection is missing encrypted IMAP settings.');
-  }
-
-  const validatedHosts = await validateMailEndpoints({
-    imapHost,
-    imapPort: input.connection.imapPort,
-    smtpHost,
-    smtpPort: input.connection.smtpPort
-  });
-
-  const { ImapFlow } = await import('imapflow');
-  const client = new ImapFlow({
-    host: validatedHosts.imap.address,
-    servername: validatedHosts.imap.hostname,
-    port: input.connection.imapPort,
-    secure: input.connection.imapTls,
-    auth: { user: imapUser, pass: imapPassword },
-    logger: false,
-    tls: {
-      rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
-    },
-    connectionTimeout: 15_000,
-    greetingTimeout: 15_000
-  });
-
-  try {
-    await client.connect();
-    const trashPath = await resolveTrashPath(client);
+  await withImapClient(input.connection, async (client) => {
+    const mailboxes = await client.list();
+    const trash = mailboxes.find((box) => box.specialUse === '\\Trash');
+    const trashPath = trash?.path ?? null;
     const lock = await client.getMailboxLock('INBOX');
 
     try {
-      const uids = await collectUidsForMessageIds(
+      const uids = await collectUidsInOpenMailbox(
         client,
         input.connection.id,
         ids
       );
-      await removeUidsFromMailbox(client, uids, trashPath);
+      if (uids.length === 0) return;
+
+      if (trashPath) {
+        await client.messageMove(uids, trashPath, { uid: true });
+      } else {
+        await client.messageDelete(uids, { uid: true });
+      }
     } finally {
       lock.release();
     }
-
-    await client.logout();
-  } catch (error) {
-    try {
-      await client.close();
-    } catch {
-      // Ignore cleanup errors.
-    }
-
-    const message =
-      error instanceof Error ? error.message : 'Mailbox delete failed';
-    if (isImapAuthError(error)) {
-      await markMailboxNeedsReauth(input.connection.id, message);
-    } else {
-      await prisma.mailboxConnection.update({
-        where: { id: input.connection.id },
-        data: { lastError: message.slice(0, 2000) }
-      });
-    }
-    throw error;
-  }
+  });
 }
 
 /**
- * Deletes matching provider messages over IMAP for the given threads, grouped
- * by mailbox connection. Non-IMAP connections are skipped.
+ * Permanently removes messages from the IMAP server (expunge), searching
+ * Inbox / Trash / Spam / Sent / Archive — not Inbox-only.
+ */
+export async function permanentlyDeleteImapMessages(input: {
+  connection: ConnectionForDelete;
+  providerMessageIds: string[];
+}): Promise<void> {
+  const ids = [
+    ...new Set(input.providerMessageIds.map((id) => id.trim()).filter(Boolean))
+  ];
+  if (ids.length === 0) return;
+
+  await withImapClient(input.connection, async (client) => {
+    const paths = await resolveMailboxPaths(client);
+
+    for (const path of paths) {
+      let lock;
+      try {
+        lock = await client.getMailboxLock(path);
+      } catch {
+        continue;
+      }
+
+      try {
+        const uids = await collectUidsInOpenMailbox(
+          client,
+          input.connection.id,
+          ids
+        );
+        if (uids.length === 0) continue;
+        // Permanent delete + expunge on this mailbox.
+        await client.messageDelete(uids, { uid: true });
+      } finally {
+        lock.release();
+      }
+    }
+  });
+}
+
+/**
+ * Soft-delete helper: move matching messages to Trash over IMAP.
+ * Non-IMAP connections are skipped.
  */
 export async function deleteImapMessagesForThreads(
   threadIds: string[],
@@ -188,6 +257,55 @@ export async function deleteImapMessagesForThreads(
 ): Promise<void> {
   if (threadIds.length === 0) return;
 
+  const buckets = await loadImapBuckets(threadIds, organizationId);
+  for (const bucket of buckets) {
+    if (bucket.connection.status !== MailConnectionStatus.ACTIVE) {
+      throw new Error(
+        'Reconnect this mailbox before deleting messages from the provider.'
+      );
+    }
+    await deleteImapInboxMessages({
+      connection: bucket.connection,
+      providerMessageIds: [...bucket.providerMessageIds]
+    });
+  }
+}
+
+/**
+ * Permanent delete: expunge matching messages from IMAP across folders.
+ */
+export async function permanentlyDeleteImapMessagesForThreads(
+  threadIds: string[],
+  organizationId: string
+): Promise<void> {
+  if (threadIds.length === 0) return;
+
+  const buckets = await loadImapBuckets(threadIds, organizationId);
+  for (const bucket of buckets) {
+    if (bucket.connection.status !== MailConnectionStatus.ACTIVE) {
+      throw new Error(
+        'Reconnect this mailbox before deleting messages from the provider.'
+      );
+    }
+    await permanentlyDeleteImapMessages({
+      connection: bucket.connection,
+      providerMessageIds: [...bucket.providerMessageIds]
+    });
+  }
+}
+
+async function loadImapBuckets(
+  threadIds: string[],
+  organizationId: string
+): Promise<
+  Array<{
+    connection: ConnectionForDelete & {
+      provider: MailProvider;
+      status: MailConnectionStatus;
+    };
+    providerMessageIds: Set<string>;
+  }>
+> {
   const threads = await prisma.mailThread.findMany({
     where: { id: { in: threadIds }, organizationId },
     select: {
@@ -246,16 +364,5 @@ export async function deleteImapMessagesForThreads(
     }
   }
 
-  for (const bucket of byConnection.values()) {
-    if (bucket.connection.status !== MailConnectionStatus.ACTIVE) {
-      throw new Error(
-        'Reconnect this mailbox before deleting messages from the provider.'
-      );
-    }
-
-    await deleteImapInboxMessages({
-      connection: bucket.connection,
-      providerMessageIds: [...bucket.providerMessageIds]
-    });
-  }
+  return [...byConnection.values()];
 }

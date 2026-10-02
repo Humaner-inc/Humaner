@@ -9,6 +9,7 @@ import { checkSession } from '@/lib/auth/session';
 import { loadUserContactsByEmail } from '@/lib/contacts/contact-record';
 import { prisma } from '@/lib/db/prisma';
 import { updateMailThreadsByIds } from '@/lib/db/unique-mutations';
+import { humanizeMailboxSyncError } from '@/lib/inbox/gmail-sync-errors';
 import {
   aliasIdFilter,
   mailThreadAccessWhere,
@@ -882,7 +883,7 @@ export async function getMailboxConnections(): Promise<ConnectedMailboxItem[]> {
       logoDomain: provider.logoDomain,
       aliasCount: connection._count.aliases,
       status: connection.status,
-      lastError: connection.lastError,
+      lastError: humanizeMailboxSyncError(connection.lastError),
       lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null,
       signatureText: connection.signatureText,
       signatureIconUrl: connection.signatureIconHash
