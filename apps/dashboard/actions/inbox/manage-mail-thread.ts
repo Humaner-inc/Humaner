@@ -28,6 +28,11 @@ import {
   permanentlyDeleteMailThreads,
   TRASH_DELETE_BATCH_SIZE
 } from '@/lib/inbox/permanently-delete-mail-threads';
+import {
+  providerActionForFolder,
+  syncProviderMailAction,
+  syncProviderMailActions
+} from '@/lib/inbox/sync-provider-mail-action';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import {
   NotFoundError,
@@ -94,6 +99,20 @@ export const markMailThreadRead = authActionClient
       where: { id: parsedInput.threadId },
       data: { isUnread: parsedInput.isUnread }
     });
+
+    try {
+      await syncProviderMailAction({
+        threadId: parsedInput.threadId,
+        organizationId,
+        action: parsedInput.isUnread ? 'unread' : 'read'
+      });
+    } catch (error) {
+      throw new PreConditionError(
+        error instanceof Error
+          ? error.message
+          : 'Could not sync read state to the mailbox'
+      );
+    }
 
     try {
       after(() => {
@@ -167,6 +186,20 @@ export const archiveMailThread = authActionClient
           }
     });
 
+    try {
+      await syncProviderMailAction({
+        threadId: parsedInput.threadId,
+        organizationId,
+        action: parsedInput.archive ? 'archive' : 'unarchive'
+      });
+    } catch (error) {
+      throw new PreConditionError(
+        error instanceof Error
+          ? error.message
+          : 'Could not sync archive to the mailbox'
+      );
+    }
+
     revalidateMailPaths(parsedInput.threadId);
     return { success: true };
   });
@@ -202,6 +235,19 @@ export const deleteMailThread = authActionClient
         where: { id: parsedInput.threadId },
         data: mailFolderWriteData(MailThreadFolder.TRASH)
       });
+      try {
+        await syncProviderMailAction({
+          threadId: parsedInput.threadId,
+          organizationId,
+          action: 'trash'
+        });
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not sync trash to the mailbox'
+        );
+      }
     }
 
     revalidateMailPaths(parsedInput.threadId);
@@ -232,6 +278,23 @@ export const moveMailThreadFolder = authActionClient
       where: { id: parsedInput.threadId },
       data: mailFolderWriteData(parsedInput.folder)
     });
+
+    const providerAction = providerActionForFolder(parsedInput.folder);
+    if (providerAction) {
+      try {
+        await syncProviderMailAction({
+          threadId: parsedInput.threadId,
+          organizationId,
+          action: providerAction
+        });
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not sync folder move to the mailbox'
+        );
+      }
+    }
 
     revalidateMailPaths(parsedInput.threadId);
     return { success: true };
@@ -401,6 +464,20 @@ export const bulkArchiveMailThreads = authActionClient
           }
     );
 
+    try {
+      await syncProviderMailActions({
+        threadIds,
+        organizationId,
+        action: parsedInput.archive ? 'archive' : 'unarchive'
+      });
+    } catch (error) {
+      throw new PreConditionError(
+        error instanceof Error
+          ? error.message
+          : 'Could not sync archive to the mailbox'
+      );
+    }
+
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
   });
@@ -429,6 +506,23 @@ export const bulkMoveMailThreads = authActionClient
       threadIds,
       mailFolderWriteData(parsedInput.folder)
     );
+
+    const providerAction = providerActionForFolder(parsedInput.folder);
+    if (providerAction) {
+      try {
+        await syncProviderMailActions({
+          threadIds,
+          organizationId,
+          action: providerAction
+        });
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not sync folder move to the mailbox'
+        );
+      }
+    }
 
     revalidateMailListPaths();
     return { success: true, count: threadIds.length };
@@ -463,6 +557,19 @@ export const bulkDeleteMailThreads = authActionClient
         moveIds,
         mailFolderWriteData(MailThreadFolder.TRASH)
       );
+      try {
+        await syncProviderMailActions({
+          threadIds: moveIds,
+          organizationId,
+          action: 'trash'
+        });
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not sync trash to the mailbox'
+        );
+      }
     }
 
     if (trashIds.length > 0) {

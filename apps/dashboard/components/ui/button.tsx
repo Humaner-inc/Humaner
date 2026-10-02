@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { ctaSecondaryAdaptiveClassName } from '@humaner/shared/cta';
+import {
+  ctaPrimaryClassName,
+  ctaPrimaryOnLightClassName,
+  ctaSecondaryAdaptiveClassName
+} from '@humaner/shared/cta';
 import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -16,30 +20,35 @@ const oss = false;
 
 const dashboardCtaCaseClassName = 'normal-case';
 
+/** Frosted ink on light / frosted cream on dark — New message, Send, etc. */
 const cloudNeutralCtaClasses = cn(
   dashboardCtaCaseClassName,
-  // Explicit pairs so cream/ink never fight (Compose was invisible on dark).
-  'border border-[#0A0D0D]/15 bg-[#0A0D0D] font-mono text-xs font-medium tracking-normal text-[#fcf4ec]',
-  'hover:bg-[#0A0D0D]/85 hover:text-[#fcf4ec]',
-  'dark:border-white/20 dark:bg-[#fcf4ec] dark:text-[#0A0D0D]',
-  'dark:hover:border-white dark:hover:bg-white dark:hover:text-[#0A0D0D]'
+  ctaPrimaryOnLightClassName,
+  'dark:border-[#fcf4ec]/40 dark:bg-[#fcf4ec]/80 dark:text-[#0A0D0D]',
+  'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.55)]',
+  'dark:hover:border-white dark:hover:bg-[#fcf4ec]/95 dark:hover:text-[#0A0D0D]'
 );
 
-const cloudUpgradeCtaClasses =
-  'border border-[#0A0D0D]/14 bg-[#fcf4ec] font-mono font-medium text-[#0A0D0D] shadow-sm transition-colors hover:border-transparent hover:bg-[#e0e1df] hover:text-[#0A0D0D] dark:border-[#0A0D0D]/22 dark:bg-[#0A0D0D] dark:text-[#fcf4ec] dark:hover:border-transparent dark:hover:bg-[#e0e1df] dark:hover:text-[#f2f2f2]';
+const cloudUpgradeCtaClasses = cn(
+  dashboardCtaCaseClassName,
+  ctaPrimaryClassName,
+  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#fcf4ec]',
+  'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
+  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#fcf4ec]'
+);
 
 const cloudOutlineClasses = cn(
   ctaSecondaryAdaptiveClassName,
   dashboardCtaCaseClassName
 );
 
-/** Invert of `default` — same chrome, background fill instead of foreground. */
+/** Invert of `default` — cream glass on light, ink glass on dark. */
 const cloudBackgroundCtaClasses = cn(
   dashboardCtaCaseClassName,
-  'border border-[#0A0D0D]/15 bg-[#fcf4ec] font-mono text-xs font-medium tracking-normal text-[#0A0D0D]',
-  'hover:bg-[#0A0D0D]/[0.04] hover:text-[#0A0D0D]',
-  'dark:border-white/20 dark:bg-[#0A0D0D] dark:text-[#fcf4ec]',
-  'dark:hover:border-white/40 dark:hover:bg-white/[0.06] dark:hover:text-[#fcf4ec]'
+  ctaPrimaryClassName,
+  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#fcf4ec]',
+  'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
+  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#fcf4ec]'
 );
 
 /** Primary and inverted CTAs share 16px; quiet secondary stays 14px. */
@@ -65,7 +74,7 @@ const ossOutlineClasses = cn(
 
 const buttonVariants = cva(
   cn(
-    'inline-flex items-center justify-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex items-center justify-center text-sm font-medium transition-[color,background-color,border-color,box-shadow,backdrop-filter] duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
     oss ? ossRadius : dashboardRadiusClassName
   ),
   {
@@ -81,16 +90,16 @@ const buttonVariants = cva(
           ? ossUpgradeCtaClasses
           : cn(cloudUpgradeCtaClasses, ctaRadius),
         accent: cn(
-          'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+          'border border-[#001afc]/50 bg-[#001afc]/85 text-[#F2F2F2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.18)] backdrop-blur-xl backdrop-saturate-150 hover:border-[#001afc]/70 hover:bg-[#001afc]/95',
           oss ? null : ctaRadius
         ),
         destructive: cn(
-          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
+          'border border-destructive/40 bg-destructive/85 text-destructive-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)] backdrop-blur-xl backdrop-saturate-150 hover:bg-destructive/95',
           oss ? null : secondaryRadius
         ),
         outline: oss ? ossOutlineClasses : cn(cloudOutlineClasses, ctaRadius),
         secondary: cn(
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
+          'border border-border/60 bg-secondary/80 text-secondary-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)] backdrop-blur-xl backdrop-saturate-150 hover:bg-secondary/90',
           oss ? null : secondaryRadius
         ),
         ghost: 'hover:bg-accent hover:text-accent-foreground',
