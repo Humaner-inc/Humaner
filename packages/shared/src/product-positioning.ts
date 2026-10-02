@@ -7,7 +7,7 @@ export const HUMANER_TAGLINE = HUMANER_TITLE;
 export const HUMANER_SLOGAN = "The collab inbox(es) for agents, and humans.";
 
 export const HUMANER_META_DESCRIPTION =
-  "Automated but never impersonal. Powered by Companion, our agent built for support or by your own. Automate, connect and collaborate to run your emails better, faster.";
+  "Automated but never impersonal. Powered by Companion, our agent built for support or by your own. Connect and collaborate to run your emails better, faster.";
 
 export const HUMANER_ELEVATOR_PITCH = HUMANER_META_DESCRIPTION;
 
