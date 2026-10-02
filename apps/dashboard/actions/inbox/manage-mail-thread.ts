@@ -66,7 +66,7 @@ async function assertThreadAccess(
   return thread;
 }
 
-function revalidateMailPaths(threadId: string): void {
+function revalidateMailPaths(): void {
   revalidatePath(Routes.InboxAll);
   revalidatePath(Routes.InboxAssigned);
   revalidatePath(Routes.InboxArchive);
@@ -74,7 +74,6 @@ function revalidateMailPaths(threadId: string): void {
   revalidatePath(Routes.InboxSpam);
   revalidatePath(Routes.InboxTrash);
   revalidatePath(Routes.InboxDrafts);
-  revalidatePath(Routes.InboxAll);
 }
 
 export const markMailThreadRead = authActionClient
@@ -116,10 +115,10 @@ export const markMailThreadRead = authActionClient
 
     try {
       after(() => {
-        revalidateMailPaths(parsedInput.threadId);
+        revalidateMailPaths();
       });
     } catch {
-      revalidateMailPaths(parsedInput.threadId);
+      revalidateMailPaths();
     }
     return { success: true };
   });
@@ -149,10 +148,10 @@ export const pinMailThread = authActionClient
 
     try {
       after(() => {
-        revalidateMailPaths(parsedInput.threadId);
+        revalidateMailPaths();
       });
     } catch {
-      revalidateMailPaths(parsedInput.threadId);
+      revalidateMailPaths();
     }
     return { success: true };
   });
@@ -200,7 +199,7 @@ export const archiveMailThread = authActionClient
           }
     });
 
-    revalidateMailPaths(parsedInput.threadId);
+    revalidateMailPaths();
     return { success: true };
   });
 
@@ -250,7 +249,7 @@ export const deleteMailThread = authActionClient
       });
     }
 
-    revalidateMailPaths(parsedInput.threadId);
+    revalidateMailPaths();
     return { success: true };
   });
 
@@ -296,7 +295,7 @@ export const moveMailThreadFolder = authActionClient
       data: mailFolderWriteData(parsedInput.folder)
     });
 
-    revalidateMailPaths(parsedInput.threadId);
+    revalidateMailPaths();
     return { success: true };
   });
 
@@ -343,7 +342,7 @@ export const assignMailThread = authActionClient
       actorName: session.user.name
     });
 
-    revalidateMailPaths(parsedInput.threadId);
+    revalidateMailPaths();
     return { success: true };
   });
 
@@ -388,7 +387,7 @@ export const applyMailThreadTag = authActionClient
       });
     }
 
-    revalidateMailPaths(parsedInput.threadId);
+    revalidateMailPaths();
     return { success: true };
   });
 

@@ -285,8 +285,8 @@ async function persistMessages(
       const isInbound = message.direction === MailMessageDirection.INBOUND;
 
       let folder = message.folder;
-      let archivedAt = message.archivedAt;
-      let trashedAt = message.trashedAt;
+      const archivedAt = message.archivedAt;
+      const trashedAt = message.trashedAt;
       if (
         isInbound &&
         folder === MailThreadFolder.INBOX &&
