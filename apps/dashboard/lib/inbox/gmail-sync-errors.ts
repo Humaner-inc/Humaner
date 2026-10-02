@@ -12,6 +12,16 @@ export function isGmailQuotaErrorMessage(message: string): boolean {
   );
 }
 
+/** True only for real Gmail thread/message not-found — never bare "404" substrings. */
+export function isGmailNotFoundErrorMessage(message: string): boolean {
+  return (
+    /"reason"\s*:\s*"notFound"/i.test(message) ||
+    /"status"\s*:\s*"NOT_FOUND"/i.test(message) ||
+    /"code"\s*:\s*404\b/.test(message) ||
+    /\bRequested entity was not found\b/i.test(message)
+  );
+}
+
 export function isInsufficientScopeErrorMessage(message: string): boolean {
   return /insufficient.*(auth|scope|permission)|ACCESS_TOKEN_SCOPE_INSUFFICIENT|Request had insufficient authentication scopes/i.test(
     message

@@ -6,7 +6,11 @@ import { prisma } from '@/lib/db/prisma';
 import { mailThreadListWhere } from '@/lib/inbox/mail-thread-folder-shared';
 
 export type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
-export { mailThreadListWhere } from '@/lib/inbox/mail-thread-folder-shared';
+export {
+  mailFolderPresenceRank,
+  mailThreadListWhere,
+  preferMailFolderState
+} from '@/lib/inbox/mail-thread-folder-shared';
 
 export function extractMailAddress(value: string): string {
   const trimmed = value.trim();

@@ -10,7 +10,11 @@ import {
 import { simpleParser, type AddressObject, type ParsedMail } from 'mailparser';
 
 import { prisma } from '@/lib/db/prisma';
-import { loadBlockedSenderSet } from '@/lib/inbox/mail-thread-folder';
+import {
+  loadBlockedSenderSet,
+  mailFolderPresenceRank,
+  preferMailFolderState
+} from '@/lib/inbox/mail-thread-folder';
 import { resolveStoredMailBodies } from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
@@ -298,6 +302,8 @@ async function persistMessages(
 
       // Upsert must not rewind lastMessageAt or re-flag read threads as unread
       // when IMAP re-delivers older messages after a reply.
+      // Folder: never let a weaker folder (e.g. Trash) overwrite Inbox when the
+      // same thread was also seen in INBOX this run (Gmail-IMAP label folders).
       const thread = await tx.mailThread.upsert({
         where: {
           aliasId_providerThreadId: {
@@ -318,13 +324,25 @@ async function persistMessages(
         },
         update: {
           subject: message.subject,
-          folder,
-          archivedAt,
-          trashedAt,
           isUnread: message.isUnread
         },
-        select: { id: true, lastMessageAt: true, folder: true }
+        select: {
+          id: true,
+          lastMessageAt: true,
+          folder: true,
+          archivedAt: true,
+          trashedAt: true
+        }
       });
+
+      const preferred = preferMailFolderState(
+        {
+          folder: thread.folder,
+          archivedAt: thread.archivedAt,
+          trashedAt: thread.trashedAt
+        },
+        { folder, archivedAt, trashedAt }
+      );
 
       const existing = await tx.mailMessage.findUnique({
         where: {
@@ -359,9 +377,9 @@ async function persistMessages(
           where: { id: thread.id },
           data: {
             ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
-            folder,
-            archivedAt,
-            trashedAt,
+            folder: preferred.folder,
+            archivedAt: preferred.archivedAt,
+            trashedAt: preferred.trashedAt,
             isUnread: isInbound ? message.isUnread : false
           }
         });
@@ -381,10 +399,27 @@ async function persistMessages(
           });
         }
 
-        if (message.sentAt > thread.lastMessageAt) {
+        const folderChanged =
+          preferred.folder !== thread.folder ||
+          (preferred.archivedAt?.getTime() ?? null) !==
+            (thread.archivedAt?.getTime() ?? null) ||
+          (preferred.trashedAt?.getTime() ?? null) !==
+            (thread.trashedAt?.getTime() ?? null);
+        const newerThanThread = message.sentAt > thread.lastMessageAt;
+
+        if (folderChanged || newerThanThread) {
           await tx.mailThread.update({
             where: { id: thread.id },
-            data: { lastMessageAt: message.sentAt }
+            data: {
+              ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
+              ...(folderChanged
+                ? {
+                    folder: preferred.folder,
+                    archivedAt: preferred.archivedAt,
+                    trashedAt: preferred.trashedAt
+                  }
+                : {})
+            }
           });
         }
       }
@@ -565,15 +600,13 @@ export async function syncImapConnection(
     }
 
     await client.logout();
-    // Prefer authoritative folder: Trash > Spam > Inbox > Sent > Archive.
-    const folderRank = (message: ParsedSyncMessage): number => {
-      if (message.folder === MailThreadFolder.TRASH) return 5;
-      if (message.folder === MailThreadFolder.SPAM) return 4;
-      if (message.folder === MailThreadFolder.INBOX && !message.archivedAt)
-        return 3;
-      if (message.folder === MailThreadFolder.SENT) return 2;
-      return 1;
-    };
+    // Same rank as Gmail: Inbox > Spam > Draft/Sent > Trash > Archive.
+    // Prevents Gmail-IMAP label-folder duplicates from burying inbox mail in Trash.
+    const folderRank = (message: ParsedSyncMessage): number =>
+      mailFolderPresenceRank({
+        folder: message.folder,
+        archivedAt: message.archivedAt
+      });
     const deduped = new Map<string, ParsedSyncMessage>();
     for (const message of parsedMessages) {
       const key = `${message.aliasId}:${message.providerMessageId}`;
