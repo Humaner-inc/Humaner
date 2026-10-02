@@ -34,7 +34,7 @@ const GMAIL_TOASTS: Record<
   scopes: {
     type: 'error',
     message:
-      'Google did not grant full Gmail access. Reconnect and allow permission to sync, move, and delete mail.'
+      'Google did not grant full Gmail access. Reconnect and allow all requested permissions.'
   }
 };
 
