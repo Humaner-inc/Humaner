@@ -24,7 +24,7 @@ export const CALENDAR_PROVIDERS = [
   {
     id: 'GOOGLE' as const,
     label: 'Google Calendar',
-    hint: 'Import upcoming events from Google',
+    hint: 'Sync events both ways with Google Calendar',
     logoDomain: 'google.com',
     soon: false
   },

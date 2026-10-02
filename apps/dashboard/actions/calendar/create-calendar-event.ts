@@ -4,9 +4,11 @@ import { revalidatePath } from 'next/cache';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { createCalendarEventRow } from '@/lib/calendar/create-calendar-event-row';
 import { notifyCalendarAttendees } from '@/lib/calendar/notify-attendees';
+import { pushCalendarEventToGoogle } from '@/lib/calendar/push-event-to-google';
 import { prisma } from '@/lib/db/prisma';
-import { NotFoundError } from '@/lib/validation/exceptions';
+import { NotFoundError, ValidationError } from '@/lib/validation/exceptions';
 import { createCalendarEventSchema } from '@/schemas/calendar/create-calendar-event-schema';
 
 export const createCalendarEvent = pageActionClient('calendar')
@@ -28,22 +30,34 @@ export const createCalendarEvent = pageActionClient('calendar')
       }
     }
 
-    const event = await prisma.calendarEvent.create({
-      data: {
+    let sourceKey: string | null = null;
+    try {
+      sourceKey = await pushCalendarEventToGoogle({
         organizationId,
-        createdById: session.user.id,
         title: parsedInput.title,
         description: parsedInput.description,
         startsAt: parsedInput.startsAt,
-        endsAt: parsedInput.endsAt,
-        color: parsedInput.color ?? '#f85919',
-        attendees: attendeeIds.length
-          ? {
-              create: attendeeIds.map((userId) => ({ userId }))
-            }
-          : undefined
-      },
-      select: { id: true }
+        endsAt: parsedInput.endsAt
+      });
+    } catch (error) {
+      throw new ValidationError(
+        error instanceof Error
+          ? error.message
+          : 'Could not create this event in Google Calendar.'
+      );
+    }
+
+    const event = await createCalendarEventRow({
+      organizationId,
+      createdById: session.user.id,
+      title: parsedInput.title,
+      description: parsedInput.description,
+      startsAt: parsedInput.startsAt,
+      endsAt: parsedInput.endsAt,
+      color: parsedInput.color ?? '#f85919',
+      source: 'manual',
+      sourceKey,
+      attendeeIds
     });
 
     await notifyCalendarAttendees({
@@ -57,5 +71,5 @@ export const createCalendarEvent = pageActionClient('calendar')
 
     revalidatePath(Routes.Calendar);
     revalidatePath(Routes.Overview);
-    return { id: event.id };
+    return { id: event.id, syncedToGoogle: Boolean(sourceKey) };
   });

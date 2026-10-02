@@ -14,6 +14,7 @@ import {
   parseCalendarView,
   type CalendarView
 } from '@/lib/calendar/calendar-view';
+import { catchUpConnectedCalendarEvents } from '@/lib/calendar/import-external-events';
 import { prisma } from '@/lib/db/prisma';
 import type { WorkHoursDto } from '@/types/dtos/work-hours-dto';
 
@@ -72,85 +73,71 @@ export async function getWorkspaceCalendarWeek(
   const focus = parseCalendarDate(dateIso);
   const { start, end } = calendarRange(focus, view);
 
-  const [events, memberships, organization, connections, createdFromMail] =
-    await Promise.all([
-      prisma.calendarEvent.findMany({
-        where: {
-          organizationId,
-          startsAt: { lt: end },
-          endsAt: { gt: start }
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          startsAt: true,
-          endsAt: true,
-          color: true,
-          createdById: true,
-          source: true,
-          createdBy: { select: { name: true } },
-          attendees: { select: { userId: true } }
-        },
-        orderBy: { startsAt: 'asc' }
-      }),
-      prisma.organizationMembership.findMany({
-        where: { organizationId },
-        select: {
-          user: {
-            select: { id: true, name: true, image: true, email: true }
-          }
-        },
-        orderBy: { createdAt: 'asc' }
-      }),
-      prisma.organization.findFirst({
-        where: { id: organizationId },
-        select: {
-          calendarMailAutomation: true,
-          businessHours: {
-            select: {
-              dayOfWeek: true,
-              timeSlots: {
-                select: { id: true, start: true, end: true }
-              }
+  // Sync providers → Humaner before reading the week (throttled).
+  const syncPaddingMs = 24 * 60 * 60 * 1000;
+  await Promise.all([
+    catchUpMailCalendarEvents({
+      organizationId,
+      createdById: session.user.id
+    }),
+    catchUpConnectedCalendarEvents({
+      organizationId,
+      createdById: session.user.id,
+      timeMin: new Date(start.getTime() - syncPaddingMs),
+      timeMax: new Date(end.getTime() + syncPaddingMs)
+    })
+  ]);
+
+  const [events, memberships, organization, connections] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      where: {
+        organizationId,
+        startsAt: { lt: end },
+        endsAt: { gt: start }
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        startsAt: true,
+        endsAt: true,
+        color: true,
+        createdById: true,
+        source: true,
+        createdBy: { select: { name: true } },
+        attendees: { select: { userId: true } }
+      },
+      orderBy: { startsAt: 'asc' }
+    }),
+    prisma.organizationMembership.findMany({
+      where: { organizationId },
+      select: {
+        user: {
+          select: { id: true, name: true, image: true, email: true }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    }),
+    prisma.organization.findFirst({
+      where: { id: organizationId },
+      select: {
+        calendarMailAutomation: true,
+        businessHours: {
+          select: {
+            dayOfWeek: true,
+            timeSlots: {
+              select: { id: true, start: true, end: true }
             }
           }
         }
-      }),
-      prisma.calendarConnection.findMany({
-        where: { organizationId },
-        select: { id: true, provider: true, accountEmail: true },
-        orderBy: { createdAt: 'asc' }
-      }),
-      catchUpMailCalendarEvents({
-        organizationId,
-        createdById: session.user.id
-      })
-    ]);
-
-  const visibleEvents =
-    createdFromMail > 0
-      ? await prisma.calendarEvent.findMany({
-          where: {
-            organizationId,
-            startsAt: { lt: end },
-            endsAt: { gt: start }
-          },
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            startsAt: true,
-            endsAt: true,
-            color: true,
-            createdById: true,
-            source: true,
-            createdBy: { select: { name: true } },
-            attendees: { select: { userId: true } }
-          },
-          orderBy: { startsAt: 'asc' }
-        })
-      : events;
+      }
+    }),
+    prisma.calendarConnection.findMany({
+      where: { organizationId },
+      select: { id: true, provider: true, accountEmail: true },
+      orderBy: { createdAt: 'asc' }
+    })
+  ]);
 
   const businessHours: WorkHoursDto[] = (organization?.businessHours ?? []).map(
     (workHours) => ({
@@ -164,7 +151,7 @@ export async function getWorkspaceCalendarWeek(
   );
 
   return {
-    events: visibleEvents.map((event) => ({
+    events: events.map((event) => ({
       id: event.id,
       title: event.title,
       description: event.description,

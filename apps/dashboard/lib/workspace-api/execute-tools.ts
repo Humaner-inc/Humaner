@@ -13,7 +13,9 @@ import {
   readCompanionWorkspaceRights,
   workspaceAllowsCompanionAction
 } from '@/data/inbox/companion-rights';
+import { createCalendarEventRow } from '@/lib/calendar/create-calendar-event-row';
 import { parseCalendarWhen } from '@/lib/calendar/parse-calendar-when';
+import { pushCalendarEventToGoogle } from '@/lib/calendar/push-event-to-google';
 import { CONNECT_APPS } from '@/lib/connect-apps';
 import { prisma } from '@/lib/db/prisma';
 import { deleteMailThreadTagsForThreads } from '@/lib/db/unique-mutations';
@@ -1081,17 +1083,42 @@ async function executeCreateCalendar(
     return { ok: false, error: 'Event times are invalid.' };
   }
 
-  const event = await prisma.calendarEvent.create({
-    data: {
+  const eventTitle = title.slice(0, 255);
+  const eventDescription = description ? description.slice(0, 8000) : null;
+
+  let sourceKey: string | null = null;
+  try {
+    sourceKey = await pushCalendarEventToGoogle({
       organizationId: context.organizationId,
-      createdById: context.actorUserId,
-      title: title.slice(0, 255),
-      description: description ? description.slice(0, 8000) : null,
+      title: eventTitle,
+      description: eventDescription,
       startsAt,
-      endsAt,
-      source: 'companion',
-      attendees: { create: { userId: context.actorUserId } }
-    },
+      endsAt
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Could not create this event in Google Calendar.'
+    };
+  }
+
+  const created = await createCalendarEventRow({
+    organizationId: context.organizationId,
+    createdById: context.actorUserId,
+    title: eventTitle,
+    description: eventDescription,
+    startsAt,
+    endsAt,
+    source: 'companion',
+    sourceKey,
+    attendeeIds: [context.actorUserId]
+  });
+
+  const event = await prisma.calendarEvent.findFirstOrThrow({
+    where: { id: created.id },
     select: { id: true, title: true, startsAt: true, endsAt: true }
   });
 
@@ -1101,7 +1128,8 @@ async function executeCreateCalendar(
       id: event.id,
       title: event.title,
       startsAt: event.startsAt.toISOString(),
-      endsAt: event.endsAt.toISOString()
+      endsAt: event.endsAt.toISOString(),
+      syncedToGoogle: Boolean(sourceKey)
     }
   };
 }

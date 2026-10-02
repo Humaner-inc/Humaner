@@ -6,7 +6,7 @@ import { MailIcon } from '@humaner/shared/icons';
 import { toast } from 'sonner';
 
 import { dismissInboxConnectPrompt } from '@/actions/inbox/dismiss-inbox-connect-prompt';
-import { HumanerIridescentWordmark } from '@/components/brand/humaner-iridescent-wordmark';
+import { HumanerLogoImage } from '@/components/brand/humaner-logo-image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -70,8 +70,14 @@ export function InboxConnectPromptGate({
           <>
             <DialogHeader className="space-y-0 px-6 pb-2 pt-8 text-center sm:text-center">
               <DialogTitle className="sr-only">Credits granted</DialogTitle>
-              <div className="mx-auto w-full max-w-[15.5rem] overflow-visible px-1">
-                <HumanerIridescentWordmark className="w-full" />
+              <div className="mx-auto flex justify-center">
+                <HumanerLogoImage
+                  alt="Humaner"
+                  width={56}
+                  height={56}
+                  tone="light"
+                  className="size-14"
+                />
               </div>
               <DialogDescription className="mt-5 space-y-1.5 text-center">
                 <span className="block font-display text-[1.35rem] font-normal leading-snug tracking-tight text-[#0A0D0D]">

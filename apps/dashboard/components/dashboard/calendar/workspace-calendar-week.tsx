@@ -172,7 +172,11 @@ export function WorkspaceCalendarWeek({
     createCalendarEvent,
     {
       onSuccess: ({ data }) => {
-        toast.success('Event created');
+        toast.success(
+          data?.syncedToGoogle
+            ? 'Event created and synced to Google Calendar'
+            : 'Event created'
+        );
         setCreateDraft(null);
         if (data?.id) setSelectedEventId(data.id);
         router.refresh();
