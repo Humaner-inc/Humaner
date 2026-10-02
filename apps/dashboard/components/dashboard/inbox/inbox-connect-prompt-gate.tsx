@@ -3,10 +3,10 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { MailIcon } from '@humaner/shared/icons';
-import { SealCheckIcon } from '@phosphor-icons/react/dist/ssr/SealCheck';
 import { toast } from 'sonner';
 
 import { dismissInboxConnectPrompt } from '@/actions/inbox/dismiss-inbox-connect-prompt';
+import { HumanerIridescentWordmark } from '@/components/brand/humaner-iridescent-wordmark';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,13 +17,18 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Routes } from '@/constants/routes';
+import { VIRAL_BETA_STARTER_CREDIT_USD } from '@/lib/auth/viral-beta-constants';
+import { cn } from '@/lib/utils';
 
 export function InboxConnectPromptGate({
   showPrompt,
-  variant = 'inbox'
+  variant = 'inbox',
+  creditsUsd = VIRAL_BETA_STARTER_CREDIT_USD
 }: {
   showPrompt: boolean;
   variant?: 'inbox' | 'credits';
+  /** Dollar amount shown in the credits grant copy. */
+  creditsUsd?: number;
 }): React.JSX.Element {
   const router = useRouter();
   const [open, setOpen] = React.useState(showPrompt);
@@ -54,43 +59,54 @@ export function InboxConnectPromptGate({
         if (!nextOpen && !isPending) resolvePrompt();
       }}
     >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          {isCredits ? null : (
-            <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
-              <MailIcon className="size-5 text-muted-foreground" />
-            </div>
-          )}
-          <DialogTitle
-            className={isCredits ? 'flex items-center gap-2.5' : undefined}
-          >
-            {isCredits ? (
-              <SealCheckIcon
-                size={32}
-                weight="fill"
-                aria-hidden
-              />
-            ) : null}
-            {isCredits ? 'Credits Granted' : 'Connect your Inboxes?'}
-          </DialogTitle>
-          <DialogDescription>
-            {isCredits
-              ? 'Credits just landed into your wallet to help you get started.'
-              : 'You can link your mails right away to manage all your support in one place.'}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          {isCredits ? (
-            <Button
-              type="button"
-              disabled={isPending}
-              loading={isPending}
-              onClick={() => resolvePrompt()}
-            >
-              Continue
-            </Button>
-          ) : (
-            <>
+      <DialogContent
+        className={cn(
+          isCredits
+            ? 'gap-0 overflow-hidden border-[#0A0D0D]/8 bg-[#fcf4ec] p-0 text-[#0A0D0D] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.55)] sm:max-w-[22rem]'
+            : 'sm:max-w-md'
+        )}
+      >
+        {isCredits ? (
+          <>
+            <DialogHeader className="space-y-0 px-6 pb-2 pt-8 text-center sm:text-center">
+              <DialogTitle className="sr-only">Credits granted</DialogTitle>
+              <div className="mx-auto w-full max-w-[15.5rem] overflow-visible px-1">
+                <HumanerIridescentWordmark className="w-full" />
+              </div>
+              <DialogDescription className="mt-5 space-y-1.5 text-center">
+                <span className="block font-display text-[1.35rem] font-normal leading-snug tracking-tight text-[#0A0D0D]">
+                  ${creditsUsd} credits were added to your account.
+                </span>
+                <span className="block text-sm text-[#0A0D0D]/55">
+                  Happy and fast emailing.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="px-6 pb-6 pt-6 sm:justify-stretch">
+              <Button
+                type="button"
+                disabled={isPending}
+                loading={isPending}
+                className="h-11 w-full rounded-full bg-[#0A0D0D] text-[#fcf4ec] hover:bg-[#161919] hover:text-[#fcf4ec]"
+                onClick={() => resolvePrompt()}
+              >
+                Continue
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted">
+                <MailIcon className="size-5 text-muted-foreground" />
+              </div>
+              <DialogTitle>Connect your Inboxes?</DialogTitle>
+              <DialogDescription>
+                You can link your mails right away to manage all your support in
+                one place.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
@@ -106,9 +122,9 @@ export function InboxConnectPromptGate({
               >
                 Set up Inbox
               </Button>
-            </>
-          )}
-        </DialogFooter>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

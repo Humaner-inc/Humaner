@@ -117,6 +117,26 @@ export async function composeMailboxMail(input: {
   let messageId: string;
   let providerThreadId: string;
 
+  const draft =
+    input.draftThreadId != null
+      ? await prisma.mailThread.findFirst({
+          where: {
+            id: input.draftThreadId,
+            organizationId: input.organizationId,
+            folder: MailThreadFolder.DRAFT
+          },
+          select: {
+            id: true,
+            providerThreadId: true,
+            messages: {
+              orderBy: { sentAt: 'desc' },
+              take: 1,
+              select: { id: true, providerMessageId: true }
+            }
+          }
+        })
+      : null;
+
   if (connection.provider === MailProvider.GMAIL) {
     try {
       const sent = await sendMailboxMail({
@@ -127,7 +147,13 @@ export async function composeMailboxMail(input: {
         subject: input.subject,
         text: signed.text,
         html: signed.html,
-        attachments: outboundAttachments
+        attachments: outboundAttachments,
+        ...(draft && !/^(draft-|outbound-)/i.test(draft.providerThreadId)
+          ? { providerThreadId: draft.providerThreadId }
+          : {}),
+        ...(draft?.messages[0]?.providerMessageId
+          ? { gmailDraftMessageId: draft.messages[0].providerMessageId }
+          : {})
       });
       messageId = sent.messageId;
       providerThreadId = (sent.threadId ?? `outbound-${messageId}`).slice(
@@ -200,24 +226,6 @@ export async function composeMailboxMail(input: {
   }
 
   const sentAt = new Date();
-  const draft =
-    input.draftThreadId != null
-      ? await prisma.mailThread.findFirst({
-          where: {
-            id: input.draftThreadId,
-            organizationId: input.organizationId,
-            folder: MailThreadFolder.DRAFT
-          },
-          select: {
-            id: true,
-            messages: {
-              orderBy: { sentAt: 'desc' },
-              take: 1,
-              select: { id: true }
-            }
-          }
-        })
-      : null;
 
   const thread = draft
     ? await prisma.mailThread.update({

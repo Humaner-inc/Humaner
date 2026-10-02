@@ -2,7 +2,10 @@ import * as React from 'react';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { brand } from '@/brand.config';
-import { isCreditsBillingModel } from '@humaner/shared/credits';
+import {
+  isCreditsBillingModel,
+  STARTER_CREDIT_USD
+} from '@humaner/shared/credits';
 import {
   getPlanCapabilities,
   getPlanForTier,
@@ -53,6 +56,7 @@ import {
   requirePathAccessFromHeaders
 } from '@/lib/auth/require-workspace-access';
 import { checkAuthenticatedSession, checkSession } from '@/lib/auth/session';
+import { VIRAL_BETA_STARTER_CREDIT_USD } from '@/lib/auth/viral-beta-constants';
 import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { buildDashboardVisitorId } from '@/lib/humaner-support-agent';
@@ -81,6 +85,7 @@ export async function DashboardSessionShell({
       viralBetaExpiresAt: true,
       tier: true,
       billingModel: true,
+      xFollowCreditGrantedAt: true,
       organization: {
         select: {
           completedOnboarding: true,
@@ -230,6 +235,10 @@ export async function DashboardSessionShell({
     isCreditsBillingModel(userFromDb!.organization!.billingModel) &&
     userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.inboxConnectPromptPending;
+  // Launch grants $10; following @usehumaner unlocks the other $10 → $20 total.
+  const creditsGrantedUsd = userFromDb!.xFollowCreditGrantedAt
+    ? STARTER_CREDIT_USD
+    : VIRAL_BETA_STARTER_CREDIT_USD;
   const showInboxConnectPrompt =
     !showDataImprovementPrompt &&
     (creditsGrantedPending ||
@@ -352,6 +361,7 @@ export async function DashboardSessionShell({
           <InboxConnectPromptGate
             showPrompt={showInboxConnectPrompt}
             variant={creditsGrantedPending ? 'credits' : 'inbox'}
+            creditsUsd={creditsGrantedUsd}
           />
         ) : null}
         <SidebarProvider>

@@ -3,6 +3,7 @@ import 'server-only';
 import { revalidatePath } from 'next/cache';
 import {
   MailMessageDirection,
+  MailProvider,
   MailThreadFolder,
   MailThreadStatus
 } from '@prisma/client';
@@ -11,6 +12,13 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { composeDraftTitle } from '@/lib/inbox/compose-draft';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
+import {
+  createGmailDraft,
+  findGmailDraftIdByMessageId,
+  updateGmailDraft
+} from '@/lib/inbox/gmail/api';
+import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
 
 export type SaveMailboxDraftResult = {
   threadId: string;
@@ -19,6 +27,68 @@ export type SaveMailboxDraftResult = {
 
 function normalizeDraftRecipient(value: string): string {
   return value.trim().slice(0, 255);
+}
+
+function isSyntheticDraftThreadId(value: string): boolean {
+  return /^(draft-|outbound-)/i.test(value.trim());
+}
+
+function isSyntheticDraftMessageId(value: string): boolean {
+  return /^draft-msg-/i.test(value.trim());
+}
+
+async function syncDraftToGmail(input: {
+  connectionId: string;
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+  existingProviderThreadId?: string;
+  existingProviderMessageId?: string;
+}): Promise<{ providerThreadId: string; providerMessageId: string }> {
+  const accessToken = await getGmailAccessToken(input.connectionId);
+  const payload = {
+    from: input.from,
+    to: input.to ? [input.to] : [],
+    subject: input.subject,
+    text: input.text || ' ',
+    ...(input.html ? { html: input.html } : {})
+  };
+
+  const existingMessageId = input.existingProviderMessageId?.trim();
+  const canUpdate =
+    existingMessageId &&
+    !isSyntheticDraftMessageId(existingMessageId) &&
+    input.existingProviderThreadId &&
+    !isSyntheticDraftThreadId(input.existingProviderThreadId);
+
+  if (canUpdate) {
+    const draftId = await findGmailDraftIdByMessageId(
+      accessToken,
+      existingMessageId
+    );
+    if (draftId) {
+      try {
+        const updated = await updateGmailDraft(accessToken, draftId, payload);
+        return {
+          providerThreadId: updated.threadId.slice(0, 512),
+          providerMessageId: updated.messageId.slice(0, 512)
+        };
+      } catch (error) {
+        // Draft may have been deleted in Gmail — fall through to create.
+        if (!/notFound|404/i.test(String(error))) {
+          throw error;
+        }
+      }
+    }
+  }
+
+  const created = await createGmailDraft(accessToken, payload);
+  return {
+    providerThreadId: created.threadId.slice(0, 512),
+    providerMessageId: created.messageId.slice(0, 512)
+  };
 }
 
 export async function saveMailboxDraft(input: {
@@ -37,7 +107,16 @@ export async function saveMailboxDraft(input: {
       organizationId: input.organizationId,
       enabled: true
     },
-    select: { id: true, address: true }
+    select: {
+      id: true,
+      address: true,
+      connection: {
+        select: {
+          id: true,
+          provider: true
+        }
+      }
+    }
   });
 
   if (!alias) {
@@ -60,14 +139,45 @@ export async function saveMailboxDraft(input: {
           },
           select: {
             id: true,
+            providerThreadId: true,
             messages: {
               orderBy: { sentAt: 'desc' },
               take: 1,
-              select: { id: true }
+              select: { id: true, providerMessageId: true }
             }
           }
         })
       : null;
+
+  let providerThreadId =
+    existing?.providerThreadId ?? `draft-${crypto.randomUUID()}`.slice(0, 512);
+  let providerMessageId =
+    existing?.messages[0]?.providerMessageId ??
+    `draft-msg-${crypto.randomUUID()}`.slice(0, 512);
+
+  if (alias.connection.provider === MailProvider.GMAIL) {
+    try {
+      const synced = await syncDraftToGmail({
+        connectionId: alias.connection.id,
+        from: fromAddress,
+        to: toAddress,
+        subject,
+        text: body,
+        html: input.bodyHtml,
+        existingProviderThreadId: existing?.providerThreadId,
+        existingProviderMessageId: existing?.messages[0]?.providerMessageId
+      });
+      providerThreadId = synced.providerThreadId;
+      providerMessageId = synced.providerMessageId;
+    } catch (error) {
+      throw new Error(
+        humanizeMailboxActionError(
+          error,
+          'Could not save this draft to Gmail. Try again.'
+        )
+      );
+    }
+  }
 
   if (existing) {
     const messageId = existing.messages[0]?.id;
@@ -76,6 +186,7 @@ export async function saveMailboxDraft(input: {
         where: { id: existing.id },
         data: {
           aliasId: alias.id,
+          providerThreadId,
           subject,
           lastMessageAt: now,
           isUnread: false,
@@ -89,6 +200,7 @@ export async function saveMailboxDraft(input: {
         ? prisma.mailMessage.update({
             where: { id: messageId },
             data: {
+              providerMessageId,
               fromAddress,
               toAddresses: toAddress ? [toAddress] : [],
               bodyText: body || null,
@@ -99,10 +211,7 @@ export async function saveMailboxDraft(input: {
         : prisma.mailMessage.create({
             data: {
               threadId: existing.id,
-              providerMessageId: `draft-msg-${crypto.randomUUID()}`.slice(
-                0,
-                512
-              ),
+              providerMessageId,
               direction: MailMessageDirection.OUTBOUND,
               fromAddress,
               toAddresses: toAddress ? [toAddress] : [],
@@ -125,7 +234,7 @@ export async function saveMailboxDraft(input: {
     data: {
       organizationId: input.organizationId,
       aliasId: alias.id,
-      providerThreadId: `draft-${crypto.randomUUID()}`.slice(0, 512),
+      providerThreadId,
       subject,
       status: MailThreadStatus.OPEN,
       isUnread: false,
@@ -135,7 +244,7 @@ export async function saveMailboxDraft(input: {
       assigneeId: input.actorUserId,
       messages: {
         create: {
-          providerMessageId: `draft-msg-${crypto.randomUUID()}`.slice(0, 512),
+          providerMessageId,
           direction: MailMessageDirection.OUTBOUND,
           fromAddress,
           toAddresses: toAddress ? [toAddress] : [],
@@ -159,5 +268,5 @@ export async function saveMailboxDraft(input: {
 function revalidateDraftPaths(threadId: string): void {
   revalidatePath(Routes.InboxDrafts);
   revalidatePath(Routes.InboxAll);
-  revalidatePath(Routes.InboxAll);
+  revalidatePath(inboxThreadRoute(threadId));
 }
