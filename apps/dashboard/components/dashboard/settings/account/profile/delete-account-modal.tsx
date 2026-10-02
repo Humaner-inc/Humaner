@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import NiceModal, { type NiceModalHocProps } from '@ebay/nice-modal-react';
 import { CheckIcon, CopyIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { FormProvider, type SubmitHandler } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -54,7 +54,6 @@ export type DeleteAccountModalProps = NiceModalHocProps & {
 export const DeleteAccountModal = NiceModal.create<DeleteAccountModalProps>(
   ({ email }) => {
     const modal = useEnhancedModal();
-    const router = useRouter();
     const mdUp = useMediaQuery(MediaQueries.MdUp, { ssr: false });
     const copyToClipboard = useCopyToClipboard();
     const [copiedEmail, setCopiedEmail] = React.useState(false);
@@ -93,7 +92,7 @@ export const DeleteAccountModal = NiceModal.create<DeleteAccountModalProps>(
           modal.handleClose();
           const logoutResult = await logOut({ redirect: false });
           if (!logoutResult?.serverError && !logoutResult?.validationErrors) {
-            router.push(Routes.Login);
+            assignTrustedNavigation(Routes.Login);
           } else {
             toast.error("Couldn't log out");
           }

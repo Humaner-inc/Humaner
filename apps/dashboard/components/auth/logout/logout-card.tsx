@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ShieldCheck } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 
 import {
   authHeadingClassName,
@@ -19,11 +19,10 @@ function useCountdownRedirect(
   redirectTo: string
 ): number {
   const [countdown, setCountdown] = React.useState(initialCountdown);
-  const router = useRouter();
 
   React.useEffect(() => {
     if (countdown === 0) {
-      router.push(redirectTo);
+      assignTrustedNavigation(redirectTo);
       return;
     }
 
@@ -32,7 +31,7 @@ function useCountdownRedirect(
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [countdown, router, redirectTo]);
+  }, [countdown, redirectTo]);
 
   return countdown;
 }

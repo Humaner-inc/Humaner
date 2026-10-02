@@ -37,11 +37,16 @@ export function PullToRefreshInbox({
   const { execute, isExecuting } = useAction(syncInboxNow, {
     onSuccess: ({ data }) => {
       const imported = data?.messages ?? 0;
-      toast.success(
-        imported > 0
-          ? `Mailbox synced — ${imported} message${imported === 1 ? '' : 's'} checked`
-          : 'Mailbox is up to date'
-      );
+      const syncErrors = data?.errors ?? 0;
+      if (syncErrors > 0 && imported === 0) {
+        toast.error('Mailbox sync hit an error. Try again in a few minutes.');
+      } else {
+        toast.success(
+          imported > 0
+            ? `Mailbox synced — ${imported} message${imported === 1 ? '' : 's'} checked`
+            : 'Mailbox is up to date'
+        );
+      }
       router.refresh();
       setPullDistance(0);
       setReady(false);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { isProtectedAppPath } from '@/lib/routes/public-pathname';
+import { isDefaultSignedInHomePath } from '@/lib/routes/signed-in-home';
 
 const SESSION_COOKIE_NAMES = [
   '__Secure-authjs.session-token',
@@ -47,18 +48,6 @@ function hasSessionCookie(request: NextRequest): boolean {
     }
   }
   return false;
-}
-
-/** Default app homes — unsigned visitors should see /auth/login, not a bounce URL. */
-function isDefaultSignedInHome(pathname: string): boolean {
-  return (
-    pathname === '/' ||
-    pathname === '/overview' ||
-    pathname === '/inbox' ||
-    pathname === '/inbox/all' ||
-    pathname === '/organization' ||
-    pathname === '/organization/overview'
-  );
 }
 
 function isOssDeploymentRequest(): boolean {
@@ -226,7 +215,7 @@ export function proxy(request: NextRequest): NextResponse {
 
     const loginUrl = new URL('/auth/login', request.url);
     const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-    const persistCallback = !isDefaultSignedInHome(pathname);
+    const persistCallback = !isDefaultSignedInHomePath(pathname);
 
     if (persistCallback) {
       loginUrl.searchParams.set('callbackUrl', callbackPath);

@@ -49,7 +49,7 @@ export const syncInboxNow = pageActionClient('inbox')
         actorId: session.user.id,
         actorName: session.user.name
       }),
-      syncGmailMailboxes({ organizationId })
+      syncGmailMailboxes({ organizationId, priority: 'user' })
     ]);
     const result = {
       connections: imap.connections + gmail.connections,

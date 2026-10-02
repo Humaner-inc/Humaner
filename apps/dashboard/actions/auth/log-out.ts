@@ -10,12 +10,13 @@ export const logOut = actionClient
   .metadata({ actionName: 'logOut' })
   .schema(logOutSchema)
   .action(async ({ parsedInput }) => {
-    const result = await signOut({
-      redirect: parsedInput.redirect,
-      redirectTo: parsedInput.redirect ? Routes.Logout : undefined
-    });
-
+    // Clear before signOut — Auth.js redirect:true never returns here, and a
+    // stale callback cookie of /overview was leaving login stuck on that URL.
     await clearAuthCallbackUrl();
 
-    return result;
+    await signOut({ redirect: false });
+
+    return {
+      redirectTo: parsedInput.redirect ? Routes.Login : undefined
+    };
   });

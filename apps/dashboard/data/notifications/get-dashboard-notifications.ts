@@ -205,8 +205,11 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
             isUnread: true,
             archivedAt: null,
             folder: 'INBOX',
-            status: { in: ['OPEN', 'PENDING'] },
-            aliasId: aliasIdFilter(mailScope)
+            // Include all active mailbox states — new Gmail imports default to OPEN.
+            status: { in: ['OPEN', 'PENDING', 'SNOOZED'] },
+            aliasId: aliasIdFilter(mailScope),
+            // Prefer threads that still have an inbound message to surface.
+            messages: { some: { direction: 'INBOUND' } }
           },
           select: {
             id: true,

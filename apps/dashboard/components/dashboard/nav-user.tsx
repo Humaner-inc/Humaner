@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import NiceModal from '@ebay/nice-modal-react';
 import { CreditCardIcon, StoreIcon, UserIcon } from '@humaner/shared/icons';
 import type { LucideIcon } from '@humaner/shared/icons';
+import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { WorkspaceRole } from '@prisma/client';
 import { ExitIcon } from '@radix-ui/react-icons';
 import { toast } from 'sonner';
@@ -100,7 +101,11 @@ export function NavUser({
     const result = await logOut({ redirect: true });
     if (result?.serverError || result?.validationErrors) {
       toast.error("Couldn't log out");
+      return;
     }
+    // Full document navigation — soft nav after sign-out can leave login UI
+    // mounted on /overview and break the next OAuth round-trip.
+    assignTrustedNavigation(result?.data?.redirectTo ?? Routes.Login);
   };
   React.useEffect(() => {
     const mac = isMac();
