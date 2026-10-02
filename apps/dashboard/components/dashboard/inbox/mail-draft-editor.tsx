@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { XIcon } from '@humaner/shared/icons';
 
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
 import { ComposeMailForm } from '@/components/dashboard/inbox/compose-mail-form';
@@ -35,10 +36,11 @@ export function MailDraftEditor({
         <p className="font-display text-lg tracking-tight">Draft</p>
         <button
           type="button"
+          aria-label="Close"
           onClick={requestClose}
-          className="font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
         >
-          Close
+          <XIcon className="size-4" />
         </button>
       </div>
       <ComposeMailForm
