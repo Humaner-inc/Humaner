@@ -9,20 +9,22 @@ import { cn } from '@/lib/utils';
  */
 export function WorkspacePageShell({
   title,
-  description,
+  leading,
   actions,
   toolbar,
   children,
   className
 }: {
   title: React.ReactNode;
-  description?: React.ReactNode;
+  /** Shown at the top-left of the header (e.g. connected provider logos). */
+  leading?: React.ReactNode;
   actions?: React.ReactNode;
-  /** Optional controls under the title row (filters, create form, etc.). */
+  /** Optional controls under the header row (filters, create form, etc.). */
   toolbar?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }): React.JSX.Element {
+  const hasRow = leading != null || actions != null;
   return (
     <div
       className={cn(
@@ -30,24 +32,28 @@ export function WorkspacePageShell({
         className
       )}
     >
-      <header className="shrink-0 border-b border-border/60 px-5 py-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="hidden min-w-0 md:block">
-            <h1 className="page-title">{title}</h1>
-            {description ? (
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                {description}
-              </p>
-            ) : null}
-          </div>
-          {actions ? (
-            <div className="flex flex-wrap items-center gap-2 md:ml-auto">
-              {actions}
+      <h1 className="sr-only">{title}</h1>
+      {hasRow || toolbar != null ? (
+        <header className="shrink-0 border-b border-border/60 px-5 py-4">
+          {hasRow ? (
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              {leading ? (
+                <div className="flex min-w-0 items-center self-center">
+                  {leading}
+                </div>
+              ) : null}
+              {actions ? (
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  {actions}
+                </div>
+              ) : null}
             </div>
           ) : null}
-        </div>
-        {toolbar ? <div className="mt-4">{toolbar}</div> : null}
-      </header>
+          {toolbar ? (
+            <div className={hasRow ? 'mt-4' : undefined}>{toolbar}</div>
+          ) : null}
+        </header>
+      ) : null}
       <div className="min-h-0 flex-1 overflow-auto px-5 py-4">{children}</div>
     </div>
   );

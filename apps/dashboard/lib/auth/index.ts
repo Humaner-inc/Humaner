@@ -62,6 +62,12 @@ export const authConfig = {
   // the UI renders as "Unknown error" with no server-side trace.
   logger: {
     error(error: Error) {
+      // Next's dev overlay treats console.error during render as a lint.
+      // A dropped database connection is already handled by dedupedAuth.
+      if (isTransientAuthDbError(error)) {
+        console.warn('[auth] database unreachable during session lookup');
+        return;
+      }
       console.error('[auth] error', {
         name: error?.name,
         message: error?.message,
@@ -91,8 +97,27 @@ function isAuthSessionLookupError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const name = (error as { name?: string }).name;
   // Auth.js wraps a failed `session.findUnique()` as both of these. A Neon
-  // blip (P1001) otherwise crashes the dashboard shell instead of signing out.
+  // blip (P1001 / P1017) otherwise crashes the dashboard shell instead of
+  // signing out.
   return name === 'AdapterError' || name === 'SessionTokenError';
+}
+
+const TRANSIENT_DB_CODES = new Set(['P1001', 'P1008', 'P1017', 'P2024']);
+
+function readErrorCode(error: unknown, depth = 0): string | null {
+  if (!error || typeof error !== 'object' || depth > 4) return null;
+  const record = error as { code?: unknown; cause?: unknown; err?: unknown };
+  if (typeof record.code === 'string') return record.code;
+  return (
+    readErrorCode(record.err, depth + 1) ??
+    readErrorCode(record.cause, depth + 1)
+  );
+}
+
+/** Neon asleep or a pooled connection closed. Not an application bug. */
+function isTransientAuthDbError(error: unknown): boolean {
+  const code = readErrorCode(error);
+  return code !== null && TRANSIENT_DB_CODES.has(code);
 }
 
 // Deduplicated per-request session. Await cookies first so Cache Components
@@ -105,6 +130,19 @@ export const dedupedAuth = cache(async () => {
   } catch (error) {
     if (!isAuthSessionLookupError(error)) {
       throw error;
+    }
+    if (isTransientAuthDbError(error)) {
+      try {
+        return await auth();
+      } catch (retryError) {
+        if (!isAuthSessionLookupError(retryError)) {
+          throw retryError;
+        }
+        console.warn(
+          '[auth] database unreachable; session treated as signed out'
+        );
+        return null;
+      }
     }
     console.error('[auth] session lookup failed', error);
     return null;

@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowLeftIcon, PlusIcon, SearchIcon } from '@humaner/shared/icons';
-import { AddressBook } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -13,7 +12,6 @@ import {
   getContactHistory,
   updateContact
 } from '@/actions/contacts/manage-contacts';
-import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +24,6 @@ import {
 } from '@/lib/contacts/contact-email';
 import type { ContactHistoryThread } from '@/lib/contacts/contact-history';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
-import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
@@ -284,31 +281,20 @@ export function ContactsBrowser({
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-3.5">
-          <PresentationPageMark
-            className="text-[#fcf4ec]"
-            style={{ backgroundColor: HUMANER_NAV_COLORS.success }}
-          >
-            <AddressBook
-              className="size-6"
-              weight="duotone"
-            />
-          </PresentationPageMark>
-          <div className="min-w-0 flex-1">
-            <h1 className="page-title">Contacts</h1>
-            {selected ? null : (
-              <label className="mt-1.5 flex w-full max-w-md items-center gap-2 text-muted-foreground">
-                <SearchIcon className="size-3.5 shrink-0" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search name, company, or email"
-                  aria-label="Search contacts"
-                  className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                />
-              </label>
-            )}
-          </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="sr-only">Contacts</h1>
+          {selected ? null : (
+            <label className="mt-1.5 flex w-full max-w-md items-center gap-2 text-muted-foreground">
+              <SearchIcon className="size-3.5 shrink-0" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search name, company, or email"
+                aria-label="Search contacts"
+                className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+            </label>
+          )}
         </div>
         {selected ? null : (
           <Button

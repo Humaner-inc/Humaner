@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { after, connection } from 'next/server';
 import { processPendingKnowledgeSources } from '@/services/knowledge/process-knowledge-source';
 import { BookOpenIcon } from '@humaner/shared/icons';
-import { Books } from '@phosphor-icons/react/dist/ssr/Books';
 
 import { AddSourceDialogTrigger } from '@/components/dashboard/knowledge/add-source-dialog';
 import { KnowledgeRescanSchedule } from '@/components/dashboard/knowledge/knowledge-rescan-schedule';
@@ -11,7 +10,6 @@ import {
   KnowledgeResourcesList,
   KnowledgeResourcesShell
 } from '@/components/dashboard/knowledge/knowledge-resources-shell';
-import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionPage } from '@/components/ui/section-shell';
 import { Routes } from '@/constants/routes';
@@ -23,33 +21,6 @@ import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = createDashboardPageMetadata(Routes.Resources);
-
-function ResourcesHeader({
-  action
-}: {
-  action?: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex items-start gap-3.5">
-        <PresentationPageMark className="bg-[#001afc] text-[#fcf4ec]">
-          <Books
-            className="size-6"
-            weight="duotone"
-          />
-        </PresentationPageMark>
-        <div className="min-w-0">
-          <h1 className="page-title">Resources</h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Business knowledge for this workspace. Companion retrieves from
-            these sources when it drafts or answers.
-          </p>
-        </div>
-      </div>
-      {action}
-    </header>
-  );
-}
 
 function ResourcesFallback(): React.JSX.Element {
   return (
@@ -70,21 +41,12 @@ async function ResourcesPageContent(): Promise<React.JSX.Element> {
     return (
       <SectionPage width="xl">
         <div className="space-y-8">
-          <header className="flex items-start gap-3.5">
-            <PresentationPageMark className="bg-[#001afc] text-[#fcf4ec]">
-              <Books
-                className="size-6"
-                weight="duotone"
-              />
-            </PresentationPageMark>
-            <div className="min-w-0">
-              <h1 className="page-title">Resources</h1>
-              <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                Companion learns from this workspace&apos;s knowledge. Finish
-                onboarding so a workspace agent exists to attach sources to.
-              </p>
-            </div>
-          </header>
+          <h1 className="sr-only">Resources</h1>
+          <EmptyState
+            icon={<BookOpenIcon strokeWidth={1.25} />}
+            title="Finish onboarding"
+            description="Resources attach to the workspace agent created during onboarding."
+          />
         </div>
       </SectionPage>
     );
@@ -109,14 +71,17 @@ async function ResourcesPageContent(): Promise<React.JSX.Element> {
         initialSources={data.sources}
       >
         <div className="space-y-8">
-          <ResourcesHeader action={<AddSourceDialogTrigger />} />
+          <h1 className="sr-only">Resources</h1>
 
           <section className={cn(dashboardSurfaceClassName, 'overflow-hidden')}>
-            <div className="border-b border-border/60 px-5 py-4 sm:px-6">
-              <h2 className="text-sm font-medium text-foreground">Sources</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                URLs, PDFs, and text Companion can train on.
-              </p>
+            <div className="flex items-center justify-between gap-4 border-b border-border/60 px-5 py-4 sm:px-6">
+              <div className="min-w-0">
+                <h2 className="text-sm font-medium text-foreground">Sources</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  URLs, PDFs, and text Companion can train on.
+                </p>
+              </div>
+              <AddSourceDialogTrigger className="shrink-0" />
             </div>
             <div className="space-y-6 p-5 sm:p-6">
               <KnowledgeResourcesList
@@ -125,9 +90,7 @@ async function ResourcesPageContent(): Promise<React.JSX.Element> {
                     icon={<BookOpenIcon strokeWidth={1.25} />}
                     title="No resources yet"
                     description="Add URLs, PDFs, or text Companion can train on for this workspace."
-                  >
-                    <AddSourceDialogTrigger />
-                  </EmptyState>
+                  />
                 }
               />
               {oss || !data.knowledgeSettings ? null : (

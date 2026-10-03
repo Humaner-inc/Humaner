@@ -71,8 +71,8 @@ export function TrashFolderToolbar({
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <h1 className="page-title">Trash</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Auto-empty after</p>
+        <h1 className="sr-only">Trash</h1>
+        <p className="text-sm text-muted-foreground">Auto-empty after</p>
         <ToggleGroup
           type="single"
           value={selected}

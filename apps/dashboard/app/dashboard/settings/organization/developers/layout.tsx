@@ -1,11 +1,9 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
 
-import { McpIcon } from '@/components/brand/mcp-icon';
 import { McpIntelligenceToggle } from '@/components/dashboard/settings/organization/developers/mcp-intelligence-toggle';
 import { McpOAuthClientsCard } from '@/components/dashboard/settings/organization/developers/mcp-oauth-clients-card';
 import { McpServerConfigPanel } from '@/components/dashboard/settings/organization/developers/mcp-server-config-panel';
-import { PresentationPageMark } from '@/components/dashboard/workspace-page-shell';
 import { Routes } from '@/constants/routes';
 import { getMcpOAuthGrants } from '@/data/developers/get-mcp-oauth-grants';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
@@ -35,15 +33,7 @@ export default async function DevelopersLayout({
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center gap-3.5">
-        <PresentationPageMark className="border border-border/60 bg-[#0A0D0D] text-[#fcf4ec]">
-          <McpIcon
-            variant="glyph"
-            className="size-6"
-          />
-        </PresentationPageMark>
-        <h1 className="page-title">MCP</h1>
-      </header>
+      <h1 className="sr-only">MCP</h1>
 
       <section className={cn(dashboardSurfaceClassName, 'overflow-hidden')}>
         <div className="space-y-4 px-5 py-5 sm:px-6">

@@ -16,14 +16,12 @@ import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
 export async function InboxMailFolderScreen({
   folder,
   title,
-  description,
   emptyTitle,
   emptyDescription,
   mailbox
 }: {
   folder: MailListFolder;
   title: string;
-  description: string;
   emptyTitle: string;
   emptyDescription: string;
   mailbox?: string;
@@ -62,15 +60,11 @@ export async function InboxMailFolderScreen({
         mailbox={mailbox ?? null}
         canEmpty={threads.length > 0}
       />
-    ) : (
-      <div className="px-4 py-3">
-        <h1 className="page-title">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </div>
-    );
+    ) : null;
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
+      {folder === 'trash' ? null : <h1 className="sr-only">{title}</h1>}
       <PullToRefreshInbox className="min-h-0 flex-1">
         {threads.length > 0 ? (
           <MailThreadList

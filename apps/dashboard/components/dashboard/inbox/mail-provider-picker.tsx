@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CheckIcon, MailIcon, SearchIcon } from '@humaner/shared/icons';
-import { MAIL_CONNECT_KIND_BADGE } from '@humaner/shared/mail-providers';
+import { MailIcon, SearchIcon } from '@humaner/shared/icons';
 
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import { Input } from '@/components/ui/input';
@@ -25,6 +24,16 @@ export type MailProviderPickerProps = {
   onSelectConnected?: (providerId: string) => void;
 };
 
+const CUSTOM_IMAP_ID = 'custom';
+
+function logoDomainOf(provider: MailProviderDefinition): string | undefined {
+  return provider.logoDomain === 'humaner.io' ? undefined : provider.logoDomain;
+}
+
+function isConnectable(provider: MailProviderDefinition): boolean {
+  return provider.imapAvailable || provider.oauthAvailable;
+}
+
 export function MailProviderPicker({
   value,
   onChange,
@@ -32,44 +41,53 @@ export function MailProviderPicker({
   onSelectConnected
 }: MailProviderPickerProps): React.JSX.Element {
   const [query, setQuery] = React.useState('');
-  const groups = React.useMemo(
-    () => getMailProvidersGrouped({ featuredOnly: true }),
-    []
-  );
   const normalizedQuery = query.trim().toLowerCase();
   const connectedSet = React.useMemo(
     () => new Set(connectedProviderIds),
     [connectedProviderIds]
   );
 
-  const connectedProviders = React.useMemo(() => {
-    return MAIL_PROVIDERS.filter((provider) => connectedSet.has(provider.id));
-  }, [connectedSet]);
+  const { available, upcoming } = React.useMemo(() => {
+    const groups = getMailProvidersGrouped({ featuredOnly: true });
+    const availableProviders: MailProviderDefinition[] = [];
+    const upcomingProviders: MailProviderDefinition[] = [];
+    for (const group of groups) {
+      for (const provider of group.providers) {
+        if (isConnectable(provider)) availableProviders.push(provider);
+        else upcomingProviders.push(provider);
+      }
+    }
+    return { available: availableProviders, upcoming: upcomingProviders };
+  }, []);
 
-  const filteredGroups = React.useMemo(() => {
-    const filterProviders = (providers: MailProviderDefinition[]) => {
-      if (!normalizedQuery) return providers;
-      return providers.filter((provider) =>
-        provider.name.toLowerCase().includes(normalizedQuery)
-      );
-    };
+  const matches = React.useCallback(
+    (provider: MailProviderDefinition) =>
+      !normalizedQuery || provider.name.toLowerCase().includes(normalizedQuery),
+    [normalizedQuery]
+  );
 
-    return groups
-      .map((group) => ({
-        ...group,
-        providers: filterProviders(group.providers).filter(
-          (provider) => !connectedSet.has(provider.id)
-        )
-      }))
-      .filter((group) => group.providers.length > 0);
-  }, [groups, normalizedQuery]);
+  const connected = React.useMemo(
+    () =>
+      MAIL_PROVIDERS.filter(
+        (provider) => connectedSet.has(provider.id) && matches(provider)
+      ),
+    [connectedSet, matches]
+  );
 
-  const filteredConnected = React.useMemo(() => {
-    if (!normalizedQuery) return connectedProviders;
-    return connectedProviders.filter((provider) =>
-      provider.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [connectedProviders, normalizedQuery]);
+  const addable = React.useMemo(
+    () =>
+      available.filter(
+        (provider) => !connectedSet.has(provider.id) && matches(provider)
+      ),
+    [available, connectedSet, matches]
+  );
+
+  const customImap = React.useMemo(
+    () => MAIL_PROVIDERS.find((provider) => provider.id === CUSTOM_IMAP_ID),
+    []
+  );
+
+  const nothingFound = connected.length === 0 && addable.length === 0;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -79,135 +97,160 @@ export function MailProviderPicker({
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search Gmail, Fastmail, IONOS…"
+            placeholder="Search providers"
             className="h-9 pl-9 font-mono text-sm"
           />
         </div>
-        <p className="mt-2 px-0.5 text-xs text-muted-foreground">
-          Host not listed? Choose{' '}
-          <span className="font-medium text-foreground">Custom IMAP</span>.
-        </p>
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-4 p-2">
-          {filteredConnected.length > 0 ? (
-            <section className="space-y-1">
-              <p className="px-2 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Connected
-              </p>
-              <ul className="space-y-0.5">
-                {filteredConnected.map((provider) => (
-                  <ProviderListItem
-                    key={`connected-${provider.id}`}
-                    provider={provider}
-                    selected={value === provider.id}
-                    connected
-                    onSelect={() => {
-                      if (!provider.imapAvailable && !provider.oauthAvailable) {
-                        return;
-                      }
-                      if (onSelectConnected) {
-                        onSelectConnected(provider.id);
-                        return;
-                      }
-                      onChange(provider.id);
-                    }}
-                  />
+        <div className="space-y-5 p-3">
+          {connected.length > 0 ? (
+            <section className="space-y-2">
+              <SectionLabel>Connected</SectionLabel>
+              <ul className="flex flex-wrap gap-1.5">
+                {connected.map((provider) => (
+                  <li key={provider.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isConnectable(provider)) return;
+                        if (onSelectConnected) {
+                          onSelectConnected(provider.id);
+                          return;
+                        }
+                        onChange(provider.id);
+                      }}
+                      className={cn(
+                        'inline-flex h-7 items-center gap-1.5 rounded-md border border-border/60 pl-1.5 pr-2 text-xs transition-colors',
+                        value === provider.id
+                          ? 'bg-muted ring-1 ring-foreground/10'
+                          : 'hover:bg-muted/60'
+                      )}
+                    >
+                      <BrandLogo
+                        domain={logoDomainOf(provider)}
+                        fallbackIcon={MailIcon}
+                        size={16}
+                        className="size-4"
+                      />
+                      <span className="max-w-[9rem] truncate">
+                        {provider.name}
+                      </span>
+                      <span
+                        className="size-1.5 shrink-0 rounded-full bg-emerald-500"
+                        aria-label="Connected"
+                      />
+                    </button>
+                  </li>
                 ))}
               </ul>
-              {filteredGroups.length > 0 ? (
-                <div
-                  className="mx-2 my-3 border-t border-border/70"
-                  role="separator"
-                />
-              ) : null}
             </section>
           ) : null}
 
-          {filteredGroups.map((group) => (
-            <section
-              key={group.category}
-              className="space-y-1"
-            >
-              <p className="px-2 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                {group.label}
-              </p>
-              <ul className="space-y-0.5">
-                {group.providers.map((provider) => (
-                  <ProviderListItem
-                    key={provider.id}
-                    provider={provider}
-                    selected={value === provider.id}
-                    onSelect={() => {
-                      if (provider.imapAvailable || provider.oauthAvailable) {
-                        onChange(provider.id);
-                      }
-                    }}
-                  />
+          {addable.length > 0 ? (
+            <section className="space-y-2">
+              <SectionLabel>Add a provider</SectionLabel>
+              <ul className="grid grid-cols-3 gap-1.5">
+                {addable.map((provider) => (
+                  <li key={provider.id}>
+                    <ProviderTile
+                      provider={provider}
+                      selected={value === provider.id}
+                      onSelect={() => onChange(provider.id)}
+                    />
+                  </li>
                 ))}
               </ul>
             </section>
-          ))}
+          ) : null}
+
+          {nothingFound ? (
+            <div className="space-y-3 px-1 py-6 text-center">
+              <p className="text-xs text-muted-foreground">
+                No provider matches “{query.trim()}”.
+              </p>
+              {customImap ? (
+                <button
+                  type="button"
+                  onClick={() => onChange(customImap.id)}
+                  className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground underline-offset-4 hover:underline"
+                >
+                  Use Custom IMAP
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </ScrollArea>
+
+      {upcoming.length > 0 && !normalizedQuery ? (
+        <div className="flex shrink-0 items-center gap-2 border-t px-3 py-2.5 text-muted-foreground">
+          <SectionLabel>Soon</SectionLabel>
+          <div className="flex min-w-0 items-center gap-3 opacity-60 grayscale">
+            {upcoming.map((provider) => (
+              <span
+                key={provider.id}
+                className="inline-flex min-w-0 items-center gap-1.5 text-xs"
+              >
+                <BrandLogo
+                  domain={logoDomainOf(provider)}
+                  fallbackIcon={MailIcon}
+                  size={14}
+                  className="size-3.5"
+                />
+                <span className="truncate">{provider.name}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function ProviderListItem({
+function SectionLabel({
+  children
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <p className="shrink-0 px-0.5 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+      {children}
+    </p>
+  );
+}
+
+function ProviderTile({
   provider,
   selected,
-  connected,
   onSelect
 }: {
   provider: MailProviderDefinition;
   selected: boolean;
-  connected?: boolean;
   onSelect: () => void;
 }): React.JSX.Element {
-  const disabled = !provider.imapAvailable && !provider.oauthAvailable;
-
   return (
-    <li>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onSelect}
-        className={cn(
-          'flex w-full items-center gap-2.5 rounded-md p-2 text-left transition-colors',
-          selected
-            ? 'bg-muted font-medium ring-1 ring-foreground/10'
-            : 'hover:bg-muted/60',
-          disabled && 'cursor-not-allowed opacity-45 hover:bg-transparent'
-        )}
-      >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background ring-1 ring-border/60">
-          <BrandLogo
-            domain={
-              provider.logoDomain === 'humaner.io'
-                ? undefined
-                : provider.logoDomain
-            }
-            fallbackIcon={MailIcon}
-            size={28}
-            className="size-5"
-          />
-        </span>
-        <span className="min-w-0 flex-1 truncate text-sm leading-tight">
-          {provider.name}
-        </span>
-        {connected ? (
-          <CheckIcon
-            className="size-3.5 shrink-0 text-emerald-600"
-            aria-label="Connected"
-          />
-        ) : (
-          <span className="shrink-0 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-            {MAIL_CONNECT_KIND_BADGE[provider.connect]}
-          </span>
-        )}
-      </button>
-    </li>
+    <button
+      type="button"
+      onClick={onSelect}
+      title={provider.name}
+      className={cn(
+        'flex h-[4.5rem] w-full flex-col items-center justify-center gap-2 rounded-md border px-1.5 text-center transition-colors',
+        selected
+          ? 'border-foreground/20 bg-muted'
+          : 'border-border/50 hover:border-border hover:bg-muted/50'
+      )}
+    >
+      <BrandLogo
+        domain={logoDomainOf(provider)}
+        fallbackIcon={MailIcon}
+        size={24}
+        className="size-6"
+      />
+      <span className="line-clamp-1 w-full text-[11px] leading-tight">
+        {provider.name}
+      </span>
+    </button>
   );
 }

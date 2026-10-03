@@ -185,38 +185,34 @@ export function WorkspaceTasksBoard({
     <>
       <WorkspacePageShell
         title="Tasks"
-        description={
+        actions={
           <>
-            Create team, support, or reply work and assign it against working
-            hours.{' '}
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  className="inline-flex align-text-bottom text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                   aria-label="Working hours for today"
                 >
                   <InfoIcon className="size-3.5" />
                 </button>
               </TooltipTrigger>
               <TooltipContent
-                side="top"
-                className="max-w-xs text-xs leading-relaxed"
+                side="bottom"
+                className="max-w-xs"
               >
                 {formatWorkingHours(businessHours)}
               </TooltipContent>
             </Tooltip>
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal"
+              onClick={() => setCreateOpen(true)}
+            >
+              Create task
+            </Button>
           </>
-        }
-        actions={
-          <Button
-            type="button"
-            size="sm"
-            className="h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal"
-            onClick={() => setCreateOpen(true)}
-          >
-            Create task
-          </Button>
         }
       >
         <div className="grid min-h-full gap-4 lg:grid-cols-3">

@@ -168,6 +168,7 @@ export function NavUser({
           'dark:border-white/[0.12] dark:bg-[#0A0D0D]/55 dark:text-[#fcf4ec]'
         )}
         align="end"
+        sideOffset={10}
         forceMount
       >
         <div

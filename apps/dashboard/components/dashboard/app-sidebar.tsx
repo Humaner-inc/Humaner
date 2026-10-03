@@ -4,12 +4,17 @@ import * as React from 'react';
 import { XIcon } from '@humaner/shared/icons';
 
 import { HumanerBrandTitle } from '@/components/brand/humaner-brand-title';
+import { useDashboardSectionOptional } from '@/components/dashboard/dashboard-section-context';
+import { DashboardSectionTabs } from '@/components/dashboard/dashboard-section-tabs';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavMain } from '@/components/dashboard/nav-main';
 import { SidebarMessageUsage } from '@/components/dashboard/sidebar-message-usage';
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace/workspace-switcher';
 import { Button } from '@/components/ui/button';
+import { ChevronsLeftRightIcon } from '@/components/ui/chevrons-left-right-icon';
+import { ChevronsRightLeftIcon } from '@/components/ui/chevrons-right-left-icon';
+import { Hint } from '@/components/ui/hint';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
@@ -22,6 +27,7 @@ import { AppInfo } from '@/constants/app-info';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { SidebarMessageUsageDto } from '@/types/dtos/sidebar-message-usage-dto';
 
@@ -41,6 +47,82 @@ export type AppSidebarProps = {
   connectors?: ConnectorNavItem[];
 };
 
+/** Full-page mobile nav has no top bar: brand, close, and section picker live here. */
+function MobileFullPageHeader(): React.JSX.Element {
+  const sidebar = useSidebar();
+  const sectionNav = useDashboardSectionOptional();
+  const hasSections = (sectionNav?.sections.length ?? 0) > 0;
+
+  return (
+    <SidebarHeader className="shrink-0 gap-3 border-b border-sidebar-border p-3">
+      <div className="relative flex h-8 items-center justify-center">
+        <HumanerBrandTitle
+          name={AppInfo.APP_NAME}
+          className="min-w-0 justify-center"
+          wordmarkClassName="truncate text-center font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute right-0 size-8 shrink-0 rounded-sm text-muted-foreground hover:text-foreground"
+          onClick={() => sidebar.setOpen(false)}
+          aria-label="Close navigation"
+        >
+          <XIcon className="size-4" />
+        </Button>
+      </div>
+      {hasSections ? <DashboardSectionTabs layout="grid" /> : null}
+    </SidebarHeader>
+  );
+}
+
+/** Reduce / extend control pinned to the panel's top-right corner. */
+function SidebarPanelToggle(): React.JSX.Element | null {
+  const sidebar = useSidebar();
+
+  if (sidebar.isMobileFullPage) {
+    return null;
+  }
+
+  const collapsed = !sidebar.open;
+  const label = collapsed ? 'Extend sidebar' : 'Reduce sidebar';
+
+  return (
+    <div
+      className={cn(
+        'z-10',
+        collapsed ? 'flex justify-center pt-3' : 'absolute right-2 top-3'
+      )}
+    >
+      <Hint
+        label={`${label} · Ctrl+B`}
+        side={collapsed ? 'right' : 'bottom'}
+      >
+        <button
+          type="button"
+          onClick={sidebar.toggleSidebar}
+          aria-label={label}
+          aria-expanded={sidebar.open}
+          className="flex size-7 items-center justify-center rounded-sm text-sidebar-foreground/45 transition-colors hover:bg-sidebar-item hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+        >
+          {collapsed ? (
+            <ChevronsLeftRightIcon
+              className="shrink-0 text-current"
+              size={16}
+            />
+          ) : (
+            <ChevronsRightLeftIcon
+              className="shrink-0 text-current"
+              size={16}
+            />
+          )}
+        </button>
+      </Hint>
+    </div>
+  );
+}
+
 export function AppSidebar({
   profile,
   workspaces,
@@ -57,53 +139,15 @@ export function AppSidebar({
   connectors = []
 }: AppSidebarProps): React.JSX.Element {
   const sidebar = useSidebar();
-  const isCollapsed = !sidebar.open;
   const oss = isOssDeployment();
-  const appName = AppInfo.APP_NAME;
 
   return (
     <Sidebar
       collapsible="icon"
-      className="bg-sidebar/95 backdrop-blur-xl"
+      variant="floating"
     >
-      <SidebarHeader className="h-14 shrink-0 justify-center border-b border-sidebar-border p-2">
-        <div className="relative flex size-full min-w-0 items-center justify-center overflow-hidden">
-          {isCollapsed ? (
-            <span
-              aria-hidden
-              className="inline-block size-7 shrink-0 bg-[#0A0D0D] dark:bg-[#f2f2f2]"
-              style={{
-                WebkitMaskImage: 'url(/brandmark_blue.svg)',
-                maskImage: 'url(/brandmark_blue.svg)',
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain'
-              }}
-            />
-          ) : (
-            <HumanerBrandTitle
-              name={appName}
-              className="min-w-0 justify-center"
-              wordmarkClassName="truncate text-center font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
-            />
-          )}
-          {sidebar.isMobileFullPage ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 size-9 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
-              onClick={() => sidebar.setOpen(false)}
-              aria-label="Close navigation"
-            >
-              <XIcon className="size-4" />
-            </Button>
-          ) : null}
-        </div>
-      </SidebarHeader>
+      {sidebar.isMobileFullPage ? <MobileFullPageHeader /> : null}
+      <SidebarPanelToggle />
       <SidebarContent className="min-h-0 overflow-hidden">
         <ScrollArea
           verticalScrollBar
@@ -130,7 +174,7 @@ export function AppSidebar({
             showCompanionUpgrade={showCompanionUpgrade}
           />
         ) : null}
-        <SidebarFooter className="min-w-0 p-2">
+        <SidebarFooter className="min-w-0 p-2 group-data-[collapsible=icon]:px-0">
           <WorkspaceSwitcher
             variant="sidebar"
             workspaces={workspaces}

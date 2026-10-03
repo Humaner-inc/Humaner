@@ -6,12 +6,6 @@ import { CompanionComposer } from '@/components/dashboard/ask-humaner/companion-
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { PageAccessGate } from '@/components/dashboard/page-access-gate';
 import { PlanFeatureLock } from '@/components/dashboard/plan-feature-lock';
-import {
-  COMPANION_DOCK_OFFSET,
-  COMPANION_DOCK_OFFSET_VAR,
-  COMPANION_DOCK_OFFSET_WITH_PANEL
-} from '@/lib/companion-visibility';
-import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export function DashboardWorkspaceColumn({
@@ -25,39 +19,18 @@ export function DashboardWorkspaceColumn({
 }): React.JSX.Element {
   const chat = useHumanerChatOptional();
   const companionVisible = chat?.companionVisible ?? false;
-  const [composerMounted, setComposerMounted] =
+  const [launcherMounted, setLauncherMounted] =
     React.useState(companionVisible);
-  const taskPanelOpen = chat?.taskPanelOpen ?? false;
 
   React.useEffect(() => {
     if (companionVisible) {
-      setComposerMounted(true);
+      setLauncherMounted(true);
     }
   }, [companionVisible]);
 
-  const dockOffset = !composerMounted
-    ? '0px'
-    : companionVisible && taskPanelOpen
-      ? COMPANION_DOCK_OFFSET_WITH_PANEL
-      : COMPANION_DOCK_OFFSET;
-
   return (
-    <div
-      className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
-      style={
-        {
-          [COMPANION_DOCK_OFFSET_VAR]: dockOffset
-        } as React.CSSProperties
-      }
-    >
-      <div
-        className={cn(
-          'flex min-h-0 w-full flex-col overflow-hidden',
-          composerMounted
-            ? 'h-[calc(100%-var(--companion-dock-offset,0px))] max-h-[calc(100%-var(--companion-dock-offset,0px))]'
-            : 'h-full min-h-0 flex-1'
-        )}
-      >
+    <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
         <PageAccessGate profile={profile}>
           <PlanFeatureLock orgTier={orgTier}>
             <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
@@ -66,10 +39,10 @@ export function DashboardWorkspaceColumn({
           </PlanFeatureLock>
         </PageAccessGate>
       </div>
-      {composerMounted ? (
+      {launcherMounted ? (
         <CompanionComposer
           departing={!companionVisible}
-          onDeparted={() => setComposerMounted(false)}
+          onDeparted={() => setLauncherMounted(false)}
         />
       ) : null}
     </div>

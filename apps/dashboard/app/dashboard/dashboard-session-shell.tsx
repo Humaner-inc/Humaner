@@ -16,8 +16,8 @@ import { WorkspaceRole } from '@prisma/client';
 
 import { HumanerChatProvider } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { BillingAccessBanner } from '@/components/dashboard/billing-access-banner';
+import { DashboardCloudChrome } from '@/components/dashboard/dashboard-cloud-chrome';
 import { DashboardDocumentTitle } from '@/components/dashboard/dashboard-document-title';
-import { DashboardTopNav } from '@/components/dashboard/dashboard-top-nav';
 import { DashboardWorkspaceColumn } from '@/components/dashboard/dashboard-workspace-column';
 import { DataImprovementConsentGate } from '@/components/dashboard/data-improvement-consent-gate';
 import { DashboardDockProvider } from '@/components/dashboard/dock/dashboard-dock-context';
@@ -26,10 +26,9 @@ import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-noti
 import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
-import { SidebarRenderer } from '@/components/dashboard/sidebar-renderer';
 import { WorkspaceBillingAccessProvider } from '@/components/dashboard/workspace-billing-access-context';
 import { WorkspaceReadOnlyGate } from '@/components/dashboard/workspace-read-only-gate';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { agentPersonaRoute, Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
 import { getAgents } from '@/data/agents/get-agents';
@@ -290,65 +289,60 @@ export async function DashboardSessionShell({
   }));
 
   const dashboardShell = (
-    <>
-      <SidebarRenderer
-        profile={profile}
-        workspaces={workspaces}
-        messageUsage={messageUsage}
-        orgTier={userFromDb!.organization!.tier ?? 'free'}
-        frontierBetaEnabled={userFromDb!.organization!.frontierBetaEnabled}
-        inboxUnreadCount={inboxUnreadCount}
-        handoffOpenCount={handoffOpenCounts.humanOpen}
-        agentDeskOpenCount={handoffOpenCounts.agentOpen}
-        mailInboxes={mailInboxes}
-        agents={sidebarAgents}
-        companionHref={
+    <DashboardCloudChrome
+      sections={!oss}
+      profile={profile}
+      topNav={{
+        teamFeed,
+        planName: getPlanForTier(userFromDb!.organization!.tier).name,
+        audienceLabel: oss
+          ? (userFromDb!.organization!.targetAudience ?? null)
+          : null
+      }}
+      sidebar={{
+        workspaces,
+        messageUsage,
+        orgTier: userFromDb!.organization!.tier ?? 'free',
+        frontierBetaEnabled: userFromDb!.organization!.frontierBetaEnabled,
+        inboxUnreadCount,
+        handoffOpenCount: handoffOpenCounts.humanOpen,
+        agentDeskOpenCount: handoffOpenCounts.agentOpen,
+        mailInboxes,
+        agents: sidebarAgents,
+        companionHref:
           copilotEnabled && companionAgent
             ? agentPersonaRoute(companionAgent.id)
-            : null
-        }
-        showCompanionUpgrade={isCloudFreePlan(
+            : null,
+        showCompanionUpgrade: isCloudFreePlan(
           userFromDb!.organization!.tier ?? 'free'
-        )}
-        connectors={connectors}
-      />
-      <SidebarInset
-        id="skip"
-        className="min-h-0 min-w-0 flex-1"
-      >
-        <DashboardTopNav
-          profile={profile}
+        ),
+        connectors
+      }}
+    >
+      {!oss && billingAccess.banner ? (
+        <BillingAccessBanner access={billingAccess} />
+      ) : null}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <WorkspaceBillingAccessProvider access={billingAccess}>
+          <DashboardWorkspaceColumn
+            profile={profile}
+            orgTier={userFromDb!.organization!.tier ?? 'free'}
+          >
+            <WorkspaceReadOnlyGate>{children}</WorkspaceReadOnlyGate>
+          </DashboardWorkspaceColumn>
+        </WorkspaceBillingAccessProvider>
+        <DashboardDockPanel
+          workspaceName={companionOrganizationName}
           teamFeed={teamFeed}
-          planName={getPlanForTier(userFromDb!.organization!.tier).name}
-          audienceLabel={
-            oss ? (userFromDb!.organization!.targetAudience ?? null) : null
-          }
         />
-        {!oss && billingAccess.banner ? (
-          <BillingAccessBanner access={billingAccess} />
-        ) : null}
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          <WorkspaceBillingAccessProvider access={billingAccess}>
-            <DashboardWorkspaceColumn
-              profile={profile}
-              orgTier={userFromDb!.organization!.tier ?? 'free'}
-            >
-              <WorkspaceReadOnlyGate>{children}</WorkspaceReadOnlyGate>
-            </DashboardWorkspaceColumn>
-          </WorkspaceBillingAccessProvider>
-          <DashboardDockPanel
-            workspaceName={companionOrganizationName}
-            teamFeed={teamFeed}
-          />
-        </div>
-      </SidebarInset>
-    </>
+      </div>
+    </DashboardCloudChrome>
   );
 
   return (
     <OrgModeProvider targetAudience={userFromDb!.organization!.targetAudience}>
       <div
-        className="flex h-screen overflow-hidden bg-background text-foreground"
+        className="flex h-screen overflow-hidden bg-shell text-foreground"
         data-dashboard-shell="ready"
       >
         {!isOssDeployment() ? (
@@ -364,7 +358,7 @@ export async function DashboardSessionShell({
             creditsUsd={creditsGrantedUsd}
           />
         ) : null}
-        <SidebarProvider>
+        <SidebarProvider className="h-full min-h-0 flex-col">
           <DashboardDocumentTitle />
           <OrgRealtimeBridge />
           <ComposeMailProvider

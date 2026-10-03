@@ -63,7 +63,7 @@ export function InboxMailboxMenu({
           'mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-1.5 px-2.5 py-1.5 text-left outline-none',
           dashboardRadiusClassName,
           'font-fellix text-sm font-light text-sidebar-foreground/50',
-          'transition-colors hover:bg-muted/20 hover:text-sidebar-foreground',
+          'transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-foreground',
           'focus-visible:text-sidebar-foreground',
           'disabled:pointer-events-none disabled:opacity-40'
         )}
@@ -82,7 +82,7 @@ export function InboxMailboxMenu({
       <DropdownMenuContent
         align="start"
         side="bottom"
-        className="min-w-56"
+        className="min-w-56 border-border/60 bg-background shadow-[0_12px_32px_-12px_rgb(0_0_0_/_0.25)]"
       >
         {mailboxes.map((mailbox) => {
           const selected = mailbox.connectionId === activeMailboxId;
@@ -93,7 +93,11 @@ export function InboxMailboxMenu({
             >
               <Link
                 href={mailboxConnectionHref(folderHref, mailbox.connectionId)}
-                className="flex items-center gap-2"
+                className={cn(
+                  'flex cursor-pointer items-center gap-2 transition-colors duration-150',
+                  'hover:bg-sidebar hover:text-foreground focus:bg-sidebar data-[highlighted]:bg-sidebar',
+                  selected ? 'text-foreground' : 'text-foreground/75'
+                )}
               >
                 <Check
                   className={cn(

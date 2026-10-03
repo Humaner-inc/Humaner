@@ -24,6 +24,26 @@ const WHERE_ACTIONS = new Set([
   'deleteMany'
 ]);
 
+/** Reads are safe to repeat after Neon drops a pooled connection (P1017). */
+const READ_ACTIONS = new Set([
+  'findUnique',
+  'findUniqueOrThrow',
+  'findFirst',
+  'findFirstOrThrow',
+  'findMany',
+  'count',
+  'aggregate',
+  'groupBy'
+]);
+
+function isClosedConnection(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as { code?: string }).code === 'P1017'
+  );
+}
+
 function injectTenantWhere(
   args: { where?: Record<string, unknown> } | undefined,
   organizationId: string
@@ -52,25 +72,34 @@ function createPrismaClient(): PrismaClient {
     const organizationId = getTenantOrganizationId();
     const model = params.model;
     if (
-      !organizationId ||
-      !model ||
-      !TENANT_SCOPED_MODELS.has(model) ||
-      !params.action
+      organizationId &&
+      model &&
+      params.action &&
+      TENANT_SCOPED_MODELS.has(model)
     ) {
-      return next(params);
-    }
-
-    if (WHERE_ACTIONS.has(params.action)) {
-      params.args = injectTenantWhere(params.args, organizationId);
-    } else if (params.action === 'create') {
-      const data = (params.args?.data ?? {}) as Record<string, unknown>;
-      if (data.organizationId === undefined) {
-        data.organizationId = organizationId;
+      if (WHERE_ACTIONS.has(params.action)) {
+        params.args = injectTenantWhere(params.args, organizationId);
+      } else if (params.action === 'create') {
+        const data = (params.args?.data ?? {}) as Record<string, unknown>;
+        if (data.organizationId === undefined) {
+          data.organizationId = organizationId;
+        }
+        params.args = { ...params.args, data };
       }
-      params.args = { ...params.args, data };
     }
 
-    return next(params);
+    try {
+      return await next(params);
+    } catch (error) {
+      if (
+        isClosedConnection(error) &&
+        params.action &&
+        READ_ACTIONS.has(params.action)
+      ) {
+        return next(params);
+      }
+      throw error;
+    }
   });
 
   return client;

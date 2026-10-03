@@ -12,7 +12,6 @@ export default async function InboxSpamPage({
     <InboxMailFolderScreen
       folder="spam"
       title="Spam"
-      description="Blocked senders land here. Mark as not spam to restore."
       emptyTitle="Spam is empty"
       emptyDescription="Mail from blocked senders will appear here."
       mailbox={mailbox}

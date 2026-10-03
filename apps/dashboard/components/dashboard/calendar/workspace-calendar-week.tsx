@@ -319,12 +319,8 @@ export function WorkspaceCalendarWeek({
       <div className="flex h-full min-h-0 flex-1 overflow-hidden">
         <div className="min-w-0 flex-1 overflow-hidden">
           <WorkspacePageShell
-            title={
-              <span className="inline-flex items-center gap-2">
-                Calendar
-                <CalendarConnectedLogos connections={connections} />
-              </span>
-            }
+            title="Calendar"
+            leading={<CalendarConnectedLogos connections={connections} />}
             actions={
               <CalendarToolbar
                 focusDate={focus}

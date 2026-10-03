@@ -34,7 +34,9 @@ const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '15rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
-const SIDEBAR_WIDTH_ICON = '4rem';
+// One navbar button wide: with the shell's 8px gutter, rail icons share the
+// top bar's inset on every side.
+const SIDEBAR_WIDTH_ICON = '2rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 const MOBILE_BREAKPOINT = 1024;
 /** Below this the sidebar and the page each take the whole screen, never both. */
@@ -275,8 +277,11 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
       const panelWidthClass = isExpanded
         ? 'w-[--sidebar-width]'
         : 'w-[--sidebar-width-icon]';
-      const sideBorderClass =
-        side === 'left'
+      // Floating panels sit inside the shell gutter: borderless fill, brand radius.
+      const floating = variant === 'floating';
+      const sideBorderClass = floating
+        ? cn('relative', dashboardRadiusClassName)
+        : side === 'left'
           ? 'border-r border-sidebar-border'
           : 'border-l border-sidebar-border';
 
@@ -317,7 +322,10 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
         return (
           <div
             ref={ref}
-            className="group peer block w-[--sidebar-width-icon] shrink-0 text-sidebar-foreground"
+            className={cn(
+              'group peer block w-[--sidebar-width-icon] shrink-0 text-sidebar-foreground',
+              floating && 'relative h-full'
+            )}
             data-state={state}
             data-collapsible=""
             data-variant={variant}
@@ -325,7 +333,10 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
           >
             <div
               className={cn(
-                'fixed inset-y-0 z-40 flex h-svh w-[--sidebar-width] shadow-[4px_0_24px_-4px_rgba(0,0,0,0.45)] transition-[left,right,width] duration-200 ease-linear',
+                'z-40 flex w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear',
+                floating
+                  ? 'absolute inset-y-0 h-full drop-shadow-[4px_0_24px_rgba(0,0,0,0.45)]'
+                  : 'fixed inset-y-0 h-svh shadow-[4px_0_24px_-4px_rgba(0,0,0,0.45)]',
                 side === 'left' ? 'left-0' : 'right-0',
                 className
               )}
@@ -349,7 +360,8 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
         <div
           ref={ref}
           className={cn(
-            'group peer block h-svh shrink-0 overflow-hidden text-sidebar-foreground transition-[width] duration-200 ease-linear',
+            'group peer block shrink-0 overflow-hidden text-sidebar-foreground transition-[width] duration-200 ease-linear',
+            floating ? 'h-full' : 'h-svh',
             panelWidthClass
           )}
           data-state={state}
@@ -363,8 +375,6 @@ const Sidebar = React.forwardRef<SidebarElement, SidebarProps>(
               'flex h-full flex-col bg-sidebar',
               panelWidthClass,
               sideBorderClass,
-              variant === 'floating' &&
-                'rounded-lg border border-sidebar-border shadow',
               className
             )}
             {...props}

@@ -9,6 +9,7 @@ import { PencilIcon } from '@humaner/shared/icons';
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
 import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { Button } from '@/components/ui/button';
+import { Hint } from '@/components/ui/hint';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
@@ -182,74 +183,74 @@ export function SidebarMessageUsage({
   const fuelCaption = operatorOwned ? 'replies' : 'fuel remaining';
 
   return (
-    <div
-      className={cn(
-        'min-w-0 px-2.5 pb-2.5 pt-1',
-        !isMobile && 'group-data-[collapsible=icon]:px-1.5',
-        className
-      )}
-      title={isIconRail && companionOn ? remainingLabel : undefined}
+    <Hint
+      label={remainingLabel}
+      side="right"
+      disabled={!(isIconRail && companionOn)}
     >
-      {chat ? (
-        <CompanionStatus
-          compact={isIconRail}
-          href={companionLink}
-          active={companionActive}
-          upgrade={showCompanionUpgrade}
-          fuelAmount={companionOn && !isIconRail ? fuelAmount : null}
-          fuelCaption={fuelCaption}
-        />
-      ) : null}
-
       <div
         className={cn(
-          'grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-out',
-          companionOn
-            ? 'grid-rows-[1fr] opacity-100'
-            : 'grid-rows-[0fr] opacity-0'
+          'min-w-0 px-2.5 pb-2.5 pt-1',
+          !isMobile && 'group-data-[collapsible=icon]:px-0',
+          className
         )}
-        aria-hidden={!companionOn}
       >
-        <div className="min-w-0 overflow-hidden">
-          {showUpgradeCta ? (
-            <Button
-              asChild
-              size="sm"
-              variant="upgrade"
-              className="mb-2 mt-2 h-8 w-full min-w-0"
-            >
-              <Link href={Routes.Billing}>
-                {isFreePlan ? 'Start 7-day trial' : 'Add fuel'}
-              </Link>
-            </Button>
-          ) : null}
+        {chat ? (
+          <CompanionStatus
+            compact={isIconRail}
+            href={companionLink}
+            active={companionActive}
+            upgrade={showCompanionUpgrade}
+            fuelAmount={companionOn && !isIconRail ? fuelAmount : null}
+            fuelCaption={fuelCaption}
+          />
+        ) : null}
 
-          {isIconRail ? (
-            <p className="pt-1.5 text-center font-mono text-[9px] font-medium tabular-nums leading-tight text-foreground/55">
-              {operatorOwned
-                ? usage.messagesUsed.toLocaleString()
-                : formatCreditUsd(usage.creditsRemainingCents)}
-            </p>
-          ) : operatorOwned || chat ? null : (
-            <p className="flex items-baseline gap-1 leading-none">
-              <span className="font-mono text-[11px] tabular-nums text-foreground">
-                {fuelAmount}
-              </span>
-              <span className="font-fellix text-[10px] text-foreground/45">
-                {fuelCaption}
-              </span>
-            </p>
+        <div
+          className={cn(
+            'grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-out',
+            companionOn
+              ? 'grid-rows-[1fr] opacity-100'
+              : 'grid-rows-[0fr] opacity-0'
           )}
-          {operatorOwned || isIconRail ? null : (
-            <SidebarUsageProgress
-              expanded
-              value={usagePercent}
-              fillPercent={meter.fillPercent}
-            />
-          )}
+          aria-hidden={!companionOn}
+        >
+          <div className="min-w-0 overflow-hidden">
+            {showUpgradeCta ? (
+              <Button
+                asChild
+                size="sm"
+                variant="upgrade"
+                className="mb-2 mt-2 h-8 w-full min-w-0"
+              >
+                <Link href={Routes.Billing}>
+                  {isFreePlan ? 'Start 7-day trial' : 'Add fuel'}
+                </Link>
+              </Button>
+            ) : null}
+
+            {/* The rail is one icon wide; the amount moves to the tooltip. */}
+            {isIconRail || operatorOwned || chat ? null : (
+              <p className="flex items-baseline gap-1 leading-none">
+                <span className="font-mono text-[11px] tabular-nums text-foreground">
+                  {fuelAmount}
+                </span>
+                <span className="font-fellix text-[10px] text-foreground/45">
+                  {fuelCaption}
+                </span>
+              </p>
+            )}
+            {operatorOwned || isIconRail ? null : (
+              <SidebarUsageProgress
+                expanded
+                value={usagePercent}
+                fillPercent={meter.fillPercent}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </Hint>
   );
 }
 

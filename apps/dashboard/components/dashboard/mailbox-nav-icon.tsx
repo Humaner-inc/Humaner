@@ -2,10 +2,7 @@
 
 import * as React from 'react';
 
-import {
-  HUMANER_NAV_COLORS,
-  type HumanerNavColor
-} from '@/lib/humaner-nav-colors';
+import type { HumanerNavColor } from '@/lib/humaner-nav-colors';
 import { cn } from '@/lib/utils';
 
 export type { HumanerNavColor };
@@ -17,15 +14,18 @@ type PhosphorNavGlyph = React.ComponentType<{
   style?: React.CSSProperties;
 }>;
 
+/**
+ * Monochrome, Linear-style: one stroke weight, tone carries the state.
+ * `color` stays on the API for callers that tint elsewhere (badges, chips).
+ */
 export function MailboxNavIcon({
   icon: Icon,
   active,
-  color,
   className
 }: {
   icon: PhosphorNavGlyph;
   active: boolean;
-  color: HumanerNavColor;
+  color?: HumanerNavColor;
   className?: string;
 }): React.JSX.Element {
   return (
@@ -34,21 +34,11 @@ export function MailboxNavIcon({
       weight={active ? 'fill' : 'regular'}
       className={cn(
         'size-4 shrink-0 transition-colors',
-        !active &&
-          'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground',
+        active
+          ? 'text-sidebar-foreground'
+          : 'text-sidebar-foreground/50 group-hover/nav:text-sidebar-foreground/80',
         className
       )}
-      style={
-        active
-          ? {
-              color:
-                color === HUMANER_NAV_COLORS.foreground ||
-                color === HUMANER_NAV_COLORS.brand
-                  ? 'hsl(var(--foreground))'
-                  : color
-            }
-          : undefined
-      }
     />
   );
 }

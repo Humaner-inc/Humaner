@@ -5,7 +5,6 @@ import * as React from 'react';
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
-import { SidebarEdgeToggle } from '@/components/dashboard/sidebar-edge-toggle';
 import { SidebarOverlayBackdrop } from '@/components/dashboard/sidebar-overlay-backdrop';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
@@ -61,7 +60,6 @@ export function SidebarRenderer({
         connectors={connectors}
       />
       <SidebarOverlayBackdrop />
-      <SidebarEdgeToggle />
     </>
   );
 }

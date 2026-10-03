@@ -12,17 +12,21 @@ import {
 import { SIDEBAR_MAIN_NAV_ATTR } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { useSidebarNavDrawer } from '@/components/dashboard/sidebar-nav-accordion';
 import { sidebarNavIconClassName } from '@/components/dashboard/sidebar-nav-icon';
+import { Hint } from '@/components/ui/hint';
 import { useSidebar } from '@/components/ui/sidebar';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
+/** Collapsed rail: same square as the navbar buttons, filling the rail. */
+const sidebarIconRailClassName =
+  'mx-0 size-8 h-8 w-8 shrink-0 justify-center rounded-sm p-0';
+
 export function sidebarNavParentClassName(active: boolean): string {
   return cn(
-    'group/nav mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2.5 px-2.5 py-2 font-fellix text-sm transition-colors',
-    dashboardRadiusClassName,
+    'group/nav mx-0.5 flex h-8 w-[calc(100%-0.25rem)] items-center gap-2 rounded-sm px-2 font-fellix text-[13px] transition-colors',
     active
-      ? 'text-sidebar-foreground'
-      : 'text-sidebar-foreground/50 hover:bg-muted/30 hover:text-sidebar-foreground'
+      ? 'bg-sidebar-item text-sidebar-foreground'
+      : 'text-sidebar-foreground/65 hover:bg-sidebar-item/50 hover:text-sidebar-foreground'
   );
 }
 
@@ -31,11 +35,10 @@ export function sidebarNavChildClassName(
   disabled?: boolean
 ): string {
   return cn(
-    'group/nav mx-0.5 flex w-[calc(100%-0.25rem)] items-center gap-2 px-2.5 py-1.5 text-left font-fellix text-sm font-light transition-colors',
-    dashboardRadiusClassName,
+    'group/nav mx-0.5 flex h-7 w-[calc(100%-0.25rem)] items-center gap-2 rounded-sm px-2 text-left font-fellix text-[13px] transition-colors',
     active
-      ? 'text-sidebar-foreground'
-      : 'text-sidebar-foreground/50 hover:bg-muted/20 hover:text-sidebar-foreground',
+      ? 'bg-sidebar-item text-sidebar-foreground'
+      : 'text-sidebar-foreground/60 hover:bg-sidebar-item/50 hover:text-sidebar-foreground',
     disabled && 'pointer-events-none opacity-40'
   );
 }
@@ -95,21 +98,25 @@ export function SidebarNavParent({
   if (isIconRail) {
     return (
       <BranchIconAnimationProvider value={{ iconRef }}>
-        <Link
-          href={href ?? '#'}
-          title={tooltip ?? label}
-          data-active={active ? true : undefined}
-          data-icon-hover=""
-          {...mainNavProps}
-          {...rowHandlers}
-          className={cn(
-            sidebarNavParentClassName(active),
-            'justify-center px-2 py-2.5',
-            active && 'bg-muted/50'
-          )}
+        <Hint
+          label={tooltip ?? label}
+          side="right"
         >
-          {leadingNode}
-        </Link>
+          <Link
+            href={href ?? '#'}
+            aria-label={tooltip ?? label}
+            data-active={active ? true : undefined}
+            data-icon-hover=""
+            {...mainNavProps}
+            {...rowHandlers}
+            className={cn(
+              sidebarNavParentClassName(active),
+              sidebarIconRailClassName
+            )}
+          >
+            {leadingNode}
+          </Link>
+        </Hint>
       </BranchIconAnimationProvider>
     );
   }
@@ -124,7 +131,8 @@ export function SidebarNavParent({
         className={cn(
           sidebarNavParentClassName(active),
           'pr-1',
-          active && 'bg-muted/40'
+          // Trees fill the active child row, not the branch.
+          active && 'bg-transparent hover:bg-sidebar-item/50'
         )}
       >
         {href ? (
@@ -148,22 +156,23 @@ export function SidebarNavParent({
           </button>
         )}
         {quickAction ? (
-          <button
-            type="button"
-            aria-label={quickAction.label}
-            title={quickAction.label}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              quickAction.onClick?.();
-            }}
-            className={cn(
-              'flex size-7 shrink-0 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:bg-muted/40 hover:text-sidebar-foreground group-hover/nav:opacity-100 focus-visible:opacity-100',
-              dashboardRadiusClassName
-            )}
-          >
-            {quickAction.icon}
-          </button>
+          <Hint label={quickAction.label}>
+            <button
+              type="button"
+              aria-label={quickAction.label}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                quickAction.onClick?.();
+              }}
+              className={cn(
+                'flex size-7 shrink-0 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:bg-muted/40 hover:text-sidebar-foreground group-hover/nav:opacity-100 focus-visible:opacity-100',
+                dashboardRadiusClassName
+              )}
+            >
+              {quickAction.icon}
+            </button>
+          </Hint>
         ) : null}
         <button
           type="button"
@@ -280,19 +289,23 @@ export function SidebarNavChild({
 
   if (isIconRail) {
     return (
-      <Link
-        href={disabled ? '#' : href}
-        title={label}
-        tabIndex={tabIndex}
-        className={cn(
-          sidebarNavParentClassName(active),
-          'justify-center px-2 py-2.5',
-          active && 'bg-muted/50',
-          disabled && 'pointer-events-none opacity-40'
-        )}
+      <Hint
+        label={label}
+        side="right"
       >
-        {leading}
-      </Link>
+        <Link
+          href={disabled ? '#' : href}
+          aria-label={label}
+          tabIndex={tabIndex}
+          className={cn(
+            sidebarNavParentClassName(active),
+            sidebarIconRailClassName,
+            disabled && 'pointer-events-none opacity-40'
+          )}
+        >
+          {leading}
+        </Link>
+      </Hint>
     );
   }
 
@@ -317,37 +330,39 @@ export function SidebarNavChild({
       </Link>
       {quickAction && !disabled ? (
         quickAction.onClick ? (
-          <button
-            type="button"
-            aria-label={quickAction.label}
-            title={quickAction.label}
-            tabIndex={tabIndex}
-            className={cn(
-              'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
-              dashboardRadiusClassName
-            )}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              quickAction.onClick?.();
-            }}
-          >
-            {quickAction.icon}
-          </button>
+          <Hint label={quickAction.label}>
+            <button
+              type="button"
+              aria-label={quickAction.label}
+              tabIndex={tabIndex}
+              className={cn(
+                'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
+                dashboardRadiusClassName
+              )}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                quickAction.onClick?.();
+              }}
+            >
+              {quickAction.icon}
+            </button>
+          </Hint>
         ) : quickAction.href ? (
-          <Link
-            href={quickAction.href}
-            aria-label={quickAction.label}
-            title={quickAction.label}
-            tabIndex={tabIndex}
-            className={cn(
-              'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
-              dashboardRadiusClassName
-            )}
-            onClick={(event) => event.stopPropagation()}
-          >
-            {quickAction.icon}
-          </Link>
+          <Hint label={quickAction.label}>
+            <Link
+              href={quickAction.href}
+              aria-label={quickAction.label}
+              tabIndex={tabIndex}
+              className={cn(
+                'absolute right-1 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center text-sidebar-foreground/40 opacity-0 transition-opacity hover:text-sidebar-foreground group-hover/child:opacity-100 focus-visible:opacity-100',
+                dashboardRadiusClassName
+              )}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {quickAction.icon}
+            </Link>
+          </Hint>
         ) : null
       ) : null}
     </div>
@@ -474,46 +489,57 @@ export function SidebarNavLink({
     : {};
   const className = cn(
     sidebarNavParentClassName(active),
-    isIconRail && 'justify-center px-2 py-2.5',
-    active && 'bg-muted/40',
+    isIconRail && sidebarIconRailClassName,
     disabled && 'pointer-events-none opacity-40'
   );
 
   if (onClick) {
     return (
-      <button
-        type="button"
-        title={isIconRail ? label : undefined}
-        data-active={active ? true : undefined}
-        {...mainNavProps}
-        disabled={disabled}
-        className={className}
-        onClick={onClick}
+      <Hint
+        label={label}
+        side="right"
+        disabled={!isIconRail}
       >
-        {leading ??
-          (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
-        {!isIconRail ? (
-          <span className="flex-1 truncate text-left">{label}</span>
-        ) : null}
-        {!isIconRail ? badge : null}
-      </button>
+        <button
+          type="button"
+          aria-label={isIconRail ? label : undefined}
+          data-active={active ? true : undefined}
+          {...mainNavProps}
+          disabled={disabled}
+          className={className}
+          onClick={onClick}
+        >
+          {leading ??
+            (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
+          {!isIconRail ? (
+            <span className="flex-1 truncate text-left">{label}</span>
+          ) : null}
+          {!isIconRail ? badge : null}
+        </button>
+      </Hint>
     );
   }
 
   return (
-    <Link
-      href={disabled ? '#' : href}
-      target={external ? '_blank' : undefined}
-      rel={external ? 'noreferrer' : undefined}
-      title={isIconRail ? label : undefined}
-      data-active={active ? true : undefined}
-      {...mainNavProps}
-      className={className}
+    <Hint
+      label={label}
+      side="right"
+      disabled={!isIconRail}
     >
-      {leading ??
-        (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
-      {!isIconRail ? <span className="flex-1 truncate">{label}</span> : null}
-      {!isIconRail ? badge : null}
-    </Link>
+      <Link
+        href={disabled ? '#' : href}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noreferrer' : undefined}
+        aria-label={isIconRail ? label : undefined}
+        data-active={active ? true : undefined}
+        {...mainNavProps}
+        className={className}
+      >
+        {leading ??
+          (Icon ? <Icon className={sidebarNavIconClassName()} /> : null)}
+        {!isIconRail ? <span className="flex-1 truncate">{label}</span> : null}
+        {!isIconRail ? badge : null}
+      </Link>
+    </Hint>
   );
 }

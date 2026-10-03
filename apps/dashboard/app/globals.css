@@ -7,35 +7,37 @@
 @layer base {
   :root {
     /*
-     * Neutrals (light → dark among lights): #fcf4ec · #F2F2F2 · #eaeaea
-     * Neutrals (dark → light among darks):  #0A0D0D · #18181b · #1c1c1e
-     * Accent #e0e1df. Status: info #001afc · warning #f85919 ·
-     * destructive #aa1f18 · success #226342.
+     * Three chrome colors, light and dark. Status hues stay separate.
+     * Light: #fcf4ec page · #f2ebe3 raised (gutter, sidebar, popups) · #0A0D0D CTA
+     * Dark:  #0A0D0D page · #141818 raised · #fcf4ec CTA
+     * The gutter is the raised color so the page panel reads on its own.
+     * Hover and the active sidebar row use the page color, not a fourth fill.
      */
     /* #fcf4ec */
     --background: 30 73% 95.7%;
     /* #0A0D0D */
     --foreground: 180 13% 4.5%;
 
-    --card: 30 73% 95.7%;
+    /* Raised surface — same warm as the sidebar, not the page cream */
+    --card: 31 37% 92%;
     --card-foreground: 180 13% 4.5%;
 
-    --popover: 30 73% 95.7%;
+    --popover: 31 37% 92%;
     --popover-foreground: 180 13% 4.5%;
 
-    /* Accent #e0e1df */
+    /* Accent #e0e1df — kept for charts and the primary token, not a chrome fill */
     --primary: 90 3% 88%;
     --primary-foreground: 180 13% 4.5%;
 
-    /* #e0e1df — zinc mist, not #F2F2F2 (reads blue on cream) */
-    --secondary: 90 3% 88%;
+    /* Same raised surface as the sidebar */
+    --secondary: 31 37% 92%;
     --secondary-foreground: 180 13% 4.5%;
 
-    --muted: 90 3% 88%;
+    --muted: 31 37% 92%;
     /* #18181b — secondary text on light */
     --muted-foreground: 240 6% 10%;
 
-    --accent: 90 3% 88%;
+    --accent: 31 37% 92%;
     --accent-foreground: 180 13% 4.5%;
 
     --brand: 90 3% 88%;
@@ -44,8 +46,8 @@
     --fracture: 90 3% 88%;
     --fracture-foreground: 180 13% 4.5%;
 
-    /* Selective CTA — #18181b on cream */
-    --frame: #18181b;
+    /* Ink, the light-theme CTA color */
+    --frame: #0A0D0D;
     --frame-foreground: #fcf4ec;
 
     /* #aa1f18 */
@@ -61,9 +63,9 @@
     --success: 150 49% 26.1%;
     --success-foreground: 30 73% 95.7%;
 
-    /* #eaeaea */
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
+    /* Raised surface, so lines stay in the same two neutrals */
+    --border: 31 37% 92%;
+    --input: 31 37% 92%;
     --ring: 240 6% 10%;
 
     /*
@@ -90,16 +92,23 @@
     --chart-4: 43 74% 60%;
     --chart-5: 240 6% 10%;
 
-    --sidebar-background: 30 73% 95.7%;
+    /* #f2ebe3 — brand-angle tile ink (#0A0D0D/4% over #fcf4ec) */
+    --sidebar-background: 31 37% 92%;
     --sidebar-foreground: 180 13% 4.5%;
-    --sidebar-primary: 90 3% 88%;
-    --sidebar-primary-foreground: 180 13% 4.5%;
-    --sidebar-accent: 90 3% 88%;
+    --sidebar-primary: 180 13% 4.5%;
+    --sidebar-primary-foreground: 30 73% 95.7%;
+    /* Hover / active row — the page cream, not its own shade */
+    --sidebar-accent: 30 73% 95.7%;
     --sidebar-accent-foreground: 180 13% 4.5%;
     --sidebar-active: 180 13% 4.5%;
     --sidebar-active-foreground: 30 73% 95.7%;
-    --sidebar-border: 0 0% 92%;
-    --sidebar-ring: 240 6% 10%;
+    --sidebar-border: 31 37% 92%;
+    --sidebar-ring: 180 13% 4.5%;
+    /* Same as the page, so the active row is not a fourth fill */
+    --sidebar-item-active: 30 73% 95.7%;
+
+    /* Raised gutter. The page (--background) sits on it as its own panel. */
+    --shell-canvas: 31 37% 92%;
 
     /* transitions-dev */
     --resize-dur: 300ms;
@@ -130,25 +139,24 @@
     /* #fcf4ec */
     --foreground: 30 73% 95.7%;
 
-    /* #18181b */
-    --card: 240 6% 10%;
+    /* Raised surface — same as the sidebar, not the cool #18181b grey */
+    --card: 180 9% 8.6%;
     --card-foreground: 30 73% 95.7%;
 
-    --popover: 240 6% 10%;
+    --popover: 180 9% 8.6%;
     --popover-foreground: 30 73% 95.7%;
 
     --primary: 90 3% 88%;
     --primary-foreground: 0 0% 95%;
 
-    /* #1c1c1e */
-    --secondary: 240 4% 11%;
+    --secondary: 180 9% 8.6%;
     --secondary-foreground: 30 73% 95.7%;
 
-    --muted: 240 4% 11%;
+    --muted: 180 9% 8.6%;
     /* #eaeaea */
     --muted-foreground: 0 0% 92%;
 
-    --accent: 240 4% 11%;
+    --accent: 180 9% 8.6%;
     --accent-foreground: 30 73% 95.7%;
 
     --brand: 90 3% 88%;
@@ -157,7 +165,7 @@
     --fracture: 90 3% 88%;
     --fracture-foreground: 0 0% 95%;
 
-    --frame: #1c1c1e;
+    --frame: #141818;
     --frame-foreground: #fcf4ec;
 
     --destructive: 3 75% 38%;
@@ -170,8 +178,9 @@
     --success: 150 49% 26.1%;
     --success-foreground: 30 73% 95.7%;
 
-    --border: 240 4% 11%;
-    --input: 240 4% 11%;
+    /* Raised surface, so lines stay in the same two neutrals */
+    --border: 180 9% 8.6%;
+    --input: 180 9% 8.6%;
     --ring: 0 0% 92%;
 
     /* Accent #e0e1df — reads against #0A0D0D. */
@@ -183,16 +192,23 @@
     --chart-4: 43 65% 62%;
     --chart-5: 0 0% 92%;
 
-    --sidebar-background: 180 13% 4.5%;
+    /* #141818 — brand-angle tile ink (white/4% over #0A0D0D) */
+    --sidebar-background: 180 9% 8.6%;
     --sidebar-foreground: 30 73% 95.7%;
-    --sidebar-primary: 90 3% 88%;
-    --sidebar-primary-foreground: 0 0% 95%;
-    --sidebar-accent: 240 6% 10%;
+    --sidebar-primary: 30 73% 95.7%;
+    --sidebar-primary-foreground: 180 13% 4.5%;
+    /* Hover / active row — the page ink */
+    --sidebar-accent: 180 13% 4.5%;
     --sidebar-accent-foreground: 30 73% 95.7%;
     --sidebar-active: 30 73% 95.7%;
     --sidebar-active-foreground: 180 13% 4.5%;
-    --sidebar-border: 240 4% 11%;
-    --sidebar-ring: 0 0% 92%;
+    --sidebar-border: 180 9% 8.6%;
+    --sidebar-ring: 30 73% 95.7%;
+    /* Same as the page, so the active row is not a fourth fill */
+    --sidebar-item-active: 180 13% 4.5%;
+
+    /* Raised gutter. The page (--background) sits on it as its own panel. */
+    --shell-canvas: 180 9% 8.6%;
   }
 }
 
@@ -885,6 +901,35 @@ input[type='password'],
 
 .inbox-loading-dot {
   animation: inbox-dot-jump 1.05s ease-in-out infinite;
+}
+
+@keyframes companion-thinking-dot {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.companion-thinking-dot {
+  animation: companion-thinking-dot 1.4s ease-in-out infinite;
+}
+
+.companion-thinking-dot:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.companion-thinking-dot:nth-child(3) {
+  animation-delay: 360ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-thinking-dot {
+    animation: none;
+    opacity: 0.55;
+  }
 }
 
 .sidebar-nav-highlight-pill {

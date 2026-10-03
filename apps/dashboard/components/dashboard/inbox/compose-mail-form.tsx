@@ -370,8 +370,9 @@ export function ComposeMailForm({
       </div>
       <div
         className={cn(
-          'flex flex-wrap items-center justify-between gap-3',
-          isQuick && 'px-5 pb-4 pt-3'
+          isQuick
+            ? 'flex flex-wrap items-center justify-between gap-3 px-5 pb-4 pt-3'
+            : 'grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3'
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
@@ -418,7 +419,7 @@ export function ComposeMailForm({
               >
                 <SelectValue placeholder="From" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-border/60 bg-background shadow-[0_12px_32px_-12px_rgb(0_0_0_/_0.25)]">
                 {mailboxGroups.map((mailbox) => (
                   <SelectGroup key={mailbox.connectionId}>
                     <SelectLabel className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -428,6 +429,7 @@ export function ComposeMailForm({
                       <SelectItem
                         key={inbox.id}
                         value={inbox.id}
+                        className="cursor-pointer text-foreground/75 transition-colors duration-150 hover:bg-sidebar hover:text-foreground focus:bg-sidebar focus:text-foreground data-[highlighted]:bg-sidebar data-[state=checked]:text-foreground"
                       >
                         {inbox.displayName
                           ? `${inbox.displayName} <${inbox.address}>`
@@ -487,6 +489,7 @@ export function ComposeMailForm({
             </span>
           </Button>
         </div>
+        {isQuick ? null : <span aria-hidden />}
       </div>
       {confirmClose ? (
         <p

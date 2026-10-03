@@ -105,8 +105,10 @@ module.exports = {
           active: 'hsl(var(--sidebar-active))',
           'active-foreground': 'hsl(var(--sidebar-active-foreground))',
           border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))'
-        }
+          ring: 'hsl(var(--sidebar-ring))',
+          item: 'hsl(var(--sidebar-item-active) / <alpha-value>)'
+        },
+        shell: 'hsl(var(--shell-canvas))'
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -94,7 +94,6 @@ export function AssignedWorkList({
   return (
     <WorkspacePageShell
       title="Assigned"
-      description="Mail and tasks assigned to you."
       toolbar={
         <div className="flex flex-wrap items-center gap-1.5">
           {FILTERS.map((item) => (

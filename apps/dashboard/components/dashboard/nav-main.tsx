@@ -11,8 +11,8 @@ import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
 import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
 import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
 import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
-import { NavMailbox } from '@/components/dashboard/nav-mailbox';
 import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
+import { NavSectionSidebar } from '@/components/dashboard/nav-sections';
 import { SidebarMainNavHighlight } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
 import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
@@ -31,6 +31,7 @@ import {
   isWorkspaceOwner
 } from '@/lib/auth/workspace-access';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type NavMainProps = SidebarGroupProps & {
@@ -68,11 +69,17 @@ export function NavMain({
 
   return (
     <SidebarNavAccordionProvider agents={agents}>
-      <SidebarMainNavHighlight className="flex flex-col gap-0 px-2 pt-4">
+      <SidebarMainNavHighlight
+        className={cn(
+          'flex flex-col gap-0 px-2 group-data-[collapsible=icon]:px-0',
+          // Self-Host has no section header; clear the corner toggle instead.
+          oss ? 'pt-12 group-data-[collapsible=icon]:pt-3' : 'pt-3'
+        )}
+      >
         {oss ? <NavOrganizationTree /> : null}
-        {!oss && canAccessPage(profile, 'inbox') ? (
+        {!oss ? (
           <React.Suspense fallback={null}>
-            <NavMailbox
+            <NavSectionSidebar
               orgTier={orgTier}
               unreadCount={inboxUnreadCount}
               inboxes={mailInboxes}
@@ -130,7 +137,7 @@ export function NavMain({
           </SidebarGroup>
         ) : null}
       </SidebarMainNavHighlight>
-      <div className="px-2">
+      <div className="px-2 group-data-[collapsible=icon]:px-0">
         {oss && agents.length > 0 ? (
           <>
             <SidebarSeparator className="my-1.5 opacity-50" />

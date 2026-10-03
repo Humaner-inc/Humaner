@@ -50,7 +50,7 @@ export type WorkspaceSectionItem = {
 export const MAILBOX_FOLDER_ITEMS: MailboxFolderItem[] = [
   {
     id: 'inbox',
-    label: 'Inbox',
+    label: 'All',
     href: Routes.InboxAll,
     color: HUMANER_NAV_COLORS.info
   },

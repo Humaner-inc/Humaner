@@ -19,7 +19,6 @@ export default async function InboxDraftsPage({
     <InboxMailFolderScreen
       folder="drafts"
       title="Drafts"
-      description="Unsent mail from this workspace."
       emptyTitle="No drafts"
       emptyDescription="Compose from an alias. Unsent mail will land here."
       mailbox={mailbox}

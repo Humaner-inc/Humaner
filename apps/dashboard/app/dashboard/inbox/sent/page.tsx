@@ -12,7 +12,6 @@ export default async function InboxSentPage({
     <InboxMailFolderScreen
       folder="sent"
       title="Sent"
-      description="Emails you sent from this workspace."
       emptyTitle="No sent mail"
       emptyDescription="Messages you send will appear here."
       mailbox={mailbox}
