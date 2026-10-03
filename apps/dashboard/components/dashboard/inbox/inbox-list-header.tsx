@@ -40,8 +40,9 @@ const PANEL_TRANSITION = {
   ease: [0.22, 1, 0.36, 1] as const
 };
 
+/** Lowercase like the hint popup, set in Geist Mono. */
 const CHIP_CLASS =
-  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors';
+  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 font-mono text-[11px] font-normal leading-none tracking-[0.02em] lowercase transition-colors';
 
 type FilterChipItem = {
   key: string;
@@ -217,7 +218,7 @@ function InboxFilterOverflow({
                 >
                   <Link
                     href={item.href}
-                    className="font-mono text-[10px] uppercase tracking-wider"
+                    className="font-mono text-[11px] font-normal leading-none tracking-[0.02em] lowercase"
                   >
                     {item.color ? (
                       <span
