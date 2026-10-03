@@ -55,8 +55,12 @@ export const LLM_BLENDED =
 /** Embed + Cohere rerank (half of turns) + LangCache probe. */
 export const WRAPPERS_PER_REPLY = 0.0008;
 
-/** Vercel + Neon + Redis + logs, padded. */
-export const INFRA_PER_REPLY = 0.002;
+/**
+ * Vercel + Neon + Redis Iris/Upstash + logs, padded.
+ * Kept honest enough that credit economics still cover DB/Redis compute when
+ * retrieval runs with every Companion / MCP turn.
+ */
+export const INFRA_PER_REPLY = 0.003;
 
 export const VARIABLE_COGS_PER_REPLY =
   LLM_BLENDED + WRAPPERS_PER_REPLY + INFRA_PER_REPLY;
