@@ -42,10 +42,12 @@ const cloudOutlineClasses = cn(
   dashboardCtaCaseClassName
 );
 
-/** Invert of `default` — cream glass on light, ink glass on dark. */
+/** Invert of `default` — #f2f2f2 glass on light, ink glass on dark. */
 const cloudBackgroundCtaClasses = cn(
   dashboardCtaCaseClassName,
   ctaPrimaryClassName,
+  'border-[#f2f2f2]/40 bg-[#f2f2f2]/80 text-[#0A0D0D]',
+  'hover:border-[#f2f2f2] hover:bg-[#f2f2f2]/95 hover:text-[#0A0D0D]',
   'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#f2f2f2]',
   'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
   'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#f2f2f2]'
