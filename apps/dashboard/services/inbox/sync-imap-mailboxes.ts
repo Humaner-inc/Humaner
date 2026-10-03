@@ -368,8 +368,7 @@ async function persistMessages(
           trashedAt
         },
         update: {
-          subject: message.subject,
-          isUnread: message.isUnread
+          subject: message.subject
         },
         select: {
           id: true,

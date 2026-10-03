@@ -244,11 +244,24 @@ async function resolveMcpCaller(
     where: { id: grant.userId },
     select: { id: true, timeZone: true }
   });
-  if (!actor) {
+  const membership = actor
+    ? await prisma.organizationMembership.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: actor.id,
+            organizationId: organization.id
+          }
+        },
+        select: { id: true }
+      })
+    : null;
+  const stillMember =
+    actor != null && (membership != null || organization.ownerId === actor.id);
+  if (!stillMember || !actor) {
     return {
       ok: false,
       status: 403,
-      message: 'Workspace has no actor to attribute writes to.',
+      message: 'This account is no longer a member of the workspace.',
       allowOrigin,
       organizationId: organization.id
     };
