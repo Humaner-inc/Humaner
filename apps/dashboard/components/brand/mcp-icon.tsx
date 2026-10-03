@@ -61,7 +61,7 @@ export function McpIcon({
         className="fill-[#0A0D0D] dark:fill-[#0A0D0D]"
       />
       <g
-        stroke="#fcf4ec"
+        stroke="#f2f2f2"
         strokeWidth="11.0667"
         strokeLinecap="round"
         fill="none"

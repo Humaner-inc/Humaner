@@ -1155,7 +1155,7 @@ export function MailThreadDetail({
               </ol>
 
               {suggesting ? (
-                <article className="w-full rounded-lg bg-[#fcf4ec] px-5 py-4 dark:bg-[#0A0D0D]">
+                <article className="w-full rounded-lg bg-[#f2f2f2] px-5 py-4 dark:bg-[#0A0D0D]">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -1257,7 +1257,7 @@ export function MailThreadDetail({
               ) : null}
 
               {composerOpen ? (
-                <section className="w-full rounded-lg bg-[#fcf4ec] px-5 py-4 dark:bg-[#0A0D0D]">
+                <section className="w-full rounded-lg bg-[#f2f2f2] px-5 py-4 dark:bg-[#0A0D0D]">
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-2.5">
                     <div className="min-w-0">
                       <p className="text-sm font-medium">Reply</p>

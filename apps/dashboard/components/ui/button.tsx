@@ -24,17 +24,17 @@ const dashboardCtaCaseClassName = 'normal-case';
 const cloudNeutralCtaClasses = cn(
   dashboardCtaCaseClassName,
   ctaPrimaryOnLightClassName,
-  'dark:border-[#fcf4ec]/40 dark:bg-[#fcf4ec]/80 dark:text-[#0A0D0D]',
+  'dark:border-[#f2f2f2]/40 dark:bg-[#f2f2f2]/80 dark:text-[#0A0D0D]',
   'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.55)]',
-  'dark:hover:border-white dark:hover:bg-[#fcf4ec]/95 dark:hover:text-[#0A0D0D]'
+  'dark:hover:border-white dark:hover:bg-[#f2f2f2]/95 dark:hover:text-[#0A0D0D]'
 );
 
 const cloudUpgradeCtaClasses = cn(
   dashboardCtaCaseClassName,
   ctaPrimaryClassName,
-  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#fcf4ec]',
+  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#f2f2f2]',
   'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
-  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#fcf4ec]'
+  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#f2f2f2]'
 );
 
 const cloudOutlineClasses = cn(
@@ -46,9 +46,9 @@ const cloudOutlineClasses = cn(
 const cloudBackgroundCtaClasses = cn(
   dashboardCtaCaseClassName,
   ctaPrimaryClassName,
-  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#fcf4ec]',
+  'dark:border-[#0A0D0D]/20 dark:bg-[#0A0D0D]/85 dark:text-[#f2f2f2]',
   'dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
-  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#fcf4ec]'
+  'dark:hover:border-[#0A0D0D]/30 dark:hover:bg-[#0A0D0D]/95 dark:hover:text-[#f2f2f2]'
 );
 
 /** Primary and inverted CTAs share 16px; quiet secondary stays 14px. */

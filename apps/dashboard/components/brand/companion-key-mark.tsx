@@ -22,7 +22,7 @@ export function CompanionKeyMark({
     <div className={cn('relative inline-flex', className)}>
       <div
         className={cn(
-          'relative isolate flex items-center justify-center overflow-hidden border border-foreground/15 bg-muted/20 text-[#fcf4ec] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_22px_50px_-26px_rgb(0_0_0_/_0.14)] dark:border-white/18 dark:bg-[#0A0D0D] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]',
+          'relative isolate flex items-center justify-center overflow-hidden border border-foreground/15 bg-muted/20 text-[#f2f2f2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_22px_50px_-26px_rgb(0_0_0_/_0.14)] dark:border-white/18 dark:bg-[#0A0D0D] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.1),0_22px_50px_-26px_rgb(0_0_0_/_0.85)]',
           dashboardRadiusClassName,
           tileClass
         )}

@@ -34,7 +34,7 @@ function domainMonogramSvg(domain: string, size: number): Response {
   const letter = (
     domain.replace(/^www\./, '').match(/[a-z0-9]/i)?.[0] ?? '?'
   ).toUpperCase();
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 128 128"><rect width="128" height="128" fill="#0A0D0D"/><text x="64" y="82" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="64" font-weight="600" fill="#fcf4ec">${letter}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 128 128"><rect width="128" height="128" fill="#0A0D0D"/><text x="64" y="82" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="64" font-weight="600" fill="#f2f2f2">${letter}</text></svg>`;
   return new Response(svg, {
     status: 200,
     headers: {

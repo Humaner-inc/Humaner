@@ -3,7 +3,11 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronDownIcon, RefreshCwIcon } from '@humaner/shared/icons';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  RefreshCwIcon
+} from '@humaner/shared/icons';
 import { SquircleLoader } from '@humaner/shared/squircle-loader';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAction } from 'next-safe-action/hooks';
@@ -255,6 +259,34 @@ export function InboxListHeader({
 }): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
+  const [synced, setSynced] = React.useState(false);
+  const syncedFrameRef = React.useRef<number | null>(null);
+  const syncedTimerRef = React.useRef<number | null>(null);
+
+  const clearSyncedTimer = React.useCallback(() => {
+    if (syncedFrameRef.current !== null) {
+      window.cancelAnimationFrame(syncedFrameRef.current);
+      syncedFrameRef.current = null;
+    }
+    if (syncedTimerRef.current !== null) {
+      window.clearTimeout(syncedTimerRef.current);
+      syncedTimerRef.current = null;
+    }
+  }, []);
+
+  React.useEffect(() => clearSyncedTimer, [clearSyncedTimer]);
+
+  const showSynced = React.useCallback(() => {
+    clearSyncedTimer();
+    syncedFrameRef.current = window.requestAnimationFrame(() => {
+      syncedFrameRef.current = null;
+      setSynced(true);
+      syncedTimerRef.current = window.setTimeout(() => {
+        syncedTimerRef.current = null;
+        setSynced(false);
+      }, 2000);
+    });
+  }, [clearSyncedTimer]);
 
   const { execute, isExecuting } = useAction(syncInboxNow, {
     onSuccess: ({ data }) => {
@@ -263,6 +295,7 @@ export function InboxListHeader({
       if (syncErrors > 0 && imported === 0) {
         toast.error('Mailbox sync hit an error. Try again in a few minutes.');
       } else {
+        showSynced();
         toast.success(
           imported > 0
             ? `Mailbox synced — ${imported} message${imported === 1 ? '' : 's'} checked`
@@ -350,16 +383,36 @@ export function InboxListHeader({
         size="icon"
         className="size-8 shrink-0 rounded-lg"
         disabled={isExecuting}
-        title="Sync mailbox"
-        onClick={() => execute({})}
+        title={synced ? 'Mailbox synced' : 'Sync mailbox'}
+        onClick={() => {
+          setSynced(false);
+          clearSyncedTimer();
+          execute({});
+        }}
       >
         {isExecuting ? (
           <SquircleLoader />
         ) : (
-          <RefreshCwIcon className="size-3.5" />
+          <span
+            className="t-icon-swap place-items-center"
+            data-state={synced ? 'b' : 'a'}
+          >
+            <span
+              className="t-icon"
+              data-icon="a"
+            >
+              <RefreshCwIcon className="size-3.5" />
+            </span>
+            <span
+              className="t-icon"
+              data-icon="b"
+            >
+              <CheckIcon className="size-3.5" />
+            </span>
+          </span>
         )}
         <span className="sr-only">
-          {isExecuting ? 'Syncing' : 'Sync mailbox'}
+          {isExecuting ? 'Syncing' : synced ? 'Mailbox synced' : 'Sync mailbox'}
         </span>
       </Button>
 

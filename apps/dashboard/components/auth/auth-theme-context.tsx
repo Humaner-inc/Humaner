@@ -93,8 +93,8 @@ const glassCardEffects = 'backdrop-blur-3xl backdrop-saturate-150';
 export const authThemeDark = {
   isInverted: false,
   pageBg: 'bg-[#0A0D0D]',
-  pageTitle: 'text-[#fcf4ec]',
-  cardBg: cn('bg-[#fcf4ec]/90', glassCardEffects),
+  pageTitle: 'text-[#f2f2f2]',
+  cardBg: cn('bg-[#f2f2f2]/90', glassCardEffects),
   cardText: 'text-[#0A0D0D]',
   cardBorder: 'border-white/50',
   cardRadius: 'rounded-lg',
@@ -114,7 +114,7 @@ export const authThemeDark = {
   progressTrack: 'border-t border-white/25',
   progressDotInactive: 'border-white/25 bg-[#0A0D0D]',
   progressRing: 'ring-offset-[#0A0D0D]',
-  cardRingOffset: 'ring-offset-[#fcf4ec]',
+  cardRingOffset: 'ring-offset-[#f2f2f2]',
   themePicker:
     'rounded-lg border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.02] text-[#0A0D0D]/70 hover:text-[#0A0D0D]',
   themePickerActive: 'bg-[#0A0D0D] text-white',
@@ -127,7 +127,7 @@ export const authThemeDark = {
   outlineButton: cn(
     onboardingOutlineButtonClassName,
     'dark:!border-[#0A0D0D]/25 dark:!bg-transparent dark:!text-[#0A0D0D]/80',
-    'dark:hover:!border-transparent dark:hover:!bg-[#0A0D0D] dark:hover:!text-[#fcf4ec]'
+    'dark:hover:!border-transparent dark:hover:!bg-[#0A0D0D] dark:hover:!text-[#f2f2f2]'
   ),
   primaryButton: `${ctaPrimaryOnLightClassName} h-10 px-4`,
   ghostButton: cn(
@@ -144,10 +144,10 @@ export const authThemeDark = {
   radioCardFgMuted: 'text-[#0A0D0D]/50',
   radioCardFgSubtle: 'text-[#0A0D0D]/25',
   radioCardIcon: 'text-[#0A0D0D]/70',
-  badgeRing: 'border-[#fcf4ec]',
+  badgeRing: 'border-[#f2f2f2]',
   switchChecked:
     'data-[state=checked]:!bg-[#0A0D0D] data-[state=unchecked]:bg-[#0A0D0D]/15',
-  switchThumb: 'data-[state=checked]:!bg-[#fcf4ec]',
+  switchThumb: 'data-[state=checked]:!bg-[#f2f2f2]',
   upgradePromptIcon: 'text-[#0A0D0D]/55',
   logOutButton: 'text-white/70 hover:text-white',
   spinner: 'text-[#e0e1df]',
@@ -156,45 +156,45 @@ export const authThemeDark = {
   progressPast: 'bg-white/40',
   progressFuture: 'bg-white/25',
   avatarFallback: 'bg-[#e0e1df]/10 text-[#0A0D0D]',
-  sizeSelected: 'bg-[#0A0D0D] text-[#fcf4ec]',
+  sizeSelected: 'bg-[#0A0D0D] text-[#f2f2f2]',
   sizeIdle:
     'text-[#0A0D0D]/50 hover:bg-[#0A0D0D]/[0.04] hover:text-[#0A0D0D]/80',
   industrySelected:
     'data-[state=checked]:!border-transparent data-[state=checked]:!bg-[#0A0D0D] data-[state=checked]:!ring-0',
-  industrySelectedFg: 'group-data-[state=checked]:text-[#fcf4ec]',
-  industrySelectedMuted: 'group-data-[state=checked]:text-[#fcf4ec]/65',
+  industrySelectedFg: 'group-data-[state=checked]:text-[#f2f2f2]',
+  industrySelectedMuted: 'group-data-[state=checked]:text-[#f2f2f2]/65',
   showGrain: true
 } as const;
 
 /** Light app theme: light page + dark glass card. */
 export const authThemeLight = {
   isInverted: true,
-  pageBg: 'bg-[#fcf4ec]',
+  pageBg: 'bg-[#f2f2f2]',
   pageTitle: 'text-[#0A0D0D]',
   cardBg: cn('bg-[#0A0D0D]/90', glassCardEffects),
-  cardText: 'text-[#fcf4ec]',
+  cardText: 'text-[#f2f2f2]',
   cardBorder: 'border-white/[0.12]',
   cardRadius: 'rounded-lg',
   cardShadow:
     'shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.35),inset_0_1px_0_rgb(255_255_255_/_0.1)]',
   cardGlow:
     'pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_0%,rgb(255_255_255_/_0.12),transparent_65%)]',
-  fg: 'text-[#fcf4ec]',
+  fg: 'text-[#f2f2f2]',
   fgMuted: 'text-white/50',
   fgSubtle: 'text-white/40',
   label:
     'font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-white/65',
   input:
-    'onboarding-input h-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-sm text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#001afc] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
+    'onboarding-input h-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-sm text-[#f2f2f2] shadow-none placeholder:text-white/30 selection:bg-[#001afc] selection:text-white focus-visible:border-[#e0e1df]/40 focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20',
   cardSurface: 'rounded-lg border border-white/[0.06] bg-white/[0.04]',
   logoText: '[&_span]:text-[#0A0D0D]',
   progressTrack: 'border-t border-[#0A0D0D]/40',
-  progressDotInactive: 'border-[#0A0D0D]/40 bg-[#fcf4ec]',
-  progressRing: 'ring-offset-[#fcf4ec]',
+  progressDotInactive: 'border-[#0A0D0D]/40 bg-[#f2f2f2]',
+  progressRing: 'ring-offset-[#f2f2f2]',
   cardRingOffset: 'ring-offset-[#0A0D0D]',
   themePicker:
     'rounded-lg border-white/[0.08] bg-white/[0.04] text-white/70 hover:text-white',
-  themePickerActive: 'bg-[#fcf4ec] text-[#0A0D0D]',
+  themePickerActive: 'bg-[#f2f2f2] text-[#0A0D0D]',
   radioCard: cn(
     onboardingRadioCardClassNameInverted,
     'rounded-lg py-2 pl-2.5 pr-7',
@@ -204,12 +204,12 @@ export const authThemeLight = {
   outlineButton: cn(
     onboardingOutlineButtonClassNameInverted,
     '!border-white/20 !bg-transparent !text-white/80',
-    'hover:!border-transparent hover:!bg-[#fcf4ec] hover:!text-[#0A0D0D]'
+    'hover:!border-transparent hover:!bg-[#f2f2f2] hover:!text-[#0A0D0D]'
   ),
   primaryButton: `${ctaPrimaryClassName} h-10 px-4`,
   ghostButton: cn(
     onboardingGhostButtonClassNameInverted,
-    'rounded-lg !text-white/60 hover:!bg-white/[0.04] hover:!text-[#fcf4ec]'
+    'rounded-lg !text-white/60 hover:!bg-white/[0.04] hover:!text-[#f2f2f2]'
   ),
   suggestedChip:
     'rounded-lg border-dashed border-white/10 bg-white/[0.04] font-mono text-xs text-white/50 transition-colors hover:border-[#e0e1df]/30 hover:text-[#e0e1df]',
@@ -217,13 +217,13 @@ export const authThemeLight = {
   logoBox: 'rounded-lg border-white/[0.06] bg-white/[0.04]',
   socialLink:
     'rounded-lg border-white/[0.06] bg-white/[0.04] font-mono text-xs font-medium text-white/70 transition-colors hover:border-white/[0.15] hover:text-white',
-  radioCardFg: 'text-[#fcf4ec]',
+  radioCardFg: 'text-[#f2f2f2]',
   radioCardFgMuted: 'text-white/50',
   radioCardFgSubtle: 'text-white/25',
   radioCardIcon: 'text-white/70',
   badgeRing: 'border-[#0A0D0D]',
   switchChecked:
-    'data-[state=checked]:!bg-[#fcf4ec] data-[state=unchecked]:bg-white/15',
+    'data-[state=checked]:!bg-[#f2f2f2] data-[state=unchecked]:bg-white/15',
   switchThumb: 'data-[state=checked]:!bg-[#0A0D0D]',
   upgradePromptIcon: 'text-white/55',
   logOutButton: 'text-[#0A0D0D]/70 hover:text-[#0A0D0D]',
@@ -232,11 +232,11 @@ export const authThemeLight = {
   progressCurrent: 'bg-[#0A0D0D]',
   progressPast: 'bg-[#0A0D0D]/40',
   progressFuture: 'bg-[#0A0D0D]/25',
-  avatarFallback: 'bg-[#e0e1df]/15 text-[#fcf4ec]',
-  sizeSelected: 'bg-[#fcf4ec] text-[#0A0D0D]',
+  avatarFallback: 'bg-[#e0e1df]/15 text-[#f2f2f2]',
+  sizeSelected: 'bg-[#f2f2f2] text-[#0A0D0D]',
   sizeIdle: 'text-white/50 hover:bg-white/[0.06] hover:text-white/85',
   industrySelected:
-    'data-[state=checked]:!border-transparent data-[state=checked]:!bg-[#fcf4ec] data-[state=checked]:!ring-0',
+    'data-[state=checked]:!border-transparent data-[state=checked]:!bg-[#f2f2f2] data-[state=checked]:!ring-0',
   industrySelectedFg: 'group-data-[state=checked]:text-[#0A0D0D]',
   industrySelectedMuted: 'group-data-[state=checked]:text-[#0A0D0D]/60',
   showGrain: true

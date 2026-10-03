@@ -28,7 +28,7 @@ export function NotFoundPage({
   return (
     <div
       className={cn(
-        'relative flex min-h-screen flex-col bg-[#0A0D0D] text-[#fcf4ec] lg:flex-row',
+        'relative flex min-h-screen flex-col bg-[#0A0D0D] text-[#f2f2f2] lg:flex-row',
         className
       )}
     >

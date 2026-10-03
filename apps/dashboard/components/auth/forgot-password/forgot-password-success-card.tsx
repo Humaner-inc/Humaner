@@ -27,7 +27,7 @@ export function ForgotPasswordSuccessCard({
           {email ? (
             <>
               Reset instructions are on the way to{' '}
-              <span className="font-medium text-[#fcf4ec]">{email}</span>.
+              <span className="font-medium text-[#f2f2f2]">{email}</span>.
             </>
           ) : (
             'Reset instructions are on the way.'
@@ -37,10 +37,10 @@ export function ForgotPasswordSuccessCard({
 
       <Alert
         variant="info"
-        className="border-white/[0.08] bg-white/[0.03] text-[#fcf4ec]/80"
+        className="border-white/[0.08] bg-white/[0.03] text-[#f2f2f2]/80"
       >
         <div className="flex flex-row items-start gap-2">
-          <InfoIcon className="mt-0.5 size-[18px] shrink-0 text-[#fcf4ec]/55" />
+          <InfoIcon className="mt-0.5 size-[18px] shrink-0 text-[#f2f2f2]/55" />
           <AlertDescription>
             If you don&apos;t receive an email soon, check that the address is
             correct, look in spam, or reach out to support.

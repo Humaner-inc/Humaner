@@ -231,7 +231,7 @@ export function SignUpCard({
           aria-hidden
           className={cn(
             'auth-intent-pill__thumb',
-            oss ? 'bg-[#0A0D0D]' : inverted ? 'bg-[#0A0D0D]' : 'bg-[#fcf4ec]'
+            oss ? 'bg-[#0A0D0D]' : inverted ? 'bg-[#0A0D0D]' : 'bg-[#f2f2f2]'
           )}
         />
         {(
@@ -265,7 +265,7 @@ export function SignUpCard({
                       : 'text-[#18181b]/70 hover:text-[#0A0D0D]'
                     : inverted
                       ? selected
-                        ? 'text-[#fcf4ec]'
+                        ? 'text-[#f2f2f2]'
                         : 'text-[#0A0D0D]/40 hover:text-[#0A0D0D]/70'
                       : selected
                         ? 'text-[#0A0D0D]'

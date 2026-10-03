@@ -17,8 +17,8 @@ const tabMotionClassName =
 const activeTabClassName = cn(
   tabShapeClassName,
   tabMotionClassName,
-  'bg-[#0A0D0D]/85 text-[#fcf4ec] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
-  'dark:bg-[#fcf4ec]/85 dark:text-[#0A0D0D] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.55)]'
+  'bg-[#0A0D0D]/85 text-[#f2f2f2] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)]',
+  'dark:bg-[#f2f2f2]/85 dark:text-[#0A0D0D] dark:shadow-[inset_0_1px_0_rgb(255_255_255_/_0.55)]'
 );
 
 const idleTabClassName = cn(
@@ -28,13 +28,10 @@ const idleTabClassName = cn(
 );
 
 export type DashboardSectionTabsProps = {
-  /** `grid` stacks the tabs for the full-page mobile nav, labels always shown. */
-  layout?: 'row' | 'grid';
   className?: string;
 };
 
 export function DashboardSectionTabs({
-  layout = 'row',
   className
 }: DashboardSectionTabsProps): React.JSX.Element | null {
   const { sections, activeSection, pathInSection } = useDashboardSection();
@@ -55,7 +52,7 @@ export function DashboardSectionTabs({
     const selected = section.id === focusedId;
     const current = section.id === activeSection && pathInSection;
     const Icon = DASHBOARD_SECTION_ICONS[section.id];
-    const showLabel = layout === 'grid' || selected;
+    const showLabel = selected;
 
     return (
       <Link
@@ -67,8 +64,7 @@ export function DashboardSectionTabs({
         aria-label={section.label}
         className={cn(
           'group/tab pointer-events-auto flex min-w-0 items-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-          selected ? activeTabClassName : idleTabClassName,
-          layout === 'grid' && 'w-full'
+          selected ? activeTabClassName : idleTabClassName
         )}
       >
         <Icon
@@ -93,17 +89,6 @@ export function DashboardSectionTabs({
       </Link>
     );
   };
-
-  if (layout === 'grid') {
-    return (
-      <nav
-        aria-label="Sections"
-        className={cn('grid grid-cols-2 gap-1.5', className)}
-      >
-        {sections.map(tab)}
-      </nav>
-    );
-  }
 
   return (
     <nav

@@ -8,36 +8,36 @@
   :root {
     /*
      * Three chrome colors, light and dark. Status hues stay separate.
-     * Light: #fcf4ec page · #f2ebe3 raised (gutter, sidebar, popups) · #0A0D0D CTA
-     * Dark:  #0A0D0D page · #141818 raised · #fcf4ec CTA
+     * Light: #f2f2f2 page · #e0e1df raised (gutter, sidebar, popups) · #0A0D0D CTA
+     * Dark:  #0A0D0D page · #141818 raised · #f2f2f2 CTA
      * The gutter is the raised color so the page panel reads on its own.
      * Hover and the active sidebar row use the page color, not a fourth fill.
      */
-    /* #fcf4ec */
-    --background: 30 73% 95.7%;
+    /* #f2f2f2 */
+    --background: 0 0% 95%;
     /* #0A0D0D */
     --foreground: 180 13% 4.5%;
 
-    /* Raised surface — same warm as the sidebar, not the page cream */
-    --card: 31 37% 92%;
+    /* Raised surface — sidebar, gutter, and popups */
+    --card: 90 3% 88%;
     --card-foreground: 180 13% 4.5%;
 
-    --popover: 31 37% 92%;
+    --popover: 90 3% 88%;
     --popover-foreground: 180 13% 4.5%;
 
-    /* Accent #e0e1df — kept for charts and the primary token, not a chrome fill */
+    /* #e0e1df */
     --primary: 90 3% 88%;
     --primary-foreground: 180 13% 4.5%;
 
     /* Same raised surface as the sidebar */
-    --secondary: 31 37% 92%;
+    --secondary: 90 3% 88%;
     --secondary-foreground: 180 13% 4.5%;
 
-    --muted: 31 37% 92%;
+    --muted: 90 3% 88%;
     /* #18181b — secondary text on light */
     --muted-foreground: 240 6% 10%;
 
-    --accent: 31 37% 92%;
+    --accent: 90 3% 88%;
     --accent-foreground: 180 13% 4.5%;
 
     --brand: 90 3% 88%;
@@ -48,7 +48,7 @@
 
     /* Ink, the light-theme CTA color */
     --frame: #0A0D0D;
-    --frame-foreground: #fcf4ec;
+    --frame-foreground: #f2f2f2;
 
     /* #aa1f18 */
     --destructive: 3 75% 38%;
@@ -61,15 +61,15 @@
     --warning-foreground: 180 13% 4.5%;
     /* #226342 — same green in light and dark */
     --success: 150 49% 26.1%;
-    --success-foreground: 30 73% 95.7%;
+    --success-foreground: 0 0% 95%;
 
     /* Raised surface, so lines stay in the same two neutrals */
-    --border: 31 37% 92%;
-    --input: 31 37% 92%;
+    --border: 90 3% 88%;
+    --input: 90 3% 88%;
     --ring: 240 6% 10%;
 
     /*
-     * Companion surface outline. `--border` is #eaeaea on a #fcf4ec canvas and
+     * Companion surface outline. `--border` is #e0e1df on a #f2f2f2 canvas and
      * disappears, so the composer gets its own token: ink on light, accent on
      * dark. Keep both ends contrasting against their own `--background`.
      */
@@ -92,23 +92,23 @@
     --chart-4: 43 74% 60%;
     --chart-5: 240 6% 10%;
 
-    /* #f2ebe3 — brand-angle tile ink (#0A0D0D/4% over #fcf4ec) */
-    --sidebar-background: 31 37% 92%;
+    /* #e0e1df */
+    --sidebar-background: 90 3% 88%;
     --sidebar-foreground: 180 13% 4.5%;
     --sidebar-primary: 180 13% 4.5%;
-    --sidebar-primary-foreground: 30 73% 95.7%;
-    /* Hover / active row — the page cream, not its own shade */
-    --sidebar-accent: 30 73% 95.7%;
+    --sidebar-primary-foreground: 0 0% 95%;
+    /* Hover / active row — the page, not its own shade */
+    --sidebar-accent: 0 0% 95%;
     --sidebar-accent-foreground: 180 13% 4.5%;
     --sidebar-active: 180 13% 4.5%;
-    --sidebar-active-foreground: 30 73% 95.7%;
-    --sidebar-border: 31 37% 92%;
+    --sidebar-active-foreground: 0 0% 95%;
+    --sidebar-border: 90 3% 88%;
     --sidebar-ring: 180 13% 4.5%;
     /* Same as the page, so the active row is not a fourth fill */
-    --sidebar-item-active: 30 73% 95.7%;
+    --sidebar-item-active: 0 0% 95%;
 
     /* Raised gutter. The page (--background) sits on it as its own panel. */
-    --shell-canvas: 31 37% 92%;
+    --shell-canvas: 90 3% 88%;
 
     /* transitions-dev */
     --resize-dur: 300ms;
@@ -136,28 +136,28 @@
     color-scheme: dark;
     /* #0A0D0D */
     --background: 180 13% 4.5%;
-    /* #fcf4ec */
-    --foreground: 30 73% 95.7%;
+    /* #f2f2f2 */
+    --foreground: 0 0% 95%;
 
     /* Raised surface — same as the sidebar, not the cool #18181b grey */
     --card: 180 9% 8.6%;
-    --card-foreground: 30 73% 95.7%;
+    --card-foreground: 0 0% 95%;
 
     --popover: 180 9% 8.6%;
-    --popover-foreground: 30 73% 95.7%;
+    --popover-foreground: 0 0% 95%;
 
     --primary: 90 3% 88%;
     --primary-foreground: 0 0% 95%;
 
     --secondary: 180 9% 8.6%;
-    --secondary-foreground: 30 73% 95.7%;
+    --secondary-foreground: 0 0% 95%;
 
     --muted: 180 9% 8.6%;
     /* #eaeaea */
     --muted-foreground: 0 0% 92%;
 
     --accent: 180 9% 8.6%;
-    --accent-foreground: 30 73% 95.7%;
+    --accent-foreground: 0 0% 95%;
 
     --brand: 90 3% 88%;
     --brand-foreground: 0 0% 95%;
@@ -166,7 +166,7 @@
     --fracture-foreground: 0 0% 95%;
 
     --frame: #141818;
-    --frame-foreground: #fcf4ec;
+    --frame-foreground: #f2f2f2;
 
     --destructive: 3 75% 38%;
     --destructive-foreground: 0 0% 100%;
@@ -176,7 +176,7 @@
     --warning-foreground: 180 13% 4.5%;
     /* #226342 */
     --success: 150 49% 26.1%;
-    --success-foreground: 30 73% 95.7%;
+    --success-foreground: 0 0% 95%;
 
     /* Raised surface, so lines stay in the same two neutrals */
     --border: 180 9% 8.6%;
@@ -194,16 +194,16 @@
 
     /* #141818 — brand-angle tile ink (white/4% over #0A0D0D) */
     --sidebar-background: 180 9% 8.6%;
-    --sidebar-foreground: 30 73% 95.7%;
-    --sidebar-primary: 30 73% 95.7%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 0% 95%;
     --sidebar-primary-foreground: 180 13% 4.5%;
     /* Hover / active row — the page ink */
     --sidebar-accent: 180 13% 4.5%;
-    --sidebar-accent-foreground: 30 73% 95.7%;
-    --sidebar-active: 30 73% 95.7%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-active: 0 0% 95%;
     --sidebar-active-foreground: 180 13% 4.5%;
     --sidebar-border: 180 9% 8.6%;
-    --sidebar-ring: 30 73% 95.7%;
+    --sidebar-ring: 0 0% 95%;
     /* Same as the page, so the active row is not a fourth fill */
     --sidebar-item-active: 180 13% 4.5%;
 
@@ -444,8 +444,8 @@ input[type='password'],
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
-  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
   -webkit-text-fill-color: #0a0d0d !important;
   caret-color: #0a0d0d;
   transition: background-color 99999s ease-out 0s;
@@ -467,8 +467,8 @@ input[type='password'],
 .auth-input--on-light:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #0a0d0d inset !important;
   box-shadow: 0 0 0 1000px #0a0d0d inset !important;
-  -webkit-text-fill-color: #fcf4ec !important;
-  caret-color: #fcf4ec;
+  -webkit-text-fill-color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
   transition: background-color 99999s ease-out 0s;
 }
 
@@ -478,7 +478,7 @@ input[type='password'],
   .auth-input-adornment-slot,
 .group\/field:has(.auth-input--on-light:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
   button {
-  color: #fcf4ec !important;
+  color: #f2f2f2 !important;
 }
 
 /* Onboarding inputs invert against the card: light card → dark fill, dark card → cream fill */
@@ -486,8 +486,8 @@ input[type='password'],
   .onboarding-input:is(:focus, :not(:placeholder-shown)) {
   background-color: #0a0d0d !important;
   border-color: transparent !important;
-  color: #fcf4ec !important;
-  caret-color: #fcf4ec;
+  color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
 }
 
 .onboarding-root[data-onboarding-appearance='dark']
@@ -504,14 +504,14 @@ input[type='password'],
   .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #0a0d0d inset !important;
   box-shadow: 0 0 0 1000px #0a0d0d inset !important;
-  -webkit-text-fill-color: #fcf4ec !important;
-  caret-color: #fcf4ec;
+  -webkit-text-fill-color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
   transition: background-color 99999s ease-out 0s;
 }
 
 .onboarding-root[data-onboarding-appearance='light']
   .onboarding-input:is(:focus, :not(:placeholder-shown)) {
-  background-color: #fcf4ec !important;
+  background-color: #f2f2f2 !important;
   border-color: transparent !important;
   color: #0a0d0d !important;
   caret-color: #0a0d0d;
@@ -529,8 +529,8 @@ input[type='password'],
   .onboarding-input:-webkit-autofill:focus,
 .onboarding-root[data-onboarding-appearance='light']
   .onboarding-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
-  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
   -webkit-text-fill-color: #0a0d0d !important;
   caret-color: #0a0d0d;
   transition: background-color 99999s ease-out 0s;
@@ -594,7 +594,7 @@ input[type='password'],
 .onboarding-root[data-onboarding-appearance='dark']
   .group\/field:has(.onboarding-input:is(:focus, :not(:placeholder-shown), :-webkit-autofill))
   button {
-  color: #fcf4ec !important;
+  color: #f2f2f2 !important;
 }
 
 .onboarding-root[data-onboarding-appearance='light']
@@ -638,8 +638,8 @@ input[type='password'],
 .onboarding-input:-webkit-autofill:hover,
 .onboarding-input:-webkit-autofill:focus,
 .onboarding-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
-  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
   -webkit-text-fill-color: #0A0D0D !important;
   caret-color: #0A0D0D;
   transition: background-color 99999s ease-out 0s;
@@ -666,8 +666,8 @@ input[type='password'],
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:hover,
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:focus,
 .highlighted-text-field .onboarding-highlighted-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #fcf4ec inset !important;
-  box-shadow: 0 0 0 1000px #fcf4ec inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
   caret-color: #0A0D0D;
@@ -683,8 +683,8 @@ input[type='password'],
   .onboarding-input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
-  -webkit-text-fill-color: #fcf4ec !important;
-  caret-color: #fcf4ec;
+  -webkit-text-fill-color: #f2f2f2 !important;
+  caret-color: #f2f2f2;
 }
 
 :is(.onboarding-root[data-onboarding-appearance='light'], .auth-root[data-auth-appearance='light'])
@@ -703,7 +703,7 @@ input[type='password'],
   box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
-  caret-color: #fcf4ec;
+  caret-color: #f2f2f2;
 }
 
 /* Self-Host Acme — zinc autofill (no cream fracture fill) */

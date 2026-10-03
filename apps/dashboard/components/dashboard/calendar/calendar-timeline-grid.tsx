@@ -293,9 +293,9 @@ export function CalendarTimelineGrid({
           className={cn(
             'inline-flex h-8 min-w-[2.85rem] shrink-0 items-center justify-center rounded-[16px] px-2.5 font-mono text-[11px] font-medium uppercase leading-none tracking-[0.12em]',
             'transition-[color,background-color,border-color,box-shadow,transform] duration-200',
-            'border border-[#0A0D0D] bg-[#0A0D0D] text-[#fcf4ec]',
+            'border border-[#0A0D0D] bg-[#0A0D0D] text-[#f2f2f2]',
             'shadow-[0_2px_0_0_#050707,inset_0_1px_0_0_rgb(255_255_255_/_0.14)]',
-            'hover:bg-[#161919] hover:text-[#fcf4ec]',
+            'hover:bg-[#161919] hover:text-[#f2f2f2]',
             'active:translate-y-[2px] active:shadow-[0_0_0_0_#050707,inset_0_1px_0_0_rgb(255_255_255_/_0.08)]',
             'dark:border-[#e0e1df] dark:bg-[#e0e1df] dark:text-[#0A0D0D]',
             'dark:shadow-[0_2px_0_0_rgb(0_0_0_/_0.65),inset_0_1px_0_0_rgb(255_255_255_/_0.35)]',

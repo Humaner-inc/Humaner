@@ -128,13 +128,13 @@ export function defaultEventWindow(
 
 export function eventInkColor(hex: string): string {
   const raw = hex.replace('#', '');
-  if (raw.length !== 6) return '#fcf4ec';
+  if (raw.length !== 6) return '#f2f2f2';
   const r = Number.parseInt(raw.slice(0, 2), 16);
   const g = Number.parseInt(raw.slice(2, 4), 16);
   const b = Number.parseInt(raw.slice(4, 6), 16);
-  if ([r, g, b].some((value) => Number.isNaN(value))) return '#fcf4ec';
+  if ([r, g, b].some((value) => Number.isNaN(value))) return '#f2f2f2';
   const luma = (r * 299 + g * 587 + b * 114) / 1000;
-  return luma > 160 ? '#0A0D0D' : '#fcf4ec';
+  return luma > 160 ? '#0A0D0D' : '#f2f2f2';
 }
 
 export function moveEventKeepingDuration(

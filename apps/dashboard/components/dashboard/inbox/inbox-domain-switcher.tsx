@@ -87,7 +87,10 @@ export function InboxDomainSwitcher({
               {index > 0 ? <DropdownMenuSeparator /> : null}
               <DropdownMenuItem
                 asChild
-                className={cn(selected && 'bg-accent font-medium')}
+                className={cn(
+                  'cursor-pointer hover:bg-background focus:bg-background focus:text-popover-foreground data-[highlighted]:bg-background data-[highlighted]:text-popover-foreground',
+                  selected && 'font-medium'
+                )}
               >
                 <Link
                   href={hrefFor(mailbox.connectionId)}

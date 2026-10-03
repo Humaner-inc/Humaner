@@ -43,10 +43,10 @@ type AccessSurface = 'light' | 'dark' | 'adaptive';
 
 const SELECTED_CARD: Record<AccessSurface, string> = {
   light:
-    '!overflow-visible !border-[#0A0D0D] !bg-[#0A0D0D] !text-[#fcf4ec] data-[state=checked]:!border-[#0A0D0D] data-[state=checked]:!bg-[#0A0D0D]',
-  dark: '!overflow-visible !border-[#fcf4ec] !bg-[#fcf4ec] !text-[#0A0D0D] data-[state=checked]:!border-[#fcf4ec] data-[state=checked]:!bg-[#fcf4ec]',
+    '!overflow-visible !border-[#0A0D0D] !bg-[#0A0D0D] !text-[#f2f2f2] data-[state=checked]:!border-[#0A0D0D] data-[state=checked]:!bg-[#0A0D0D]',
+  dark: '!overflow-visible !border-[#f2f2f2] !bg-[#f2f2f2] !text-[#0A0D0D] data-[state=checked]:!border-[#f2f2f2] data-[state=checked]:!bg-[#f2f2f2]',
   adaptive:
-    '!overflow-visible !border-[#0A0D0D] !bg-[#0A0D0D] !text-[#fcf4ec] data-[state=checked]:!border-[#0A0D0D] data-[state=checked]:!bg-[#0A0D0D] dark:!border-[#fcf4ec] dark:!bg-[#fcf4ec] dark:!text-[#0A0D0D] dark:data-[state=checked]:!border-[#fcf4ec] dark:data-[state=checked]:!bg-[#fcf4ec]'
+    '!overflow-visible !border-[#0A0D0D] !bg-[#0A0D0D] !text-[#f2f2f2] data-[state=checked]:!border-[#0A0D0D] data-[state=checked]:!bg-[#0A0D0D] dark:!border-[#f2f2f2] dark:!bg-[#f2f2f2] dark:!text-[#0A0D0D] dark:data-[state=checked]:!border-[#f2f2f2] dark:data-[state=checked]:!bg-[#f2f2f2]'
 };
 
 const IDLE_CARD: Record<AccessSurface, string> = {
@@ -58,15 +58,15 @@ const IDLE_CARD: Record<AccessSurface, string> = {
 };
 
 const SELECTED_FG: Record<AccessSurface, string> = {
-  light: '!text-[#fcf4ec]',
+  light: '!text-[#f2f2f2]',
   dark: '!text-[#0A0D0D]',
-  adaptive: '!text-[#fcf4ec] dark:!text-[#0A0D0D]'
+  adaptive: '!text-[#f2f2f2] dark:!text-[#0A0D0D]'
 };
 
 const SELECTED_MUTED: Record<AccessSurface, string> = {
-  light: '!text-[#fcf4ec]/65',
+  light: '!text-[#f2f2f2]/65',
   dark: '!text-[#0A0D0D]/60',
-  adaptive: '!text-[#fcf4ec]/65 dark:!text-[#0A0D0D]/60'
+  adaptive: '!text-[#f2f2f2]/65 dark:!text-[#0A0D0D]/60'
 };
 
 const SELECTED_SCOPE =
@@ -184,7 +184,7 @@ export function ApiKeyAccessPicker({
                       className={cn(
                         'mt-0.5',
                         checked &&
-                          'border-[#226342] data-[state=checked]:border-[#226342] data-[state=checked]:bg-[#226342] data-[state=checked]:text-[#fcf4ec]'
+                          'border-[#226342] data-[state=checked]:border-[#226342] data-[state=checked]:bg-[#226342] data-[state=checked]:text-[#f2f2f2]'
                       )}
                       onCheckedChange={(value) => {
                         toggleScope(option.id, value === true);

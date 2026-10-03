@@ -24,11 +24,11 @@ const oss = false;
 
 export const authSurfaceClassName = oss
   ? 'overflow-hidden rounded-xl border border-border bg-muted/20 text-card-foreground shadow-sm'
-  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-muted/20 text-[#fcf4ec]';
+  : 'overflow-hidden rounded-2xl border border-white/[0.06] bg-muted/20 text-[#f2f2f2]';
 
 export const authInputClassName = oss
   ? 'h-10 rounded-[0.5rem] border border-[#eaeaea] bg-white text-[#0A0D0D] shadow-none placeholder:text-[#18181b]/45 selection:bg-[#0A0D0D]/15 selection:text-[#0A0D0D] focus-visible:border-[#0A0D0D] focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20'
-  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#fcf4ec] shadow-none placeholder:text-white/30 selection:bg-[#001afc] selection:text-white focus:bg-[#fcf4ec] focus:text-[#0A0D0D] focus:placeholder:text-[#0A0D0D]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#fcf4ec] [&:not(:placeholder-shown)]:text-[#0A0D0D]';
+  : 'auth-input h-11 rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#f2f2f2] shadow-none placeholder:text-white/30 selection:bg-[#001afc] selection:text-white focus:bg-[#f2f2f2] focus:text-[#0A0D0D] focus:placeholder:text-[#0A0D0D]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#e0e1df]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#f2f2f2] [&:not(:placeholder-shown)]:text-[#0A0D0D]';
 
 export const authInputAdornmentClassName = oss
   ? 'text-[#18181b]/55'
@@ -37,11 +37,11 @@ export const authInputAdornmentClassName = oss
 /** Cream-page / light-surface fields — invert to dark fill + cream text. */
 export const authInputOnLightClassName = oss
   ? authInputClassName
-  : 'auth-input--on-light h-11 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#001afc] selection:text-white focus:border-transparent focus:bg-[#0A0D0D] focus:text-[#fcf4ec] focus:placeholder:text-[#fcf4ec]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#0A0D0D] [&:not(:placeholder-shown)]:text-[#fcf4ec]';
+  : 'auth-input--on-light h-11 rounded-lg border border-[#0A0D0D]/[0.08] bg-[#0A0D0D]/[0.03] text-[#0A0D0D] shadow-none placeholder:text-[#0A0D0D]/35 selection:bg-[#001afc] selection:text-white focus:border-transparent focus:bg-[#0A0D0D] focus:text-[#f2f2f2] focus:placeholder:text-[#f2f2f2]/35 focus-visible:border-transparent focus-visible:ring-1 focus-visible:ring-[#0A0D0D]/20 [&:not(:placeholder-shown)]:border-transparent [&:not(:placeholder-shown)]:bg-[#0A0D0D] [&:not(:placeholder-shown)]:text-[#f2f2f2]';
 
 export const authInputAdornmentOnLightClassName = oss
   ? authInputAdornmentClassName
-  : 'auth-input-adornment text-[#0A0D0D]/40 transition-colors group-focus-within/field:text-[#fcf4ec] group-has-[:not(:placeholder-shown)]/field:text-[#fcf4ec]';
+  : 'auth-input-adornment text-[#0A0D0D]/40 transition-colors group-focus-within/field:text-[#f2f2f2] group-has-[:not(:placeholder-shown)]/field:text-[#f2f2f2]';
 
 export const authLabelClassName = oss
   ? 'text-sm font-medium text-[#0A0D0D]'
@@ -104,11 +104,11 @@ export const authDividerClassName = oss
 
 export const authHeadingClassName = oss
   ? 'text-xl font-normal tracking-tight text-[#0A0D0D]'
-  : 'font-display font-normal tracking-tight text-[#fcf4ec]';
+  : 'font-display font-normal tracking-tight text-[#f2f2f2]';
 
 export const authPageTitleClassName = oss
   ? 'text-2xl font-normal tracking-tight text-[#0A0D0D]'
-  : 'font-display text-5xl font-normal tracking-tight text-[#fcf4ec] sm:text-6xl';
+  : 'font-display text-5xl font-normal tracking-tight text-[#f2f2f2] sm:text-6xl';
 
 export const authEyebrowClassName = oss
   ? 'font-info text-[11px] uppercase tracking-[0.22em] text-[#18181b]/55'
@@ -128,12 +128,12 @@ export const authLogoClassName = oss
 
 export const authOnboardingCardClassName = oss
   ? 'overflow-hidden rounded-xl border border-border bg-muted/20 p-5 text-card-foreground shadow-sm sm:p-6'
-  : 'overflow-hidden rounded-2xl border border-[#0A0D0D]/[0.06] bg-[#fcf4ec] p-5 text-[#0A0D0D] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.25)] sm:p-6';
+  : 'overflow-hidden rounded-2xl border border-[#0A0D0D]/[0.06] bg-[#f2f2f2] p-5 text-[#0A0D0D] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.25)] sm:p-6';
 
 /** Dark glass auth card — Cloud only look; OSS uses a plain card. */
 export const authGlassCardClassName = oss
   ? 'relative overflow-hidden rounded-xl border border-border bg-muted/20 p-5 text-card-foreground shadow-sm sm:p-6'
-  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-muted/20 p-5 text-[#fcf4ec] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] sm:p-6';
+  : 'relative overflow-hidden rounded-2xl border border-white/[0.12] bg-muted/20 p-5 text-[#f2f2f2] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.85),inset_0_1px_0_rgb(255_255_255_/_0.08)] sm:p-6';
 
 export const authGlassCardGlowClassName = oss
   ? 'hidden'
@@ -161,7 +161,7 @@ export const authOnboardingOtpSlotClassName = oss
 
 export const authOtpSlotClassName = oss
   ? 'size-12 rounded-[0.5rem] border border-[#eaeaea] bg-white text-base font-semibold text-[#0A0D0D] shadow-none first:rounded-[0.5rem] last:rounded-[0.5rem]'
-  : 'size-12 rounded-lg border border-white/[0.12] bg-white/[0.04] text-base font-semibold text-[#fcf4ec] shadow-none first:rounded-lg first:border last:rounded-lg';
+  : 'size-12 rounded-lg border border-white/[0.12] bg-white/[0.04] text-base font-semibold text-[#f2f2f2] shadow-none first:rounded-lg first:border last:rounded-lg';
 
 /** Focus ring tint applied alongside slot classes (Cloud cream / OSS zinc). */
 export const authOtpSlotRingClassName = oss
@@ -176,7 +176,7 @@ export const authOnboardingDestructiveClassName = oss
 
 export const onboardingSurfaceClassName = oss
   ? 'overflow-hidden rounded-xl border border-border bg-muted/20 text-card-foreground shadow-sm'
-  : 'overflow-hidden rounded-2xl border border-[#0A0D0D]/[0.06] bg-[#fcf4ec] text-[#0A0D0D] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.2)]';
+  : 'overflow-hidden rounded-2xl border border-[#0A0D0D]/[0.06] bg-[#f2f2f2] text-[#0A0D0D] shadow-[0_24px_80px_-12px_rgb(0_0_0_/_0.2)]';
 
 export const onboardingInputClassName = oss
   ? authInputClassName
@@ -228,11 +228,11 @@ export const onboardingGhostButtonClassName = oss
 
 export const onboardingGhostButtonClassNameInverted = oss
   ? onboardingGhostButtonClassName
-  : 'text-white/60 hover:bg-white/[0.04] hover:text-[#fcf4ec]';
+  : 'text-white/60 hover:bg-white/[0.04] hover:text-[#f2f2f2]';
 
 export const authInnerCardClassName = oss
   ? 'rounded-md border-0 bg-transparent text-foreground shadow-none'
-  : 'rounded-lg border-0 bg-transparent text-[#fcf4ec] shadow-none';
+  : 'rounded-lg border-0 bg-transparent text-[#f2f2f2] shadow-none';
 
 export const authInnerCardHeaderClassName = 'space-y-1.5 p-0';
 
@@ -242,7 +242,7 @@ export const authInnerCardFooterClassName = 'p-0 pt-4';
 
 export const authInnerCardTitleClassName = oss
   ? 'text-xl font-normal leading-none tracking-tight text-foreground'
-  : 'font-display text-xl font-normal leading-none tracking-tight text-[#fcf4ec]';
+  : 'font-display text-xl font-normal leading-none tracking-tight text-[#f2f2f2]';
 
 export const authInnerCardDescriptionClassName = authMutedTextClassName;
 

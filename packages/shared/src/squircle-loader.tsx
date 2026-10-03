@@ -11,14 +11,14 @@ import { Squircle } from "ldrs/react";
 import "ldrs/react/Squircle.css";
 
 const COLOR_LIGHT = "#0A0D0D";
-const COLOR_DARK = "#fcf4ec";
+const COLOR_DARK = "#f2f2f2";
 const STROKE_AT_37 = 5;
 
 export type SquircleLoaderProps = {
   /** Pixel size. Omit to match the surrounding text (`1em`). */
   size?: number;
   className?: string;
-  /** Override theme color. Defaults to Humaner black / cream. */
+  /** Override theme color. Defaults to Humaner black / #f2f2f2. */
   color?: string;
   style?: CSSProperties;
 };

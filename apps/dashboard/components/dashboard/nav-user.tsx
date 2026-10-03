@@ -164,8 +164,8 @@ export function NavUser({
       <DropdownMenuContent
         className={cn(
           dashboardRadiusClassName,
-          'w-72 origin-top-right overflow-hidden border border-foreground/15 bg-[#fcf4ec]/55 p-2 text-foreground shadow-[0_24px_80px_-24px_rgb(10_13_13_/_0.45)] backdrop-blur-xl',
-          'dark:border-white/[0.12] dark:bg-[#0A0D0D]/55 dark:text-[#fcf4ec]'
+          'w-72 origin-top-right overflow-hidden border border-foreground/15 bg-[#f2f2f2]/55 p-2 text-foreground shadow-[0_24px_80px_-24px_rgb(10_13_13_/_0.45)] backdrop-blur-xl',
+          'dark:border-white/[0.12] dark:bg-[#0A0D0D]/55 dark:text-[#f2f2f2]'
         )}
         align="end"
         sideOffset={10}

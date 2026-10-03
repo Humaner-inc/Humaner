@@ -13,8 +13,8 @@ import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type DashboardSectionId =
   | 'overview'
-  | 'calendar'
   | 'inbox'
+  | 'calendar'
   | 'workspace'
   | 'utilities';
 
@@ -34,16 +34,16 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     color: HUMANER_NAV_COLORS.success
   },
   {
-    id: 'calendar',
-    label: 'Calendar',
-    href: Routes.Calendar,
-    color: HUMANER_NAV_COLORS.warning
-  },
-  {
     id: 'inbox',
     label: 'Inbox',
     href: Routes.InboxAll,
     color: HUMANER_NAV_COLORS.info
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    href: Routes.Calendar,
+    color: HUMANER_NAV_COLORS.warning
   },
   {
     id: 'workspace',

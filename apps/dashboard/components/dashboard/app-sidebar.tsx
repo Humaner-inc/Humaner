@@ -72,7 +72,7 @@ function MobileFullPageHeader(): React.JSX.Element {
           <XIcon className="size-4" />
         </Button>
       </div>
-      {hasSections ? <DashboardSectionTabs layout="grid" /> : null}
+      {hasSections ? <DashboardSectionTabs /> : null}
     </SidebarHeader>
   );
 }

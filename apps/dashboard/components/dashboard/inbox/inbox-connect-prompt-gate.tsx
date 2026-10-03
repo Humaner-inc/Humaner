@@ -62,7 +62,7 @@ export function InboxConnectPromptGate({
       <DialogContent
         className={cn(
           isCredits
-            ? 'gap-0 overflow-hidden border-[#0A0D0D]/8 bg-[#fcf4ec] p-0 text-[#0A0D0D] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.55)] sm:max-w-[22rem]'
+            ? 'gap-0 overflow-hidden border-[#0A0D0D]/8 bg-[#f2f2f2] p-0 text-[#0A0D0D] shadow-[0_32px_80px_-20px_rgb(0_0_0_/_0.55)] sm:max-w-[22rem]'
             : 'sm:max-w-md'
         )}
       >
@@ -93,7 +93,7 @@ export function InboxConnectPromptGate({
                 type="button"
                 disabled={isPending}
                 loading={isPending}
-                className="h-11 w-full rounded-full bg-[#0A0D0D] text-[#fcf4ec] hover:bg-[#161919] hover:text-[#fcf4ec]"
+                className="h-11 w-full rounded-full bg-[#0A0D0D] text-[#f2f2f2] hover:bg-[#161919] hover:text-[#f2f2f2]"
                 onClick={() => resolvePrompt()}
               >
                 Continue
