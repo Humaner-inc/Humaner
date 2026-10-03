@@ -335,7 +335,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         ? (params.arguments as Record<string, unknown>)
         : {};
 
-    // Hybrid RAG is read-only and org-scoped — separate scope from mailbox.
+    // Knowledge search (FTS) is read-only and org-scoped — separate scope from mailbox.
     if (resolveMcpIntelligenceToolName(name)) {
       const intel = await authorizeMcpIntelligence(request);
       const intelActor = actorFromAuth(intel);
@@ -374,11 +374,11 @@ export async function POST(request: NextRequest): Promise<Response> {
         return rpcError(id, -32001, disabledMessage, intel.allowOrigin, 403);
       }
 
-      const result = await executeMcpIntelligenceTool(
-        name,
-        args,
-        intel.context
-      );
+      const result = await executeMcpIntelligenceTool(name, args, {
+        organizationId: intel.context.organizationId,
+        industry: intel.context.industry,
+        tier: intel.context.tier
+      });
       if (!result.ok) {
         recordMcpLog(startedAt, intelActor, {
           method,

@@ -1171,6 +1171,8 @@ model MailboxConnection {
   smtpTls           Boolean              @default(true)
   lastSyncedAt      DateTime?
   lastError         String?              @db.VarChar(2000)
+  /// Provider sync cursors (e.g. IMAP per-folder UIDVALIDITY + last UID).
+  syncCursor        Json?
   /// Plain-text email signature appended on outbound mail from this mailbox.
   signatureText     String?              @db.Text
   /// Optional signature logo (.png / .svg) stored as bytes.
@@ -1230,6 +1232,8 @@ model MailThread {
   aliasId          String           @db.Uuid
   alias            MailAlias        @relation(fields: [aliasId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   providerThreadId String           @db.VarChar(512)
+  /// Gmail threads.list/get historyId — skip full re-fetch when unchanged.
+  providerHistoryId String?         @db.VarChar(64)
   subject          String           @db.VarChar(998)
   status           MailThreadStatus @default(OPEN)
   isUnread         Boolean          @default(true)

@@ -39,8 +39,8 @@ export function McpIntelligenceToggle({
         <span className="text-sm font-medium">Intelligence over MCP</span>
         <span className="block text-xs font-normal text-muted-foreground">
           {checked
-            ? 'Your own agent runs the intelligence layer over MCP (Hybrid RAG). The in-app Companion is hidden.'
-            : 'Companion runs the intelligence layer in-app. Turn on to hand Hybrid RAG to your own agent over MCP and hide Companion.'}
+            ? 'Your own agent gets knowledge search over MCP (full-text, not Hybrid RAG). The in-app Companion is hidden.'
+            : 'Companion runs Hybrid RAG in-app. Turn on to hand knowledge search (FTS) to your own agent over MCP and hide Companion.'}
         </span>
       </Label>
       <Switch

@@ -23,6 +23,9 @@ import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 /**
  * IMAP sync (poll) + shared helpers for the IMAP IDLE worker.
  *
+ * Incremental: per-folder UIDVALIDITY + last UID in `MailboxConnection.syncCursor`
+ * so repeat polls only download new messages (not the last 100 again).
+ *
  * Near-realtime path: `pnpm imap:idle` → `services/inbox/imap-idle-worker.ts`
  * (requires `IMAP_IDLE_ENABLED=true` on a long-lived host — not Vercel).
  *
@@ -36,8 +39,20 @@ import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
  */
 
 const CONNECTIONS_PER_RUN = 10;
+/** Bootstrap / UIDVALIDITY reset: last N messages per folder. */
 const MESSAGES_PER_CONNECTION = 100;
+/** How many IMAP mailboxes to sync in parallel within one cron/manual run. */
+const IMAP_SYNC_CONCURRENCY = 3;
 const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
+
+type ImapFolderCursor = {
+  uidValidity: number;
+  lastUid: number;
+};
+
+type MailboxSyncCursor = {
+  imapFolders?: Record<string, ImapFolderCursor>;
+};
 
 const connectionSelect = {
   id: true,
@@ -50,11 +65,41 @@ const connectionSelect = {
   imapTls: true,
   smtpHost: true,
   smtpPort: true,
+  syncCursor: true,
   aliases: {
     where: { enabled: true },
     select: { id: true, address: true }
   }
 } satisfies Prisma.MailboxConnectionSelect;
+
+function parseSyncCursor(value: unknown): MailboxSyncCursor {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const raw = value as MailboxSyncCursor;
+  if (!raw.imapFolders || typeof raw.imapFolders !== 'object') return {};
+  return { imapFolders: raw.imapFolders };
+}
+
+async function mapPool<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  worker: (item: T) => Promise<R>
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const limit = Math.max(1, Math.min(concurrency, items.length));
+  const results = new Array<R>(items.length);
+  let cursor = 0;
+
+  async function run(): Promise<void> {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await worker(items[index]!);
+    }
+  }
+
+  await Promise.all(Array.from({ length: limit }, () => run()));
+  return results;
+}
 
 type SyncableConnection = Prisma.MailboxConnectionGetPayload<{
   select: typeof connectionSelect;
@@ -557,6 +602,10 @@ export async function syncImapConnection(
     }
 
     const parsedMessages: ParsedSyncMessage[] = [];
+    const previousCursor = parseSyncCursor(connection.syncCursor);
+    const nextFolderCursors: Record<string, ImapFolderCursor> = {
+      ...(previousCursor.imapFolders ?? {})
+    };
 
     for (const syncFolder of syncFolders) {
       let lock;
@@ -568,15 +617,43 @@ export async function syncImapConnection(
 
       try {
         const mailbox = client.mailbox;
-        const messageCount = mailbox === false ? 0 : (mailbox?.exists ?? 0);
-        const start = Math.max(1, messageCount - MESSAGES_PER_CONNECTION + 1);
+        if (mailbox === false) continue;
 
-        if (messageCount > 0) {
-          for await (const item of client.fetch(`${start}:*`, {
+        const messageCount = mailbox.exists ?? 0;
+        const uidValidity = Number(mailbox.uidValidity ?? 0);
+        const prior = nextFolderCursors[syncFolder.path];
+        const canIncremental =
+          uidValidity > 0 &&
+          prior != null &&
+          prior.uidValidity === uidValidity &&
+          prior.lastUid > 0;
+
+        // Incremental: only UIDs newer than last sync. Bootstrap: last N by seq.
+        const fetchQuery = canIncremental
+          ? { uid: `${prior.lastUid + 1}:*` }
+          : messageCount > 0
+            ? `${Math.max(1, messageCount - MESSAGES_PER_CONNECTION + 1)}:*`
+            : null;
+
+        let maxUid = canIncremental ? prior.lastUid : 0;
+
+        if (fetchQuery && messageCount > 0) {
+          for await (const item of client.fetch(fetchQuery, {
             uid: true,
             source: true,
             flags: true
           })) {
+            if (typeof item.uid === 'number' && item.uid > maxUid) {
+              maxUid = item.uid;
+            }
+            // UID ranges can include the prior lastUid on some servers — skip it.
+            if (
+              canIncremental &&
+              typeof item.uid === 'number' &&
+              item.uid <= prior.lastUid
+            ) {
+              continue;
+            }
             if (!item.source || item.source.length > MAX_SOURCE_BYTES) continue;
 
             const fallbackId = `${connection.id}:${item.uid ?? item.seq}`;
@@ -593,6 +670,15 @@ export async function syncImapConnection(
             );
             if (parsed) parsedMessages.push(parsed);
           }
+        }
+
+        if (uidValidity > 0) {
+          // On empty incremental window, keep prior lastUid; on bootstrap with
+          // no mail, store 0 so the next run still uses UIDVALIDITY.
+          nextFolderCursors[syncFolder.path] = {
+            uidValidity,
+            lastUid: maxUid
+          };
         }
       } finally {
         lock.release();
@@ -624,7 +710,10 @@ export async function syncImapConnection(
       where: { id: connection.id },
       data: {
         lastSyncedAt: new Date(),
-        lastError: null
+        lastError: null,
+        syncCursor: {
+          imapFolders: nextFolderCursors
+        } satisfies MailboxSyncCursor
       }
     });
 
@@ -677,15 +766,35 @@ export async function syncImapMailboxes(options?: {
   };
   const orgsWithMail = new Set<string>();
 
-  for (const connection of connections) {
-    try {
-      const imported = await syncImapConnection(connection.id);
-      result.messages += imported;
-      if (imported > 0) {
-        orgsWithMail.add(connection.organizationId);
+  const outcomes = await mapPool(
+    connections,
+    IMAP_SYNC_CONCURRENCY,
+    async (connection) => {
+      try {
+        const imported = await syncImapConnection(connection.id);
+        return {
+          organizationId: connection.organizationId,
+          imported,
+          error: false
+        };
+      } catch {
+        return {
+          organizationId: connection.organizationId,
+          imported: 0,
+          error: true
+        };
       }
-    } catch {
+    }
+  );
+
+  for (const outcome of outcomes) {
+    if (outcome.error) {
       result.errors += 1;
+      continue;
+    }
+    result.messages += outcome.imported;
+    if (outcome.imported > 0) {
+      orgsWithMail.add(outcome.organizationId);
     }
   }
 

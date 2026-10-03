@@ -26,11 +26,12 @@ export type WorkspaceToolContext = {
   timeZone?: string;
 };
 
-/** Read-only context for Hybrid RAG over MCP — no actor, no send. */
+/** Read-only context for MCP knowledge search (FTS) — no actor, no send. */
 export type IntelligenceMcpContext = {
   organizationId: string;
   apiKeyId: string | null;
   industry: IndustryType | null;
+  tier: string;
 };
 
 export type IntelligenceMcpAuthSuccess = {
@@ -66,6 +67,7 @@ type ResolvedMcpCaller = {
   scopes: readonly string[];
   timeZone?: string;
   industry: IndustryType | null;
+  tier: string;
 };
 
 /** Tasks are inbox work items, so they ride the mailbox scope. */
@@ -200,6 +202,7 @@ async function resolveMcpCaller(
         actorUserId: actor.actorUserId,
         scopes: verified.scopes,
         industry: organization.industry,
+        tier: organization.tier,
         ...(actor.timeZone ? { timeZone: actor.timeZone } : {})
       }
     };
@@ -262,6 +265,7 @@ async function resolveMcpCaller(
       actorUserId: actor.id,
       scopes: grant.scopes,
       industry: organization.industry,
+      tier: organization.tier,
       ...(timeZone ? { timeZone } : {})
     }
   };
@@ -308,8 +312,8 @@ export async function authorizeMcpClient(
 }
 
 /**
- * Authorize a Hybrid RAG call over MCP. Requires the `intelligence` scope and
- * returns a read-only org context — retrieval only, no actor or send rights.
+ * Authorize a knowledge-search call over MCP. Requires the `intelligence` scope
+ * and returns a read-only org context — FTS only, no actor or send rights.
  */
 export async function authorizeMcpIntelligence(
   request: NextRequest
@@ -341,7 +345,8 @@ export async function authorizeMcpIntelligence(
     context: {
       organizationId: resolved.caller.organizationId,
       apiKeyId: resolved.caller.apiKeyId,
-      industry: resolved.caller.industry
+      industry: resolved.caller.industry,
+      tier: resolved.caller.tier
     },
     oauthGrantId: resolved.caller.oauthGrantId
   };

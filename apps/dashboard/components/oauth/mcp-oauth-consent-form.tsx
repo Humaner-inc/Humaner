@@ -29,7 +29,7 @@ const CONSENT_SCOPES: {
   {
     id: 'intelligence',
     label: 'Intelligence',
-    hint: 'Hybrid RAG retrieval only'
+    hint: 'Knowledge search (FTS) only'
   }
 ];
 
