@@ -152,6 +152,13 @@ export function getActiveAgentTab(pathname: string): AgentNavTabId | null {
   const publicPath = toPublicPathname(pathname);
 
   if (
+    publicPath === Routes.Persona ||
+    publicPath.startsWith(`${Routes.Persona}/`)
+  ) {
+    return 'persona';
+  }
+
+  if (
     publicPath === Routes.AgentNew ||
     publicPath.startsWith(`${Routes.AgentNew}/`)
   ) {

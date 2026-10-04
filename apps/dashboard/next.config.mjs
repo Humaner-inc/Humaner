@@ -300,7 +300,7 @@ const nextConfig = {
       },
       {
         source: '/dashboard/agents/:agentId/personality',
-        destination: '/agents/:agentId/persona',
+        destination: '/persona',
         permanent: true
       },
       {
@@ -369,6 +369,10 @@ const nextConfig = {
       {
         source: '/resources/:path*',
         destination: '/dashboard/resources/:path*'
+      },
+      {
+        source: '/persona',
+        destination: '/dashboard/persona'
       },
       {
         source: '/agents',

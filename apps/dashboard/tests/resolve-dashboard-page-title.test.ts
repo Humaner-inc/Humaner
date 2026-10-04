@@ -22,6 +22,7 @@ describe('resolveDashboardPageTitle', () => {
   });
 
   it('maps agent tab paths', () => {
+    expect(resolveDashboardPageTitle('/persona')).toBe('Persona');
     expect(resolveDashboardPageTitle('/agents/abc/persona')).toBe('Persona');
     expect(resolveDashboardPageTitle('/agents/abc/knowledge')).toBe(
       'Knowledge'

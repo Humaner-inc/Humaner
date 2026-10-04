@@ -29,6 +29,7 @@ export function toPublicPathname(pathname: string): string {
 const PROTECTED_APP_PREFIXES = [
   '/organization',
   '/agents',
+  '/persona',
   '/desk',
   '/overview',
   '/inbox',

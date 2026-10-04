@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
   CHAT_ATTACHMENT_MAX_BYTES,
   CHAT_ATTACHMENT_MAX_COUNT,
   encodeChatAttachments
 } from '@humaner/shared/chat-attachments';
 import {
+  ArrowUpRightIcon,
   ChevronDownIcon,
   FileTextIcon,
   MessageCircleIcon,
@@ -37,6 +39,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import type {
   TeamMessageItem,
   TeamNoteItem,
@@ -511,6 +514,13 @@ function TeamNotesFeed({
                   {group.subject}
                 </span>
               </button>
+              {open ? null : (
+                <OpenThreadMailLink
+                  threadId={group.threadId}
+                  subject={group.subject}
+                  variant="icon"
+                />
+              )}
               {group.notes.length > 0 ? (
                 <div className="group/count relative flex size-5 shrink-0 items-center justify-center">
                   <span className="pointer-events-none font-mono text-[10px] text-muted-foreground transition-opacity group-hover/count:opacity-0 group-focus-within/count:opacity-0">
@@ -550,6 +560,12 @@ function TeamNotesFeed({
                 )}
               >
                 <div className="px-2 pb-3 pt-1">
+                  <OpenThreadMailLink
+                    threadId={group.threadId}
+                    subject={group.subject}
+                    variant="text"
+                    concealed={!open}
+                  />
                   <MailThreadNotesPanel
                     threadId={group.threadId}
                     notes={group.notes
@@ -581,6 +597,58 @@ function TeamNotesFeed({
         );
       })}
     </ul>
+  );
+}
+
+function OpenThreadMailLink({
+  threadId,
+  subject,
+  variant,
+  concealed = false
+}: {
+  threadId: string;
+  subject: string;
+  variant: 'icon' | 'text';
+  concealed?: boolean;
+}): React.JSX.Element {
+  const { closeDock } = useDashboardDock();
+  const label = `Open mail: ${subject}`;
+  const link = (
+    <Link
+      href={inboxThreadRoute(threadId)}
+      aria-label={label}
+      aria-hidden={concealed || undefined}
+      tabIndex={concealed ? -1 : undefined}
+      onClick={(event) => {
+        if (concealed) {
+          event.preventDefault();
+          return;
+        }
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+          return;
+        }
+        closeDock();
+      }}
+      className={cn(
+        'shrink-0 text-muted-foreground transition-colors hover:text-foreground',
+        variant === 'icon'
+          ? 'flex size-5 items-center justify-center'
+          : 'mb-2 inline-flex items-center gap-1 px-1 font-mono text-[11px]',
+        concealed && 'pointer-events-none'
+      )}
+    >
+      {variant === 'text' ? 'Open mail' : null}
+      <ArrowUpRightIcon className="size-3" />
+    </Link>
+  );
+
+  if (variant === 'text') return link;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{link}</TooltipTrigger>
+      <TooltipContent side="top">Open mail</TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -8,6 +8,7 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Home]: 'Organization',
   [Routes.OrganizationTeam]: 'Team',
   [Routes.Agents]: 'Agents',
+  [Routes.Persona]: 'Persona',
   [Routes.AgentNew]: 'New agent',
   [Routes.Knowledge]: 'Knowledge',
   [Routes.Integrations]: 'Integrations',

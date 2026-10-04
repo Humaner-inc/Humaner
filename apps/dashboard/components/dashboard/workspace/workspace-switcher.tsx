@@ -147,7 +147,7 @@ export function WorkspaceSwitcher({
       {workspaces.map((workspace) => (
         <DropdownMenuItem
           key={workspace.id}
-          className="gap-2"
+          className="gap-2 transition-colors data-[highlighted]:bg-background focus:bg-background"
           onClick={() => void handleSwitch(workspace.id)}
         >
           <WorkspaceAvatar workspace={workspace} />
@@ -159,7 +159,7 @@ export function WorkspaceSwitcher({
       ))}
       <DropdownMenuSeparator />
       <DropdownMenuItem
-        className="gap-2"
+        className="gap-2 transition-colors data-[highlighted]:bg-background focus:bg-background"
         onClick={handleCreateWorkspace}
       >
         <span
@@ -191,7 +191,7 @@ export function WorkspaceSwitcher({
                   size="lg"
                   tooltip={active.name}
                   className={cn(
-                    'h-auto min-w-0 gap-3 border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-none hover:bg-sidebar-accent/45 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:hover:bg-sidebar-accent/50',
+                    'h-auto min-w-0 gap-3 border border-sidebar-border/70 bg-sidebar-accent/25 p-2.5 transition-colors duration-200 hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:hover:bg-sidebar-accent',
                     dashboardRadiusClassName,
                     'group-data-[collapsible=icon]:rounded-[0.5rem]'
                   )}

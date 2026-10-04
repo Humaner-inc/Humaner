@@ -149,6 +149,15 @@ function signedInHomePath(): string {
 export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
 
+  // Persona is /persona. Old agent-id links must not stay in the address bar
+  // or in canonical / callback URLs.
+  if (
+    /^\/agents\/[^/]+\/persona\/?$/.test(pathname) ||
+    /^\/dashboard\/agents\/[^/]+\/persona\/?$/.test(pathname)
+  ) {
+    return NextResponse.redirect(new URL('/persona', request.url));
+  }
+
   // A session cookie on / or a bare login URL goes home. Do not apply that
   // to server actions, RSC flights, invite signup, or a login URL that already
   // carries callbackUrl — those are in-app and must not bounce back to /overview.
@@ -255,6 +264,7 @@ export const config = {
     '/organization',
     '/organization/:path*',
     '/agents/:path*',
+    '/persona',
     '/desk/:path*',
     '/overview',
     '/inbox/:path*',

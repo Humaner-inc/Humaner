@@ -32,6 +32,8 @@ export enum Routes {
   OrganizationWorkspace = '/organization/workspace',
   Agents = '/agents',
   AgentNew = '/agents/new',
+  /** Companion persona. Stable path — not an agent id. */
+  Persona = '/persona',
   Knowledge = '/knowledge',
   Integrations = '/integrations',
   Analytics = '/analytics',
@@ -100,8 +102,9 @@ export enum Routes {
   NoWorkspace = '/workspace'
 }
 
-export function agentPersonaRoute(agentId: string): string {
-  return `/agents/${agentId}/persona`;
+/** Public Companion persona. The agent id stays internal. */
+export function agentPersonaRoute(_agentId?: string): string {
+  return Routes.Persona;
 }
 
 /** @deprecated Use {@link agentPersonaRoute} */
