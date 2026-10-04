@@ -91,6 +91,7 @@ export function getDashboardSectionForPath(
   if (
     pathname.startsWith(Routes.Overview) ||
     pathname.startsWith(Routes.Home) ||
+    pathname.startsWith(Routes.OrganizationWorkspace) ||
     pathname.startsWith(Routes.Contacts)
   ) {
     return 'overview';

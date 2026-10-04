@@ -215,7 +215,7 @@ export function NavUser({
           />
           <MenuRow
             label="Workspace"
-            href={Routes.InboxSettings}
+            href={Routes.OrganizationWorkspace}
             icon={StoreIcon}
           />
           {showBilling ? (

@@ -43,30 +43,35 @@ export type DataImprovementConsentCardProps = CardProps & {
 function PipelineStep({
   icon: Icon,
   title,
-  description
+  description,
+  connectBelow = false
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
+  connectBelow?: boolean;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/50">
-        <Icon className="size-4 text-muted-foreground" />
+    <div className="flex gap-3">
+      <div className="flex w-8 shrink-0 flex-col items-center">
+        <div className="flex size-8 items-center justify-center rounded-md border border-border/60 bg-muted/50">
+          <Icon className="size-4 text-muted-foreground" />
+        </div>
+        {connectBelow ? (
+          <div className="-mt-px flex min-h-6 w-px flex-1 flex-col items-center">
+            <div className="w-px flex-1 bg-border/60" />
+            <ArrowDownIcon className="size-3 shrink-0 text-muted-foreground/70" />
+            <div className="-mb-px h-1.5 w-px bg-border/60" />
+          </div>
+        ) : null}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 pb-1 pt-1">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </div>
   );
 }
-
-const downArrow = (
-  <div className="flex justify-center py-0.5">
-    <ArrowDownIcon className="size-3 text-muted-foreground/50" />
-  </div>
-);
 
 const switchClassName =
   'data-[state=checked]:bg-foreground data-[state=unchecked]:bg-input';
@@ -137,53 +142,63 @@ export function DataImprovementConsentCard({
           open={tourOpen}
           onOpenChange={setTourOpen}
         >
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
-            >
-              <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1">How {AppInfo.APP_NAME} uses data</span>
-              <ArrowDownIcon
-                className={`size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${tourOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="space-y-1 border border-t-0 border-border/60 bg-muted/10 px-4 pb-5 pt-4">
-              <PipelineStep
-                icon={Layers}
-                title="Anonymised patterns"
-                description={`${AppInfo.APP_NAME} can use industry patterns to improve the platform — never to train third-party models.`}
-              />
-              {downArrow}
-              <PipelineStep
-                icon={LockIcon}
-                title="Encrypted in transit and at rest"
-                description="Patterns are encrypted at rest before any processing."
-              />
-              {downArrow}
-              <p className="py-1 text-center text-xs font-medium text-muted-foreground">
-                Then used for either
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-border/60 bg-background/50 p-3">
-                  <PipelineStep
-                    icon={Brain}
-                    title="Model fine-tuning"
-                    description={`Optional. Improving the ${AppInfo.APP_NAME} model as a whole.`}
-                  />
+          <div className="overflow-hidden rounded-lg border border-border/60">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 bg-muted/20 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted/40"
+              >
+                <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
+                <span className="flex-1">How {AppInfo.APP_NAME} uses data</span>
+                <ArrowDownIcon
+                  className={`size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ${tourOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-border/60 bg-muted/10 px-4 pb-5 pt-4">
+                <PipelineStep
+                  icon={Layers}
+                  title="Anonymised patterns"
+                  description={`${AppInfo.APP_NAME} can use industry patterns to improve the platform — never to train third-party models.`}
+                  connectBelow
+                />
+                <PipelineStep
+                  icon={LockIcon}
+                  title="Encrypted in transit and at rest"
+                  description="Patterns are encrypted at rest before any processing."
+                  connectBelow
+                />
+                <div className="flex gap-3 pb-3">
+                  <div
+                    className="flex w-8 shrink-0 justify-center"
+                    aria-hidden
+                  >
+                    <div className="-mt-px h-3 w-px bg-border/60" />
+                  </div>
+                  <p className="self-end text-xs font-medium text-muted-foreground">
+                    Then used for either
+                  </p>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-background/50 p-3">
-                  <PipelineStep
-                    icon={BotIcon}
-                    title="Companion in your workspace"
-                    description="Resources you add train Companion for this workspace under the DPA. That is not this opt-in."
-                  />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg border border-border/60 bg-background/50 p-3">
+                    <PipelineStep
+                      icon={Brain}
+                      title="Model fine-tuning"
+                      description={`Optional. Improving the ${AppInfo.APP_NAME} model as a whole.`}
+                    />
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-background/50 p-3">
+                    <PipelineStep
+                      icon={BotIcon}
+                      title="Companion in your workspace"
+                      description="Resources you add train Companion for this workspace under the DPA. That is not this opt-in."
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </CollapsibleContent>
+            </CollapsibleContent>
+          </div>
         </Collapsible>
 
         <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 p-4">

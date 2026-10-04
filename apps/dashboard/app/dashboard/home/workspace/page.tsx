@@ -4,17 +4,14 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 
 import { OrganizationVerticalTopics } from '@/components/dashboard/home/organization-vertical-topics';
-import { BusinessHoursCard } from '@/components/dashboard/settings/organization/information/business-hours-card';
+import { InboxSettingsTabs } from '@/components/dashboard/inbox/inbox-settings-tabs';
 import { DataImprovementConsentCard } from '@/components/dashboard/settings/organization/information/data-improvement-consent-card';
-import { OrganizationDangerZoneSection } from '@/components/dashboard/settings/organization/information/organization-danger-zone-section';
+import { OrganizationDangerZoneCard } from '@/components/dashboard/settings/organization/information/organization-danger-zone-card';
 import { OrganizationDetailsCard } from '@/components/dashboard/settings/organization/information/organization-details-card';
 import { SocialMediaCard } from '@/components/dashboard/settings/organization/information/social-media-card';
-import { AnnotatedLayout, AnnotatedSection } from '@/components/ui/annotated';
 import { SectionPage } from '@/components/ui/section-shell';
-import { Separator } from '@/components/ui/separator';
 import { Routes } from '@/constants/routes';
 import { getProfile } from '@/data/account/get-profile';
-import { getBusinessHours } from '@/data/organization/get-business-hours';
 import { getDataImprovementConsentSettings } from '@/data/organization/get-data-improvement-consent-settings';
 import { getOrganizationDetails } from '@/data/organization/get-organization-details';
 import { getSocialMedia } from '@/data/organization/get-social-media';
@@ -48,7 +45,7 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
 
   const profile = await getProfile();
   const owner = isWorkspaceOwner(profile);
-  const [details, consentSettings, organization, businessHours, socialMedia] =
+  const [details, consentSettings, organization, socialMedia] =
     await Promise.all([
       getOrganizationDetails(),
       getDataImprovementConsentSettings(),
@@ -60,7 +57,6 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
           verticalTopics: true
         }
       }),
-      owner ? getBusinessHours() : Promise.resolve(null),
       owner ? getSocialMedia() : Promise.resolve(null)
     ]);
 
@@ -76,93 +72,48 @@ export default async function WorkspacePage(): Promise<React.JSX.Element> {
       width="xl"
       className="flex min-h-0 flex-1 flex-col"
     >
-      <div className="mb-6">
-        <h1 className="page-title">Workspace</h1>
-        <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-          {owner
-            ? 'Name, hours, and data agreements for this workspace. Team, tasks, and resources sit beside this page.'
-            : `${details.name} — ask the workspace owner to change settings.`}
-        </p>
-      </div>
+      <InboxSettingsTabs
+        active="settings"
+        className="justify-center"
+      />
 
-      <AnnotatedLayout className="py-0">
-        <AnnotatedSection
-          title="Workspace details"
-          description="Basic details about this workspace."
-        >
-          <OrganizationDetailsCard
-            details={details}
-            industry={industry}
-            targetAudience={organization?.targetAudience ?? null}
-            brandHeader="none"
-            readOnly={!owner}
-          />
-        </AnnotatedSection>
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-8">
+        <OrganizationDetailsCard
+          details={details}
+          industry={industry}
+          targetAudience={organization?.targetAudience ?? null}
+          brandHeader="none"
+          readOnly={!owner}
+        />
 
         {hasVertical && industry && isOssDeployment() ? (
-          <>
-            <Separator />
-            <AnnotatedSection
-              title="Industry topics"
-              description="Topics that shape Companion and training for this vertical."
-            >
-              <OrganizationVerticalTopics
-                industry={industry}
-                commonTopics={commonTopics}
-                selectedTopics={selectedTopics}
-                readOnly={!owner}
-              />
-            </AnnotatedSection>
-          </>
+          <OrganizationVerticalTopics
+            industry={industry}
+            commonTopics={commonTopics}
+            selectedTopics={selectedTopics}
+            readOnly={!owner}
+          />
         ) : null}
 
-        {owner && businessHours && socialMedia ? (
-          <>
-            <Separator />
-            <AnnotatedSection
-              title="Working hours"
-              description="Used on the calendar and when assigning tasks."
-            >
-              <BusinessHoursCard businessHours={businessHours} />
-            </AnnotatedSection>
-
-            <Separator />
-            <AnnotatedSection
-              title="Social media"
-              description="Add this workspace's social media links."
-            >
-              <SocialMediaCard socialMedia={socialMedia} />
-            </AnnotatedSection>
-          </>
+        {owner && socialMedia ? (
+          <SocialMediaCard socialMedia={socialMedia} />
         ) : null}
 
         {!isOssDeployment() ? (
-          <>
-            <Separator />
-            <AnnotatedSection
-              title="Data and Privacy"
-              description="The DPA covers mail, calendar, and Resources. Optional platform opt-ins are separate from Companion training on this workspace."
-            >
-              <DataImprovementConsentCard
-                consent={consentSettings.consent}
-                consentedAt={consentSettings.consentedAt}
-                modelTrainingConsent={consentSettings.modelTrainingConsent}
-                modelTrainingConsentedAt={
-                  consentSettings.modelTrainingConsentedAt
-                }
-                isOwner={consentSettings.isOwner}
-              />
-            </AnnotatedSection>
-          </>
+          <DataImprovementConsentCard
+            consent={consentSettings.consent}
+            consentedAt={consentSettings.consentedAt}
+            modelTrainingConsent={consentSettings.modelTrainingConsent}
+            modelTrainingConsentedAt={consentSettings.modelTrainingConsentedAt}
+            isOwner={consentSettings.isOwner}
+          />
         ) : null}
 
-        {owner ? (
-          <>
-            <Separator />
-            <OrganizationDangerZoneSection />
-          </>
-        ) : null}
-      </AnnotatedLayout>
+        <OrganizationDangerZoneCard
+          workspaceName={details.name}
+          workspaceRole={profile.workspaceRole}
+        />
+      </div>
     </SectionPage>
   );
 }

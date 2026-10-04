@@ -2,12 +2,16 @@
 
 import * as React from 'react';
 import { CompanionFigure } from '@humaner/shared/companion-icon';
-import { MailIcon, PlugIcon } from '@humaner/shared/icons';
+import { MailIcon, PlugIcon, SettingsIcon } from '@humaner/shared/icons';
 
 import { SettingsTabBar } from '@/components/dashboard/settings/settings-tab-bar';
 import { Routes } from '@/constants/routes';
 
-export type WorkspaceSettingsTab = 'connect' | 'inbox' | 'companion';
+export type WorkspaceSettingsTab =
+  | 'connect'
+  | 'inbox'
+  | 'companion'
+  | 'settings';
 
 function CompanionTabIcon({
   className
@@ -47,17 +51,26 @@ const TABS: Array<{
     label: 'Companion',
     href: `${Routes.InboxSettings}?tab=companion`,
     icon: CompanionTabIcon
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    href: Routes.OrganizationWorkspace,
+    icon: SettingsIcon
   }
 ];
 
 export function InboxSettingsTabs({
-  active
+  active,
+  className
 }: {
   active: WorkspaceSettingsTab;
+  className?: string;
 }): React.JSX.Element {
   return (
     <SettingsTabBar
       ariaLabel="Workspace settings"
+      className={className}
       tabs={TABS.map((tab) => ({
         ...tab,
         active: active === tab.id

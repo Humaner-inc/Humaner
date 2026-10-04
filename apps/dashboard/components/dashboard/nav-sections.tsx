@@ -10,6 +10,7 @@ import { CalendarDots } from '@phosphor-icons/react/dist/ssr/CalendarDots';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Columns } from '@phosphor-icons/react/dist/ssr/Columns';
 import { Envelope } from '@phosphor-icons/react/dist/ssr/Envelope';
+import { Gear } from '@phosphor-icons/react/dist/ssr/Gear';
 import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
@@ -162,6 +163,7 @@ function OverviewSection(): React.JSX.Element {
   const pathname = usePathname();
   const overviewActive = pathname.startsWith(Routes.Overview);
   const contactsActive = pathname.startsWith(Routes.Contacts);
+  const settingsActive = pathname.startsWith(Routes.OrganizationWorkspace);
 
   return (
     <>
@@ -177,6 +179,19 @@ function OverviewSection(): React.JSX.Element {
               icon={Globe}
               active={overviewActive}
               color={HUMANER_NAV_COLORS.info}
+            />
+          }
+        />
+        <SidebarNavLink
+          href={Routes.OrganizationWorkspace}
+          label="Settings"
+          active={settingsActive}
+          mainNavHighlight
+          leading={
+            <MailboxNavIcon
+              icon={Gear}
+              active={settingsActive}
+              color={HUMANER_NAV_COLORS.foreground}
             />
           }
         />
