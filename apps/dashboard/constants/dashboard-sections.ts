@@ -97,7 +97,13 @@ export function getDashboardSectionForPath(
     return 'overview';
   }
   if (pathname.startsWith(Routes.Calendar)) return 'calendar';
-  if (getActiveMailboxFolder(pathname)) return 'inbox';
+  if (
+    getActiveMailboxFolder(pathname) ||
+    pathname.startsWith(Routes.InboxSettings) ||
+    pathname.startsWith(Routes.InboxAliases)
+  ) {
+    return 'inbox';
+  }
   if (getActiveWorkspaceSectionItem(pathname)) return 'workspace';
   if (isUtilitiesPath(pathname)) return 'utilities';
   return null;

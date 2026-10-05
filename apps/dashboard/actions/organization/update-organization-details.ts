@@ -120,6 +120,7 @@ export const updateOrganizationDetails = ownerActionClient
 
     if (websiteChanged) {
       revalidatePath(Routes.OrganizationWorkspace);
+      revalidatePath(Routes.InboxSettings);
       revalidatePath(Routes.Home);
     }
 

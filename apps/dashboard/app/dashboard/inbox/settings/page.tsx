@@ -13,6 +13,7 @@ import { MailBlockList } from '@/components/dashboard/inbox/mail-block-list';
 import { MailboxAliasGroups } from '@/components/dashboard/inbox/mailbox-alias-groups';
 import { WorkspaceConnectApps } from '@/components/dashboard/inbox/workspace-connect-apps';
 import { WorkspaceSettingsIntro } from '@/components/dashboard/inbox/workspace-settings-intro';
+import { WorkspaceSettingsPanel } from '@/components/dashboard/settings/organization/workspace-settings-panel';
 import { getCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
 import { getBlockedSenders } from '@/data/inbox/get-blocked-senders';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
@@ -23,6 +24,7 @@ import { normalizeCompanionIntegrations } from '@/lib/inbox/companion-rights';
 function resolveWorkspaceTab(value: string | undefined): WorkspaceSettingsTab {
   if (value === 'companion') return 'companion';
   if (value === 'inbox' || value === 'aliases') return 'inbox';
+  if (value === 'settings') return 'settings';
   return 'connect';
 }
 
@@ -42,6 +44,16 @@ export default async function InboxSettingsPage({
 
   if (!overview || overview.locked) {
     return <InboxUpgradeEmptyState />;
+  }
+
+  if (tab === 'settings') {
+    return (
+      <div className="space-y-6">
+        <InboxSettingsTabs active="settings" />
+        <WorkspaceSettingsIntro text="Workspace name, address, and the id teammates use to join this mailbox." />
+        <WorkspaceSettingsPanel />
+      </div>
+    );
   }
 
   const [aliases, rights, blockedSenders, connections] = await Promise.all([
