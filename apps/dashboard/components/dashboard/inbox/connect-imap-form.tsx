@@ -432,7 +432,7 @@ export function ConnectImapForm({
       toast.success(
         `Connected — ${data?.aliasCount ?? 1} alias${(data?.aliasCount ?? 1) === 1 ? '' : 'es'} ready`
       );
-      router.push(`${Routes.InboxSettings}?tab=inbox`);
+      router.push(`${Routes.OrganizationWorkspace}`);
       router.refresh();
     },
     onError: ({ error }) => {
@@ -761,7 +761,7 @@ export function ConnectImapForm({
                 className="h-7 rounded-lg px-2 font-mono text-[10px]"
                 asChild
               >
-                <Link href={`${Routes.InboxSettings}?tab=inbox`}>Aliases</Link>
+                <Link href={`${Routes.OrganizationWorkspace}`}>Aliases</Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -787,7 +787,7 @@ export function ConnectImapForm({
                     Reconnect
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                    <Link href={`${Routes.OrganizationWorkspace}`}>
                       Signature & aliases
                     </Link>
                   </DropdownMenuItem>
@@ -918,7 +918,7 @@ export function ConnectImapForm({
                 className="hidden font-mono sm:inline-flex"
                 asChild
               >
-                <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                <Link href={`${Routes.OrganizationWorkspace}`}>
                   Signature & aliases
                 </Link>
               </Button>
@@ -962,7 +962,7 @@ export function ConnectImapForm({
                       Edit credentials
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`${Routes.InboxSettings}?tab=inbox`}>
+                      <Link href={`${Routes.OrganizationWorkspace}`}>
                         Signature & aliases
                       </Link>
                     </DropdownMenuItem>

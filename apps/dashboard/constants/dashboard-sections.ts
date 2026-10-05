@@ -54,7 +54,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
   {
     id: 'utilities',
     label: 'Utilities',
-    href: Routes.Resources,
+    href: Routes.InboxProviders,
     color: HUMANER_NAV_COLORS.destructive
   }
 ];
@@ -91,7 +91,6 @@ export function getDashboardSectionForPath(
   if (
     pathname.startsWith(Routes.Overview) ||
     pathname.startsWith(Routes.Home) ||
-    pathname.startsWith(Routes.OrganizationWorkspace) ||
     pathname.startsWith(Routes.Contacts)
   ) {
     return 'overview';

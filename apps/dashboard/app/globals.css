@@ -1388,10 +1388,13 @@ input[type='password'],
   --t-page-from-x: calc(var(--page-slide-distance) * -1);
 }
 .t-page-slide .t-page[data-page-id="2"],
-.t-page-slide .t-page[data-page-id="3"] {
+.t-page-slide .t-page[data-page-id="3"],
+.t-page-slide .t-page[data-page-id="4"] {
   --t-page-from-x: var(--page-slide-distance);
 }
-.t-page-slide[data-page="3"] .t-page[data-page-id="2"] {
+.t-page-slide[data-page="3"] .t-page[data-page-id="2"],
+.t-page-slide[data-page="4"] .t-page[data-page-id="2"],
+.t-page-slide[data-page="4"] .t-page[data-page-id="3"] {
   --t-page-from-x: calc(var(--page-slide-distance) * -1);
 }
 .t-page-slide .t-page {
@@ -1411,7 +1414,9 @@ input[type='password'],
 }
 .t-page-slide[data-page="1"] .t-page[data-page-id="1"],
 .t-page-slide[data-page="2"] .t-page[data-page-id="2"],
-.t-page-slide[data-page="3"] .t-page[data-page-id="3"] {
+.t-page-slide[data-page="3"] .t-page[data-page-id="3"],
+.t-page-slide[data-page="4"] .t-page[data-page-id="4"] {
+  position: relative;
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
@@ -2087,7 +2092,7 @@ input[type='password'],
   line-height: 1.6;
   letter-spacing: normal;
   word-wrap: break-word;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   color: inherit;
 }
 .mail-structured-body > :first-child {
@@ -2141,4 +2146,22 @@ input[type='password'],
   border: 0;
   border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 }
+
+/* Mail iframes steal pointermove from overlays that sit above the thread. */
+iframe[title="Email message"] {
+  position: relative;
+  z-index: 0;
+}
+[data-mail-action-bar] {
+  isolation: isolate;
+}
+[data-radix-popper-content-wrapper] {
+  z-index: 80;
+}
+body:has([data-radix-popper-content-wrapper]) iframe,
+body:has([data-mail-action-bar][data-open="true"]:hover) iframe,
+body[data-mail-action-bar-hot] iframe[title="Email message"] {
+  pointer-events: none;
+}
+
 

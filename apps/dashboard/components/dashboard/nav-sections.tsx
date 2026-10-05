@@ -69,7 +69,9 @@ const FOLDER_ICONS: Record<MailboxFolderId, typeof Envelope> = {
 const WORKSPACE_ICONS: Record<WorkspaceSectionId, typeof Checks> = {
   tasks: Checks,
   assigned: User,
-  team: Users
+  team: Users,
+  resources: Books,
+  settings: Gear
 };
 
 const CALENDAR_VIEW_META: Record<
@@ -163,7 +165,6 @@ function OverviewSection(): React.JSX.Element {
   const pathname = usePathname();
   const overviewActive = pathname.startsWith(Routes.Overview);
   const contactsActive = pathname.startsWith(Routes.Contacts);
-  const settingsActive = pathname.startsWith(Routes.OrganizationWorkspace);
 
   return (
     <>
@@ -179,19 +180,6 @@ function OverviewSection(): React.JSX.Element {
               icon={Globe}
               active={overviewActive}
               color={HUMANER_NAV_COLORS.info}
-            />
-          }
-        />
-        <SidebarNavLink
-          href={Routes.OrganizationWorkspace}
-          label="Settings"
-          active={settingsActive}
-          mainNavHighlight
-          leading={
-            <MailboxNavIcon
-              icon={Gear}
-              active={settingsActive}
-              color={HUMANER_NAV_COLORS.foreground}
             />
           }
         />
@@ -388,26 +376,11 @@ function UtilitiesSection({
   const locked = isInboxLocked(orgTier);
   const providersActive = getActiveMailboxWorkspace(pathname) === 'providers';
   const mcpActive = pathname.startsWith(Routes.Developers);
-  const resourcesActive =
-    pathname.startsWith(Routes.Resources) || pathname.startsWith('/resources');
 
   return (
     <>
       <SectionHeader id="utilities" />
       <SectionGroup>
-        <SidebarNavLink
-          href={Routes.Resources}
-          label="Resources"
-          active={resourcesActive}
-          mainNavHighlight
-          leading={
-            <MailboxNavIcon
-              icon={Books}
-              active={resourcesActive}
-              color={HUMANER_NAV_COLORS.info}
-            />
-          }
-        />
         {showMcp ? (
           <SidebarNavLink
             href={Routes.Developers}

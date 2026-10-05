@@ -65,6 +65,9 @@ describe('teammate access', () => {
     expect(resolvePathAccess(Routes.InboxSettings)).toEqual({
       type: 'workspace-admin'
     });
+    expect(resolvePathAccess(Routes.OrganizationWorkspace)).toEqual({
+      type: 'workspace-admin'
+    });
     expect(resolvePathAccess(Routes.InboxAll).type).toBe('page');
   });
 });

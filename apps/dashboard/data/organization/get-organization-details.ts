@@ -34,7 +34,8 @@ export async function getOrganizationDetails(): Promise<OrganizationDetailsDto> 
           email: true,
           website: true,
           docsUrl: true,
-          logoUrl: true
+          logoUrl: true,
+          taxId: true
         }
       });
       if (!organization) {
@@ -51,7 +52,8 @@ export async function getOrganizationDetails(): Promise<OrganizationDetailsDto> 
           organization.website,
           organization.docsUrl
         ),
-        logoUrl: organization.logoUrl ? organization.logoUrl : undefined
+        logoUrl: organization.logoUrl ? organization.logoUrl : undefined,
+        taxId: organization.taxId ? organization.taxId : undefined
       };
 
       return response;

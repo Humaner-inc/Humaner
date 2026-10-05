@@ -38,6 +38,22 @@ import {
 } from '@/schemas/organization/update-organization-details-schema';
 import type { OrganizationDetailsDto } from '@/types/dtos/organization-details-dto';
 
+function LegalBang({
+  missing
+}: {
+  missing: boolean;
+}): React.JSX.Element | null {
+  if (!missing) return null;
+  return (
+    <span
+      className="ml-1 font-semibold text-amber-600"
+      title="Required on invoices and quotes"
+    >
+      !
+    </span>
+  );
+}
+
 export type OrganizationDetailsCardProps = CardProps & {
   details: OrganizationDetailsDto;
   industry?: IndustryType | null;
@@ -64,12 +80,29 @@ export function OrganizationDetailsCard({
       address: details.address ?? '',
       phone: details.phone ?? '',
       email: details.email ?? '',
-      website: details.website ?? ''
+      website: details.website ?? '',
+      logoUrl: details.logoUrl ?? '',
+      taxId: details.taxId ?? ''
     }
   });
   const canSubmit = !readOnly && !methods.formState.isSubmitting;
-  const watchedName = methods.watch('name');
-  const watchedWebsite = methods.watch('website');
+  const [
+    watchedName,
+    watchedWebsite,
+    watchedAddress,
+    watchedPhone,
+    watchedEmail,
+    watchedLogoUrl,
+    watchedTaxId
+  ] = methods.watch([
+    'name',
+    'website',
+    'address',
+    'phone',
+    'email',
+    'logoUrl',
+    'taxId'
+  ]);
   const copyToClipboard = useCopyToClipboard();
   const [copiedWorkspaceId, setCopiedWorkspaceId] = React.useState(false);
   const onSubmit: SubmitHandler<UpdateOrganizationDetailsSchema> = async (
@@ -150,17 +183,19 @@ export function OrganizationDetailsCard({
               name="name"
               render={({ field }) => (
                 <FormItem className="flex w-full flex-col">
-                  <FormLabel required>Organization name</FormLabel>
+                  <FormLabel>Workspace name</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
                       maxLength={255}
-                      required
                       autoComplete="organization"
-                      disabled={readOnly || methods.formState.isSubmitting}
+                      disabled
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>
+                    Set during onboarding and cannot be changed.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -202,7 +237,10 @@ export function OrganizationDetailsCard({
               name="address"
               render={({ field }) => (
                 <FormItem className="flex w-full flex-col">
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>
+                    Address
+                    <LegalBang missing={!watchedAddress?.trim()} />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -221,7 +259,10 @@ export function OrganizationDetailsCard({
               name="phone"
               render={({ field }) => (
                 <FormItem className="flex w-full flex-col">
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>
+                    Phone
+                    <LegalBang missing={!watchedPhone?.trim()} />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
@@ -240,7 +281,10 @@ export function OrganizationDetailsCard({
               name="email"
               render={({ field }) => (
                 <FormItem className="flex w-full flex-col">
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>
+                    Email
+                    <LegalBang missing={!watchedEmail?.trim()} />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -270,6 +314,58 @@ export function OrganizationDetailsCard({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={methods.control}
+              name="taxId"
+              render={({ field }) => (
+                <FormItem className="flex w-full flex-col">
+                  <FormLabel>
+                    VAT / Tax ID
+                    <LegalBang missing={!watchedTaxId?.trim()} />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      maxLength={64}
+                      autoComplete="off"
+                      placeholder="EE123456789"
+                      disabled={readOnly || methods.formState.isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Printed on quotes you issue and used as bill-to details.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={methods.control}
+              name="logoUrl"
+              render={({ field }) => (
+                <FormItem className="flex w-full flex-col">
+                  <FormLabel>
+                    Logo URL
+                    <LegalBang missing={!watchedLogoUrl?.trim()} />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      maxLength={2000}
+                      placeholder="https://"
+                      disabled={readOnly || methods.formState.isSubmitting}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Paste a logo URL, or change the website to rescan brand
+                    assets.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

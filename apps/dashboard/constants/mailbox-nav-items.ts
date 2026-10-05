@@ -15,7 +15,12 @@ export type MailboxFolderId =
 
 export type MailboxWorkspaceId = 'providers';
 
-export type WorkspaceSectionId = 'tasks' | 'assigned' | 'team';
+export type WorkspaceSectionId =
+  | 'tasks'
+  | 'assigned'
+  | 'team'
+  | 'resources'
+  | 'settings';
 
 export type WorkspaceDrawerId = WorkspaceSectionId | 'resources' | 'companion';
 
@@ -101,7 +106,7 @@ export const MAILBOX_WORKSPACE_ITEMS: MailboxWorkspaceItem[] = [
   }
 ];
 
-/** Collapsible Workspace section — Tasks, Assigned, Team. */
+/** Collapsible Workspace section — Tasks, Assigned, Team, Resources, Settings. */
 export const WORKSPACE_SECTION_ITEMS: WorkspaceSectionItem[] = [
   {
     id: 'tasks',
@@ -120,6 +125,18 @@ export const WORKSPACE_SECTION_ITEMS: WorkspaceSectionItem[] = [
     label: 'Team',
     href: Routes.OrganizationTeam,
     color: HUMANER_NAV_COLORS.success
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    href: Routes.Resources,
+    color: HUMANER_NAV_COLORS.info
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    href: Routes.OrganizationWorkspace,
+    color: HUMANER_NAV_COLORS.foreground
   }
 ];
 
@@ -178,17 +195,11 @@ export function getActiveMailboxFolder(
   return null;
 }
 
-/** Connectors, MCP, resources, and providers — the Utilities section. */
+/** Connectors, MCP, and providers — the Utilities section. */
 export function isUtilitiesPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.InboxProviders)) return true;
   if (pathname.startsWith(Routes.InboxConnectors)) return true;
   if (pathname.startsWith(Routes.Developers)) return true;
-  if (
-    pathname.startsWith(Routes.Resources) ||
-    pathname.startsWith('/resources')
-  ) {
-    return true;
-  }
   return false;
 }
 
@@ -199,13 +210,20 @@ export function getActiveMailboxWorkspace(
   return null;
 }
 
-/** Paths that expand the Workspace nav tree (not Companion / Resources). */
+/** Paths that expand the Workspace nav tree. */
 export function isWorkspaceDrawerPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.OrganizationTeam)) return true;
+  if (pathname.startsWith(Routes.OrganizationWorkspace)) return true;
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return true;
   }
   if (pathname.startsWith(Routes.InboxAssigned)) return true;
+  if (
+    pathname.startsWith(Routes.Resources) ||
+    pathname.startsWith('/resources')
+  ) {
+    return true;
+  }
   return false;
 }
 
@@ -213,10 +231,17 @@ export function getActiveWorkspaceSectionItem(
   pathname: string
 ): WorkspaceSectionId | null {
   if (pathname.startsWith(Routes.OrganizationTeam)) return 'team';
+  if (pathname.startsWith(Routes.OrganizationWorkspace)) return 'settings';
   if (pathname.startsWith(Routes.Tasks) || pathname.startsWith('/tasks')) {
     return 'tasks';
   }
   if (pathname.startsWith(Routes.InboxAssigned)) return 'assigned';
+  if (
+    pathname.startsWith(Routes.Resources) ||
+    pathname.startsWith('/resources')
+  ) {
+    return 'resources';
+  }
   return null;
 }
 

@@ -12,6 +12,8 @@ import {
   Ellipsis,
   Pin,
   PlugZap,
+  Receipt,
+  ScrollText,
   Star,
   Tag,
   type LucideIcon as LucideReactIcon,
@@ -74,5 +76,7 @@ export const BotIconStatic = createStaticLucideIcon(Bot);
 export const EllipsisIcon = createStaticLucideIcon(Ellipsis);
 export const PinIcon = createStaticLucideIcon(Pin);
 export const PlugIconStatic = createStaticLucideIcon(PlugZap);
+export const ReceiptIcon = createStaticLucideIcon(Receipt);
+export const ScrollTextIcon = createStaticLucideIcon(ScrollText);
 export const TagIcon = createStaticLucideIcon(Tag);
 export const RatingStarIcon = createStaticLucideIcon(Star);

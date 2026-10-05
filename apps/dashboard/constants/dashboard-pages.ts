@@ -108,7 +108,6 @@ export const ACCOUNT_ROUTE_PREFIXES = [
 const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'overview', prefix: Routes.Home },
   { key: 'overview', prefix: Routes.OrganizationTeam },
-  { key: 'overview', prefix: Routes.OrganizationWorkspace },
   { key: 'integrations', prefix: Routes.Integrations },
   { key: 'history', prefix: Routes.History },
   { key: 'inbox', prefix: Routes.Inbox },
@@ -140,7 +139,8 @@ export function resolvePathAccess(pathname: string): ResolvedPathAccess {
   if (
     path.startsWith(Routes.InboxProviders) ||
     path.startsWith(Routes.InboxSettings) ||
-    path.startsWith(Routes.InboxAliases)
+    path.startsWith(Routes.InboxAliases) ||
+    path.startsWith(Routes.OrganizationWorkspace)
   ) {
     return { type: 'workspace-admin' };
   }

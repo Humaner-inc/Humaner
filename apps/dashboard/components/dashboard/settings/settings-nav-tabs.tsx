@@ -12,6 +12,7 @@ import {
   WORKSPACE_SETTINGS_NAV_TABS
 } from '@/constants/settings-nav-items';
 import { isWorkspaceOwner } from '@/lib/auth/workspace-access';
+import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type SettingsNavTabsProps = {
@@ -41,12 +42,11 @@ export function SettingsNavTabs({
       ariaLabel={
         isWorkspaceSettings ? 'Workspace settings' : 'Account settings'
       }
-      className={className}
+      className={cn('mb-6', className)}
       tabs={tabs.map((tab) => ({
         id: tab.id,
         href: tab.href,
         label: tab.label,
-        icon: tab.icon,
         active: activeTab === tab.id
       }))}
     />

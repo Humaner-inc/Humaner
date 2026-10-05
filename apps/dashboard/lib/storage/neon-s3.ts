@@ -64,6 +64,30 @@ export async function putNeonObject(input: {
   );
 }
 
+export async function getNeonObject(input: {
+  bucket: string;
+  key: string;
+}): Promise<{ body: Buffer; contentType: string | null } | null> {
+  try {
+    const result = await getNeonS3Client().send(
+      new GetObjectCommand({
+        Bucket: input.bucket,
+        Key: input.key
+      })
+    );
+    const bytes = await result.Body?.transformToByteArray();
+    if (!bytes) {
+      return null;
+    }
+    return {
+      body: Buffer.from(bytes),
+      contentType: result.ContentType ?? null
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function createNeonSignedPutUrl(input: {
   bucket: string;
   key: string;

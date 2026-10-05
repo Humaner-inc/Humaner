@@ -71,9 +71,40 @@ export type MailThreadListItem = {
   isPinned: boolean;
   messageCount: number;
   awaitingReply: boolean;
+  hasAttachments: boolean;
   tag: MailTagItem | null;
   contactId: string | null;
   contactImage: string | null;
+};
+
+export type MailMessageAttachmentItem = {
+  id: string;
+  filename: string;
+  mediaType: string;
+  sizeBytes: number;
+};
+
+export type MailWorkspaceDocumentSummary = {
+  id: string;
+  kind: 'INVOICE' | 'QUOTE';
+  status: string;
+  reference: string;
+  counterpartyName: string | null;
+  counterpartyEmail: string | null;
+  amountCents: number;
+  currency: string;
+  dueAt: string | null;
+  issuedAt: string;
+};
+
+export type MailThreadBrand = {
+  name: string;
+  email: string | null;
+  logoUrl: string | null;
+  website: string | null;
+  address: string | null;
+  phone: string | null;
+  taxId: string | null;
 };
 
 export type MailThreadDetail = {
@@ -87,6 +118,9 @@ export type MailThreadDetail = {
   isPinned: boolean;
   folder: string;
   archivedAt: string | null;
+  hasAttachments: boolean;
+  document: MailWorkspaceDocumentSummary | null;
+  brand?: MailThreadBrand;
   assigneeKind: string;
   assigneeId: string | null;
   handoffTicketId: string | null;
@@ -118,6 +152,7 @@ export type MailThreadDetail = {
     bodyText: string | null;
     bodyHtml: string | null;
     sentAt: string;
+    attachments: MailMessageAttachmentItem[];
   }>;
 };
 
@@ -149,7 +184,16 @@ const mailMessageHeaderSelect = {
   fromAddress: true,
   toAddresses: true,
   ccAddresses: true,
-  sentAt: true
+  sentAt: true,
+  attachments: {
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      filename: true,
+      mediaType: true,
+      sizeBytes: true
+    }
+  }
 } as const;
 
 function previewText(value: string | null): string | null {
@@ -375,6 +419,7 @@ export async function getMailThreads(options?: {
       status: true,
       isUnread: true,
       isPinned: true,
+      hasAttachments: true,
       lastMessageAt: true,
       alias: { select: { id: true, address: true } },
       assigneeKind: true,
@@ -440,6 +485,7 @@ export async function getMailThreads(options?: {
       isPinned: thread.isPinned,
       messageCount: thread._count.messages,
       awaitingReply,
+      hasAttachments: thread.hasAttachments,
       tag: thread.tags[0]?.tag ?? null
     };
   });
@@ -502,88 +548,118 @@ export const getMailThread = cache(
       thread: threadAccess
     };
 
-    const [thread, latestBodies, olderHeaders] = await Promise.all([
-      prisma.mailThread.findFirst({
-        where: {
-          id: threadId,
-          ...threadAccess
-        },
-        select: {
-          id: true,
-          subject: true,
-          status: true,
-          isUnread: true,
-          isPinned: true,
-          folder: true,
-          archivedAt: true,
-          assigneeKind: true,
-          assigneeId: true,
-          handoffTicketId: true,
-          handoffTicket: { select: { ticketNumber: true } },
-          sharedNoteDraft: true,
-          lastMessageAt: true,
-          alias: {
-            select: {
-              id: true,
-              address: true,
-              connection: {
-                select: {
-                  id: true,
-                  signatureText: true,
-                  signatureIconHash: true,
-                  signatureIconHeight: true,
-                  aliases: {
-                    where: {
-                      enabled: true,
-                      ...(scopedAliasIds ? { id: scopedAliasIds } : {})
-                    },
-                    orderBy: { address: 'asc' },
-                    select: { id: true, address: true, displayName: true }
+    const [thread, latestBodies, olderHeaders, document, organization] =
+      await Promise.all([
+        prisma.mailThread.findFirst({
+          where: {
+            id: threadId,
+            ...threadAccess
+          },
+          select: {
+            id: true,
+            subject: true,
+            status: true,
+            isUnread: true,
+            isPinned: true,
+            hasAttachments: true,
+            folder: true,
+            archivedAt: true,
+            assigneeKind: true,
+            assigneeId: true,
+            handoffTicketId: true,
+            handoffTicket: { select: { ticketNumber: true } },
+            sharedNoteDraft: true,
+            lastMessageAt: true,
+            alias: {
+              select: {
+                id: true,
+                address: true,
+                connection: {
+                  select: {
+                    id: true,
+                    signatureText: true,
+                    signatureIconHash: true,
+                    signatureIconHeight: true,
+                    aliases: {
+                      where: {
+                        enabled: true,
+                        ...(scopedAliasIds ? { id: scopedAliasIds } : {})
+                      },
+                      orderBy: { address: 'asc' },
+                      select: { id: true, address: true, displayName: true }
+                    }
                   }
                 }
               }
-            }
-          },
-          notes: {
-            orderBy: { createdAt: 'asc' },
-            take: 40,
-            select: {
-              id: true,
-              body: true,
-              authorId: true,
-              createdAt: true,
-              author: { select: { name: true } }
-            }
-          },
-          tags: {
-            take: 1,
-            orderBy: { createdAt: 'asc' },
-            select: {
-              tag: {
-                select: { id: true, name: true, color: true, aliasId: true }
+            },
+            notes: {
+              orderBy: { createdAt: 'asc' },
+              take: 40,
+              select: {
+                id: true,
+                body: true,
+                authorId: true,
+                createdAt: true,
+                author: { select: { name: true } }
+              }
+            },
+            tags: {
+              take: 1,
+              orderBy: { createdAt: 'asc' },
+              select: {
+                tag: {
+                  select: { id: true, name: true, color: true, aliasId: true }
+                }
               }
             }
           }
-        }
-      }),
-      prisma.mailMessage.findMany({
-        where: messageWhere,
-        orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
-        take: MAIL_THREAD_OPEN_BODIES,
-        select: {
-          ...mailMessageHeaderSelect,
-          bodyText: true,
-          bodyHtml: true
-        }
-      }),
-      prisma.mailMessage.findMany({
-        where: messageWhere,
-        orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
-        skip: MAIL_THREAD_OPEN_BODIES,
-        take: MAIL_THREAD_MESSAGE_CAP - MAIL_THREAD_OPEN_BODIES,
-        select: mailMessageHeaderSelect
-      })
-    ]);
+        }),
+        prisma.mailMessage.findMany({
+          where: messageWhere,
+          orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+          take: MAIL_THREAD_OPEN_BODIES,
+          select: {
+            ...mailMessageHeaderSelect,
+            bodyText: true,
+            bodyHtml: true
+          }
+        }),
+        prisma.mailMessage.findMany({
+          where: messageWhere,
+          orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+          skip: MAIL_THREAD_OPEN_BODIES,
+          take: MAIL_THREAD_MESSAGE_CAP - MAIL_THREAD_OPEN_BODIES,
+          select: mailMessageHeaderSelect
+        }),
+        prisma.workspaceDocument.findFirst({
+          where: { sourceThreadId: threadId, organizationId },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            kind: true,
+            status: true,
+            reference: true,
+            counterpartyName: true,
+            counterpartyEmail: true,
+            amountCents: true,
+            currency: true,
+            dueAt: true,
+            issuedAt: true
+          }
+        }),
+        prisma.organization.findFirst({
+          where: { id: organizationId },
+          select: {
+            name: true,
+            email: true,
+            logoUrl: true,
+            website: true,
+            address: true,
+            phone: true,
+            taxId: true
+          }
+        })
+      ]);
 
     if (!thread) return null;
 
@@ -601,7 +677,8 @@ export const getMailThread = cache(
       ccAddresses: message.ccAddresses,
       bodyText: null,
       bodyHtml: null,
-      sentAt: message.sentAt.toISOString()
+      sentAt: message.sentAt.toISOString(),
+      attachments: message.attachments
     }));
     const openMessages = latestBodies.toReversed().map((message) => {
       const bodies = compactMailBodies(message);
@@ -616,7 +693,8 @@ export const getMailThread = cache(
           bodies.bodyHtml,
           signatureIconUrl
         ),
-        sentAt: message.sentAt.toISOString()
+        sentAt: message.sentAt.toISOString(),
+        attachments: message.attachments
       };
     });
     const messages = [...olderMessages, ...openMessages];
@@ -643,6 +721,30 @@ export const getMailThread = cache(
       isPinned: thread.isPinned,
       folder: thread.folder,
       archivedAt: thread.archivedAt?.toISOString() ?? null,
+      hasAttachments: thread.hasAttachments,
+      document: document
+        ? {
+            id: document.id,
+            kind: document.kind,
+            status: document.status,
+            reference: document.reference,
+            counterpartyName: document.counterpartyName,
+            counterpartyEmail: document.counterpartyEmail,
+            amountCents: document.amountCents,
+            currency: document.currency,
+            dueAt: document.dueAt?.toISOString() ?? null,
+            issuedAt: document.issuedAt.toISOString()
+          }
+        : null,
+      brand: {
+        name: organization?.name ?? 'Workspace',
+        email: organization?.email ?? null,
+        logoUrl: organization?.logoUrl ?? null,
+        website: organization?.website ?? null,
+        address: organization?.address ?? null,
+        phone: organization?.phone ?? null,
+        taxId: organization?.taxId ?? null
+      },
       assigneeKind: thread.assigneeKind,
       assigneeId: thread.assigneeId,
       handoffTicketId: thread.handoffTicketId,

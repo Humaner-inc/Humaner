@@ -209,6 +209,8 @@ model Organization {
   email                      String?                  @db.VarChar(255)
   website                    String?                  @db.VarChar(2000)
   logoUrl                    String?                  @db.VarChar(2000)
+  /// VAT / tax identification number printed on quotes and invoices.
+  taxId                      String?                  @db.VarChar(64)
   linkedInProfile            String?                  @db.VarChar(2000)
   instagramProfile           String?                  @db.VarChar(2000)
   youTubeChannel             String?                  @db.VarChar(2000)
@@ -302,6 +304,7 @@ model Organization {
   mailThreads                MailThread[]
   mailTags                   MailTag[]
   mailBlockedSenders         MailBlockedSender[]
+  mailMessageAttachments     MailMessageAttachment[]
   memberships                OrganizationMembership[]
   joinRequests               WorkspaceJoinRequest[]
   teamMemberProfiles         TeamMemberProfile[]
@@ -1239,6 +1242,8 @@ model MailThread {
   isUnread         Boolean          @default(true)
   /// Pinned threads stay at the top of the inbox list.
   isPinned         Boolean          @default(false)
+  /// Denormalized — true when any message in the thread has a downloadable attachment.
+  hasAttachments   Boolean          @default(false)
   folder           MailThreadFolder @default(INBOX)
   archivedAt       DateTime?
   /// Set when the thread is moved to Trash; cleared when it leaves.
@@ -1326,9 +1331,30 @@ model MailMessage {
   bodyHtml          String?              @db.Text
   sentAt            DateTime
   createdAt         DateTime             @default(now())
+  attachments       MailMessageAttachment[]
 
   @@unique([threadId, providerMessageId], map: "UQ_MailMessage_thread_providerMessage")
   @@index([threadId, sentAt], map: "IX_MailMessage_thread_sentAt")
+}
+
+/// Non-inline file attachment on an inbound mail message. Bytes live in object
+/// storage (`storageKey`); only metadata is stored in Postgres. Inline cid:
+/// images are embedded in bodyHtml at sync and are not stored here.
+model MailMessageAttachment {
+  id             String       @id(map: "PK_MailMessageAttachment") @default(uuid()) @db.Uuid
+  messageId      String       @db.Uuid
+  message        MailMessage  @relation(fields: [messageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organizationId String       @db.Uuid
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  filename       String       @db.VarChar(512)
+  mediaType      String       @db.VarChar(255)
+  sizeBytes      Int
+  /// Object key inside the `mail` storage bucket.
+  storageKey     String       @db.VarChar(1024)
+  createdAt      DateTime     @default(now())
+
+  @@index([messageId], map: "IX_MailMessageAttachment_messageId")
+  @@index([organizationId], map: "IX_MailMessageAttachment_organizationId")
 }
 
 /// Workspace-wide team message — visible to every member.

@@ -38,6 +38,7 @@ import {
   readSkipDeleteWarning,
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
+import { MailThreadAttachmentsControl } from '@/components/dashboard/inbox/mail-attachments-control';
 import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -1546,7 +1547,7 @@ function MailThreadRow({
               suppressHydrationWarning
               className={cn(
                 'shrink-0 font-mono text-[10px] text-muted-foreground transition-opacity group-hover:opacity-0 group-focus-within:opacity-0',
-                thread.isPinned && 'opacity-0'
+                (thread.isPinned || thread.hasAttachments) && 'opacity-0'
               )}
             >
               {formatDistanceToNow(new Date(thread.lastMessageAt), {
@@ -1608,6 +1609,13 @@ function MailThreadRow({
               {thread.isPinned ? 'Unpin' : 'Pin to top'}
             </span>
           </Button>
+          {thread.hasAttachments ? (
+            <MailThreadAttachmentsControl
+              threadId={thread.id}
+              hasAttachments
+              size="row"
+            />
+          ) : null}
 
           {thread.isPinned ? null : (
             <div className="pointer-events-none flex items-center gap-0.5 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">

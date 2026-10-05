@@ -24,7 +24,7 @@ export default async function InboxConnectCallbackPage({
 }): Promise<React.JSX.Element> {
   const { app } = await searchParams;
   if (!isCompanionIntegrationId(app)) {
-    redirect(`${Routes.InboxSettings}?tab=connect`);
+    redirect(`${Routes.OrganizationWorkspace}?tab=connect`);
   }
 
   const session = await dedupedAuth();

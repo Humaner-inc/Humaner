@@ -121,6 +121,8 @@ export {
   PinIcon,
   PlugIconStatic,
   RatingStarIcon,
+  ReceiptIcon,
+  ScrollTextIcon,
   TagIcon,
   createStaticLucideIcon,
   type StaticLucideIcon,

@@ -9,4 +9,6 @@ export type OrganizationDetailsDto = {
   website?: string;
   /** Stored brand logo from onboarding / logo detection. */
   logoUrl?: string;
+  /** VAT / tax identification number printed on quotes and invoices. */
+  taxId?: string;
 };

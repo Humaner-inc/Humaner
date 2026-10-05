@@ -67,7 +67,7 @@ body {
   font-size: 14px;
   line-height: 1.55;
   word-wrap: break-word;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
@@ -109,7 +109,8 @@ table {
   max-width: 100%;
 }
 td, th {
-  word-break: break-word;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .gmail_quote,
 .gmail_attr,
@@ -205,7 +206,7 @@ function MailStructuredBody({
   return (
     <div
       className={cn(
-        'mail-structured-body mt-3 break-words text-[14px] leading-[1.55] text-foreground [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
+        'mail-structured-body mt-3 text-[14px] leading-[1.55] text-foreground [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
         className
       )}
     >
@@ -281,6 +282,28 @@ function MailHtmlFrame({
       rafId = requestAnimationFrame(measure);
     };
 
+    const onIframeMouseMove = (event: MouseEvent): void => {
+      const bar = document.querySelector<HTMLElement>(
+        '[data-mail-action-bar][data-open="true"]'
+      );
+      if (!bar) {
+        document.body.removeAttribute('data-mail-action-bar-hot');
+        return;
+      }
+
+      const frameRect = frame.getBoundingClientRect();
+      const barRect = bar.getBoundingClientRect();
+      const x = frameRect.left + event.clientX;
+      const y = frameRect.top + event.clientY;
+      const overBar =
+        x >= barRect.left &&
+        x <= barRect.right &&
+        y >= barRect.top &&
+        y <= barRect.bottom;
+
+      document.body.toggleAttribute('data-mail-action-bar-hot', overBar);
+    };
+
     const onFrameLoad = (): void => {
       scheduleMeasure();
 
@@ -288,6 +311,8 @@ function MailHtmlFrame({
       if (!doc?.body) return;
 
       stripLeakedPreheader(doc.body);
+      doc.removeEventListener('mousemove', onIframeMouseMove);
+      doc.addEventListener('mousemove', onIframeMouseMove, { passive: true });
 
       resizeObserver?.disconnect();
       resizeObserver = new ResizeObserver(() => {
@@ -341,6 +366,11 @@ function MailHtmlFrame({
 
     return () => {
       frame.removeEventListener('load', onFrameLoad);
+      frame.contentDocument?.removeEventListener(
+        'mousemove',
+        onIframeMouseMove
+      );
+      document.body.removeAttribute('data-mail-action-bar-hot');
       resizeObserver?.disconnect();
       cancelAnimationFrame(rafId);
       for (const { img, onLoad, onError } of imageListeners) {

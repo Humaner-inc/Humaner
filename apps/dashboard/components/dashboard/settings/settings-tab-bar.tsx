@@ -2,17 +2,16 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import type { LucideIcon } from '@humaner/shared/icons';
 
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type SettingsTabBarItem = {
   id: string;
-  href: string;
+  href?: string;
   label: string;
-  icon?: LucideIcon | React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string }>;
   active: boolean;
+  onSelect?: () => void;
 };
 
 export function SettingsTabBar({
@@ -28,27 +27,37 @@ export function SettingsTabBar({
     <nav
       aria-label={ariaLabel}
       className={cn(
-        'mb-6 flex flex-wrap items-center gap-1 border-b border-border/60 pb-3',
+        'flex flex-wrap gap-x-5 border-b border-border/60',
         className
       )}
     >
       {tabs.map((tab) => {
-        const Icon = tab.icon;
+        const classNameForTab = cn(
+          '-mb-px border-b-2 pb-2.5 text-sm transition-colors',
+          tab.active
+            ? 'border-foreground font-medium text-foreground'
+            : 'border-transparent text-muted-foreground hover:text-foreground'
+        );
+
+        if (tab.onSelect) {
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={tab.onSelect}
+              className={classNameForTab}
+            >
+              {tab.label}
+            </button>
+          );
+        }
+
         return (
           <Link
             key={tab.id}
-            href={tab.href}
-            className={cn(
-              'inline-flex h-8 items-center gap-1.5 overflow-visible px-2.5 text-xs font-medium transition-colors',
-              dashboardRadiusClassName,
-              tab.active
-                ? 'bg-foreground text-background'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            )}
+            href={tab.href ?? '#'}
+            className={classNameForTab}
           >
-            {Icon ? (
-              <Icon className="size-3.5 shrink-0 overflow-visible" />
-            ) : null}
             {tab.label}
           </Link>
         );

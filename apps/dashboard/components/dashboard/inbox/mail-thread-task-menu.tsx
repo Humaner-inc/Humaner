@@ -9,8 +9,11 @@ import {
   EllipsisIcon,
   FileTextIcon,
   Link2Icon,
+  Loader2Icon,
   PinIcon,
   PlusIcon,
+  ReceiptIcon,
+  ScrollTextIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
 import { toast } from 'sonner';
@@ -23,6 +26,7 @@ import {
   listLinearIssuesForInbox
 } from '@/actions/inbox/manage-linear-thread';
 import { AssigneeMenuItems } from '@/components/dashboard/assignee-options';
+import { MailThreadAttachmentsControl } from '@/components/dashboard/inbox/mail-attachments-control';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import { AssigneeFace, type AssigneePerson } from '@/components/ui/assignees';
 import { Button } from '@/components/ui/button';
@@ -89,6 +93,35 @@ function toolError(result: unknown, fallback: string): string {
   );
 }
 
+function documentKindLabel(
+  kind: 'invoice' | 'quote',
+  generating: boolean
+): string {
+  if (kind === 'quote') {
+    return generating ? 'Generating quote…' : 'Generate quote';
+  }
+  return generating ? 'Generating invoice…' : 'Generate invoice';
+}
+
+function DocumentKindIcon({
+  kind,
+  generating = false,
+  className
+}: {
+  kind: 'invoice' | 'quote';
+  generating?: boolean;
+  className?: string;
+}): React.JSX.Element {
+  const iconClass = cn('size-3.5', className);
+  if (generating) {
+    return <Loader2Icon className={cn(iconClass, 'animate-spin')} />;
+  }
+  if (kind === 'quote') {
+    return <ScrollTextIcon className={iconClass} />;
+  }
+  return <ReceiptIcon className={iconClass} />;
+}
+
 function MenuRowIcon({
   children
 }: {
@@ -149,7 +182,12 @@ export function MailThreadHeaderMenu({
   onBlock,
   onDelete,
   onAddContact,
-  contactSaved = false
+  contactSaved = false,
+  attachments = [],
+  hasAttachments = false,
+  suggestedDocument = null,
+  generatingDocument = false,
+  onGenerateDocument
 }: {
   threadId: string;
   subject: string;
@@ -180,6 +218,16 @@ export function MailThreadHeaderMenu({
   onDelete: () => void;
   onAddContact?: () => void;
   contactSaved?: boolean;
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    mediaType: string;
+    sizeBytes: number;
+  }>;
+  hasAttachments?: boolean;
+  suggestedDocument?: 'invoice' | 'quote' | null;
+  generatingDocument?: boolean;
+  onGenerateDocument?: (kind: 'invoice' | 'quote') => void;
 }): React.JSX.Element {
   const [open, setOpen] = React.useState(false);
   const [integrations, setIntegrations] = React.useState<
@@ -390,6 +438,31 @@ export function MailThreadHeaderMenu({
         <PinIcon className={cn('size-4', isPinned && 'fill-current')} />
         <span className="sr-only">{isPinned ? 'Unpin' : 'Pin to top'}</span>
       </Button>
+      <MailThreadAttachmentsControl
+        threadId={threadId}
+        hasAttachments={hasAttachments || attachments.length > 0}
+        attachments={attachments}
+      />
+      {suggestedDocument && onGenerateDocument ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-8 rounded-lg"
+          title={documentKindLabel(suggestedDocument, generatingDocument)}
+          disabled={generatingDocument}
+          onClick={() => onGenerateDocument(suggestedDocument)}
+        >
+          <DocumentKindIcon
+            kind={suggestedDocument}
+            generating={generatingDocument}
+            className="size-4"
+          />
+          <span className="sr-only">
+            {documentKindLabel(suggestedDocument, generatingDocument)}
+          </span>
+        </Button>
+      ) : null}
       <DropdownMenu
         open={open}
         onOpenChange={setOpen}
@@ -422,6 +495,23 @@ export function MailThreadHeaderMenu({
             </MenuRowIcon>
             <span className="ml-2">Forward</span>
           </DropdownMenuItem>
+
+          {suggestedDocument && onGenerateDocument ? (
+            <DropdownMenuItem
+              disabled={generatingDocument}
+              onSelect={() => onGenerateDocument(suggestedDocument)}
+            >
+              <MenuRowIcon>
+                <DocumentKindIcon
+                  kind={suggestedDocument}
+                  generating={generatingDocument}
+                />
+              </MenuRowIcon>
+              <span className="ml-2">
+                {documentKindLabel(suggestedDocument, generatingDocument)}
+              </span>
+            </DropdownMenuItem>
+          ) : null}
 
           <DropdownMenuSeparator />
 
@@ -709,7 +799,7 @@ export function MailThreadHeaderMenu({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
+            className="text-destructive focus:bg-destructive/10 focus:text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive hover:bg-destructive/10 hover:text-destructive"
             onSelect={onDelete}
           >
             <MenuRowIcon>

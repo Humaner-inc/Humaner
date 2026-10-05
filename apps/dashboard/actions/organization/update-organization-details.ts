@@ -7,10 +7,6 @@ import { Routes } from '@/constants/routes';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { prisma } from '@/lib/db/prisma';
 import {
-  assertWorkspaceNameAvailable,
-  rememberWorkspaceName
-} from '@/lib/onboarding/workspace-name-registry';
-import {
   getDefaultWidgetAccent,
   HUMANER_DEFAULT_ACCENT
 } from '@/lib/urls/extract-brand-accent-color';
@@ -53,17 +49,13 @@ export const updateOrganizationDetails = ownerActionClient
 
     const websiteChanged = (organization.website ?? '') !== (website ?? '');
 
-    let nextName = parsedInput.name;
+    const nextName = organization.name;
     let nextLogoUrl = organization.logoUrl;
     let nextAccentColor = organization.accentColor;
 
     if (websiteChanged) {
       if (website) {
         const metadata = await extractWebsiteMetadata(website);
-        const scannedName = metadata?.businessName?.trim();
-        if (scannedName && parsedInput.name === organization.name) {
-          nextName = scannedName;
-        }
         nextLogoUrl =
           getBusinessLogoUrl(website, {
             size: 128,
@@ -84,31 +76,33 @@ export const updateOrganizationDetails = ownerActionClient
       }
     }
 
-    await assertWorkspaceNameAvailable({
-      name: nextName,
-      excludeOrganizationId: session.user.organizationId
-    });
+    const logoInput = parsedInput.logoUrl;
+    const logoChanged =
+      logoInput !== undefined &&
+      (logoInput || null) !== (organization.logoUrl || null);
+    if (logoChanged) {
+      nextLogoUrl = logoInput || null;
+    }
 
     await prisma.organization.update({
       where: { id: session.user.organizationId },
       data: {
-        name: nextName,
         address: parsedInput.address,
         phone: parsedInput.phone,
         email: parsedInput.email,
+        taxId: parsedInput.taxId || null,
         website,
-        ...(websiteChanged
-          ? { logoUrl: nextLogoUrl, accentColor: nextAccentColor }
+        ...(websiteChanged || logoChanged
+          ? {
+              logoUrl: nextLogoUrl,
+              ...(websiteChanged ? { accentColor: nextAccentColor } : {})
+            }
           : {})
       },
       select: {
         id: true
       }
     });
-
-    if (organization.name !== nextName) {
-      rememberWorkspaceName(nextName);
-    }
 
     revalidateTag(
       Caching.createOrganizationTag(
@@ -118,14 +112,16 @@ export const updateOrganizationDetails = ownerActionClient
       'max'
     );
 
-    if (websiteChanged) {
-      revalidatePath(Routes.OrganizationWorkspace);
-      revalidatePath(Routes.InboxSettings);
-      revalidatePath(Routes.Home);
-    }
+    revalidatePath(Routes.OrganizationWorkspace);
+    revalidatePath(Routes.InboxSettings);
+    revalidatePath(Routes.Home);
+    revalidatePath(Routes.Resources);
 
     return {
       websiteRescanned: websiteChanged,
-      name: nextName
+      name: nextName,
+      email: parsedInput.email || null,
+      website: website || null,
+      logoUrl: nextLogoUrl
     };
   });

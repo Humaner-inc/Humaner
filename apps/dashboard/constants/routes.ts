@@ -66,6 +66,8 @@ export enum Routes {
   Tasks = '/organization/tasks',
   Calendar = '/calendar',
   Resources = '/organization/resources',
+  ResourcesInvoices = '/organization/resources/invoices',
+  ResourcesQuotes = '/organization/resources/quotes',
   AdminTickets = '/admin/tickets',
   AdminDemos = '/admin/demos',
   DemoLanding = '/demo',

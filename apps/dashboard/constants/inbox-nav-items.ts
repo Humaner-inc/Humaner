@@ -55,7 +55,7 @@ export const INBOX_NAV_TABS: InboxNavTab[] = [
   {
     id: 'aliases',
     label: 'Workspace settings',
-    href: Routes.InboxSettings
+    href: Routes.OrganizationWorkspace
   },
   {
     id: 'providers',

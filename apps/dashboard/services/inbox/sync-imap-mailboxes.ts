@@ -15,6 +15,10 @@ import {
   mailFolderPresenceRank,
   preferMailFolderState
 } from '@/lib/inbox/mail-thread-folder';
+import {
+  storeInboundMailAttachments,
+  type InboundAttachmentInput
+} from '@/lib/inbox/persist-mail-attachments';
 import { resolveStoredMailBodies } from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
@@ -121,6 +125,7 @@ type ParsedSyncMessage = {
   archivedAt: Date | null;
   trashedAt: Date | null;
   isUnread: boolean;
+  attachments: InboundAttachmentInput[];
 };
 
 type ImapSyncFolder = {
@@ -247,6 +252,30 @@ function inlineCidImages(html: string, mail: ParsedMail): string {
   return next;
 }
 
+/** Downloadable attachments only — inline cid: images are embedded in bodyHtml. */
+function nonInlineAttachments(mail: ParsedMail): InboundAttachmentInput[] {
+  const result: InboundAttachmentInput[] = [];
+  for (const attachment of mail.attachments ?? []) {
+    if (!attachment.content?.length) continue;
+    const mime =
+      attachment.contentType?.split(';')[0]?.trim() ||
+      'application/octet-stream';
+    const disposition = (attachment.contentDisposition ?? '').toLowerCase();
+    // `related` = referenced by a cid in the HTML (already inlined). Inline
+    // images without an explicit disposition are also treated as embedded.
+    const isEmbeddedImage =
+      mime.startsWith('image/') &&
+      (attachment.related === true || disposition === 'inline');
+    if (isEmbeddedImage) continue;
+    result.push({
+      filename: attachment.filename || 'attachment',
+      mediaType: mime,
+      content: attachment.content
+    });
+  }
+  return result;
+}
+
 function threadIdForMail(mail: ParsedMail, fallback: string): string {
   const references = Array.isArray(mail.references)
     ? mail.references
@@ -317,7 +346,8 @@ function parseForSync(
     folder: folderMeta.folder,
     archivedAt: folderMeta.archivedAt,
     trashedAt: folderMeta.trashedAt,
-    isUnread: !seen
+    isUnread: !seen,
+    attachments: nonInlineAttachments(mail)
   };
 }
 
@@ -329,8 +359,9 @@ async function persistMessages(
   const blocked = await loadBlockedSenderSet(connection.organizationId);
 
   for (const message of messages) {
-    let importedInboundThreadId: string | null = null;
-    await prisma.$transaction(async (tx) => {
+    const persisted = await prisma.$transaction(async (tx) => {
+      let importedInboundThreadId: string | null = null;
+      let createdMessage: { id: string; threadId: string } | null = null;
       const isInbound = message.direction === MailMessageDirection.INBOUND;
 
       let folder = message.folder;
@@ -399,7 +430,7 @@ async function persistMessages(
       });
 
       if (!existing) {
-        await tx.mailMessage.create({
+        const created = await tx.mailMessage.create({
           data: {
             threadId: thread.id,
             providerMessageId: message.providerMessageId,
@@ -410,8 +441,10 @@ async function persistMessages(
             bodyText: message.bodyText,
             bodyHtml: message.bodyHtml,
             sentAt: message.sentAt
-          }
+          },
+          select: { id: true }
         });
+        createdMessage = { id: created.id, threadId: thread.id };
         if (isInbound) {
           importedInboundThreadId = thread.id;
         }
@@ -467,7 +500,22 @@ async function persistMessages(
           });
         }
       }
+      return { createdMessage, importedInboundThreadId };
     });
+    const createdMessage = persisted.createdMessage;
+    const importedInboundThreadId = persisted.importedInboundThreadId;
+    if (createdMessage && message.attachments.length > 0) {
+      try {
+        await storeInboundMailAttachments({
+          organizationId: connection.organizationId,
+          threadId: createdMessage.threadId,
+          messageId: createdMessage.id,
+          attachments: message.attachments
+        });
+      } catch (error) {
+        console.error('[inbox] IMAP attachment persistence failed', error);
+      }
+    }
     imported += 1;
     if (importedInboundThreadId) {
       const { applyCompanionAliasPolicyOnInbound } = await import(

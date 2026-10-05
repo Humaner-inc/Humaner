@@ -1,92 +1,93 @@
 'use client';
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
-import { CompanionFigure } from '@humaner/shared/companion-icon';
-import { MailIcon, PlugIcon, SettingsIcon } from '@humaner/shared/icons';
 
+import { WorkspaceSettingsIntro } from '@/components/dashboard/inbox/workspace-settings-intro';
 import { SettingsTabBar } from '@/components/dashboard/settings/settings-tab-bar';
-import { Routes } from '@/constants/routes';
-import { isOssDeployment } from '@/lib/deployment-mode';
-import { cn } from '@/lib/utils';
+import {
+  workspaceSettingsHref,
+  type WorkspaceSettingsTab
+} from '@/constants/workspace-settings-tabs';
 
-export type WorkspaceSettingsTab =
-  | 'connect'
-  | 'inbox'
-  | 'companion'
-  | 'settings';
+const TABS: Array<{
+  id: WorkspaceSettingsTab;
+  label: string;
+  page: '1' | '2' | '3' | '4';
+}> = [
+  { id: 'inbox', label: 'Inbox', page: '1' },
+  { id: 'companion', label: 'Companion', page: '2' },
+  { id: 'connect', label: 'Connect', page: '3' },
+  { id: 'data', label: 'Data', page: '4' }
+];
 
-function CompanionTabIcon({
-  className
+export function InboxSettingsShell({
+  initialTab,
+  inbox,
+  companion,
+  connect,
+  data,
+  intros
 }: {
-  className?: string;
+  initialTab: WorkspaceSettingsTab;
+  inbox: React.ReactNode;
+  companion: React.ReactNode;
+  connect: React.ReactNode;
+  data: React.ReactNode;
+  intros: Record<WorkspaceSettingsTab, string>;
 }): React.JSX.Element {
-  return (
-    <CompanionFigure
-      size={14}
-      state="idle"
-      tone="mono"
-      className={cn(
-        'text-[#0A0D0D] dark:text-[#f2f2f2] [.bg-foreground_&]:text-current',
-        className
-      )}
-    />
-  );
-}
+  const [tab, setTab] = React.useState(initialTab);
+  const page = TABS.find((item) => item.id === tab)?.page ?? '1';
 
-export function InboxSettingsTabs({
-  active,
-  className
-}: {
-  active: WorkspaceSettingsTab;
-  className?: string;
-}): React.JSX.Element {
-  const pathname = usePathname() ?? '';
-  const settingsHref =
-    isOssDeployment() || pathname.startsWith(Routes.OrganizationWorkspace)
-      ? Routes.OrganizationWorkspace
-      : `${Routes.InboxSettings}?tab=settings`;
-
-  const tabs: Array<{
-    id: WorkspaceSettingsTab;
-    label: string;
-    href: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }> = [
-    {
-      id: 'connect',
-      label: 'Connect',
-      href: Routes.InboxSettings,
-      icon: PlugIcon
-    },
-    {
-      id: 'inbox',
-      label: 'Inbox',
-      href: `${Routes.InboxSettings}?tab=inbox`,
-      icon: MailIcon
-    },
-    {
-      id: 'companion',
-      label: 'Companion',
-      href: `${Routes.InboxSettings}?tab=companion`,
-      icon: CompanionTabIcon
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      href: settingsHref,
-      icon: SettingsIcon
-    }
-  ];
+  const selectTab = React.useCallback((next: WorkspaceSettingsTab) => {
+    setTab(next);
+    window.history.replaceState(
+      window.history.state,
+      '',
+      workspaceSettingsHref(next)
+    );
+  }, []);
 
   return (
-    <SettingsTabBar
-      ariaLabel="Workspace settings"
-      className={className}
-      tabs={tabs.map((tab) => ({
-        ...tab,
-        active: active === tab.id
-      }))}
-    />
+    <div className="space-y-6">
+      <SettingsTabBar
+        ariaLabel="Workspace settings"
+        tabs={TABS.map((item) => ({
+          id: item.id,
+          label: item.label,
+          active: item.id === tab,
+          onSelect: () => selectTab(item.id)
+        }))}
+      />
+      <WorkspaceSettingsIntro text={intros[tab]} />
+      <div
+        className="t-page-slide"
+        data-page={page}
+      >
+        <section
+          className="t-page"
+          data-page-id="1"
+        >
+          {inbox}
+        </section>
+        <section
+          className="t-page"
+          data-page-id="2"
+        >
+          {companion}
+        </section>
+        <section
+          className="t-page"
+          data-page-id="3"
+        >
+          {connect}
+        </section>
+        <section
+          className="t-page"
+          data-page-id="4"
+        >
+          {data}
+        </section>
+      </div>
+    </div>
   );
 }

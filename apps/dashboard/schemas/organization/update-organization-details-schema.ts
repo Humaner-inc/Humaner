@@ -22,7 +22,7 @@ export const updateOrganizationDetailsSchema = z.object({
       invalid_type_error: 'Phone must be a string.'
     })
     .trim()
-    .max(16, 'Maximum 16 characters allowed.')
+    .max(32, 'Maximum 32 characters allowed.')
     .optional()
     .or(z.literal('')),
   email: z
@@ -41,6 +41,23 @@ export const updateOrganizationDetailsSchema = z.object({
     .trim()
     .url('Enter a valid URL with schema.')
     .max(2000, 'Maximum 2000 characters allowed.')
+    .optional()
+    .or(z.literal('')),
+  logoUrl: z
+    .string({
+      invalid_type_error: 'Logo URL must be a string.'
+    })
+    .trim()
+    .url('Enter a valid URL with schema.')
+    .max(2000, 'Maximum 2000 characters allowed.')
+    .optional()
+    .or(z.literal('')),
+  taxId: z
+    .string({
+      invalid_type_error: 'VAT / tax ID must be a string.'
+    })
+    .trim()
+    .max(64, 'Maximum 64 characters allowed.')
     .optional()
     .or(z.literal(''))
 });

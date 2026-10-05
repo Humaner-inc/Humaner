@@ -13,6 +13,7 @@ import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
 import { addContact } from '@/actions/contacts/manage-contacts';
+import { generateWorkspaceDocument } from '@/actions/inbox/generate-workspace-document';
 import { fetchMailMessageBodies } from '@/actions/inbox/get-mail-thread';
 import { blockMailSender } from '@/actions/inbox/manage-blocked-senders';
 import {
@@ -28,7 +29,6 @@ import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
 import { createTaskFromMailThreadAction } from '@/actions/tasks/create-task-from-mail-thread';
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
-import { useHumanerChatOptional } from '@/components/dashboard/ask-humaner/humaner-chat-context';
 import { COMPANION_ASSIGNEE_PERSON } from '@/components/dashboard/assignee-options';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
 import { BlockMailSenderDialog } from '@/components/dashboard/inbox/block-mail-sender-dialog';
@@ -39,7 +39,9 @@ import {
   requestMailDelete
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
+import { MailMessageAttachmentChips } from '@/components/dashboard/inbox/mail-attachments-control';
 import { MailComposeBodyEditor } from '@/components/dashboard/inbox/mail-compose-body-editor';
+import { MailDocumentCard } from '@/components/dashboard/inbox/mail-document-card';
 import { MailDraftEditor } from '@/components/dashboard/inbox/mail-draft-editor';
 import { MailMessageBody } from '@/components/dashboard/inbox/mail-message-body';
 import { MailSignaturePreview } from '@/components/dashboard/inbox/mail-signature-preview';
@@ -69,6 +71,7 @@ import {
 } from '@/lib/contacts/contact-email';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
+import { detectMailDocumentIntent } from '@/lib/inbox/mail-document-intent';
 import {
   buildForwardBody,
   buildForwardSubject
@@ -362,6 +365,7 @@ const MailThreadMessage = React.memo(function MailThreadMessage({
                 eager
               />
             )}
+            <MailMessageAttachmentChips attachments={message.attachments} />
           </div>
         ) : null}
       </article>
@@ -396,7 +400,6 @@ export function MailThreadDetail({
 }): React.JSX.Element {
   const router = useRouter();
   const dock = useDashboardDockOptional();
-  const companionChat = useHumanerChatOptional();
   const { autoSuggestReplies } = useInboxPreferences();
   const { openCompose } = useComposeMail();
   const { play } = useOnboardingSound();
@@ -458,6 +461,8 @@ export function MailThreadDetail({
         ? Math.max(0, messages.length - 2)
         : messages.length - 1;
     setExpandedIds(new Set(messages.slice(start).map((message) => message.id)));
+    // Only re-expand when switching threads, not when message bodies load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- thread id is the switch key
   }, [threadProp.id]);
 
   const lastMessageId = thread.messages[thread.messages.length - 1]?.id ?? null;
@@ -755,6 +760,33 @@ export function MailThreadDetail({
     runPin({ threadId: thread.id, isPinned: next });
   };
 
+  const { execute: runGenerateDocument, isExecuting: generatingDocument } =
+    useAction(generateWorkspaceDocument, {
+      onSuccess: ({ data }) => {
+        if (!data) return;
+        setThread((current) => ({
+          ...current,
+          document: {
+            id: data.id,
+            kind: data.kind,
+            status: data.status,
+            reference: data.reference,
+            counterpartyName: data.counterpartyName,
+            counterpartyEmail: data.counterpartyEmail,
+            amountCents: data.amountCents,
+            currency: data.currency,
+            dueAt: data.dueAt,
+            issuedAt: data.issuedAt
+          }
+        }));
+        toast.success(
+          data.kind === 'QUOTE' ? 'Quote generated' : 'Invoice generated'
+        );
+      },
+      onError: ({ error }) =>
+        toast.error(error.serverError || 'Could not generate document')
+    });
+
   const { execute: loadSuggestions, isExecuting: loadingSuggestions } =
     useAction(suggestMailThreadReplies, {
       onSuccess: ({ data }) => {
@@ -845,6 +877,23 @@ export function MailThreadDetail({
   const senderLabel = senderName
     ? `${senderName} · ${senderEmail}`
     : senderEmail;
+  const threadAttachments = thread.messages.flatMap(
+    (message) => message.attachments
+  );
+  const latestMessage = thread.messages[thread.messages.length - 1];
+  const suggestedDocument = latestMessage
+    ? detectMailDocumentIntent({
+        subject: thread.subject,
+        fromAddress: latestMessage.fromAddress,
+        bodyText: latestMessage.bodyText,
+        bodyHtml: latestMessage.bodyHtml
+      })
+    : null;
+  const generateKind =
+    suggestedDocument &&
+    thread.document?.kind !== suggestedDocument.toUpperCase()
+      ? suggestedDocument
+      : null;
   const senderMailbox = normalizeContactEmail(senderEmail);
   const contactByEmail = new Map(
     (thread.savedContacts ?? []).map((contact) => [contact.email, contact])
@@ -935,13 +984,16 @@ export function MailThreadDetail({
     });
   };
 
+  const actionButtonClassName =
+    'pointer-events-auto h-9 gap-2 px-4 hover:border-black/10 hover:bg-white dark:hover:border-white/20 dark:hover:bg-[#1c1c1c]';
+
   const renderActionButtons = (): React.JSX.Element => (
     <>
       <Button
         type="button"
         variant="background"
         size="sm"
-        className="h-9 gap-2 px-4"
+        className={actionButtonClassName}
         onClick={openReply}
       >
         <ArrowRightIcon className="size-3.5 rotate-180" />
@@ -951,7 +1003,7 @@ export function MailThreadDetail({
         type="button"
         variant="background"
         size="sm"
-        className="h-9 gap-2 px-4"
+        className={actionButtonClassName}
         onClick={openForward}
       >
         <ForwardGlyph className="size-3.5" />
@@ -962,7 +1014,7 @@ export function MailThreadDetail({
           type="button"
           variant="background"
           size="sm"
-          className="h-9 gap-2 px-4"
+          className={actionButtonClassName}
           onClick={suggestAgain}
         >
           <CompanionIcon
@@ -1106,6 +1158,17 @@ export function MailThreadDetail({
                 : undefined
             }
             contactSaved={Boolean(senderContact)}
+            attachments={threadAttachments}
+            hasAttachments={
+              thread.hasAttachments || threadAttachments.length > 0
+            }
+            suggestedDocument={generateKind}
+            generatingDocument={generatingDocument}
+            onGenerateDocument={
+              generateKind
+                ? (kind) => runGenerateDocument({ threadId: thread.id, kind })
+                : undefined
+            }
             onDelete={() => {
               requestMailDelete(
                 skipDeleteWarning,
@@ -1118,6 +1181,22 @@ export function MailThreadDetail({
       </header>
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        {thread.document ? (
+          <MailDocumentCard
+            document={thread.document}
+            brand={
+              thread.brand ?? {
+                name: 'Workspace',
+                email: null,
+                logoUrl: null,
+                website: null,
+                address: null,
+                phone: null,
+                taxId: null
+              }
+            }
+          />
+        ) : null}
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
             ref={threadScrollRef}
@@ -1378,13 +1457,19 @@ export function MailThreadDetail({
           </div>
 
           {!composerOpen ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 px-4 sm:bottom-4 sm:px-6">
+            <div
+              className={cn(
+                'absolute bottom-3 left-1/2 z-30 -translate-x-1/2 sm:bottom-4',
+                !showFloatingBar && 'pointer-events-none'
+              )}
+            >
               <div
-                className={cn(
-                  't-panel-slide mx-auto max-w-3xl',
-                  engravedBarClassName
-                )}
+                className={cn('t-panel-slide', engravedBarClassName)}
+                data-mail-action-bar=""
                 data-open={showFloatingBar ? 'true' : 'false'}
+                onMouseLeave={() => {
+                  document.body.removeAttribute('data-mail-action-bar-hot');
+                }}
               >
                 {renderActionButtons()}
               </div>
