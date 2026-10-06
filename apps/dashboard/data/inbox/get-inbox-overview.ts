@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 
 import { resolveTeammateAccessLevel } from '@/constants/dashboard-pages';
+import { readInboxAutoDetectMail } from '@/data/inbox/inbox-auto-detect-mail';
 import { readInboxAutoSuggestReplies } from '@/data/inbox/inbox-auto-suggest';
 import { readTrashRetention } from '@/data/inbox/trash-retention';
 import { dedupedAuth } from '@/lib/auth';
@@ -36,6 +37,7 @@ export type InboxOverview = {
   canManageProviders: boolean;
   canApplyMailboxAddOn: boolean;
   autoSuggestReplies: boolean;
+  autoDetectMail: boolean;
   trashRetention: MailTrashRetentionValue;
   connectionAlerts: MailConnectionAlert[];
 };
@@ -56,6 +58,7 @@ export const getInboxOverview = cache(
       organization,
       membership,
       autoSuggestReplies,
+      autoDetectMail,
       trashRetention,
       brokenConnections
     ] = await Promise.all([
@@ -84,6 +87,7 @@ export const getInboxOverview = cache(
         select: { workspaceRole: true, allowedPages: true }
       }),
       readInboxAutoSuggestReplies(organizationId),
+      readInboxAutoDetectMail(organizationId),
       readTrashRetention(organizationId),
       prisma.mailboxConnection.findMany({
         where: {
@@ -127,6 +131,7 @@ export const getInboxOverview = cache(
       canManageProviders,
       canApplyMailboxAddOn: false,
       autoSuggestReplies,
+      autoDetectMail,
       trashRetention,
       connectionAlerts: brokenConnections.map((connection) => ({
         id: connection.id,

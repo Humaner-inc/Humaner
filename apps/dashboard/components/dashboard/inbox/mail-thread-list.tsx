@@ -76,33 +76,9 @@ import {
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#001afc';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
   'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
-
-function ReadCircle({
-  unread,
-  color
-}: {
-  unread: boolean;
-  color: string;
-}): React.JSX.Element {
-  return (
-    <span
-      className="mt-2 size-2.5 shrink-0 rounded-full"
-      style={
-        unread
-          ? { backgroundColor: color }
-          : {
-              boxShadow: `inset 0 0 0 1.5px ${color}`,
-              backgroundColor: 'transparent'
-            }
-      }
-      aria-hidden
-    />
-  );
-}
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
@@ -1411,7 +1387,6 @@ function MailThreadRow({
 }): React.JSX.Element {
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
-  const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
   const applicableTags = tagsForAlias(tags, thread.aliasId);
@@ -1524,11 +1499,6 @@ function MailThreadRow({
             {getInitials(label)}
           </AvatarFallback>
         </Avatar>
-
-        <ReadCircle
-          unread={localUnread}
-          color={circleColor}
-        />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">

@@ -81,7 +81,7 @@ export function certificationHoldProviders<T extends { id: string }>(
 }
 
 export const CERTIFICATION_HOLD_LABEL =
-  "Waiting for CASA and SOC 2 certifications";
+  "waiting for CASA and SOC 2 certifications";
 
 export const CERTIFICATION_HOLD_HINT =
   "Google, Workspace, Proton, and Outlook open once our internal certification is finished. CASA and SOC 2 have to be in place before we can connect them.";
@@ -668,8 +668,7 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
     summary:
       "Any IMAP + SMTP host. We fill settings when we recognize the domain.",
     requiresCustomHosts: true,
-    setupNote:
-      "Type your mailbox email — we prefill hosts when we recognize the provider.",
+    setupNote: "Type your infos to link your mailbox.",
   },
 
   {

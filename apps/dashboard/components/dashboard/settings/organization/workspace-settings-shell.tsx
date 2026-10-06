@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { InboxAutoDetectMailToggle } from '@/components/dashboard/inbox/inbox-auto-detect-mail-toggle';
 import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
@@ -104,6 +105,10 @@ export async function WorkspaceSettingsShell({
       inbox={
         <div className="space-y-8">
           <div className="space-y-4">
+            <InboxAutoDetectMailToggle
+              enabled={overview.autoDetectMail}
+              canManage={overview.canManageProviders}
+            />
             {!overview.hasConnections ? (
               <InboxOptionalEmptyState
                 title="Connect an inbox first"

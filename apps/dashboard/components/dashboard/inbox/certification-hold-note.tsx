@@ -21,6 +21,66 @@ export type CertificationHoldProvider = {
   logoDomain?: string | null;
 };
 
+function CasaMark({ className }: { className?: string }): React.JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={className}
+      aria-hidden
+      fill="none"
+    >
+      <path
+        d="M8 1.2 13.4 3.6v4.1c0 3.2-2.2 5.5-5.4 6.7C4.8 13.2 2.6 10.9 2.6 7.7V3.6L8 1.2Z"
+        fill="currentColor"
+        fillOpacity="0.18"
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.35 7.85 7.05 9.5l3.6-3.7"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function Soc2Mark({ className }: { className?: string }): React.JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={className}
+      aria-hidden
+      fill="none"
+    >
+      <circle
+        cx="8"
+        cy="8"
+        r="6.35"
+        fill="currentColor"
+        fillOpacity="0.18"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+      <text
+        x="8"
+        y="9.15"
+        textAnchor="middle"
+        fill="currentColor"
+        fontSize="4.6"
+        fontWeight="700"
+        letterSpacing="0.2"
+        className="font-sans"
+      >
+        SOC
+      </text>
+    </svg>
+  );
+}
+
 export function CertificationHoldNote({
   providers,
   className,
@@ -36,13 +96,20 @@ export function CertificationHoldNote({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex items-start gap-1.5">
-        <p
-          className={cn(
-            'font-mono text-[9px] uppercase leading-relaxed tracking-[0.14em] text-muted-foreground',
-            labelClassName
-          )}
+      <div
+        className={cn(
+          'inline-flex max-w-full items-center gap-2 rounded-md border border-[#001afc]/30 bg-[#001afc]/10 px-2.5 py-1.5 text-[#001afc]',
+          labelClassName
+        )}
+      >
+        <span
+          className="flex shrink-0 items-center gap-1"
+          aria-hidden
         >
+          <CasaMark className="size-3.5" />
+          <Soc2Mark className="size-3.5" />
+        </span>
+        <p className="min-w-0 font-mono text-[10px] leading-snug tracking-[0.02em]">
           {CERTIFICATION_HOLD_LABEL}
         </p>
         <TooltipProvider delayDuration={200}>
@@ -51,7 +118,7 @@ export function CertificationHoldNote({
               <button
                 type="button"
                 aria-label="Why these providers are waiting"
-                className="mt-px inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-current/25 font-mono text-[10px] leading-none text-muted-foreground"
+                className="inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-current/30 font-mono text-[10px] leading-none text-current"
               >
                 ?
               </button>

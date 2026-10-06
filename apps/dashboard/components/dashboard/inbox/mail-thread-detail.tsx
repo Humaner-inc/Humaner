@@ -1120,13 +1120,6 @@ export function MailThreadDetail({
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
-          {thread.isUnread ? (
-            <span
-              className="mr-1 size-1.5 rounded-full"
-              style={{ backgroundColor: '#001afc' }}
-              title="Unread"
-            />
-          ) : null}
           <MailThreadHeaderMenu
             threadId={thread.id}
             subject={thread.subject}

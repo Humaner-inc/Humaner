@@ -201,7 +201,15 @@ const mailMessageHeaderSelect = {
 
 function previewText(value: string | null): string | null {
   if (!value) return null;
-  return value.replace(/\s+/g, ' ').trim().slice(0, 180) || null;
+  return (
+    value
+      // Outbound signatures write this placeholder into plain text for MIME
+      // clients — never show it in the thread list preview.
+      .replace(/\[signature image\]/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 180) || null
+  );
 }
 
 function compactMailBodies(message: {

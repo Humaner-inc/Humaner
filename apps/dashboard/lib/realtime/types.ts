@@ -11,6 +11,8 @@ export type OrgRealtimeEvent = {
   resourceId?: string;
   actorId?: string;
   actorName?: string;
+  /** Messages imported for `inbox.synced` (when known). */
+  count?: number;
   at: number;
 };
 

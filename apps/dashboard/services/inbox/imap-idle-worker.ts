@@ -182,7 +182,8 @@ class ImapIdleSession {
       if (imported > 0) {
         void publishOrgEvent(this.connection.organizationId, {
           type: 'inbox.synced',
-          resourceId: this.connection.id
+          resourceId: this.connection.id,
+          count: imported
         });
         console.log(
           `[imap-idle] ${this.connection.email}: imported ${imported} (${reason})`

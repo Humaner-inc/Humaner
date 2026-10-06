@@ -46,7 +46,8 @@ export async function publishOrgEvent(
     type: event.type,
     resourceId: event.resourceId,
     actorId: event.actorId,
-    actorName: event.actorName
+    actorName: event.actorName,
+    count: event.count
   };
 
   const existing = eventsByOrg.get(organizationId) ?? [];

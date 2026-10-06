@@ -1194,7 +1194,7 @@ export async function syncImapMailboxes(options?: {
     errors: 0,
     skipped: 0
   };
-  const orgsWithMail = new Set<string>();
+  const importedByOrg = new Map<string, number>();
 
   const outcomes = await mapPool(
     connections,
@@ -1238,15 +1238,19 @@ export async function syncImapMailboxes(options?: {
     }
     result.messages += outcome.imported;
     if (outcome.imported > 0) {
-      orgsWithMail.add(outcome.organizationId);
+      importedByOrg.set(
+        outcome.organizationId,
+        (importedByOrg.get(outcome.organizationId) ?? 0) + outcome.imported
+      );
     }
   }
 
-  for (const organizationId of orgsWithMail) {
+  for (const [organizationId, count] of importedByOrg) {
     void publishOrgEvent(organizationId, {
       type: 'inbox.synced',
       actorId: options?.actorId,
-      actorName: options?.actorName
+      actorName: options?.actorName,
+      count
     });
   }
 

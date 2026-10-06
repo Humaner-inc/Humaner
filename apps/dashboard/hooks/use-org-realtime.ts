@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 
+import { emitOrgRealtime } from '@/lib/realtime/client-bus';
 import type { OrgRealtimeEvent } from '@/lib/realtime/types';
 
 type RealtimePayload =
@@ -96,6 +97,7 @@ export function useOrgRealtime(options: UseOrgRealtimeOptions = {}): void {
               if (payload.type === 'event') {
                 since = Math.max(since, payload.event.at);
                 onEventRef.current?.(payload.event);
+                emitOrgRealtime(payload.event);
                 if (
                   payload.event.type === 'ticket.updated' ||
                   payload.event.type === 'thread.updated' ||

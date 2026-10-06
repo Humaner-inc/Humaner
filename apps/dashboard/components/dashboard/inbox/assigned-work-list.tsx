@@ -16,8 +16,6 @@ import { companyDomainFromEmail } from '@/lib/contacts/contact-email';
 import { getLogoUrl } from '@/lib/logo';
 import { cn, getInitials } from '@/lib/utils';
 
-const DEFAULT_UNREAD = '#001afc';
-
 type AssignedFilter = 'all' | 'mail' | 'tasks';
 
 const FILTERS: Array<{ id: AssignedFilter; label: string }> = [
@@ -33,29 +31,6 @@ function senderDomain(email: string | null): string | null {
 
 function senderLabel(thread: MailThreadListItem): string {
   return thread.fromName || thread.fromAddress || thread.aliasAddress;
-}
-
-function ReadCircle({
-  unread,
-  color
-}: {
-  unread: boolean;
-  color: string;
-}): React.JSX.Element {
-  return (
-    <span
-      className="mt-2 size-2.5 shrink-0 rounded-full"
-      style={
-        unread
-          ? { backgroundColor: color }
-          : {
-              boxShadow: `inset 0 0 0 1.5px ${color}`,
-              backgroundColor: 'transparent'
-            }
-      }
-      aria-hidden
-    />
-  );
 }
 
 export function AssignedWorkList({
@@ -157,7 +132,6 @@ function AssignedMailRow({
   const domain = senderDomain(thread.fromAddress);
   const label = senderLabel(thread);
   const unread = thread.isUnread && thread.awaitingReply;
-  const circleColor = thread.tag?.color ?? DEFAULT_UNREAD;
 
   return (
     <li
@@ -181,10 +155,6 @@ function AssignedMailRow({
             {getInitials(label)}
           </AvatarFallback>
         </Avatar>
-        <ReadCircle
-          unread={unread}
-          color={circleColor}
-        />
         <span className="min-w-0 flex-1">
           <span className="flex items-center justify-between gap-2">
             <span
