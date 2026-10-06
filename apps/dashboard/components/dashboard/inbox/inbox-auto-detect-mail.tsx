@@ -9,7 +9,10 @@ import { syncInboxNow } from '@/actions/inbox/sync-inbox-now';
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
 import { subscribeOrgRealtime } from '@/lib/realtime/client-bus';
 
-const POLL_INTERVAL_MS = 45_000;
+/** Fallback when Gmail Pub/Sub / IMAP IDLE are quiet — keep the open inbox hot. */
+const POLL_INTERVAL_MS = 10_000;
+/** First pull soon after landing so a closed-tab gap closes quickly. */
+const INITIAL_SYNC_DELAY_MS = 800;
 
 function newMailToast(count: number): void {
   toast.success(
@@ -78,7 +81,7 @@ export function InboxAutoDetectMail({
     };
     document.addEventListener('visibilitychange', onVisibility);
 
-    const initial = window.setTimeout(syncIfVisible, 2_500);
+    const initial = window.setTimeout(syncIfVisible, INITIAL_SYNC_DELAY_MS);
 
     return () => {
       window.clearInterval(interval);

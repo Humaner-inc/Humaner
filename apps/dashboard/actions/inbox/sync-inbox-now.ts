@@ -15,6 +15,8 @@ import {
   RateLimitExceededError
 } from '@/lib/validation/exceptions';
 
+/** Allow ~10s auto-detect polls plus manual sync without false rate limits. */
+const SYNC_RATE_LIMIT_PER_MINUTE = 30;
 const syncInboxLimiter = rateLimit({ intervalInMs: 60 * 1000 });
 
 export const syncInboxNow = pageActionClient('inbox')
@@ -38,9 +40,14 @@ export const syncInboxNow = pageActionClient('inbox')
 
     const locallyRateLimited =
       distributedAttempts === 0 &&
-      syncInboxLimiter.check(11, `mailbox-sync:${organizationId}`)
-        .isRateLimited;
-    if (distributedAttempts > 10 || locallyRateLimited) {
+      syncInboxLimiter.check(
+        SYNC_RATE_LIMIT_PER_MINUTE + 1,
+        `mailbox-sync:${organizationId}`
+      ).isRateLimited;
+    if (
+      distributedAttempts > SYNC_RATE_LIMIT_PER_MINUTE ||
+      locallyRateLimited
+    ) {
       throw new RateLimitExceededError();
     }
 
@@ -52,7 +59,12 @@ export const syncInboxNow = pageActionClient('inbox')
       }),
       isOssDeployment()
         ? Promise.resolve({ connections: 0, messages: 0, errors: 0 })
-        : syncGmailMailboxes({ organizationId, priority: 'user' })
+        : // Inbox-first: keep auto-detect / Sync snappy. Spam/sent/etc. catch up on cron.
+          syncGmailMailboxes({
+            organizationId,
+            inboxOnly: true,
+            priority: 'user'
+          })
     ]);
     const result = {
       connections: imap.connections + gmail.connections,
