@@ -164,7 +164,7 @@ export async function requirePathAccess(pathname: string): Promise<void> {
   }
 }
 
-/** RSC layouts: gate using the pathname stamped by middleware. */
+/** RSC layouts: gate using the pathname stamped by proxy. */
 export async function requirePathAccessFromHeaders(): Promise<void> {
   const pathname = (await headers()).get('x-pathname');
   if (!pathname || pathname.startsWith('/api/')) {

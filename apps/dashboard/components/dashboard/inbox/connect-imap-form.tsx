@@ -1277,7 +1277,7 @@ export function ConnectImapForm({
       description="Simply sign in using your provider(s) to display your inbox(ex) within Humaner."
       example={
         remainingInboxes <= 0
-          ? 'Your included mailbox is in use. Add a mailbox slot to connect another. Redirect aliases on a connected mailbox are free.'
+          ? 'All included mailbox slots are in use. Add a mailbox slot to connect another. Redirect aliases on a connected mailbox are free.'
           : `You can connect ${remainingInboxes} more mailbox${remainingInboxes === 1 ? '' : 'es'}. Redirect aliases on a connected mailbox are free.`
       }
       className="min-h-full border-0 bg-transparent"
