@@ -1,10 +1,7 @@
 'use client';
 
 import { MailIcon } from '@humaner/shared/icons';
-import {
-  CERTIFICATION_HOLD_HINT,
-  CERTIFICATION_HOLD_LABEL
-} from '@humaner/shared/mail-providers';
+import { CERTIFICATION_HOLD_HINT } from '@humaner/shared/mail-providers';
 
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import {
@@ -13,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { cn } from '@/lib/utils';
 
 export type CertificationHoldProvider = {
@@ -21,140 +19,80 @@ export type CertificationHoldProvider = {
   logoDomain?: string | null;
 };
 
-function CasaMark({ className }: { className?: string }): React.JSX.Element {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className={className}
-      aria-hidden
-      fill="none"
-    >
-      <path
-        d="M8 1.2 13.4 3.6v4.1c0 3.2-2.2 5.5-5.4 6.7C4.8 13.2 2.6 10.9 2.6 7.7V3.6L8 1.2Z"
-        fill="currentColor"
-        fillOpacity="0.18"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5.35 7.85 7.05 9.5l3.6-3.7"
-        stroke="currentColor"
-        strokeWidth="1.35"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function Soc2Mark({ className }: { className?: string }): React.JSX.Element {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className={className}
-      aria-hidden
-      fill="none"
-    >
-      <circle
-        cx="8"
-        cy="8"
-        r="6.35"
-        fill="currentColor"
-        fillOpacity="0.18"
-        stroke="currentColor"
-        strokeWidth="1"
-      />
-      <text
-        x="8"
-        y="9.15"
-        textAnchor="middle"
-        fill="currentColor"
-        fontSize="4.6"
-        fontWeight="700"
-        letterSpacing="0.2"
-        className="font-sans"
-      >
-        SOC
-      </text>
-    </svg>
-  );
-}
-
 export function CertificationHoldNote({
   providers,
   className,
-  labelClassName,
   chipClassName
 }: {
   providers: readonly CertificationHoldProvider[];
   className?: string;
+  /** @deprecated Kept for call-site compatibility; unused in the banner layout. */
   labelClassName?: string;
   chipClassName?: string;
 }): React.JSX.Element | null {
   if (providers.length === 0) return null;
 
   return (
-    <div className={cn('space-y-2', className)}>
-      <div
-        className={cn(
-          'inline-flex max-w-full items-center gap-2 rounded-md border border-[#001afc]/30 bg-[#001afc]/10 px-2.5 py-1.5 text-[#001afc]',
-          labelClassName
-        )}
-      >
-        <span
-          className="flex shrink-0 items-center gap-1"
-          aria-hidden
-        >
-          <CasaMark className="size-3.5" />
-          <Soc2Mark className="size-3.5" />
-        </span>
-        <p className="min-w-0 font-mono text-[10px] leading-snug tracking-[0.02em]">
-          {CERTIFICATION_HOLD_LABEL}
-        </p>
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="Why these providers are waiting"
-                className="inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-current/30 font-mono text-[10px] leading-none text-current"
+    <div
+      role="status"
+      className={cn(
+        dashboardRadiusClassName,
+        'flex items-start gap-3 border border-border/70 bg-muted/50 py-3 pl-3.5 pr-3 sm:items-center',
+        className
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="text-sm font-medium leading-none text-foreground">
+            Coming soon
+          </p>
+          <p className="font-mono text-[10px] font-medium uppercase leading-none tracking-[0.14em] text-[#001afc]">
+            CASA · SOC 2
+          </p>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Why these providers are waiting"
+                  className="inline-flex size-4 shrink-0 translate-y-px items-center justify-center rounded-full border border-muted-foreground/30 font-mono text-[10px] leading-none text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                >
+                  ?
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="max-w-56 text-left"
               >
-                ?
-              </button>
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className="max-w-56 text-left"
+                {CERTIFICATION_HOLD_HINT}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <ul className="mt-2 flex flex-nowrap items-center gap-x-2.5 gap-y-1 overflow-x-auto opacity-70 grayscale">
+          {providers.map((provider) => (
+            <li
+              key={provider.id}
+              className={cn(
+                'inline-flex min-w-0 shrink-0 items-center gap-1 text-[11px] leading-none text-muted-foreground',
+                chipClassName
+              )}
             >
-              {CERTIFICATION_HOLD_HINT}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+              <BrandLogo
+                domain={
+                  provider.logoDomain && provider.logoDomain !== 'humaner.io'
+                    ? provider.logoDomain
+                    : undefined
+                }
+                fallbackIcon={MailIcon}
+                size={12}
+                className="size-3"
+              />
+              <span className="truncate">{provider.name}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 opacity-60 grayscale">
-        {providers.map((provider) => (
-          <li
-            key={provider.id}
-            className={cn(
-              'inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground',
-              chipClassName
-            )}
-          >
-            <BrandLogo
-              domain={
-                provider.logoDomain && provider.logoDomain !== 'humaner.io'
-                  ? provider.logoDomain
-                  : undefined
-              }
-              fallbackIcon={MailIcon}
-              size={14}
-              className="size-3.5"
-            />
-            <span className="truncate">{provider.name}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

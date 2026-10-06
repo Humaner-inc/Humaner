@@ -198,10 +198,9 @@ export function MailProviderPicker({
       </ScrollArea>
 
       {held.length > 0 ? (
-        <CertificationHoldNote
-          providers={held}
-          className="shrink-0 border-t px-3 py-2.5"
-        />
+        <div className="shrink-0 border-t px-3 py-2.5">
+          <CertificationHoldNote providers={held} />
+        </div>
       ) : null}
     </div>
   );
