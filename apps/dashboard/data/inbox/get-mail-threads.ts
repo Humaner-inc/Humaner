@@ -364,6 +364,8 @@ export async function getMailThreads(options?: {
   unreadOnly?: boolean;
   status?: 'OPEN' | 'PENDING' | 'RESOLVED' | 'SNOOZED';
   tagId?: string | null;
+  /** Threads tagged with any outbound wave (`wave:` prefix) or a specific wave tag. */
+  outboundOnly?: boolean;
 }): Promise<MailThreadListItem[]> {
   const session = await requireInboxReadSession();
   if (!session) return [];
@@ -407,6 +409,15 @@ export async function getMailThreads(options?: {
       ...(options?.unreadOnly ? { isUnread: true } : {}),
       ...(options?.status ? { status: options.status } : {}),
       ...(options?.tagId ? { tags: { some: { tagId: options.tagId } } } : {}),
+      ...(options?.outboundOnly && !options?.tagId
+        ? {
+            tags: {
+              some: {
+                tag: { name: { startsWith: 'wave:' } }
+              }
+            }
+          }
+        : {}),
       ...(assignedToCurrentUser
         ? {}
         : options?.connectionId

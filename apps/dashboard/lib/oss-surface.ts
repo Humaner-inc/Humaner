@@ -13,7 +13,13 @@ const CLOUD_ONLY_WORKSPACE_TOOLS = new Set<string>([
   'list_stripe_invoices',
   'search_stripe_billing',
   'search_notion_pages',
-  'request_teammate'
+  'request_teammate',
+  'add_prospects',
+  'list_prospects',
+  'update_contact',
+  'create_wave',
+  'get_wave_review',
+  'get_wave_results'
 ]);
 
 export function workspaceToolAllowedOnDeployment(name: string): boolean {

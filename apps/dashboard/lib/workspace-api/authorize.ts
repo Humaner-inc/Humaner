@@ -70,18 +70,32 @@ type ResolvedMcpCaller = {
   tier: string;
 };
 
-/** Tasks are inbox work items, so they ride the mailbox scope. */
+const OUTBOUND_TOOLS = new Set<WorkspaceToolName>([
+  'add_prospects',
+  'list_prospects',
+  'update_contact',
+  'create_wave',
+  'get_wave_review',
+  'get_wave_results'
+]);
+
+/** Tasks ride mailbox; outbound tools use the outbound scope. */
 export function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
-  return tool === 'list_calendar_events' || tool === 'create_calendar_event'
-    ? 'calendar'
-    : 'mailbox';
+  if (tool === 'list_calendar_events' || tool === 'create_calendar_event') {
+    return 'calendar';
+  }
+  if (OUTBOUND_TOOLS.has(tool)) {
+    return 'outbound';
+  }
+  return 'mailbox';
 }
 
 function keyCanUseMcp(scopes: readonly string[]): boolean {
   return (
     apiKeyHasScope(scopes, 'mailbox') ||
     apiKeyHasScope(scopes, 'calendar') ||
-    apiKeyHasScope(scopes, 'intelligence')
+    apiKeyHasScope(scopes, 'intelligence') ||
+    apiKeyHasScope(scopes, 'outbound')
   );
 }
 

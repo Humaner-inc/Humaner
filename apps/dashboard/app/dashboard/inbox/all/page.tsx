@@ -34,6 +34,8 @@ async function InboxAllPageContent({
     tag?: string;
     compose?: string;
     thread?: string;
+    outbound?: string;
+    wave?: string;
   }>;
 }): Promise<React.JSX.Element> {
   const {
@@ -41,19 +43,41 @@ async function InboxAllPageContent({
     alias: aliasParam,
     filter: filterParam,
     tag: tagParam,
-    compose: composeParam
+    compose: composeParam,
+    outbound: outboundParam,
+    wave: waveParam
   } = await searchParams;
   const activeFilter = parseFilter(filterParam);
   const autoCompose = composeParam === '1' || composeParam === 'true';
+  const outboundOnly = outboundParam === '1' || outboundParam === 'true';
+
+  let waveTagId: string | null = tagParam ?? null;
+  if (!waveTagId && waveParam && outboundOnly) {
+    const { prisma } = await import('@/lib/db/prisma');
+    const { dedupedAuth } = await import('@/lib/auth');
+    const { checkSession } = await import('@/lib/auth/session');
+    const session = await dedupedAuth();
+    if (checkSession(session) && session.user.organizationId) {
+      const wave = await prisma.outboundWave.findFirst({
+        where: {
+          id: waveParam,
+          organizationId: session.user.organizationId
+        },
+        select: { mailTagId: true }
+      });
+      waveTagId = wave?.mailTagId ?? null;
+    }
+  }
 
   const threadFilters = {
     aliasId: mailboxParam ? null : (aliasParam ?? null),
-    tagId: tagParam ?? null,
-    unreadOnly: !tagParam && activeFilter === 'unread',
+    tagId: waveTagId,
+    outboundOnly: outboundOnly && !waveTagId,
+    unreadOnly: !waveTagId && !outboundOnly && activeFilter === 'unread',
     status:
-      !tagParam && activeFilter === 'open'
+      !waveTagId && !outboundOnly && activeFilter === 'open'
         ? ('OPEN' as const)
-        : !tagParam && activeFilter === 'pending'
+        : !waveTagId && !outboundOnly && activeFilter === 'pending'
           ? ('PENDING' as const)
           : undefined
   };

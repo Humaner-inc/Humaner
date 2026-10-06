@@ -619,6 +619,21 @@ async function persistMessages(
         bodyHtml: message.bodyHtml,
         sentAt: message.sentAt
       });
+      try {
+        const { attributeInboundToWave } = await import(
+          '@/lib/outbound/attribution'
+        );
+        await attributeInboundToWave({
+          organizationId: connection.organizationId,
+          mailThreadId: importedInboundThreadId,
+          fromAddress: message.fromAddress,
+          subject: message.subject,
+          bodyText: message.bodyText,
+          aliasId: message.aliasId
+        });
+      } catch (error) {
+        console.error('[outbound] attribution failed', error);
+      }
     }
   }
 

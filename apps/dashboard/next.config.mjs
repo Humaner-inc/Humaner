@@ -463,6 +463,14 @@ const nextConfig = {
         destination: '/dashboard/contacts/:path*'
       },
       {
+        source: '/outbound',
+        destination: '/dashboard/outbound'
+      },
+      {
+        source: '/outbound/:path*',
+        destination: '/dashboard/outbound/:path*'
+      },
+      {
         source: '/calendar/:path*',
         destination: '/dashboard/calendar/:path*'
       },

@@ -30,7 +30,13 @@ export const WORKSPACE_TOOL_NAMES = [
   'create_task',
   'create_task_from_mail_thread',
   'list_calendar_events',
-  'create_calendar_event'
+  'create_calendar_event',
+  'add_prospects',
+  'list_prospects',
+  'update_contact',
+  'create_wave',
+  'get_wave_review',
+  'get_wave_results'
 ] as const;
 
 export type WorkspaceToolName = (typeof WORKSPACE_TOOL_NAMES)[number];
@@ -473,6 +479,144 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
         description: { type: 'string', maxLength: 8000 }
       },
       required: ['title']
+    }
+  },
+  {
+    name: 'add_prospects',
+    description:
+      'Add or upsert outbound prospects (email required). Dedupes by email, skips suppressed addresses. Does not send mail.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        prospects: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 100,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              email: { type: 'string' },
+              name: { type: 'string' },
+              company: { type: 'string' },
+              domain: { type: 'string' },
+              role: { type: 'string' },
+              industry: { type: 'string' },
+              source: { type: 'string' },
+              tags: { type: 'array', items: { type: 'string' } }
+            },
+            required: ['email']
+          }
+        },
+        source: {
+          type: 'string',
+          description: 'Default source label for the batch.'
+        }
+      },
+      required: ['prospects']
+    }
+  },
+  {
+    name: 'list_prospects',
+    description:
+      'List outbound prospects. Filter by status (NEW, ENRICHED, CONTACTED, REPLIED, BOUNCED), ICP id, industry, or tag.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        status: { type: 'string' },
+        icpId: { type: 'string', format: 'uuid' },
+        industry: { type: 'string' },
+        tag: { type: 'string' },
+        limit: { type: 'integer', minimum: 1, maximum: 200 }
+      }
+    }
+  },
+  {
+    name: 'update_contact',
+    description:
+      'Update a prospect after Obsidian enrichment. Pass obsidianPath and/or personalization (hook, whyThem, reference, toneNotes). Moves NEW → ENRICHED.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        obsidianPath: { type: 'string' },
+        personalization: {
+          type: 'object',
+          additionalProperties: true,
+          properties: {
+            hook: { type: 'string' },
+            whyThem: { type: 'string' },
+            reference: { type: 'string' },
+            toneNotes: { type: 'string' }
+          }
+        },
+        name: { type: 'string' },
+        company: { type: 'string' },
+        role: { type: 'string' },
+        industry: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } }
+      },
+      required: ['id']
+    }
+  },
+  {
+    name: 'create_wave',
+    description:
+      'Create an outbound wave draft (name, idea, template, mailboxes, prospect ids). Builds review rows when template + mailboxes + prospects are provided. Does not approve or send.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        name: { type: 'string', minLength: 1, maxLength: 255 },
+        idea: { type: 'string', maxLength: 512 },
+        templateId: { type: 'string', format: 'uuid' },
+        prospectIds: {
+          type: 'array',
+          items: { type: 'string', format: 'uuid' }
+        },
+        mailboxes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              aliasId: { type: 'string', format: 'uuid' },
+              dailyCap: { type: 'integer', minimum: 1, maximum: 200 }
+            },
+            required: ['aliasId']
+          }
+        }
+      },
+      required: ['name']
+    }
+  },
+  {
+    name: 'get_wave_review',
+    description:
+      'Read-only wave review table (recipients, subjects, bodies, approval state). Approval stays in the Outbound UI.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        waveId: { type: 'string', format: 'uuid' }
+      },
+      required: ['waveId']
+    }
+  },
+  {
+    name: 'get_wave_results',
+    description:
+      'Outbound wave metrics: sent, delivered, replies, reply rate, bounces, per-mailbox breakdown.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        waveId: { type: 'string', format: 'uuid' }
+      },
+      required: ['waveId']
     }
   }
 ];

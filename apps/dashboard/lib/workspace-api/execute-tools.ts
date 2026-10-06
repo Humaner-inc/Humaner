@@ -45,6 +45,14 @@ import {
   sendMailThreadReply
 } from '@/lib/inbox/send-mail-thread-reply';
 import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
+import {
+  executeAddProspects,
+  executeCreateWave,
+  executeGetWaveResults,
+  executeGetWaveReview,
+  executeListProspects,
+  executeUpdateContact
+} from '@/lib/outbound/execute-tools';
 import { loadTeamProfileRefs } from '@/lib/team/load-team-profile-refs';
 import { resolveProfileAssignee } from '@/lib/team/resolve-profile-assignee';
 import { inferRoutingTopics } from '@/lib/team/routing-topics';
@@ -1235,6 +1243,18 @@ export async function executeWorkspaceTool(
       return executeListCalendar(args, context);
     case 'create_calendar_event':
       return executeCreateCalendar(args, context);
+    case 'add_prospects':
+      return executeAddProspects(args, context);
+    case 'list_prospects':
+      return executeListProspects(args, context);
+    case 'update_contact':
+      return executeUpdateContact(args, context);
+    case 'create_wave':
+      return executeCreateWave(args, context);
+    case 'get_wave_review':
+      return executeGetWaveReview(args, context);
+    case 'get_wave_results':
+      return executeGetWaveResults(args, context);
     default:
       return { ok: false, error: 'Unknown tool.' };
   }

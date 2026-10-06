@@ -64,6 +64,8 @@ export enum Routes {
   InboxSettings = '/inbox/settings',
   InboxSettingsConnectCallback = '/inbox/settings/connect-callback',
   InboxConnectors = '/inbox/connectors',
+  /** Cloud-only cold outbound waves under Utilities. */
+  Outbound = '/outbound',
   Tasks = '/organization/tasks',
   Calendar = '/calendar',
   Resources = '/organization/resources',

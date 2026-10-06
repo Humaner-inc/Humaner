@@ -43,6 +43,7 @@ const PROTECTED_APP_PREFIXES = [
   '/calendar',
   '/contacts',
   '/resources',
+  '/outbound',
   '/training',
   '/admin',
   '/workspace',

@@ -111,6 +111,7 @@ const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'integrations', prefix: Routes.Integrations },
   { key: 'history', prefix: Routes.History },
   { key: 'inbox', prefix: Routes.Inbox },
+  { key: 'inbox', prefix: Routes.Outbound },
   { key: 'inbox', prefix: Routes.Resources },
   { key: 'inbox', prefix: '/resources' },
   { key: 'tasks', prefix: Routes.Tasks },

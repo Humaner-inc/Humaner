@@ -55,7 +55,7 @@ export async function WorkspaceSettingsPanel(): Promise<React.JSX.Element> {
     : [];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-8">
+    <div className="flex w-full max-w-xl flex-col gap-8">
       <OrganizationDetailsCard
         details={details}
         industry={industry}

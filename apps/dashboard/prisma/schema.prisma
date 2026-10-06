@@ -437,6 +437,7 @@ model User {
   mcpOAuthGrants               McpOAuthGrant[]
   /// Personal address book. Not workspace-scoped.
   contacts                     Contact[]
+  contactGroups                ContactGroup[]
 
   @@index([organizationId], map: "IX_User_organizationId")
 }
@@ -510,6 +511,7 @@ model Contact {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   imageFile ContactImage?
+  groupMemberships ContactGroupMember[]
 
   @@unique([userId, email], map: "UQ_Contact_user_email")
   @@index([userId, name], map: "IX_Contact_userId_name")
@@ -522,6 +524,34 @@ model ContactImage {
   data        Bytes
   contentType String  @db.VarChar(255)
   hash        String? @db.VarChar(64)
+}
+
+/// Named list of contacts — canvas groups on /contacts.
+model ContactGroup {
+  id        String               @id(map: "PK_ContactGroup") @default(uuid()) @db.Uuid
+  userId    String               @db.Uuid
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  name      String               @db.VarChar(128)
+  /// Palette id: sky | violet | amber | teal | rose | lime
+  color     String               @default("sky") @db.VarChar(32)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  members   ContactGroupMember[]
+
+  @@unique([userId, name], map: "UQ_ContactGroup_user_name")
+  @@index([userId], map: "IX_ContactGroup_userId")
+}
+
+model ContactGroupMember {
+  id        String       @id(map: "PK_ContactGroupMember") @default(uuid()) @db.Uuid
+  groupId   String       @db.Uuid
+  group     ContactGroup @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contactId String       @db.Uuid
+  contact   Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime     @default(now())
+
+  @@unique([groupId, contactId], map: "UQ_ContactGroupMember_group_contact")
+  @@index([contactId], map: "IX_ContactGroupMember_contactId")
 }
 
 model VerificationToken {

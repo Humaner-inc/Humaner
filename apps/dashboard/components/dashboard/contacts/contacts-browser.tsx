@@ -12,12 +12,16 @@ import {
   getContactHistory,
   updateContact
 } from '@/actions/contacts/manage-contacts';
+import { ContactsGroupsCanvas } from '@/components/dashboard/contacts/contacts-groups-canvas';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Routes } from '@/constants/routes';
-import type { ContactListItem } from '@/data/contacts/get-contacts';
+import type {
+  ContactGroupListItem,
+  ContactListItem
+} from '@/data/contacts/get-contacts';
 import {
   companyDomainFromEmail,
   companyFromEmail
@@ -96,12 +100,15 @@ function ContactAvatar({
 
 export function ContactsBrowser({
   contacts: initialContacts,
+  groups: initialGroups,
   businessName
 }: {
   contacts: ContactListItem[];
+  groups: ContactGroupListItem[];
   businessName: string;
 }): React.JSX.Element {
   const [contacts, setContacts] = React.useState(initialContacts);
+  const [view, setView] = React.useState<'list' | 'groups'>('list');
   const [query, setQuery] = React.useState('');
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [adding, setAdding] = React.useState(false);
@@ -279,11 +286,38 @@ export function ContactsBrowser({
   });
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div
+      className={cn(
+        'flex min-h-0 flex-1 flex-col',
+        view === 'groups' ? 'gap-3' : 'gap-8'
+      )}
+    >
+      <header className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <h1 className="sr-only">Contacts</h1>
-          {selected ? null : (
+          <div className="mb-2 flex gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={view === 'list' ? 'default' : 'outline'}
+              onClick={() => setView('list')}
+            >
+              List
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={view === 'groups' ? 'default' : 'outline'}
+              onClick={() => {
+                setView('groups');
+                showContact(null);
+                closeAddForm();
+              }}
+            >
+              Groups
+            </Button>
+          </div>
+          {selected || view === 'groups' ? null : (
             <label className="mt-1.5 flex w-full max-w-md items-center gap-2 text-muted-foreground">
               <SearchIcon className="size-3.5 shrink-0" />
               <input
@@ -296,7 +330,7 @@ export function ContactsBrowser({
             </label>
           )}
         </div>
-        {selected ? null : (
+        {selected || view === 'groups' ? null : (
           <Button
             type="button"
             onClick={() => {
@@ -319,7 +353,16 @@ export function ContactsBrowser({
         )}
       </header>
 
-      {selected ? (
+      {view === 'groups' ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <ContactsGroupsCanvas
+            contacts={contacts}
+            groups={initialGroups}
+          />
+        </div>
+      ) : null}
+
+      {view === 'list' && selected ? (
         <div className="space-y-3">
           <button
             type="button"
@@ -460,7 +503,7 @@ export function ContactsBrowser({
             </div>
           </section>
         </div>
-      ) : (
+      ) : view === 'list' ? (
         <section
           ref={cardRef}
           className={cn(
@@ -548,7 +591,7 @@ export function ContactsBrowser({
             </ul>
           )}
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

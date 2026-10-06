@@ -16,8 +16,16 @@ export type ContactListItem = {
   image: string | null;
 };
 
+export type ContactGroupListItem = {
+  id: string;
+  name: string;
+  color: string;
+  contactIds: string[];
+};
+
 export async function getUserContacts(): Promise<{
   contacts: ContactListItem[];
+  groups: ContactGroupListItem[];
   businessName: string;
 }> {
   const session = await dedupedAuth();
@@ -25,7 +33,7 @@ export async function getUserContacts(): Promise<{
     redirect(getLoginRedirect());
   }
 
-  const [contacts, organization] = await Promise.all([
+  const [contacts, groups, organization] = await Promise.all([
     prisma.contact.findMany({
       where: { userId: session.user.id },
       orderBy: [{ name: 'asc' }, { email: 'asc' }],
@@ -38,6 +46,16 @@ export async function getUserContacts(): Promise<{
         image: true
       }
     }),
+    prisma.contactGroup.findMany({
+      where: { userId: session.user.id },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        members: { select: { contactId: true } }
+      }
+    }),
     prisma.organization.findUnique({
       where: { id: session.user.organizationId },
       select: { name: true }
@@ -46,6 +64,12 @@ export async function getUserContacts(): Promise<{
 
   return {
     contacts,
+    groups: groups.map((g) => ({
+      id: g.id,
+      name: g.name,
+      color: g.color,
+      contactIds: g.members.map((m) => m.contactId)
+    })),
     businessName: organization?.name ?? 'this business'
   };
 }

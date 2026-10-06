@@ -195,11 +195,12 @@ export function getActiveMailboxFolder(
   return null;
 }
 
-/** Connectors, MCP, and providers — the Utilities section. */
+/** Connectors, MCP, providers, and Outbound — the Utilities section. */
 export function isUtilitiesPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.InboxProviders)) return true;
   if (pathname.startsWith(Routes.InboxConnectors)) return true;
   if (pathname.startsWith(Routes.Developers)) return true;
+  if (pathname.startsWith(Routes.Outbound)) return true;
   return false;
 }
 

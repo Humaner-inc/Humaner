@@ -1,4 +1,9 @@
-export const API_KEY_SCOPES = ['intelligence', 'mailbox', 'calendar'] as const;
+export const API_KEY_SCOPES = [
+  'intelligence',
+  'mailbox',
+  'calendar',
+  'outbound'
+] as const;
 
 /** @deprecated Legacy keys may still carry this scope in the database. */
 export const LEGACY_API_KEY_SCOPE = 'helpdesk' as const;
@@ -28,6 +33,12 @@ export const API_KEY_SCOPE_OPTIONS: {
     id: 'calendar',
     label: 'Calendar',
     description: 'List and create hosted calendar events over REST or MCP.'
+  },
+  {
+    id: 'outbound',
+    label: 'Outbound',
+    description:
+      'Manage outbound prospects and wave drafts over REST or MCP. Approval and send stay in the dashboard.'
   }
 ];
 
@@ -110,6 +121,9 @@ export function apiKeyMissingScopeMessage(
   if (scope === 'calendar') {
     return 'This API key does not have Calendar access.';
   }
+  if (scope === 'outbound') {
+    return 'This API key does not have Outbound access.';
+  }
   return 'This API key does not have Intelligence access.';
 }
 
@@ -124,6 +138,9 @@ export function requiredApiKeyScopeForPublicPath(
   }
   if (pathname.includes('/calendar')) {
     return 'calendar';
+  }
+  if (pathname.includes('/outbound')) {
+    return 'outbound';
   }
   if (
     pathname.includes('/mail') ||

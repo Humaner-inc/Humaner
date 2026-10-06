@@ -17,8 +17,11 @@ import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 export type DashboardCloudChromeProps = {
-  /** Cloud sections. Self-Host keeps the tree nav and skips the provider. */
-  sections: boolean;
+  /**
+   * Kept for call-site compatibility. The section provider always wraps the
+   * chrome — `NavSectionSidebar` / section tabs require it.
+   */
+  sections?: boolean;
   profile: ProfileDto;
   topNav: Omit<DashboardTopNavProps, 'profile'>;
   sidebar: Omit<SidebarRendererProps, 'profile'>;
@@ -31,14 +34,13 @@ export type DashboardCloudChromeProps = {
  * the provider during render.
  */
 export function DashboardCloudChrome({
-  sections,
   profile,
   topNav,
   sidebar,
   children
 }: DashboardCloudChromeProps): React.JSX.Element {
-  const frame = (
-    <>
+  return (
+    <DashboardSectionProvider profile={profile}>
       <DashboardTopNav
         profile={profile}
         {...topNav}
@@ -58,16 +60,6 @@ export function DashboardCloudChrome({
           {children}
         </SidebarInset>
       </div>
-    </>
-  );
-
-  if (!sections) {
-    return frame;
-  }
-
-  return (
-    <DashboardSectionProvider profile={profile}>
-      {frame}
     </DashboardSectionProvider>
   );
 }

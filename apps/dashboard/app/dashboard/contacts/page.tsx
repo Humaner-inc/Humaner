@@ -29,6 +29,7 @@ async function ContactsPageContent(): Promise<React.JSX.Element> {
     <SectionPage width="xl">
       <ContactsBrowser
         contacts={data.contacts}
+        groups={data.groups}
         businessName={data.businessName}
       />
     </SectionPage>

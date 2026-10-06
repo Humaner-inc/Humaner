@@ -365,17 +365,20 @@ function UtilitiesSection({
   orgTier,
   connectors,
   showMcp,
-  canManageProviders
+  canManageProviders,
+  showOutbound
 }: {
   orgTier: string;
   connectors: ConnectorNavItem[];
   showMcp: boolean;
   canManageProviders: boolean;
+  showOutbound?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
   const locked = isInboxLocked(orgTier);
   const providersActive = getActiveMailboxWorkspace(pathname) === 'providers';
   const mcpActive = pathname.startsWith(Routes.Developers);
+  const outboundActive = pathname.startsWith(Routes.Outbound);
 
   return (
     <>
@@ -388,6 +391,22 @@ function UtilitiesSection({
             active={mcpActive}
             mainNavHighlight
             leading={<McpNavIcon active={mcpActive} />}
+          />
+        ) : null}
+        {showOutbound ? (
+          <SidebarNavLink
+            href={Routes.Outbound}
+            label="Outbound"
+            active={outboundActive}
+            disabled={locked}
+            mainNavHighlight
+            leading={
+              <MailboxNavIcon
+                icon={PaperPlaneTilt}
+                active={outboundActive}
+                color={HUMANER_NAV_COLORS.foreground}
+              />
+            }
           />
         ) : null}
         {canManageProviders ? (
@@ -421,6 +440,7 @@ export type NavSectionSidebarProps = {
   unreadCount?: number;
   inboxes?: MailInboxOption[];
   showMcp?: boolean;
+  showOutbound?: boolean;
   canManageTeam?: boolean;
   canManageProviders?: boolean;
   connectors?: ConnectorNavItem[];
@@ -432,6 +452,7 @@ export function NavSectionSidebar({
   unreadCount = 0,
   inboxes = [],
   showMcp = false,
+  showOutbound = false,
   canManageTeam = true,
   canManageProviders = true,
   connectors = []
@@ -463,6 +484,7 @@ export function NavSectionSidebar({
           orgTier={orgTier}
           connectors={connectors}
           showMcp={showMcp}
+          showOutbound={showOutbound}
           canManageProviders={canManageProviders}
         />
       ) : null}
