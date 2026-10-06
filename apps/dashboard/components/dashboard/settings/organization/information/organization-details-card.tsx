@@ -151,7 +151,6 @@ export function OrganizationDetailsCard({
                 <div className="flex items-center gap-4">
                   <div className="size-14 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-background">
                     {details.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={details.logoUrl}
                         alt={watchedName ? `${watchedName} logo` : 'Brand logo'}

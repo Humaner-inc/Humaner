@@ -16,9 +16,6 @@ const searchParamsCache = createSearchParamsCache({
   callbackUrl: parseAsString.withDefault('')
 });
 
-const loginCardShellClassName =
-  'rounded-[16px] bg-[#f4f4f2] px-6 py-8 text-[#0A0D0D] sm:px-7';
-
 export const metadata: Metadata = {
   title: createTitle('Log in')
 };

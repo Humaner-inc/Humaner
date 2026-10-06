@@ -103,7 +103,6 @@ export function useCopyToClipboard(): (text: string) => Promise<void> {
           try {
             write(text);
             setClipboard(text);
-            // eslint-disable-next-line no-empty
           } catch {}
         }
       }

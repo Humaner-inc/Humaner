@@ -20,7 +20,6 @@ export type DashboardOverviewStripProps = {
   targetAudience: TargetAudience | null;
   tier: string;
   includedMessages?: number;
-  creditsUsedCents?: number;
   creditsRemainingCents?: number;
   /** Owners / platform admins only — teammates must not see Billing CTAs. */
   canAccessBilling?: boolean;
@@ -37,7 +36,6 @@ export function DashboardOverviewStrip({
   targetAudience,
   tier,
   includedMessages,
-  creditsUsedCents,
   creditsRemainingCents,
   canAccessBilling = false,
   selfHostMode = false,
@@ -68,7 +66,6 @@ export function DashboardOverviewStrip({
     >
       <div className="flex min-w-0 items-start gap-3">
         {logoSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoSrc}
             alt=""

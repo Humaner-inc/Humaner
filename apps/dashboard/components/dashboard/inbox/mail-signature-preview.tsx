@@ -26,7 +26,6 @@ export function MailboxSignatureIconImg({
   const [width, setWidth] = React.useState<number | null>(null);
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- mailbox signature asset
     <img
       src={src}
       alt=""

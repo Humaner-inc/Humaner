@@ -27,7 +27,16 @@ const reactAndNextRules = {
 const typescriptRules = {
   '@typescript-eslint/explicit-module-boundary-types': 'off',
   '@typescript-eslint/no-require-imports': 'off',
-  '@typescript-eslint/no-duplicate-enum-values': 'off'
+  '@typescript-eslint/no-duplicate-enum-values': 'off',
+  '@typescript-eslint/no-unused-vars': [
+    'warn',
+    {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+      ignoreRestSiblings: true
+    }
+  ]
 };
 
 const eslintConfig = [

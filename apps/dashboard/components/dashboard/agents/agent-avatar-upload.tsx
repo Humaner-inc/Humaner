@@ -200,7 +200,6 @@ export function AgentAvatarUpload({
                   Upload image
                 </span>
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={fallbackImage!}
                   alt=""

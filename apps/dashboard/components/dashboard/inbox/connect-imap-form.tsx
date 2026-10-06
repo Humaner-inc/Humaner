@@ -84,10 +84,7 @@ import {
   resolveMailProviderPreset
 } from '@/lib/inbox/mail-providers';
 import { cn } from '@/lib/utils';
-import type {
-  ConnectImapInput,
-  DiscoverImapAliasesInput
-} from '@/schemas/inbox/connect-imap-schema';
+import type { DiscoverImapAliasesInput } from '@/schemas/inbox/connect-imap-schema';
 
 type ConnectStep = 'credentials' | 'aliases';
 

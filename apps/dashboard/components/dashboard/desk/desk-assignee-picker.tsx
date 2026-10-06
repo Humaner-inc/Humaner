@@ -39,7 +39,6 @@ export function DeskAssigneePicker({
   teamMembers,
   currentUserId,
   value,
-  compact = false,
   className,
   onAssigned
 }: DeskAssigneePickerProps): React.JSX.Element {

@@ -47,10 +47,6 @@ export const CALENDAR_PROVIDERS = [
 
 const PROVIDERS = CALENDAR_PROVIDERS;
 
-function providerLabel(provider: CalendarConnectionItem['provider']): string {
-  return PROVIDERS.find((item) => item.id === provider)?.label ?? provider;
-}
-
 export function CalendarConnectedLogos({
   connections
 }: {
@@ -100,6 +96,22 @@ export function CalendarConnectSettings({
   if (isOssDeployment()) {
     return null;
   }
+
+  return (
+    <CalendarConnectSettingsCloud
+      connections={connections}
+      mailAutomation={mailAutomation}
+    />
+  );
+}
+
+function CalendarConnectSettingsCloud({
+  connections,
+  mailAutomation
+}: {
+  connections: CalendarConnectionItem[];
+  mailAutomation: boolean;
+}): React.JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(false);

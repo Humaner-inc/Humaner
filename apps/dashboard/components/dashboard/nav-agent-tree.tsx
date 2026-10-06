@@ -75,7 +75,6 @@ function AgentAvatarIcon({
       }
     >
       {avatar.kind === 'image' ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           key={avatar.src}
           src={avatar.src}

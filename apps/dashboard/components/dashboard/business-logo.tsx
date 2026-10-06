@@ -45,7 +45,6 @@ export function BusinessLogo({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={getLogoUrl(domain, size, true)}
       alt={name ? `${name} logo` : 'Business logo'}

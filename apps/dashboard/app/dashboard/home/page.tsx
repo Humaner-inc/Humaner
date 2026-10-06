@@ -125,7 +125,6 @@ async function HomePageContent(): Promise<React.JSX.Element> {
           targetAudience={organization?.targetAudience ?? null}
           tier={organization?.tier ?? 'free'}
           includedMessages={organization?.includedMessages}
-          creditsUsedCents={creditUsage?.creditsUsedCents}
           creditsRemainingCents={creditUsage?.creditsRemainingCents}
           canAccessBilling={!oss && canAccessPathname(profile, Routes.Billing)}
           selfHostMode={oss}

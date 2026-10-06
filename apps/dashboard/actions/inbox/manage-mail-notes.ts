@@ -45,8 +45,7 @@ async function assertThreadAccess(
   return thread;
 }
 
-function revalidateNotePaths(threadId: string): void {
-  revalidatePath(Routes.InboxAll);
+function revalidateNotePaths(): void {
   revalidatePath(Routes.InboxAll);
 }
 
@@ -112,7 +111,7 @@ export const sendMailThreadNoteAction = pageActionClient('inbox')
       actorName: session.user.name
     });
 
-    revalidateNotePaths(parsedInput.threadId);
+    revalidateNotePaths();
     return note;
   });
 
@@ -180,6 +179,6 @@ export const deleteMailThreadNotesAction = pageActionClient('inbox')
       actorName: session.user.name
     });
 
-    revalidateNotePaths(parsedInput.threadId);
+    revalidateNotePaths();
     return { threadId: parsedInput.threadId };
   });
