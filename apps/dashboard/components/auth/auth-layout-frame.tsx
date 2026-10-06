@@ -59,12 +59,14 @@ function AuthLayoutChrome({
 export function AuthLayoutFrame({
   children,
   showBackToMarketing = false,
+  canvas = false,
   mailboxSvg = ''
 }: AuthLayoutFrameProps): React.JSX.Element {
   return (
     <AuthThemeProvider className="min-h-screen">
       <AuthLayoutChrome
         showBackToMarketing={showBackToMarketing}
+        canvas={canvas}
         mailboxSvg={mailboxSvg}
       >
         {children}
