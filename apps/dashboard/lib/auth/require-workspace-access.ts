@@ -30,8 +30,14 @@ export const getUserAccessContext = cache(
       where: { id: userId },
       select: {
         role: true,
-        workspaceRole: true,
-        allowedPages: true
+        organizationId: true,
+        organizationMemberships: {
+          select: {
+            organizationId: true,
+            workspaceRole: true,
+            allowedPages: true
+          }
+        }
       }
     });
 
@@ -39,7 +45,15 @@ export const getUserAccessContext = cache(
       return null;
     }
 
-    return user;
+    const membership = user.organizationMemberships.find(
+      (row) => row.organizationId === user.organizationId
+    );
+
+    return {
+      role: user.role,
+      workspaceRole: membership?.workspaceRole ?? WorkspaceRole.TEAMMATE,
+      allowedPages: membership?.allowedPages ?? []
+    };
   }
 );
 

@@ -331,7 +331,7 @@ export function ComposeMailForm({
           }}
           disabled={isExecuting}
           placeholder="Write the message…"
-          className={isQuick ? 'min-h-32 flex-1' : 'min-h-32 flex-1'}
+          className="min-h-32"
           contentClassName={
             isQuick ? cn(QUICK_CREATE_BODY_CLASS, 'min-h-32') : undefined
           }
@@ -340,6 +340,7 @@ export function ComposeMailForm({
           text={signatureText}
           iconUrl={signatureIconUrl}
           iconHeight={signatureIconHeight}
+          className="shrink-0"
         />
         {attachments.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
@@ -370,6 +371,7 @@ export function ComposeMailForm({
       </div>
       <div
         className={cn(
+          'shrink-0',
           isQuick
             ? 'flex flex-wrap items-center justify-between gap-3 px-5 pb-4 pt-3'
             : 'grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3'

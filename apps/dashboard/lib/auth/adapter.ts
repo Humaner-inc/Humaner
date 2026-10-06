@@ -4,7 +4,8 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/db/prisma';
 import {
   decryptSensitiveField,
-  encryptSensitiveField
+  encryptSensitiveField,
+  sensitiveFieldNeedsRewrite
 } from '@/lib/security/sensitive-fields';
 
 const base = PrismaAdapter(prisma);
@@ -34,6 +35,24 @@ function decryptAccountTokens(
 
 // Prisma adapter with AES-GCM encryption for OAuth tokens at rest.
 
+async function rewriteAccountTokens(
+  providerAccountId: string,
+  provider: string,
+  account: AdapterAccount
+): Promise<void> {
+  await prisma.account.update({
+    where: {
+      provider_providerAccountId: { provider, providerAccountId }
+    },
+    data: {
+      access_token: encryptSensitiveField(account.access_token),
+      refresh_token: encryptSensitiveField(account.refresh_token),
+      id_token: encryptSensitiveField(account.id_token)
+    }
+  });
+}
+
+// this auth.js adapter has no updateAccount, so plaintext rows are rewritten on read
 export const adapter = Object.freeze({
   ...base,
   async linkAccount(account: AdapterAccount): Promise<void> {
@@ -44,6 +63,16 @@ export const adapter = Object.freeze({
     provider: string
   ): Promise<AdapterAccount | null> {
     const account = await base.getAccount!(providerAccountId, provider);
-    return decryptAccountTokens(account);
+    const decrypted = decryptAccountTokens(account);
+    if (
+      account &&
+      decrypted &&
+      (sensitiveFieldNeedsRewrite(account.access_token) ||
+        sensitiveFieldNeedsRewrite(account.refresh_token) ||
+        sensitiveFieldNeedsRewrite(account.id_token))
+    ) {
+      await rewriteAccountTokens(providerAccountId, provider, decrypted);
+    }
+    return decrypted;
   }
 }) satisfies Adapter;

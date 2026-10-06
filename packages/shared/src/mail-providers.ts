@@ -1,7 +1,7 @@
 export type MailConnectKind = "oauth" | "preset" | "custom" | "soon";
 
 export const MAIL_PROVIDERS_LEAD =
-  "Gmail over OAuth. IMAP for the rest. Microsoft and Proton, soon.";
+  "IMAP presets and your own host. Google, Proton, and Outlook wait on certification.";
 
 export const MAIL_CONNECT_KIND_ORDER: readonly MailConnectKind[] = [
   "oauth",
@@ -31,8 +31,8 @@ export const MAIL_CONNECT_KIND_DOCS: Record<
 > = {
   oauth: {
     title: "Gmail / Google Workspace",
-    available: "✓",
-    integration: "Link your Gmail with Google oAuth.",
+    available: "Waiting",
+    integration: "Waiting for CASA and SOC 2 certifications.",
   },
   preset: {
     title: "IMAP presets",
@@ -46,11 +46,45 @@ export const MAIL_CONNECT_KIND_DOCS: Record<
     integration: "cPanel, Plesk, or any IMAP + SMTP.",
   },
   soon: {
-    title: "Microsoft 365 / Proton",
-    available: "Soon",
-    integration: "Microsoft and Proton mail are coming shortly.",
+    title: "Outlook / Proton",
+    available: "Waiting",
+    integration: "Waiting for CASA and SOC 2 certifications.",
   },
 };
+
+/** Hidden from connect until Humaner's own CASA and SOC 2 work is done. */
+export const CERTIFICATION_HOLD_PROVIDER_IDS = [
+  "gmail",
+  "google-workspace",
+  "proton",
+  "microsoft-365",
+] as const;
+
+const CERTIFICATION_HOLD_PROVIDER_ID_SET = new Set<string>(
+  CERTIFICATION_HOLD_PROVIDER_IDS,
+);
+
+export function mailProviderAwaitingCertification(provider: {
+  id: string;
+}): boolean {
+  return CERTIFICATION_HOLD_PROVIDER_ID_SET.has(provider.id);
+}
+
+export function certificationHoldProviders<T extends { id: string }>(
+  providers: readonly T[],
+): T[] {
+  const byId = new Map(providers.map((provider) => [provider.id, provider]));
+  return CERTIFICATION_HOLD_PROVIDER_IDS.flatMap((id) => {
+    const provider = byId.get(id);
+    return provider ? [provider] : [];
+  });
+}
+
+export const CERTIFICATION_HOLD_LABEL =
+  "Waiting for CASA and SOC 2 certifications";
+
+export const CERTIFICATION_HOLD_HINT =
+  "Google, Workspace, Proton, and Outlook open once our internal certification is finished. CASA and SOC 2 have to be in place before we can connect them.";
 
 export type MailProviderDefinition = {
   id: string;
@@ -85,7 +119,7 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
     logoDomain: "gmail.com",
     connect: "oauth",
     showOnLanding: true,
-    summary: "Connect with Google. No app password.",
+    summary: "Waiting for CASA and SOC 2 certifications.",
     color: "#EA4335",
   },
   {
@@ -94,7 +128,7 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
     logoDomain: "google.com",
     connect: "oauth",
     showOnLanding: true,
-    summary: "Same Google OAuth for company.com addresses.",
+    summary: "Waiting for CASA and SOC 2 certifications.",
     color: "#EA4335",
   },
 
@@ -640,11 +674,11 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
 
   {
     id: "microsoft-365",
-    name: "Microsoft 365",
+    name: "Outlook",
     logoDomain: "microsoft.com",
     connect: "soon",
     showOnLanding: true,
-    summary: "Mail OAuth is not shipped yet.",
+    summary: "Waiting for CASA and SOC 2 certifications.",
     color: "#0078D4",
   },
   {
@@ -653,7 +687,7 @@ export const MAIL_PROVIDERS: readonly MailProviderDefinition[] = [
     logoDomain: "proton.me",
     connect: "soon",
     showOnLanding: true,
-    summary: "Needs Proton Bridge. Not connectable from the cloud.",
+    summary: "Waiting for CASA and SOC 2 certifications.",
     color: "#6D4AFF",
   },
 ];

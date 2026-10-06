@@ -8,6 +8,7 @@ import {
   workspaceSettingsHref,
   type WorkspaceSettingsTab
 } from '@/constants/workspace-settings-tabs';
+import { isOssDeployment } from '@/lib/deployment-mode';
 
 const TABS: Array<{
   id: WorkspaceSettingsTab;
@@ -35,8 +36,13 @@ export function InboxSettingsShell({
   data: React.ReactNode;
   intros: Record<WorkspaceSettingsTab, string>;
 }): React.JSX.Element {
-  const [tab, setTab] = React.useState(initialTab);
-  const page = TABS.find((item) => item.id === tab)?.page ?? '1';
+  const tabs = isOssDeployment()
+    ? TABS.filter((item) => item.id === 'inbox')
+    : TABS;
+  const [tab, setTab] = React.useState<WorkspaceSettingsTab>(
+    isOssDeployment() ? 'inbox' : initialTab
+  );
+  const page = tabs.find((item) => item.id === tab)?.page ?? '1';
 
   const selectTab = React.useCallback((next: WorkspaceSettingsTab) => {
     setTab(next);
@@ -51,7 +57,7 @@ export function InboxSettingsShell({
     <div className="space-y-6">
       <SettingsTabBar
         ariaLabel="Workspace settings"
-        tabs={TABS.map((item) => ({
+        tabs={tabs.map((item) => ({
           id: item.id,
           label: item.label,
           active: item.id === tab,

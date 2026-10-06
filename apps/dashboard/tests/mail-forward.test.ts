@@ -28,4 +28,25 @@ describe('buildForwardBody', () => {
     expect(body).toContain('Opus is in the pool.');
     expect(body).not.toMatch(/body\{font/);
   });
+
+  it('quotes the HTML the reading pane shows, not the text/plain twin', () => {
+    const body = buildForwardBody({
+      fromAddress: 'epood@miterassa.ee',
+      sentAt: '2026-10-05T12:00:00.000Z',
+      subject: 'Tartus Ehitus',
+      bodyHtml:
+        '<table><tr><td><h2>AUDIO- JA VIDEOTEHNOLOOGIAT</h2><p>9.-11. oktoobril oleme Tartus.</p></td></tr></table>',
+      bodyText: [
+        'AUDIO- JA VIDEOTEHNOLOOGIAT',
+        '***',
+        '',
+        '***',
+        '9.-11. oktoobril oleme Tartus.'
+      ].join('\n')
+    });
+
+    expect(body).toContain('9.-11. oktoobril oleme Tartus.');
+    expect(body).not.toMatch(/^\*{3}$/m);
+    expect(body).toContain('From: epood@miterassa.ee');
+  });
 });

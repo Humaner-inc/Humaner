@@ -1,6 +1,10 @@
 'use client';
 
 import { MailIcon } from '@humaner/shared/icons';
+import {
+  CERTIFICATION_HOLD_LABEL,
+  mailProviderAwaitingCertification
+} from '@humaner/shared/mail-providers';
 
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import { Button } from '@/components/ui/button';
@@ -17,7 +21,8 @@ export function DetectedImapProviderBanner({
   className?: string;
 }): React.JSX.Element {
   const { provider, kind } = detection;
-  const isGoogle = kind === 'oauth';
+  const held = mailProviderAwaitingCertification(provider);
+  const isGoogle = kind === 'oauth' && !held;
 
   return (
     <div
@@ -43,9 +48,11 @@ export function DetectedImapProviderBanner({
           Detected: {provider.name}
         </p>
         <p className="truncate text-xs text-muted-foreground">
-          {isGoogle
-            ? 'Connect with Google instead of IMAP.'
-            : 'Using recommended IMAP settings'}
+          {held
+            ? CERTIFICATION_HOLD_LABEL
+            : isGoogle
+              ? 'Connect with Google instead of IMAP.'
+              : 'Using recommended IMAP settings'}
         </p>
       </div>
       {isGoogle && onUseGoogle ? (

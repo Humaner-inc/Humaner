@@ -12,6 +12,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { isEmailVerified } from '@/lib/auth/utils';
 import { prisma } from '@/lib/db/prisma';
 import { rateLimit } from '@/lib/network/rate-limit';
+import { incrementRateLimit } from '@/lib/redis/upstash';
 import {
   IncorrectEmailOrPasswordError,
   IncorrectRecoveryCodeError,
@@ -28,13 +29,28 @@ import { submitRecoveryCodeSchema } from '@/schemas/auth/submit-recovery-code-sc
 import { submitTotpCodeSchema } from '@/schemas/auth/submit-totp-code-schema';
 import { IdentityProvider } from '@/types/identity-provider';
 
-// Built-in rate limiter to help manage traffic and prevent abuse.
-// Does not support serverless rate limiting, because the storage is in-memory.
-function checkRateLimitAndThrowError(uniqueIdentifier: string): void {
+// 10 attempts per minute, shared across instances when Redis is configured
+async function checkRateLimitAndThrowError(
+  uniqueIdentifier: string
+): Promise<void> {
+  try {
+    const count = await incrementRateLimit(`login:${uniqueIdentifier}`, 60);
+    if (count >= 10) {
+      throw new RateLimitExceededError();
+    }
+    if (count > 0) {
+      return;
+    }
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      throw error;
+    }
+  }
+
   const limiter = rateLimit({
-    intervalInMs: 60 * 1000 // 1 minute
+    intervalInMs: 60 * 1000
   });
-  const result = limiter.check(10, uniqueIdentifier); // 10 requests per minute
+  const result = limiter.check(10, uniqueIdentifier);
   if (result.isRateLimited) {
     throw new RateLimitExceededError();
   }
@@ -65,7 +81,7 @@ export const providers = [
       const parsedCredentials = result.data;
 
       const normalizedEmail = parsedCredentials.email.toLowerCase();
-      checkRateLimitAndThrowError(normalizedEmail);
+      await checkRateLimitAndThrowError(normalizedEmail);
 
       const user = await prisma.user.findUnique({
         where: { email: normalizedEmail },
@@ -164,7 +180,7 @@ export const providers = [
         throw new InternalServerError();
       }
 
-      checkRateLimitAndThrowError(user.email);
+      await checkRateLimitAndThrowError(user.email);
 
       if (!user.authenticatorApp) {
         throw new InternalServerError();
@@ -264,7 +280,7 @@ export const providers = [
         throw new InternalServerError();
       }
 
-      checkRateLimitAndThrowError(user.email);
+      await checkRateLimitAndThrowError(user.email);
 
       if (!user.authenticatorApp) {
         throw new InternalServerError();
@@ -383,9 +399,8 @@ export const providers = [
     name: IdentityProvider.Google,
     clientId: process.env.AUTH_GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.AUTH_GOOGLE_CLIENT_SECRET as string,
-    // Google verifies emails; link to an existing Humaner user with the same
-    // address instead of failing with OAuthAccountNotLinked.
-    allowDangerousEmailAccountLinking: true,
+    // existing emails link only after password or totp proof
+    allowDangerousEmailAccountLinking: false,
     authorization: {
       params: {
         scope: 'openid email profile',
@@ -400,9 +415,8 @@ export const providers = [
     name: IdentityProvider.GitHub,
     clientId: process.env.AUTH_GITHUB_CLIENT_ID as string,
     clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET as string,
-    // GitHub verifies emails via user:email; link to an existing Humaner user
-    // with the same address instead of failing with OAuthAccountNotLinked.
-    allowDangerousEmailAccountLinking: true,
+    // existing emails link only after password or totp proof
+    allowDangerousEmailAccountLinking: false,
     authorization: {
       params: {
         scope: 'read:user user:email'

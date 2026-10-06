@@ -2,6 +2,7 @@ import 'server-only';
 
 import { unstable_cache as cache } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { WorkspaceRole } from '@prisma/client';
 
 import {
   Caching,
@@ -31,15 +32,25 @@ export async function getProfile(): Promise<ProfileDto> {
           name: true,
           email: true,
           role: true,
-          workspaceRole: true,
-          allowedPages: true,
           locale: true,
-          timeZone: true
+          timeZone: true,
+          organizationId: true,
+          organizationMemberships: {
+            select: {
+              organizationId: true,
+              workspaceRole: true,
+              allowedPages: true
+            }
+          }
         }
       });
       if (!userFromDb) {
         throw new NotFoundError('User not found');
       }
+
+      const membership = userFromDb.organizationMemberships.find(
+        (row) => row.organizationId === userFromDb.organizationId
+      );
 
       const response: ProfileDto = {
         id: userFromDb.id,
@@ -47,15 +58,19 @@ export async function getProfile(): Promise<ProfileDto> {
         name: userFromDb.name,
         email: userFromDb.email ?? undefined,
         role: userFromDb.role,
-        workspaceRole: userFromDb.workspaceRole,
-        allowedPages: userFromDb.allowedPages,
+        workspaceRole: membership?.workspaceRole ?? WorkspaceRole.TEAMMATE,
+        allowedPages: membership?.allowedPages ?? [],
         locale: userFromDb.locale,
         timeZone: userFromDb.timeZone
       };
 
       return response;
     },
-    Caching.createUserKeyParts(UserCacheKey.Profile, session.user.id),
+    Caching.createUserKeyParts(
+      UserCacheKey.Profile,
+      session.user.id,
+      session.user.organizationId ?? 'none'
+    ),
     {
       revalidate: defaultRevalidateTimeInSeconds,
       tags: [

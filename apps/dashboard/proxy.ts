@@ -87,24 +87,35 @@ function isOssBlockedPath(pathname: string): boolean {
     if (path === '/overview' || path.startsWith('/overview/')) {
       return true;
     }
-    if (path === '/inbox' || path.startsWith('/inbox/')) {
-      return true;
-    }
-    if (path === '/tasks' || path.startsWith('/tasks/')) {
-      return true;
-    }
-    if (path === '/calendar' || path.startsWith('/calendar/')) {
-      return true;
-    }
-    if (path === '/resources' || path.startsWith('/resources/')) {
+    if (
+      path === '/organization/resources/invoices' ||
+      path.startsWith('/organization/resources/invoices/') ||
+      path === '/organization/resources/quotes' ||
+      path.startsWith('/organization/resources/quotes/')
+    ) {
       return true;
     }
     if (
-      path === '/organization/tasks' ||
-      path.startsWith('/organization/tasks/') ||
-      path === '/organization/resources' ||
-      path.startsWith('/organization/resources/')
+      path === '/organization/team' ||
+      path.startsWith('/organization/team/') ||
+      path === '/settings/organization/members' ||
+      path.startsWith('/settings/organization/members/')
     ) {
+      return true;
+    }
+    if (path === '/desk' || path.startsWith('/desk/')) {
+      return true;
+    }
+    if (path === '/human-desk' || path.startsWith('/human-desk/')) {
+      return true;
+    }
+    if (path === '/agents' || path.startsWith('/agents/')) {
+      return true;
+    }
+    if (path === '/integrations' || path.startsWith('/integrations/')) {
+      return true;
+    }
+    if (path === '/invitations' || path.startsWith('/invitations/')) {
       return true;
     }
     if (path === '/onboarding' || path.startsWith('/onboarding/')) {
@@ -143,7 +154,7 @@ function isAuthEntryPath(pathname: string): boolean {
 }
 
 function signedInHomePath(): string {
-  return isOssDeploymentRequest() ? '/organization/overview' : '/overview';
+  return isOssDeploymentRequest() ? '/inbox/all' : '/overview';
 }
 
 export function proxy(request: NextRequest): NextResponse {
@@ -190,16 +201,14 @@ export function proxy(request: NextRequest): NextResponse {
     return response;
   }
 
-  // Self-Host: Polar billing + Cloud inbox are not part of the kit.
+  // Self-Host: Polar billing, Team, Desk, and Cloud-only workspace tabs stay off.
   // Prefer rewrite for RSC so App Router flight stays valid; redirect for
   // full document navigations.
   if (isOssDeploymentRequest() && isOssBlockedPath(pathname)) {
     if (isRscNavigationRequest(request)) {
-      return NextResponse.rewrite(new URL('/dashboard/home', request.url));
+      return NextResponse.rewrite(new URL('/inbox/all', request.url));
     }
-    return NextResponse.redirect(
-      new URL('/organization/overview', request.url)
-    );
+    return NextResponse.redirect(new URL('/inbox/all', request.url));
   }
 
   // Server Actions POST to the current page URL. An HTML login redirect here

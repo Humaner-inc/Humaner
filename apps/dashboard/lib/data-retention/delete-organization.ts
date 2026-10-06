@@ -3,7 +3,6 @@ import 'server-only';
 import { purgeVisitorMemory } from '@/services/agent-memory';
 
 import { prisma } from '@/lib/db/prisma';
-import { invalidateWorkspaceNameCache } from '@/lib/onboarding/workspace-name-registry';
 
 async function purgeOrganizationVisitorMemory(
   organizationId: string
@@ -107,6 +106,4 @@ export async function deleteOrganizationData(
   await prisma.organization.delete({
     where: { id: organizationId }
   });
-
-  invalidateWorkspaceNameCache();
 }

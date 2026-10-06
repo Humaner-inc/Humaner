@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 
 export type AuthLayoutFrameProps = React.PropsWithChildren<{
   showBackToMarketing?: boolean;
+  /** Light corporate canvas — login sits on #e0e1df with a white card. */
+  canvas?: boolean;
   /** CollabInbox SVG markup from the server — keeps the scene out of client fetch. */
   mailboxSvg?: string;
 }>;
@@ -19,6 +21,7 @@ export type AuthLayoutFrameProps = React.PropsWithChildren<{
 function AuthLayoutChrome({
   children,
   showBackToMarketing = false,
+  canvas = false,
   mailboxSvg = ''
 }: AuthLayoutFrameProps): React.JSX.Element {
   const theme = useAuthThemeClasses();
@@ -28,10 +31,10 @@ function AuthLayoutChrome({
     <div
       className={cn(
         'relative min-h-screen transition-colors duration-300',
-        inverted ? 'bg-white' : 'bg-[#0A0D0D]'
+        canvas ? 'bg-[#e0e1df]' : inverted ? 'bg-white' : 'bg-[#0A0D0D]'
       )}
     >
-      {showBackToMarketing ? <AuthBackToMarketing /> : null}
+      {showBackToMarketing ? <AuthBackToMarketing onCanvas={canvas} /> : null}
 
       {/* Portal stays vertically centered; art is pinned to the page bottom. */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-10 sm:py-14">

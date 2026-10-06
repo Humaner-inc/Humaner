@@ -5,26 +5,15 @@ import {
   getTenantOrganizationId,
   TENANT_SCOPED_MODELS
 } from '@/lib/db/tenant-context';
+import { applyTenantQueryArgs } from '@/lib/db/tenant-query';
 import { PrismaClient } from '@/lib/generated/prisma';
 
 declare global {
   // allow global `var` declarations
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
-const WHERE_ACTIONS = new Set([
-  'findMany',
-  'findFirst',
-  'findFirstOrThrow',
-  'count',
-  'aggregate',
-  'groupBy',
-  'updateMany',
-  'deleteMany'
-]);
-
-/** Reads are safe to repeat after Neon drops a pooled connection (P1017). */
+// reads are safe to repeat after Neon drops a pooled connection (P1017)
 const READ_ACTIONS = new Set([
   'findUnique',
   'findUniqueOrThrow',
@@ -44,19 +33,6 @@ function isClosedConnection(error: unknown): boolean {
   );
 }
 
-function injectTenantWhere(
-  args: { where?: Record<string, unknown> } | undefined,
-  organizationId: string
-) {
-  const next = args ?? {};
-  const where = (next.where ?? {}) as Record<string, unknown>;
-  if (where.organizationId === undefined) {
-    where.organizationId = organizationId;
-  }
-  next.where = where;
-  return next;
-}
-
 function createPrismaClient(): PrismaClient {
   const url = resolveDatabaseUrl();
   const client = url
@@ -65,9 +41,7 @@ function createPrismaClient(): PrismaClient {
       })
     : new PrismaClient();
 
-  // Soft tenant guard: when AsyncLocalStorage has an org, inject organizationId
-  // into list/filter queries for tenant-scoped models. findUnique / update-by-id
-  // stay unchanged so publicId lookups and nested writes keep working.
+  // force organizationId onto tenant reads and writes, including findUnique
   client.$use(async (params, next) => {
     const organizationId = getTenantOrganizationId();
     const model = params.model;
@@ -77,15 +51,11 @@ function createPrismaClient(): PrismaClient {
       params.action &&
       TENANT_SCOPED_MODELS.has(model)
     ) {
-      if (WHERE_ACTIONS.has(params.action)) {
-        params.args = injectTenantWhere(params.args, organizationId);
-      } else if (params.action === 'create') {
-        const data = (params.args?.data ?? {}) as Record<string, unknown>;
-        if (data.organizationId === undefined) {
-          data.organizationId = organizationId;
-        }
-        params.args = { ...params.args, data };
-      }
+      params.args = applyTenantQueryArgs(
+        params.action,
+        params.args,
+        organizationId
+      );
     }
 
     try {

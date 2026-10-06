@@ -4,9 +4,12 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { WorkspaceBillingAccessDto } from '@humaner/shared/billing-access';
 import { BILLING_PAST_DUE_GRACE_DAYS } from '@humaner/shared/billing-access';
+import { getPlanForTier } from '@humaner/shared/plans';
 
 import { Routes } from '@/constants/routes';
 import { cn } from '@/lib/utils';
+
+const PLAN_NAME = getPlanForTier('classic').name;
 
 function bannerCopy(
   access: WorkspaceBillingAccessDto
@@ -22,26 +25,23 @@ function bannerCopy(
       const dayLabel = days === 1 ? 'day' : 'days';
       return {
         badge: 'Payment issue',
-        message: `We could not charge your Inbox plan. Full access continues for ${days} more ${dayLabel} (${BILLING_PAST_DUE_GRACE_DAYS}-day grace), then this workspace becomes read-only.`
+        message: `We could not charge your ${PLAN_NAME} plan. Full access continues for ${days} more ${dayLabel} (${BILLING_PAST_DUE_GRACE_DAYS}-day grace), then this workspace becomes read-only.`
       };
     }
     case 'payment_issue_read_only':
       return {
         badge: 'Read-only',
-        message:
-          'Your Inbox payment is overdue. This workspace is read-only until you update billing.'
+        message: `Your ${PLAN_NAME} payment is overdue. This workspace is read-only until you update billing.`
       };
     case 'trial_ended':
       return {
         badge: 'Trial ended',
-        message:
-          'Your free trial has ended. This workspace is read-only until you start Inbox.'
+        message: `Your free trial has ended. This workspace is read-only until you start ${PLAN_NAME}.`
       };
     case 'subscription_ended':
       return {
         badge: 'Subscription ended',
-        message:
-          'Your Inbox subscription is no longer active. This workspace is read-only until you resubscribe.'
+        message: `Your ${PLAN_NAME} subscription is no longer active. This workspace is read-only until you resubscribe.`
       };
     default:
       return null;

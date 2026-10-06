@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import type { CalendarConnectionItem } from '@/data/calendar/get-workspace-calendar';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { getLogoUrl } from '@/lib/logo';
 
 export const CALENDAR_PROVIDERS = [
@@ -95,7 +96,10 @@ export function CalendarConnectSettings({
 }: {
   connections: CalendarConnectionItem[];
   mailAutomation: boolean;
-}): React.JSX.Element {
+}): React.JSX.Element | null {
+  if (isOssDeployment()) {
+    return null;
+  }
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = React.useState(false);

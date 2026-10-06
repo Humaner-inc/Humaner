@@ -36,10 +36,23 @@ export async function requireWorkspaceOwner(
 export async function isWorkspaceOwner(userId: string): Promise<boolean> {
   const user = await prisma.user.findFirst({
     where: { id: userId },
+    select: { organizationId: true }
+  });
+  if (!user?.organizationId) {
+    return false;
+  }
+
+  const membership = await prisma.organizationMembership.findUnique({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId: user.organizationId
+      }
+    },
     select: { workspaceRole: true }
   });
 
-  return user?.workspaceRole === WorkspaceRole.OWNER;
+  return membership?.workspaceRole === WorkspaceRole.OWNER;
 }
 
 export async function countOrganizationSeats(

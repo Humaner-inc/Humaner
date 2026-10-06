@@ -2,7 +2,7 @@
 
 <p align="center">
   <p align="center">
-    Self-host customer support | Agents, Helpdesk, and Team management.
+    Self-host your mailbox and run your business ops with your agent | Inbox, tasks, calendar, and MCP.
     <br />
     <br />
     <a href="https://humaner.io"><strong>Website</strong></a>
@@ -15,100 +15,74 @@
 
 ## About
 
-Humaner is the customer support layer made for customers care and built for developers.
-Host your own support using Humaner infra to run agents, escalation, ticketing and manage team members.  
-Your agent works the mailbox through [Inbox Skills](https://github.com/Humaner-inc/Inbox-skills) and MCP | Simply add your own Unique prompt, knowledge and API.
+Humaner Self-Host is an IMAP mailbox you run yourself: shared inbox, attachments, tasks, in-app calendar, resources, extra workspaces. Login is email or Google.
 
-This repository do not include Humaner Intelligence, Agent Desk, loops, live chat or Inboxes from [Humaner Cloud](https://app.humaner.io).
+Point your own agent to run borign tasks for you, send, draft, book.. [MCP](https://docs.humaner.io/oss/api).
 
 ## Features
 
-**Starter agent**: Your agent config with Humaner skills and Hybrid RAG. (`data/knowledge/`).
+**Inbox** | IMAP/SMTP providers, aliases, attachments. Sync with the idle worker.
 
-**Helpdesk**: Async tickets, urgency, assignees | Handoffs from agents land in a ticket dashboard for your team.
+**Tasks & calendar** | sit beside the mailbox to manage your ops.
 
-**Organization & team**: Multi-workspace orgs, members, and RBAC under the Humaner product brand.
+**Resources** | URLs, PDFs, text for _your_ agent to embed.
 
-**Visitor identify**: First name, email, company on the widget | stored on your DB.
+**API keys & MCP** | mailbox, tasks, calendar, resources. Org-scoped keys.
 
-**Configuration**: Identity, endpoints and guardrails for your support.
+**Workspaces** | extra workspaces in a snap.
 
 ---
 
-## Chat Integrations
-
-**Widget embed**: One-line script with domain allowlist and visitor identify.
-
-**React SDK**: Drop-in `<HumanerChat />` with the same auth model as the widget.
-
-**REST API**: SSE chat stream, session history, handoff ticket, visitor identify.
-
 ## Get started
 
-Clone → workable support workspace in minutes: follow the A→Z guide in [`SELFHOST.md`](./SELFHOST.md)
-
-Paste the [Self-hosting — Agent Brief](https://docs.humaner.io/oss/agent-brief) to your IDE Agent.
+A→Z: [`SELFHOST.md`](./SELFHOST.md)
 
 ```bash
 git clone https://github.com/Humaner-inc/humaner.git
 cd humaner
 pnpm install
 cp apps/dashboard/.env.example apps/dashboard/.env.local
-# fill DATABASE_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL, CLAUDE_API_KEY
+# NEXT_PUBLIC_DEPLOYMENT_MODE=oss, DATABASE_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL
 pnpm --filter @humaner/dashboard exec prisma migrate deploy
 pnpm --filter @humaner/dashboard dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) · set `NEXT_PUBLIC_DEPLOYMENT_MODE=oss`.
+Open [http://localhost:3001](http://localhost:3001) → Inbox. Connect IMAP, then keep mail syncing:
 
-[Self-Host setup →](./SELFHOST.md) · [Agent brief →](https://docs.humaner.io/oss/agent-brief) · [OSS docs →](https://docs.humaner.io/oss)
+```bash
+pnpm --filter @humaner/dashboard imap:idle
+```
+
+[Self-Host setup →](./SELFHOST.md) · [OSS docs →](https://docs.humaner.io/oss)
 
 ## Architecture
 
-- Monorepo
-- pnpm
-- React
-- TypeScript
-- Next.js
-- PostgreSQL (pgvector)
-- Prisma
-- Tailwind CSS
-- shadcn/ui
+- Monorepo · pnpm · React · TypeScript · Next.js
+- PostgreSQL 16+ (pgvector) · Prisma · Tailwind · shadcn/ui
 
-### Hosting
+**Host:** your Postgres, your dashboard (Docker, VM, etc.). SMTP/Resend for sign-up OTP.
 
-- PostgreSQL 16+ with pgvector (database)
-- Your host for the dashboard (Vercel, Docker, VM, etc.)
-- Optional SMTP for answering customers issues.
-
-### Services
-
-- BYO LLM — required for agent chat
-- OpenAI (optional > knowledge embeddings and reranking)
-- Resend or SMTP (transactional/support emails)
+**Optional:** `CLAUDE_API_KEY` or your own agent to automatize your inbox.
 
 ```
 apps/
   dashboard/      → Self-Host app (port 3001)
 packages/
-  react/          → @humaner/react
   shared/         → plans, URLs, shared types
 ```
 
 Questions → [docs.humaner.io](https://docs.humaner.io) (hosted, not in this repo).
 
-## Self-Host vs Custom vs Native
+## Self-Host vs Cloud
 
-|                           | Self-Host (your own support)             | Custom (Humaner infra)                        | Native (Humaner agents)                                 |
-| ------------------------- | ---------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
-| Who runs the agent        | You · BYO LLM                            | Your stack · Humaner API                      | Humaner · `app.humaner.io`                              |
-| Agent layer               | Own agent · Industry Skills · Hybrid RAG | Full Intelligence over `/api/v1/intelligence` | Hosted Intelligence · Personas · memory · auto-training |
-| Desk                      | Human Helpdesk (tickets + handoff)       | Agent Desk + Human Desk + runbooks + loops    | Same + Live Chat handle + Inboxes                       |
-| Widget / React / chat API | Yes · Self-Host handlers                 | Yes · managed Custom layer                    | Yes · Native pipeline                                   |
-| Visitor identify          | CRM-lite on your Postgres                | Identity merge + memory                       | Cross-session recognition                               |
-| Billing                   | None                                     | Polar · Custom plan                           | Polar · Humaner / Frontier                              |
-
-Self-Host doesn't integrates Custom API, Humaner Intelligence or inboxes.
+|              | Self-Host                                     | Cloud (`app.humaner.io`)             |
+| ------------ | --------------------------------------------- | ------------------------------------ |
+| Mailbox      | IMAP + idle worker                            | IMAP idle (Railway) + Gmail Pub/Sub  |
+| Agent        | Yours, over MCP / API keys                    | Companion                            |
+| Calendar     | In-app                                        | In-app + Google / Outlook / Calendly |
+| Team         | Extra workspaces · Assigned                   | Team dock, invites, Connect          |
+| Not included | Companion, Desk, widget, invoices, Hybrid RAG | —                                    |
+| Billing      | None                                          | Polar                                |
 
 Details: [`SELFHOST.md`](./SELFHOST.md)
 

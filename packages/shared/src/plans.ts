@@ -48,7 +48,7 @@ export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
   personalities: "custom-only",
   contentGaps: false,
   autoTraining: false,
-  humanDeskEmail: true,
+  humanDeskEmail: false,
   agentDesk: false,
   liveChat: false,
   apiAccess: true,
@@ -56,7 +56,7 @@ export const SELF_HOST_CAPABILITIES: PlanCapabilities = {
   removeWatermark: true,
   runbooks: false,
   copilot: false,
-  hostedAgent: true,
+  hostedAgent: false,
   tasks: true,
   resources: true,
   mcp: true,
@@ -95,7 +95,10 @@ export type PlanDefinition = {
   highlighted?: boolean;
 };
 
-export const UNLIMITED_AGENTS = 999;
+export const INBOX_TRIAL_DAYS = 7;
+
+export const INBOX_MAX_KNOWLEDGE_SOURCES = 50;
+export const INBOX_MAX_KNOWLEDGE_CHUNKS = 10_000;
 
 const SONNET_5 = {
   id: "claude-sonnet-5" as const,
@@ -124,45 +127,47 @@ export const LLM_MODEL_FALLBACK_ID = LLM_MODELS.SONNET_45.id;
 
 export const OPERATOR_OWNED_QUOTA_LABEL = "-";
 
+export const UNLIMITED_AGENTS = 999;
+
 export const SELF_HOST_PLAN: PlanDefinition = {
   tier: "free",
   name: "Self-Host",
-  tagline: "Host your own customer support.",
+  tagline: "Host your own mailbox.",
   includedMessages: 1_000_000,
   overagePerMessage: null,
   freeTrainingMessages: 1_000,
   agents: UNLIMITED_AGENTS,
   members: UNLIMITED_AGENTS,
-  mailboxAliases: 0,
+  mailboxAliases: UNLIMITED_AGENTS,
   model: LLM_MODELS.SONNET_5.id,
   modelLabel: "Your model",
   maxContextTokens: 16_384,
   maxHistoryTurns: 12,
   features: [
     {
-      label: "Hybrid RAG",
-      description:
-        "Retrieve from your knowledge base — pgvector when configured, markdown files otherwise.",
+      label: "IMAP mailbox",
+      description: "Connect any IMAP/SMTP provider. Sync with the idle worker.",
       included: true,
     },
     {
-      label: "Helpdesk",
-      description: "Async handoff tickets for your team.",
+      label: "Inbox, tasks, calendar",
+      description: "Shared mailbox UI, assignments, and an in-app calendar.",
       included: true,
     },
     {
       label: "Your LLM",
-      description: "Custom system prompt, industry skills, and your LLM key.",
+      description:
+        "API keys and MCP for mailbox, tasks, calendar, and resources.",
       included: true,
     },
     {
-      label: "Team & org",
-      description: "Members, roles, and invitations.",
+      label: "Workspaces",
+      description: "Multiple workspaces on one deployment.",
       included: true,
     },
     {
-      label: "Widget · API · React",
-      description: "Embed and call your own deployment.",
+      label: "Resources",
+      description: "Store files and URLs for your own agent to embed.",
       included: true,
     },
   ],
@@ -216,9 +221,15 @@ export function getPlanForTier(_tier: string): PlanDefinition {
   return SELF_HOST_PLAN;
 }
 
+export type PlanAddOns = {
+  extraSeats?: number;
+  extraMailboxes?: number;
+};
+
 export function getEffectivePlan(
   _tier: string,
   _includedMessages?: number | null,
+  _addOns?: PlanAddOns,
 ): PlanDefinition {
   return SELF_HOST_PLAN;
 }
@@ -243,4 +254,8 @@ export function formatMessages(count: number): string {
 export function formatMailboxAliases(count: number): string | false {
   if (count <= 0) return false;
   return count === 1 ? "1 inbox" : `${count} inboxes`;
+}
+
+export function formatPrice(price: number): string {
+  return `$${price.toFixed(price % 1 === 0 ? 0 : 2)}`;
 }

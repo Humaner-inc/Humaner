@@ -69,6 +69,7 @@ import {
   companyDomainFromEmail,
   normalizeContactEmail
 } from '@/lib/contacts/contact-email';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import { detectMailDocumentIntent } from '@/lib/inbox/mail-document-intent';
@@ -544,6 +545,7 @@ export function MailThreadDetail({
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [skipDeleteWarning, setSkipDeleteWarning] = React.useState(false);
   const [blockOpen, setBlockOpen] = React.useState(false);
+  const [documentCardClosed, setDocumentCardClosed] = React.useState(false);
 
   React.useEffect(() => {
     setSkipDeleteWarning(readSkipDeleteWarning());
@@ -776,9 +778,11 @@ export function MailThreadDetail({
             amountCents: data.amountCents,
             currency: data.currency,
             dueAt: data.dueAt,
-            issuedAt: data.issuedAt
+            issuedAt: data.issuedAt,
+            payload: data.payload
           }
         }));
+        setDocumentCardClosed(false);
         toast.success(
           data.kind === 'QUOTE' ? 'Quote generated' : 'Invoice generated'
         );
@@ -815,6 +819,7 @@ export function MailThreadDetail({
     setBody('');
     setBodyHtml(null);
     setSendAliasId(thread.aliasId);
+    setDocumentCardClosed(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thread.id]);
 
@@ -890,6 +895,7 @@ export function MailThreadDetail({
       })
     : null;
   const generateKind =
+    !isOssDeployment() &&
     suggestedDocument &&
     thread.document?.kind !== suggestedDocument.toUpperCase()
       ? suggestedDocument
@@ -1181,7 +1187,7 @@ export function MailThreadDetail({
       </header>
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {thread.document ? (
+        {thread.document && !documentCardClosed ? (
           <MailDocumentCard
             document={thread.document}
             brand={
@@ -1195,6 +1201,7 @@ export function MailThreadDetail({
                 taxId: null
               }
             }
+            onClose={() => setDocumentCardClosed(true)}
           />
         ) : null}
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">

@@ -10,6 +10,7 @@ import { loadUserContactsByEmail } from '@/lib/contacts/contact-record';
 import { prisma } from '@/lib/db/prisma';
 import { updateMailThreadsByIds } from '@/lib/db/unique-mutations';
 import { humanizeMailboxSyncError } from '@/lib/inbox/gmail-sync-errors';
+import { loadOmittedImapBodies } from '@/lib/inbox/load-omitted-imap-bodies';
 import {
   aliasIdFilter,
   mailThreadAccessWhere,
@@ -95,6 +96,8 @@ export type MailWorkspaceDocumentSummary = {
   currency: string;
   dueAt: string | null;
   issuedAt: string;
+  /** Line items and parties used to draw the thread preview. */
+  payload: unknown;
 };
 
 export type MailThreadBrand = {
@@ -621,7 +624,8 @@ export const getMailThread = cache(
           select: {
             ...mailMessageHeaderSelect,
             bodyText: true,
-            bodyHtml: true
+            bodyHtml: true,
+            bodyOmitted: true
           }
         }),
         prisma.mailMessage.findMany({
@@ -644,7 +648,8 @@ export const getMailThread = cache(
             amountCents: true,
             currency: true,
             dueAt: true,
-            issuedAt: true
+            issuedAt: true,
+            payload: true
           }
         }),
         prisma.organization.findFirst({
@@ -662,6 +667,17 @@ export const getMailThread = cache(
       ]);
 
     if (!thread) return null;
+
+    const omittedIds = latestBodies
+      .filter((message) => message.bodyOmitted)
+      .map((message) => message.id);
+    const loadedBodies =
+      omittedIds.length > 0
+        ? await loadOmittedImapBodies(omittedIds, organizationId)
+        : new Map<
+            string,
+            { bodyText: string | null; bodyHtml: string | null }
+          >();
 
     const signatureIconUrl = thread.alias.connection.signatureIconHash
       ? getMailboxSignatureIconUrl(
@@ -681,7 +697,8 @@ export const getMailThread = cache(
       attachments: message.attachments
     }));
     const openMessages = latestBodies.toReversed().map((message) => {
-      const bodies = compactMailBodies(message);
+      const loaded = loadedBodies.get(message.id);
+      const bodies = compactMailBodies(loaded ?? message);
       return {
         id: message.id,
         direction: message.direction,
@@ -733,7 +750,8 @@ export const getMailThread = cache(
             amountCents: document.amountCents,
             currency: document.currency,
             dueAt: document.dueAt?.toISOString() ?? null,
-            issuedAt: document.issuedAt.toISOString()
+            issuedAt: document.issuedAt.toISOString(),
+            payload: document.payload
           }
         : null,
       brand: {

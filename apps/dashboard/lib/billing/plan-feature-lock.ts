@@ -1,10 +1,13 @@
 import {
   getPlanCapabilities,
+  getPlanForTier,
   type PlanCapabilities
 } from '@humaner/shared/plans';
 
 import { Routes } from '@/constants/routes';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
+
+const PLAN_NAME = getPlanForTier('classic').name;
 
 export type LockedWorkspaceFeature =
   | 'tasks'
@@ -61,19 +64,19 @@ export const LOCKED_FEATURE_COPY: Record<
   { title: string; body: string }
 > = {
   tasks: {
-    title: 'Tasks are on Inbox',
-    body: 'Start the 7-day Inbox trial to create and assign work.'
+    title: `Tasks are on ${PLAN_NAME}`,
+    body: `Start the 7-day ${PLAN_NAME} trial to create and assign work.`
   },
   resources: {
-    title: 'Resources are on Inbox',
-    body: 'Companion retrieves from these sources on the Inbox trial.'
+    title: `Resources are on ${PLAN_NAME}`,
+    body: `Companion retrieves from these sources on the ${PLAN_NAME} trial.`
   },
   mcp: {
-    title: 'MCP is on Inbox',
-    body: 'Point your own agent at the mailbox on the Inbox trial.'
+    title: `MCP is on ${PLAN_NAME}`,
+    body: `Point your own agent at the mailbox on the ${PLAN_NAME} trial.`
   },
   companion: {
-    title: 'Companion is on Inbox',
+    title: `Companion is on ${PLAN_NAME}`,
     body: 'Start the trial to draft, assign, and remember from the mailbox.'
   }
 };

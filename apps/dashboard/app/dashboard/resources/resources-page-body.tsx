@@ -80,7 +80,9 @@ async function ResourcesSourcesPanel(): Promise<React.JSX.Element> {
             <div className="min-w-0">
               <h2 className="text-sm font-medium text-foreground">Sources</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                URLs, PDFs, and text Companion can train on.
+                {oss
+                  ? 'URLs, PDFs, and text your own agent can embed.'
+                  : 'URLs, PDFs, and text Companion can train on.'}
               </p>
             </div>
             <AddSourceDialogTrigger className="shrink-0" />
@@ -91,7 +93,11 @@ async function ResourcesSourcesPanel(): Promise<React.JSX.Element> {
                 <EmptyState
                   icon={<BookOpenIcon strokeWidth={1.25} />}
                   title="No resources yet"
-                  description="Add URLs, PDFs, or text Companion can train on for this workspace."
+                  description={
+                    oss
+                      ? 'Add URLs, PDFs, or text your own agent can embed.'
+                      : 'Add URLs, PDFs, or text Companion can train on for this workspace.'
+                  }
                 />
               }
             />

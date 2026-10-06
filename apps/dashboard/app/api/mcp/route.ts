@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { readMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { readCompanionWorkspaceRights } from '@/data/inbox/companion-rights';
 import { apiKeyHasScope } from '@/lib/auth/api-key-scopes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   logMcpRequest,
   type McpLogActor
@@ -19,6 +20,7 @@ import {
   mcpWwwAuthenticate
 } from '@/lib/developers/mcp-oauth';
 import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
+import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
 import {
   authorizeMcpClient,
   authorizeMcpIntelligence,
@@ -300,6 +302,9 @@ export async function POST(request: NextRequest): Promise<Response> {
       readCompanionWorkspaceRights(handshake.context.organizationId)
     ]);
     const availableWorkspaceTools = WORKSPACE_TOOLS.filter((tool) => {
+      if (!workspaceToolAllowedOnDeployment(tool.name)) {
+        return false;
+      }
       if (!apiKeyHasScope(scopes, scopeForWorkspaceTool(tool.name))) {
         return false;
       }
@@ -307,7 +312,9 @@ export async function POST(request: NextRequest): Promise<Response> {
       return !integration || integrations.includes(integration);
     });
     const listedTools =
-      intelligenceOn && apiKeyHasScope(scopes, 'intelligence')
+      !isOssDeployment() &&
+      intelligenceOn &&
+      apiKeyHasScope(scopes, 'intelligence')
         ? [...availableWorkspaceTools, ...MCP_INTELLIGENCE_TOOLS]
         : [...availableWorkspaceTools];
     recordMcpLog(startedAt, actorFromAuth(handshake), {
@@ -337,6 +344,9 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     // Knowledge search (FTS) is read-only and org-scoped — separate scope from mailbox.
     if (resolveMcpIntelligenceToolName(name)) {
+      if (isOssDeployment()) {
+        return rpcError(id, -32601, 'Unknown tool.', origin);
+      }
       const intel = await authorizeMcpIntelligence(request);
       const intelActor = actorFromAuth(intel);
 

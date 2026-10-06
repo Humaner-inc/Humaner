@@ -1,57 +1,64 @@
 import 'server-only';
 
+import { randomUUID } from 'node:crypto';
+import {
+  fetchImapTextMessages,
+  listEnvelopeMessageIds,
+  listFlagChanges,
+  listServerUids
+} from '@/services/inbox/imap-folder-pass';
 import {
   MailConnectionStatus,
   MailMessageDirection,
   MailProvider,
   MailThreadFolder,
-  type Prisma
+  Prisma
 } from '@prisma/client';
 import { simpleParser, type AddressObject, type ParsedMail } from 'mailparser';
 
 import { prisma } from '@/lib/db/prisma';
 import {
+  IMAP_BODY_TOO_LARGE_TEXT,
+  type ImapAttachmentMeta
+} from '@/lib/inbox/imap-body-parts';
+import {
+  imapFallbackMessageId,
+  imapFolderUidPrefix,
+  isLegacyUidFallback
+} from '@/lib/inbox/imap-fallback-id';
+import {
+  tryImapMailboxLock,
+  withImapMailboxLock
+} from '@/lib/inbox/imap-mailbox-lock';
+import {
+  bootstrapSequencePages,
+  expungedUids,
+  IMAP_FETCH_PAGE,
+  imapScopedThreadId,
+  readModseq
+} from '@/lib/inbox/imap-sync-plan';
+import {
   loadBlockedSenderSet,
   mailFolderPresenceRank,
   preferMailFolderState
 } from '@/lib/inbox/mail-thread-folder';
-import {
-  storeInboundMailAttachments,
-  type InboundAttachmentInput
-} from '@/lib/inbox/persist-mail-attachments';
 import { resolveStoredMailBodies } from '@/lib/inbox/sanitize-mail-html';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 
-/**
- * IMAP sync (poll) + shared helpers for the IMAP IDLE worker.
- *
- * Incremental: per-folder UIDVALIDITY + last UID in `MailboxConnection.syncCursor`
- * so repeat polls only download new messages (not the last 100 again).
- *
- * Near-realtime path: `pnpm imap:idle` → `services/inbox/imap-idle-worker.ts`
- * (requires `IMAP_IDLE_ENABLED=true` on a long-lived host — not Vercel).
- *
- * Fallback: `/api/cron/sync-imap-mailboxes` + manual Sync remain catch-up.
- *
- * Env for IDLE worker:
- * - `IMAP_IDLE_ENABLED=true`
- * - `IMAP_IDLE_MAX_CONNECTIONS` (default 50)
- * - `IMAP_IDLE_RECONNECT_MS` (default 5000)
- * - `IMAP_IDLE_ROSTER_REFRESH_MS` (default 60000)
- */
-
+// incremental imap sync by uid, condstore, and text parts
 const CONNECTIONS_PER_RUN = 10;
-/** Bootstrap / UIDVALIDITY reset: last N messages per folder. */
+// first sync floor, validity reset pages back to the stored count
 const MESSAGES_PER_CONNECTION = 100;
-/** How many IMAP mailboxes to sync in parallel within one cron/manual run. */
+// mailboxes synced at once in one cron run
 const IMAP_SYNC_CONCURRENCY = 3;
-const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
 
 type ImapFolderCursor = {
   uidValidity: number;
   lastUid: number;
+  // condstore highestmodseq when the server sends one
+  highestModseq?: string;
 };
 
 type MailboxSyncCursor = {
@@ -125,7 +132,12 @@ type ParsedSyncMessage = {
   archivedAt: Date | null;
   trashedAt: Date | null;
   isUnread: boolean;
-  attachments: InboundAttachmentInput[];
+  imapAttachments: ImapAttachmentMeta[];
+  imapUid: number;
+  imapFolderPath: string;
+  bodyOmitted: boolean;
+  // unscoped root id, used once to adopt an older thread
+  legacyProviderThreadId: string;
 };
 
 type ImapSyncFolder = {
@@ -139,6 +151,7 @@ export type ImapSyncResult = {
   connections: number;
   messages: number;
   errors: number;
+  skipped: number;
 };
 
 export function isImapAuthError(error: unknown): boolean {
@@ -223,7 +236,7 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Rewrite cid: images to data URIs so logos/embeds survive sanitize + iframe. */
+// rewrite cid images to data uris
 function inlineCidImages(html: string, mail: ParsedMail): string {
   const attachments = mail.attachments ?? [];
   if (attachments.length === 0) return html;
@@ -252,30 +265,6 @@ function inlineCidImages(html: string, mail: ParsedMail): string {
   return next;
 }
 
-/** Downloadable attachments only — inline cid: images are embedded in bodyHtml. */
-function nonInlineAttachments(mail: ParsedMail): InboundAttachmentInput[] {
-  const result: InboundAttachmentInput[] = [];
-  for (const attachment of mail.attachments ?? []) {
-    if (!attachment.content?.length) continue;
-    const mime =
-      attachment.contentType?.split(';')[0]?.trim() ||
-      'application/octet-stream';
-    const disposition = (attachment.contentDisposition ?? '').toLowerCase();
-    // `related` = referenced by a cid in the HTML (already inlined). Inline
-    // images without an explicit disposition are also treated as embedded.
-    const isEmbeddedImage =
-      mime.startsWith('image/') &&
-      (attachment.related === true || disposition === 'inline');
-    if (isEmbeddedImage) continue;
-    result.push({
-      filename: attachment.filename || 'attachment',
-      mediaType: mime,
-      content: attachment.content
-    });
-  }
-  return result;
-}
-
 function threadIdForMail(mail: ParsedMail, fallback: string): string {
   const references = Array.isArray(mail.references)
     ? mail.references
@@ -291,7 +280,13 @@ function parseForSync(
   connection: SyncableConnection,
   fallbackId: string,
   folderMeta: Omit<ImapSyncFolder, 'path'>,
-  flags: string[] | undefined
+  flags: string[] | undefined,
+  imap: {
+    folderPath: string;
+    uid: number;
+    bodyOmitted: boolean;
+    imapAttachments: ImapAttachmentMeta[];
+  }
 ): ParsedSyncMessage | null {
   const toAddresses = addressObjectValues(mail.to);
   const ccAddresses = addressObjectValues(mail.cc);
@@ -322,16 +317,23 @@ function parseForSync(
 
   const rawHtml =
     typeof mail.html === 'string' && mail.html.trim() ? mail.html : null;
-  const bodies = resolveStoredMailBodies({
-    html: rawHtml ? inlineCidImages(rawHtml, mail) : null,
-    text: mail.text ?? null
-  });
+  const bodies = imap.bodyOmitted
+    ? { bodyText: IMAP_BODY_TOO_LARGE_TEXT, bodyHtml: null }
+    : resolveStoredMailBodies({
+        html: rawHtml ? inlineCidImages(rawHtml, mail) : null,
+        text: mail.text ?? null
+      });
 
   const seen = (flags ?? []).some((flag) => flag.toLowerCase() === '\\seen');
+  const legacyProviderThreadId = threadIdForMail(mail, fallbackId);
 
   return {
     aliasId: alias.id,
-    providerThreadId: threadIdForMail(mail, fallbackId),
+    providerThreadId: imapScopedThreadId(
+      imap.folderPath,
+      legacyProviderThreadId
+    ),
+    legacyProviderThreadId,
     providerMessageId,
     direction: aliasAddresses.has(fromAddress)
       ? MailMessageDirection.OUTBOUND
@@ -347,7 +349,10 @@ function parseForSync(
     archivedAt: folderMeta.archivedAt,
     trashedAt: folderMeta.trashedAt,
     isUnread: !seen,
-    attachments: nonInlineAttachments(mail)
+    imapAttachments: imap.imapAttachments,
+    imapUid: imap.uid,
+    imapFolderPath: imap.folderPath,
+    bodyOmitted: imap.bodyOmitted
   };
 }
 
@@ -359,165 +364,242 @@ async function persistMessages(
   const blocked = await loadBlockedSenderSet(connection.organizationId);
 
   for (const message of messages) {
-    const persisted = await prisma.$transaction(async (tx) => {
-      let importedInboundThreadId: string | null = null;
-      let createdMessage: { id: string; threadId: string } | null = null;
-      const isInbound = message.direction === MailMessageDirection.INBOUND;
+    let persisted: {
+      createdMessage: { id: string; threadId: string } | null;
+      importedInboundThreadId: string | null;
+    };
+    try {
+      persisted = await prisma.$transaction(async (tx) => {
+        let importedInboundThreadId: string | null = null;
+        let createdMessage: { id: string; threadId: string } | null = null;
+        const isInbound = message.direction === MailMessageDirection.INBOUND;
 
-      let folder = message.folder;
-      const archivedAt = message.archivedAt;
-      const trashedAt = message.trashedAt;
-      if (
-        isInbound &&
-        folder === MailThreadFolder.INBOX &&
-        !archivedAt &&
-        blocked.has(normalizeAddress(message.fromAddress))
-      ) {
-        folder = MailThreadFolder.SPAM;
-      }
-
-      // Upsert must not rewind lastMessageAt or re-flag read threads as unread
-      // when IMAP re-delivers older messages after a reply.
-      // Folder: never let a weaker folder (e.g. Trash) overwrite Inbox when the
-      // same thread was also seen in INBOX this run (Gmail-IMAP label folders).
-      const thread = await tx.mailThread.upsert({
-        where: {
-          aliasId_providerThreadId: {
-            aliasId: message.aliasId,
-            providerThreadId: message.providerThreadId
-          }
-        },
-        create: {
-          organizationId: connection.organizationId,
-          aliasId: message.aliasId,
-          providerThreadId: message.providerThreadId,
-          subject: message.subject,
-          lastMessageAt: message.sentAt,
-          isUnread: isInbound ? message.isUnread : false,
-          folder,
-          archivedAt,
-          trashedAt
-        },
-        update: {
-          subject: message.subject
-        },
-        select: {
-          id: true,
-          lastMessageAt: true,
-          folder: true,
-          archivedAt: true,
-          trashedAt: true
-        }
-      });
-
-      const preferred = preferMailFolderState(
-        {
-          folder: thread.folder,
-          archivedAt: thread.archivedAt,
-          trashedAt: thread.trashedAt
-        },
-        { folder, archivedAt, trashedAt }
-      );
-
-      const existing = await tx.mailMessage.findUnique({
-        where: {
-          threadId_providerMessageId: {
-            threadId: thread.id,
-            providerMessageId: message.providerMessageId
-          }
-        },
-        select: { id: true, bodyHtml: true, bodyText: true }
-      });
-
-      if (!existing) {
-        const created = await tx.mailMessage.create({
-          data: {
-            threadId: thread.id,
-            providerMessageId: message.providerMessageId,
-            direction: message.direction,
-            fromAddress: message.fromAddress,
-            toAddresses: message.toAddresses,
-            ccAddresses: message.ccAddresses,
-            bodyText: message.bodyText,
-            bodyHtml: message.bodyHtml,
-            sentAt: message.sentAt
-          },
-          select: { id: true }
-        });
-        createdMessage = { id: created.id, threadId: thread.id };
-        if (isInbound) {
-          importedInboundThreadId = thread.id;
-        }
-
-        const newerThanThread = message.sentAt > thread.lastMessageAt;
-        await tx.mailThread.update({
-          where: { id: thread.id },
-          data: {
-            ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
-            folder: preferred.folder,
-            archivedAt: preferred.archivedAt,
-            trashedAt: preferred.trashedAt,
-            isUnread: isInbound ? message.isUnread : false
-          }
-        });
-      } else {
-        // Refresh bodies when re-fetched so sanitizer/layout improvements apply
-        // to already-imported messages (idempotent; no unread side effects).
+        let folder = message.folder;
+        const archivedAt = message.archivedAt;
+        const trashedAt = message.trashedAt;
         if (
-          existing.bodyHtml !== message.bodyHtml ||
-          existing.bodyText !== message.bodyText
+          isInbound &&
+          folder === MailThreadFolder.INBOX &&
+          !archivedAt &&
+          blocked.has(normalizeAddress(message.fromAddress))
         ) {
-          await tx.mailMessage.update({
-            where: { id: existing.id },
-            data: {
-              bodyText: message.bodyText,
-              bodyHtml: message.bodyHtml
+          folder = MailThreadFolder.SPAM;
+        }
+
+        if (
+          message.legacyProviderThreadId &&
+          message.legacyProviderThreadId !== message.providerThreadId
+        ) {
+          const legacy = await tx.mailThread.findUnique({
+            where: {
+              aliasId_providerThreadId: {
+                aliasId: message.aliasId,
+                providerThreadId: message.legacyProviderThreadId
+              }
+            },
+            select: {
+              id: true,
+              folder: true,
+              archivedAt: true,
+              trashedAt: true
             }
           });
+          if (
+            legacy &&
+            legacy.folder === folder &&
+            (legacy.archivedAt != null) === (archivedAt != null) &&
+            (legacy.trashedAt != null) === (trashedAt != null)
+          ) {
+            await tx.mailThread.update({
+              where: { id: legacy.id },
+              data: { providerThreadId: message.providerThreadId }
+            });
+          }
         }
 
-        const folderChanged =
-          preferred.folder !== thread.folder ||
-          (preferred.archivedAt?.getTime() ?? null) !==
-            (thread.archivedAt?.getTime() ?? null) ||
-          (preferred.trashedAt?.getTime() ?? null) !==
-            (thread.trashedAt?.getTime() ?? null);
-        const newerThanThread = message.sentAt > thread.lastMessageAt;
+        const thread = await tx.mailThread.upsert({
+          where: {
+            aliasId_providerThreadId: {
+              aliasId: message.aliasId,
+              providerThreadId: message.providerThreadId
+            }
+          },
+          create: {
+            organizationId: connection.organizationId,
+            aliasId: message.aliasId,
+            providerThreadId: message.providerThreadId,
+            subject: message.subject,
+            lastMessageAt: message.sentAt,
+            isUnread: isInbound ? message.isUnread : false,
+            folder,
+            archivedAt,
+            trashedAt
+          },
+          update: {
+            subject: message.subject
+          },
+          select: {
+            id: true,
+            lastMessageAt: true,
+            folder: true,
+            archivedAt: true,
+            trashedAt: true
+          }
+        });
 
-        if (folderChanged || newerThanThread) {
+        const preferred = preferMailFolderState(
+          {
+            folder: thread.folder,
+            archivedAt: thread.archivedAt,
+            trashedAt: thread.trashedAt
+          },
+          { folder, archivedAt, trashedAt }
+        );
+
+        const existing = await tx.mailMessage.findUnique({
+          where: {
+            threadId_providerMessageId: {
+              threadId: thread.id,
+              providerMessageId: message.providerMessageId
+            }
+          },
+          select: {
+            id: true,
+            bodyHtml: true,
+            bodyText: true,
+            bodyOmitted: true
+          }
+        });
+
+        const messageIdentity = {
+          imapUid: message.imapUid,
+          imapFolderPath: message.imapFolderPath,
+          bodyOmitted: message.bodyOmitted
+        };
+
+        if (!existing) {
+          const created = await tx.mailMessage.create({
+            data: {
+              threadId: thread.id,
+              providerMessageId: message.providerMessageId,
+              direction: message.direction,
+              fromAddress: message.fromAddress,
+              toAddresses: message.toAddresses,
+              ccAddresses: message.ccAddresses,
+              bodyText: message.bodyText,
+              bodyHtml: message.bodyHtml,
+              sentAt: message.sentAt,
+              ...messageIdentity
+            },
+            select: { id: true }
+          });
+          createdMessage = { id: created.id, threadId: thread.id };
+          if (isInbound) {
+            importedInboundThreadId = thread.id;
+          }
+
+          const newerThanThread = message.sentAt > thread.lastMessageAt;
           await tx.mailThread.update({
             where: { id: thread.id },
             data: {
               ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
-              ...(folderChanged
-                ? {
-                    folder: preferred.folder,
-                    archivedAt: preferred.archivedAt,
-                    trashedAt: preferred.trashedAt
-                  }
-                : {})
+              folder: preferred.folder,
+              archivedAt: preferred.archivedAt,
+              trashedAt: preferred.trashedAt,
+              isUnread: isInbound ? message.isUnread : false
             }
           });
+        } else {
+          const keepStoredBody =
+            message.bodyOmitted &&
+            !existing.bodyOmitted &&
+            (existing.bodyText != null || existing.bodyHtml != null);
+          if (!keepStoredBody) {
+            await tx.mailMessage.update({
+              where: { id: existing.id },
+              data: {
+                ...messageIdentity,
+                ...(existing.bodyHtml !== message.bodyHtml ||
+                existing.bodyText !== message.bodyText
+                  ? {
+                      bodyText: message.bodyText,
+                      bodyHtml: message.bodyHtml
+                    }
+                  : {})
+              }
+            });
+          } else {
+            await tx.mailMessage.update({
+              where: { id: existing.id },
+              data: {
+                imapUid: message.imapUid,
+                imapFolderPath: message.imapFolderPath
+              }
+            });
+          }
+
+          const folderChanged =
+            preferred.folder !== thread.folder ||
+            (preferred.archivedAt?.getTime() ?? null) !==
+              (thread.archivedAt?.getTime() ?? null) ||
+            (preferred.trashedAt?.getTime() ?? null) !==
+              (thread.trashedAt?.getTime() ?? null);
+          const newerThanThread = message.sentAt > thread.lastMessageAt;
+
+          if (folderChanged || newerThanThread) {
+            await tx.mailThread.update({
+              where: { id: thread.id },
+              data: {
+                ...(newerThanThread ? { lastMessageAt: message.sentAt } : {}),
+                ...(folderChanged
+                  ? {
+                      folder: preferred.folder,
+                      archivedAt: preferred.archivedAt,
+                      trashedAt: preferred.trashedAt
+                    }
+                  : {})
+              }
+            });
+          }
         }
+
+        const messageId = createdMessage?.id ?? existing?.id;
+        if (messageId && message.imapAttachments.length > 0) {
+          const storedAttachments = await tx.mailMessageAttachment.count({
+            where: { messageId }
+          });
+          if (storedAttachments === 0) {
+            await tx.mailMessageAttachment.createMany({
+              data: message.imapAttachments.map((attachment) => ({
+                id: randomUUID(),
+                messageId,
+                organizationId: connection.organizationId,
+                filename: attachment.filename,
+                mediaType: attachment.mediaType,
+                sizeBytes: attachment.sizeBytes,
+                imapPartId: attachment.part
+              }))
+            });
+            await tx.mailThread.update({
+              where: { id: thread.id },
+              data: { hasAttachments: true }
+            });
+          }
+        }
+        return { createdMessage, importedInboundThreadId };
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        continue;
       }
-      return { createdMessage, importedInboundThreadId };
-    });
-    const createdMessage = persisted.createdMessage;
-    const importedInboundThreadId = persisted.importedInboundThreadId;
-    if (createdMessage && message.attachments.length > 0) {
-      try {
-        await storeInboundMailAttachments({
-          organizationId: connection.organizationId,
-          threadId: createdMessage.threadId,
-          messageId: createdMessage.id,
-          attachments: message.attachments
-        });
-      } catch (error) {
-        console.error('[inbox] IMAP attachment persistence failed', error);
-      }
+      throw error;
     }
+    const importedInboundThreadId = persisted.importedInboundThreadId;
     imported += 1;
-    if (importedInboundThreadId) {
+    if (importedInboundThreadId && !message.bodyOmitted) {
       const { applyCompanionAliasPolicyOnInbound } = await import(
         '@/lib/inbox/mail-assignee'
       );
@@ -543,8 +625,137 @@ async function persistMessages(
   return imported;
 }
 
+async function dropStaleUidMessages(
+  connectionId: string,
+  folderPath: string,
+  folder: MailThreadFolder
+): Promise<void> {
+  await prisma.mailMessage.deleteMany({
+    where: {
+      providerMessageId: {
+        startsWith: imapFolderUidPrefix(connectionId, folderPath)
+      },
+      thread: { alias: { connectionId } }
+    }
+  });
+
+  const legacy = await prisma.mailMessage.findMany({
+    where: {
+      providerMessageId: { startsWith: `${connectionId}:` },
+      thread: { folder, alias: { connectionId } }
+    },
+    select: { id: true, providerMessageId: true }
+  });
+  const legacyIds = legacy
+    .filter((row) => isLegacyUidFallback(row.providerMessageId, connectionId))
+    .map((row) => row.id);
+  if (legacyIds.length > 0) {
+    await prisma.mailMessage.deleteMany({ where: { id: { in: legacyIds } } });
+  }
+
+  await prisma.mailThread.deleteMany({
+    where: {
+      folder,
+      alias: { connectionId },
+      messages: { none: {} },
+      notes: { none: {} }
+    }
+  });
+}
+
+function folderMessageWhere(
+  connectionId: string,
+  syncFolder: ImapSyncFolder
+): Prisma.MailMessageWhereInput {
+  return {
+    thread: { alias: { connectionId } },
+    OR: [
+      { imapFolderPath: syncFolder.path },
+      {
+        imapFolderPath: null,
+        thread: {
+          folder: syncFolder.folder,
+          archivedAt: syncFolder.archivedAt ? { not: null } : null,
+          trashedAt: syncFolder.trashedAt ? { not: null } : null
+        }
+      }
+    ]
+  };
+}
+
+async function deleteEmptyFolderThreads(
+  connectionId: string,
+  folder: MailThreadFolder
+): Promise<void> {
+  await prisma.mailThread.deleteMany({
+    where: {
+      folder,
+      alias: { connectionId },
+      messages: { none: {} },
+      notes: { none: {} }
+    }
+  });
+}
+
+async function applyImapFlagChanges(
+  connectionId: string,
+  folderPath: string,
+  changes: Array<{ uid: number; unread: boolean }>
+): Promise<void> {
+  if (changes.length === 0) return;
+  const unreadByUid = new Map(
+    changes.map((change) => [change.uid, change.unread])
+  );
+  const uids = [...unreadByUid.keys()];
+  const byThread = new Map<string, boolean[]>();
+
+  for (let offset = 0; offset < uids.length; offset += 500) {
+    const slice = uids.slice(offset, offset + 500);
+    const rows = await prisma.mailMessage.findMany({
+      where: {
+        imapFolderPath: folderPath,
+        imapUid: { in: slice },
+        thread: { alias: { connectionId } }
+      },
+      select: { imapUid: true, threadId: true, direction: true }
+    });
+    for (const row of rows) {
+      if (row.imapUid == null) continue;
+      if (row.direction !== MailMessageDirection.INBOUND) continue;
+      const unread = unreadByUid.get(row.imapUid);
+      if (unread == null) continue;
+      const list = byThread.get(row.threadId) ?? [];
+      list.push(unread);
+      byThread.set(row.threadId, list);
+    }
+  }
+
+  for (const [threadId, flags] of byThread) {
+    await prisma.mailThread.update({
+      where: { id: threadId },
+      data: { isUnread: flags.some(Boolean) }
+    });
+  }
+}
+
 export async function syncImapConnection(
-  connectionId: string
+  connectionId: string,
+  options?: {
+    client?: import('imapflow').ImapFlow;
+    // user actions wait, cron and idle try once
+    lock?: 'try' | 'wait';
+  }
+): Promise<number | null> {
+  const run = () => syncImapConnectionUnlocked(connectionId, options?.client);
+  if (options?.lock === 'wait') {
+    return withImapMailboxLock(connectionId, run);
+  }
+  return tryImapMailboxLock(connectionId, run);
+}
+
+async function syncImapConnectionUnlocked(
+  connectionId: string,
+  borrowedClient?: import('imapflow').ImapFlow
 ): Promise<number> {
   const connection = await prisma.mailboxConnection.findFirst({
     where: {
@@ -557,46 +768,55 @@ export async function syncImapConnection(
 
   if (!connection || connection.aliases.length === 0) return 0;
 
-  const imapHost = decryptSensitiveField(connection.imapHost);
-  const imapUser = decryptSensitiveField(connection.imapUser);
-  const imapPassword = decryptSensitiveField(connection.imapPassword);
-  const smtpHost = decryptSensitiveField(connection.smtpHost);
+  const ownsClient = borrowedClient == null;
+  let client = borrowedClient;
 
-  if (
-    !imapHost ||
-    !imapUser ||
-    !imapPassword ||
-    !connection.imapPort ||
-    !smtpHost ||
-    !connection.smtpPort
-  ) {
+  if (!client) {
+    const imapHost = decryptSensitiveField(connection.imapHost);
+    const imapUser = decryptSensitiveField(connection.imapUser);
+    const imapPassword = decryptSensitiveField(connection.imapPassword);
+    const smtpHost = decryptSensitiveField(connection.smtpHost);
+
+    if (
+      !imapHost ||
+      !imapUser ||
+      !imapPassword ||
+      !connection.imapPort ||
+      !smtpHost ||
+      !connection.smtpPort
+    ) {
+      throw new Error('Mailbox connection is missing encrypted IMAP settings.');
+    }
+
+    const validatedHosts = await validateMailEndpoints({
+      imapHost,
+      imapPort: connection.imapPort,
+      smtpHost,
+      smtpPort: connection.smtpPort
+    });
+    const { ImapFlow } = await import('imapflow');
+    client = new ImapFlow({
+      host: validatedHosts.imap.address,
+      servername: validatedHosts.imap.hostname,
+      port: connection.imapPort,
+      secure: connection.imapTls,
+      auth: { user: imapUser, pass: imapPassword },
+      logger: false,
+      tls: {
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000
+    });
+  }
+
+  if (!client) {
     throw new Error('Mailbox connection is missing encrypted IMAP settings.');
   }
 
-  const validatedHosts = await validateMailEndpoints({
-    imapHost,
-    imapPort: connection.imapPort,
-    smtpHost,
-    smtpPort: connection.smtpPort
-  });
-  const { ImapFlow } = await import('imapflow');
-  const client = new ImapFlow({
-    host: validatedHosts.imap.address,
-    servername: validatedHosts.imap.hostname,
-    port: connection.imapPort,
-    secure: connection.imapTls,
-    auth: { user: imapUser, pass: imapPassword },
-    logger: false,
-    tls: {
-      rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
-    },
-    connectionTimeout: 15_000,
-    greetingTimeout: 15_000
-  });
-
   try {
-    await client.connect();
+    if (ownsClient) await client.connect();
     const mailboxes = await client.list();
     const now = new Date();
     const syncFolders: ImapSyncFolder[] = [];
@@ -649,6 +869,7 @@ export async function syncImapConnection(
     }
 
     const parsedMessages: ParsedSyncMessage[] = [];
+    const validityResets: ImapSyncFolder[] = [];
     const previousCursor = parseSyncCursor(connection.syncCursor);
     const nextFolderCursors: Record<string, ImapFolderCursor> = {
       ...(previousCursor.imapFolders ?? {})
@@ -674,36 +895,150 @@ export async function syncImapConnection(
           prior != null &&
           prior.uidValidity === uidValidity &&
           prior.lastUid > 0;
+        const priorLastUid = canIncremental && prior ? prior.lastUid : null;
+        const validityChanged =
+          uidValidity > 0 && prior != null && prior.uidValidity !== uidValidity;
 
-        // Incremental: only UIDs newer than last sync. Bootstrap: last N by seq.
-        const fetchQuery = canIncremental
-          ? { uid: `${prior.lastUid + 1}:*` }
-          : messageCount > 0
-            ? `${Math.max(1, messageCount - MESSAGES_PER_CONNECTION + 1)}:*`
-            : null;
+        const storedCount = await prisma.mailMessage.count({
+          where: folderMessageWhere(connection.id, syncFolder)
+        });
+        const historyDepth = Math.max(MESSAGES_PER_CONNECTION, storedCount);
 
-        let maxUid = canIncremental ? prior.lastUid : 0;
+        if (validityChanged) {
+          await dropStaleUidMessages(
+            connection.id,
+            syncFolder.path,
+            syncFolder.folder
+          );
+          await prisma.mailMessage.updateMany({
+            where: {
+              imapFolderPath: syncFolder.path,
+              thread: { alias: { connectionId: connection.id } }
+            },
+            data: { imapUid: null }
+          });
+          validityResets.push(syncFolder);
+        }
 
-        if (fetchQuery && messageCount > 0) {
-          for await (const item of client.fetch(fetchQuery, {
-            uid: true,
-            source: true,
-            flags: true
-          })) {
-            if (typeof item.uid === 'number' && item.uid > maxUid) {
-              maxUid = item.uid;
+        let maxUid = priorLastUid ?? 0;
+
+        if (canIncremental) {
+          const serverUids = await listServerUids(client);
+          if (serverUids && (serverUids.length > 0 || messageCount === 0)) {
+            const stored = await prisma.mailMessage.findMany({
+              where: {
+                imapFolderPath: syncFolder.path,
+                imapUid: { not: null },
+                thread: { alias: { connectionId: connection.id } }
+              },
+              select: { imapUid: true }
+            });
+            const gone = expungedUids(
+              stored.flatMap((row) =>
+                row.imapUid == null ? [] : [row.imapUid]
+              ),
+              new Set(serverUids)
+            );
+            for (let offset = 0; offset < gone.length; offset += 500) {
+              const slice = gone.slice(offset, offset + 500);
+              await prisma.mailMessage.deleteMany({
+                where: {
+                  imapFolderPath: syncFolder.path,
+                  imapUid: { in: slice },
+                  thread: { alias: { connectionId: connection.id } }
+                }
+              });
             }
-            // UID ranges can include the prior lastUid on some servers — skip it.
-            if (
-              canIncremental &&
-              typeof item.uid === 'number' &&
-              item.uid <= prior.lastUid
-            ) {
-              continue;
+            if (gone.length > 0) {
+              await deleteEmptyFolderThreads(connection.id, syncFolder.folder);
             }
-            if (!item.source || item.source.length > MAX_SOURCE_BYTES) continue;
+          }
 
-            const fallbackId = `${connection.id}:${item.uid ?? item.seq}`;
+          const missingUids = await prisma.mailMessage.count({
+            where: {
+              ...folderMessageWhere(connection.id, syncFolder),
+              imapUid: null
+            }
+          });
+          if (missingUids > 0 && messageCount > 0) {
+            const pages = bootstrapSequencePages(
+              messageCount,
+              Math.max(historyDepth, missingUids),
+              IMAP_FETCH_PAGE
+            );
+            for (const page of pages) {
+              const envelopes = await listEnvelopeMessageIds(client, page);
+              for (const row of envelopes) {
+                const messageId = row.messageId
+                  ? normalizeMessageId(row.messageId)
+                  : '';
+                if (!messageId) continue;
+                await prisma.mailMessage.updateMany({
+                  where: {
+                    providerMessageId: messageId,
+                    imapUid: null,
+                    ...folderMessageWhere(connection.id, syncFolder)
+                  },
+                  data: {
+                    imapUid: row.uid,
+                    imapFolderPath: syncFolder.path
+                  }
+                });
+              }
+            }
+          }
+
+          const modseq = readModseq(prior?.highestModseq);
+          const mailboxModseq = (mailbox as { highestModseq?: bigint | null })
+            .highestModseq;
+          const flagChanges =
+            modseq != null && mailboxModseq != null
+              ? await listFlagChanges(client, modseq)
+              : await listFlagChanges(client);
+          await applyImapFlagChanges(
+            connection.id,
+            syncFolder.path,
+            flagChanges
+          );
+        }
+
+        const ranges: Array<{
+          range: string;
+          uid: boolean;
+          skipUidAtOrBelow?: number;
+        }> =
+          priorLastUid != null
+            ? [
+                {
+                  range: `${priorLastUid + 1}:*`,
+                  uid: true,
+                  skipUidAtOrBelow: priorLastUid
+                }
+              ]
+            : bootstrapSequencePages(
+                messageCount,
+                historyDepth,
+                IMAP_FETCH_PAGE
+              ).map((range) => ({ range, uid: false }));
+
+        for (const entry of ranges) {
+          if (!canIncremental && messageCount === 0) continue;
+          const fetched = await fetchImapTextMessages(client, entry.range, {
+            uid: entry.uid,
+            skipUidAtOrBelow: entry.skipUidAtOrBelow
+          });
+          if (fetched.maxUid > maxUid) maxUid = fetched.maxUid;
+
+          for (const item of fetched.messages) {
+            const fallbackId =
+              uidValidity > 0
+                ? imapFallbackMessageId(
+                    connection.id,
+                    syncFolder.path,
+                    uidValidity,
+                    item.uid
+                  )
+                : `${connection.id}:${item.uid}`;
             const parsed = parseForSync(
               await simpleParser(item.source),
               connection,
@@ -713,18 +1048,29 @@ export async function syncImapConnection(
                 archivedAt: syncFolder.archivedAt,
                 trashedAt: syncFolder.trashedAt
               },
-              item.flags ? [...item.flags] : undefined
+              item.flags,
+              {
+                folderPath: syncFolder.path,
+                uid: item.uid,
+                bodyOmitted: item.bodyOmitted,
+                imapAttachments: item.attachments
+              }
             );
             if (parsed) parsedMessages.push(parsed);
           }
         }
 
         if (uidValidity > 0) {
-          // On empty incremental window, keep prior lastUid; on bootstrap with
-          // no mail, store 0 so the next run still uses UIDVALIDITY.
+          const mailboxModseq = (mailbox as { highestModseq?: bigint | null })
+            .highestModseq;
           nextFolderCursors[syncFolder.path] = {
             uidValidity,
-            lastUid: maxUid
+            lastUid: maxUid,
+            ...(mailboxModseq != null
+              ? { highestModseq: mailboxModseq.toString() }
+              : prior?.highestModseq
+                ? { highestModseq: prior.highestModseq }
+                : {})
           };
         }
       } finally {
@@ -732,9 +1078,12 @@ export async function syncImapConnection(
       }
     }
 
-    await client.logout();
-    // Same rank as Gmail: Inbox > Spam > Draft/Sent > Trash > Archive.
-    // Prevents Gmail-IMAP label-folder duplicates from burying inbox mail in Trash.
+    if (ownsClient) {
+      await client.logout();
+    } else {
+      await client.mailboxOpen('INBOX');
+    }
+    // inbox outranks spam, sent, trash, and archive
     const folderRank = (message: ParsedSyncMessage): number =>
       mailFolderPresenceRank({
         folder: message.folder,
@@ -742,7 +1091,7 @@ export async function syncImapConnection(
       });
     const deduped = new Map<string, ParsedSyncMessage>();
     for (const message of parsedMessages) {
-      const key = `${message.aliasId}:${message.providerMessageId}`;
+      const key = `${message.aliasId}:${message.imapFolderPath}:${message.providerMessageId}`;
       const existing = deduped.get(key);
       if (!existing || folderRank(message) >= folderRank(existing)) {
         deduped.set(key, message);
@@ -753,23 +1102,56 @@ export async function syncImapConnection(
     );
     const imported = await persistMessages(connection, uniqueMessages);
 
+    for (const syncFolder of validityResets) {
+      const seen = new Set(
+        uniqueMessages
+          .filter((message) => message.imapFolderPath === syncFolder.path)
+          .map((message) => message.providerMessageId)
+      );
+      const rows = await prisma.mailMessage.findMany({
+        where: folderMessageWhere(connection.id, syncFolder),
+        select: { id: true, providerMessageId: true }
+      });
+      const dropIds = rows
+        .filter((row) => !seen.has(row.providerMessageId))
+        .map((row) => row.id);
+      for (let offset = 0; offset < dropIds.length; offset += 500) {
+        await prisma.mailMessage.deleteMany({
+          where: { id: { in: dropIds.slice(offset, offset + 500) } }
+        });
+      }
+      if (dropIds.length > 0) {
+        await deleteEmptyFolderThreads(connection.id, syncFolder.folder);
+      }
+    }
+
+    const previousRecord =
+      connection.syncCursor &&
+      typeof connection.syncCursor === 'object' &&
+      !Array.isArray(connection.syncCursor)
+        ? (connection.syncCursor as Record<string, unknown>)
+        : {};
+
     await prisma.mailboxConnection.update({
       where: { id: connection.id },
       data: {
         lastSyncedAt: new Date(),
         lastError: null,
         syncCursor: {
+          ...previousRecord,
           imapFolders: nextFolderCursors
-        } satisfies MailboxSyncCursor
+        } as Prisma.InputJsonValue
       }
     });
 
     return imported;
   } catch (error) {
-    try {
-      await client.close();
-    } catch {
-      // Ignore cleanup errors.
+    if (ownsClient) {
+      try {
+        await client.close();
+      } catch {
+        // ignore cleanup errors
+      }
     }
 
     const message =
@@ -809,7 +1191,8 @@ export async function syncImapMailboxes(options?: {
   const result: ImapSyncResult = {
     connections: connections.length,
     messages: 0,
-    errors: 0
+    errors: 0,
+    skipped: 0
   };
   const orgsWithMail = new Set<string>();
 
@@ -819,16 +1202,26 @@ export async function syncImapMailboxes(options?: {
     async (connection) => {
       try {
         const imported = await syncImapConnection(connection.id);
+        if (imported == null) {
+          return {
+            organizationId: connection.organizationId,
+            imported: 0,
+            error: false,
+            skipped: true
+          };
+        }
         return {
           organizationId: connection.organizationId,
           imported,
-          error: false
+          error: false,
+          skipped: false
         };
       } catch {
         return {
           organizationId: connection.organizationId,
           imported: 0,
-          error: true
+          error: true,
+          skipped: false
         };
       }
     }
@@ -837,6 +1230,10 @@ export async function syncImapMailboxes(options?: {
   for (const outcome of outcomes) {
     if (outcome.error) {
       result.errors += 1;
+      continue;
+    }
+    if (outcome.skipped) {
+      result.skipped += 1;
       continue;
     }
     result.messages += outcome.imported;

@@ -19,7 +19,7 @@ export const createWorkspaceTask = pageActionClient('tasks')
     await requireOrganizationCapability(
       organizationId,
       'tasks',
-      'Tasks are included on Inbox. Upgrade to create and manage tasks.'
+      'Tasks are included on Frontier. Upgrade to create and manage tasks.'
     );
 
     const agent = await prisma.agent.findFirst({

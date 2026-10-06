@@ -30,7 +30,7 @@ export async function testImapLogin(input: ImapSmtpEndpoints): Promise<void> {
     logger: false,
     tls: {
       rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
+      minVersion: 'TLSv1.3'
     },
     connectionTimeout: 15_000,
     greetingTimeout: 15_000
@@ -61,7 +61,7 @@ export async function testSmtpLogin(input: ImapSmtpEndpoints): Promise<void> {
     tls: {
       servername: input.smtpServername,
       rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
+      minVersion: 'TLSv1.3'
     },
     auth: {
       user: input.smtpUser?.trim() || input.email,

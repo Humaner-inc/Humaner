@@ -21,7 +21,7 @@ export const createTaskFromMailThreadAction = pageActionClientAny(
     await requireOrganizationCapability(
       organizationId,
       'tasks',
-      'Tasks are included on Inbox. Upgrade to create and manage tasks.'
+      'Tasks are included on Frontier. Upgrade to create and manage tasks.'
     );
 
     try {

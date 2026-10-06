@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { addMinutes } from 'date-fns';
 import type { NextAuthConfig } from 'next-auth';
 
@@ -8,9 +9,11 @@ import {
   getSafeAuthCallbackUrl,
   toMfaChallengeRedirect
 } from '@/lib/auth/callback-url';
+import { AuthCookies } from '@/lib/auth/cookies';
 import { symmetricEncrypt } from '@/lib/auth/encryption';
 import { AuthErrorCode } from '@/lib/auth/errors';
 import { markGmailConnectPrompt } from '@/lib/auth/gmail-connect-prompt';
+import { stashOAuthLinkProof } from '@/lib/auth/oauth-link-proof';
 import {
   clearSessionCookies,
   writeSessionCookie
@@ -24,6 +27,21 @@ import {
   IdentityProvider,
   OAuthIdentityProvider
 } from '@/types/identity-provider';
+
+async function signedInUserId(): Promise<string | null> {
+  const sessionToken = (await cookies()).get(AuthCookies.SessionToken)?.value;
+  if (!sessionToken) {
+    return null;
+  }
+  const row = await prisma.session.findUnique({
+    where: { sessionToken },
+    select: { userId: true, expires: true }
+  });
+  if (!row || row.expires.getTime() <= Date.now()) {
+    return null;
+  }
+  return row.userId;
+}
 
 async function isAuthenticatorAppEnabled(userId: string): Promise<boolean> {
   const count = await prisma.authenticatorApp.count({
@@ -122,8 +140,51 @@ export const callbacks = {
       }
     }
 
-    if (user?.id && (await isAuthenticatorAppEnabled(user.id))) {
-      return await redirectToTotp(user.id);
+    const email = (user?.email ?? '').trim().toLowerCase();
+    if (account.providerAccountId && email) {
+      const linked = await prisma.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: account.provider,
+            providerAccountId: account.providerAccountId
+          }
+        },
+        select: { userId: true }
+      });
+      if (linked) {
+        if (await isAuthenticatorAppEnabled(linked.userId)) {
+          return await redirectToTotp(linked.userId);
+        }
+      } else {
+        const existing = await prisma.user.findFirst({
+          where: { email: { equals: email, mode: 'insensitive' } },
+          select: { id: true }
+        });
+        if (existing && (await signedInUserId()) !== existing.id) {
+          try {
+            const proof = await stashOAuthLinkProof({
+              userId: existing.id,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              type: account.type,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+              session_state:
+                typeof account.session_state === 'string'
+                  ? account.session_state
+                  : null
+            });
+            return `${Routes.LinkAccount}?proof=${encodeURIComponent(proof)}`;
+          } catch (error) {
+            console.error(error);
+            return `${Routes.AuthError}?error=${AuthErrorCode.InternalServerError}`;
+          }
+        }
+      }
     }
 
     if (user?.name) {

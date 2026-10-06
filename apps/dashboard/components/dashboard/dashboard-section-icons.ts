@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { CalendarBlank } from '@phosphor-icons/react/dist/ssr/CalendarBlank';
+import { DatedCalendarIcon } from '@humaner/shared/dated-calendar-icon';
 import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
 import { Stack } from '@phosphor-icons/react/dist/ssr/Stack';
 import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
@@ -19,7 +19,7 @@ export const DASHBOARD_SECTION_ICONS: Record<
   DashboardSectionIcon
 > = {
   overview: Globe,
-  calendar: CalendarBlank,
+  calendar: DatedCalendarIcon,
   inbox: Tray,
   workspace: Warehouse,
   utilities: Stack

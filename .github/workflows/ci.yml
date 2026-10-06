@@ -116,8 +116,8 @@ jobs:
             fi
             if printf '%s' "$output" | grep -qiE 'ERR_SOCKET_TIMEOUT|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|FetchError'; then
               if [ "$attempt" -ge "$max" ]; then
-                echo "::warning::npm registry audit timed out after ${max} attempts; skipping this run."
-                exit 0
+                echo "::error::npm registry audit timed out after ${max} attempts."
+                exit 1
               fi
               echo "Audit registry timeout (attempt ${attempt}/${max}); retrying..."
               attempt=$((attempt + 1))

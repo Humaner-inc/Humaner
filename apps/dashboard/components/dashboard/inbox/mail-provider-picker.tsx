@@ -2,7 +2,12 @@
 
 import * as React from 'react';
 import { MailIcon, SearchIcon } from '@humaner/shared/icons';
+import {
+  certificationHoldProviders,
+  mailProviderAwaitingCertification
+} from '@humaner/shared/mail-providers';
 
+import { CertificationHoldNote } from '@/components/dashboard/inbox/certification-hold-note';
 import { BrandLogo } from '@/components/dashboard/integrations/brand-logo';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,17 +52,16 @@ export function MailProviderPicker({
     [connectedProviderIds]
   );
 
-  const { available, upcoming } = React.useMemo(() => {
+  const available = React.useMemo(() => {
     const groups = getMailProvidersGrouped({ featuredOnly: true });
     const availableProviders: MailProviderDefinition[] = [];
-    const upcomingProviders: MailProviderDefinition[] = [];
     for (const group of groups) {
       for (const provider of group.providers) {
+        if (mailProviderAwaitingCertification(provider)) continue;
         if (isConnectable(provider)) availableProviders.push(provider);
-        else upcomingProviders.push(provider);
       }
     }
-    return { available: availableProviders, upcoming: upcomingProviders };
+    return availableProviders;
   }, []);
 
   const matches = React.useCallback(
@@ -87,7 +91,16 @@ export function MailProviderPicker({
     []
   );
 
-  const nothingFound = connected.length === 0 && addable.length === 0;
+  const held = React.useMemo(
+    () =>
+      certificationHoldProviders(MAIL_PROVIDERS).filter(
+        (provider) => !connectedSet.has(provider.id) && matches(provider)
+      ),
+    [connectedSet, matches]
+  );
+
+  const nothingFound =
+    connected.length === 0 && addable.length === 0 && held.length === 0;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -184,26 +197,11 @@ export function MailProviderPicker({
         </div>
       </ScrollArea>
 
-      {upcoming.length > 0 && !normalizedQuery ? (
-        <div className="flex shrink-0 items-center gap-2 border-t px-3 py-2.5 text-muted-foreground">
-          <SectionLabel>Soon</SectionLabel>
-          <div className="flex min-w-0 items-center gap-3 opacity-60 grayscale">
-            {upcoming.map((provider) => (
-              <span
-                key={provider.id}
-                className="inline-flex min-w-0 items-center gap-1.5 text-xs"
-              >
-                <BrandLogo
-                  domain={logoDomainOf(provider)}
-                  fallbackIcon={MailIcon}
-                  size={14}
-                  className="size-3.5"
-                />
-                <span className="truncate">{provider.name}</span>
-              </span>
-            ))}
-          </div>
-        </div>
+      {held.length > 0 ? (
+        <CertificationHoldNote
+          providers={held}
+          className="shrink-0 border-t px-3 py-2.5"
+        />
       ) : null}
     </div>
   );

@@ -13,11 +13,18 @@ import {
   toOAuthSignInRedirect
 } from '@/lib/auth/callback-url';
 import { AuthCookies } from '@/lib/auth/cookies';
+import { isOssDeployment } from '@/lib/deployment-mode';
+import { PreConditionError } from '@/lib/validation/exceptions';
 import { IdentityProvider } from '@/types/identity-provider';
 
 export const continueWithGitHub = actionClient
   .metadata({ actionName: 'continueWithGitHub' })
   .action(async () => {
+    if (isOssDeployment()) {
+      throw new PreConditionError(
+        'GitHub login is not available on Self-Host. Use email or Google.'
+      );
+    }
     const cookieStore = await cookies();
     if (cookieStore.get(AuthCookies.SignUpInvitationId)?.value) {
       await grantAuthAccessUnlock();

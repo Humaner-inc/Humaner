@@ -1,25 +1,17 @@
-import { ShieldCheck } from '@humaner/shared/icons';
+import { cookies } from 'next/headers';
 
-import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
-import { cn } from '@/lib/utils';
+import { MfaRecommendedBannerClient } from '@/components/dashboard/settings/account/security/mfa-recommended-banner-client';
+import { MFA_BANNER_COOKIE } from '@/lib/auth/mfa-banner-dismiss';
 
-export function MfaRecommendedBanner(): React.JSX.Element {
-  return (
-    <div
-      className={cn(
-        'mb-6 flex items-start gap-3 border border-[#f85919]/35 bg-[#f85919]/10 px-4 py-3 font-info text-sm text-foreground',
-        dashboardRadiusClassName
-      )}
-      role="status"
-    >
-      <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#f85919]" />
-      <div>
-        <p>Two-factor authentication is highly recommended</p>
-        <p className="mt-0.5 text-muted-foreground">
-          Workspace owners and platform admins should enable an authenticator
-          app to protect account access.
-        </p>
-      </div>
-    </div>
-  );
+export async function MfaRecommendedBanner({
+  className
+}: {
+  className?: string;
+}): Promise<React.JSX.Element | null> {
+  const store = await cookies();
+  if (store.get(MFA_BANNER_COOKIE)?.value === '1') {
+    return null;
+  }
+
+  return <MfaRecommendedBannerClient className={className} />;
 }

@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
 import {
@@ -49,7 +50,9 @@ export const syncInboxNow = pageActionClient('inbox')
         actorId: session.user.id,
         actorName: session.user.name
       }),
-      syncGmailMailboxes({ organizationId, priority: 'user' })
+      isOssDeployment()
+        ? Promise.resolve({ connections: 0, messages: 0, errors: 0 })
+        : syncGmailMailboxes({ organizationId, priority: 'user' })
     ]);
     const result = {
       connections: imap.connections + gmail.connections,

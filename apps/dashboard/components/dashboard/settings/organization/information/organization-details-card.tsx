@@ -200,82 +200,91 @@ export function OrganizationDetailsCard({
                 </FormItem>
               )}
             />
-            <div className="flex w-full flex-col gap-2">
-              <FormLabel>Workspace ID</FormLabel>
-              <FormDescription>
-                Share with teammates who join the mailbox without an invite.
-              </FormDescription>
-              <div className="flex items-center gap-2">
-                <Input
-                  readOnly
-                  value={details.id}
-                  className="font-mono text-xs"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  aria-label="Copy workspace ID"
-                  onClick={async () => {
-                    await copyToClipboard(details.id);
-                    setCopiedWorkspaceId(true);
-                    toast.success('Workspace ID copied');
-                    window.setTimeout(() => setCopiedWorkspaceId(false), 1500);
-                  }}
-                >
-                  {copiedWorkspaceId ? (
-                    <CheckIcon className="size-4 text-success" />
-                  ) : (
-                    <CopyIcon className="size-4" />
-                  )}
-                </Button>
+            {isOssDeployment() ? null : (
+              <div className="flex w-full flex-col gap-2">
+                <FormLabel>Workspace ID</FormLabel>
+                <FormDescription>
+                  Share with teammates who join the mailbox without an invite.
+                </FormDescription>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={details.id}
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    aria-label="Copy workspace ID"
+                    onClick={async () => {
+                      await copyToClipboard(details.id);
+                      setCopiedWorkspaceId(true);
+                      toast.success('Workspace ID copied');
+                      window.setTimeout(
+                        () => setCopiedWorkspaceId(false),
+                        1500
+                      );
+                    }}
+                  >
+                    {copiedWorkspaceId ? (
+                      <CheckIcon className="size-4 text-success" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-            <FormField
-              control={methods.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem className="flex w-full flex-col">
-                  <FormLabel>
-                    Address
-                    <LegalBang missing={!watchedAddress?.trim()} />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      maxLength={255}
-                      autoComplete="street-address"
-                      disabled={readOnly || methods.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={methods.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem className="flex w-full flex-col">
-                  <FormLabel>
-                    Phone
-                    <LegalBang missing={!watchedPhone?.trim()} />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      maxLength={32}
-                      autoComplete="tel"
-                      disabled={readOnly || methods.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            )}
+            {isOssDeployment() ? null : (
+              <>
+                <FormField
+                  control={methods.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col">
+                      <FormLabel>
+                        Address
+                        <LegalBang missing={!watchedAddress?.trim()} />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          maxLength={255}
+                          autoComplete="street-address"
+                          disabled={readOnly || methods.formState.isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={methods.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col">
+                      <FormLabel>
+                        Phone
+                        <LegalBang missing={!watchedPhone?.trim()} />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          maxLength={32}
+                          autoComplete="tel"
+                          disabled={readOnly || methods.formState.isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <FormField
               control={methods.control}
               name="email"
@@ -318,32 +327,34 @@ export function OrganizationDetailsCard({
                 </FormItem>
               )}
             />
-            <FormField
-              control={methods.control}
-              name="taxId"
-              render={({ field }) => (
-                <FormItem className="flex w-full flex-col">
-                  <FormLabel>
-                    VAT / Tax ID
-                    <LegalBang missing={!watchedTaxId?.trim()} />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      maxLength={64}
-                      autoComplete="off"
-                      placeholder="EE123456789"
-                      disabled={readOnly || methods.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Printed on quotes you issue and used as bill-to details.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isOssDeployment() ? null : (
+              <FormField
+                control={methods.control}
+                name="taxId"
+                render={({ field }) => (
+                  <FormItem className="flex w-full flex-col">
+                    <FormLabel>
+                      VAT / Tax ID
+                      <LegalBang missing={!watchedTaxId?.trim()} />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        maxLength={64}
+                        autoComplete="off"
+                        placeholder="EE123456789"
+                        disabled={readOnly || methods.formState.isSubmitting}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Printed on quotes you issue and used as bill-to details.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={methods.control}
               name="logoUrl"

@@ -15,6 +15,8 @@ import {
   type MailProviderDefinition as SharedMailProvider
 } from '@humaner/shared/mail-providers';
 
+import { isOssDeployment } from '@/lib/deployment-mode';
+
 export type MailProviderCategory = MailConnectKind;
 
 export type MailProviderDefinition = SharedMailProvider & {
@@ -37,7 +39,7 @@ function adaptProvider(provider: SharedMailProvider): MailProviderDefinition {
     category: provider.connect,
     logoDomain: provider.logoDomain ?? 'humaner.io',
     imapAvailable,
-    oauthAvailable: mailProviderOauthAvailable(provider),
+    oauthAvailable: mailProviderOauthAvailable(provider) && !isOssDeployment(),
     unavailableLabel: provider.connect === 'soon' ? 'Soon' : undefined
   };
 }
@@ -73,11 +75,20 @@ export function getMailProvidersGrouped(
   const source = options.featuredOnly
     ? getLandingMailProviders()
     : SHARED_MAIL_PROVIDERS;
-  return getSharedMailProvidersGrouped(source).map((group) => ({
+  const groups = getSharedMailProvidersGrouped(source).map((group) => ({
     category: group.connect,
     label: group.label,
     providers: group.providers.map(adaptProvider)
   }));
+  if (!isOssDeployment()) {
+    return groups;
+  }
+  return groups
+    .map((group) => ({
+      ...group,
+      providers: group.providers.filter((provider) => provider.imapAvailable)
+    }))
+    .filter((group) => group.providers.length > 0);
 }
 
 export type DetectedMailProvider = {

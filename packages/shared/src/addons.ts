@@ -1,7 +1,7 @@
 /**
  * Seat and mailbox add-ons.
  *
- * Inbox includes one seat and one mailbox. Extra Member and Extra Inbox are
+ * Frontier includes one seat and three mailboxes. Extra Member and Extra Inbox are
  * separate Polar products, both seat-based (1 Polar seat = 1 teammate or 1
  * mailbox). Priced the same for every workspace — including Early Access
  * accounts that keep Inbox itself unpaid. Product ids live in

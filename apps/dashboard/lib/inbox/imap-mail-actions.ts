@@ -7,6 +7,8 @@ import {
 import { MailConnectionStatus, MailProvider } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
+import { imapFallbackUid } from '@/lib/inbox/imap-fallback-id';
+import { withImapMailboxLock } from '@/lib/inbox/imap-mailbox-lock';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 
@@ -18,9 +20,6 @@ export type ImapProviderMailAction =
   | 'inbox'
   | 'read'
   | 'unread';
-
-const FALLBACK_UID_RE =
-  /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):(\d+)$/i;
 
 type ImapConnectionCreds = {
   id: string;
@@ -71,9 +70,9 @@ async function collectUidsInMailbox(
   const uidSet = new Set<number>();
 
   for (const providerMessageId of providerMessageIds) {
-    const fallback = FALLBACK_UID_RE.exec(providerMessageId);
-    if (fallback && fallback[1].toLowerCase() === connectionId.toLowerCase()) {
-      uidSet.add(Number(fallback[2]));
+    const fallbackUid = imapFallbackUid(providerMessageId, connectionId);
+    if (fallbackUid != null) {
+      uidSet.add(fallbackUid);
       continue;
     }
 
@@ -134,59 +133,60 @@ async function withImapClient<T>(
     throw new Error('Mailbox connection is missing encrypted IMAP settings.');
   }
 
+  const imapPort = connection.imapPort;
+  const smtpPort = connection.smtpPort;
   const validatedHosts = await validateMailEndpoints({
     imapHost,
-    imapPort: connection.imapPort,
+    imapPort,
     smtpHost,
-    smtpPort: connection.smtpPort
+    smtpPort
   });
 
-  const { ImapFlow } = await import('imapflow');
-  const client = new ImapFlow({
-    host: validatedHosts.imap.address,
-    servername: validatedHosts.imap.hostname,
-    port: connection.imapPort,
-    secure: connection.imapTls,
-    auth: { user: imapUser, pass: imapPassword },
-    logger: false,
-    tls: {
-      rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
-    },
-    connectionTimeout: 15_000,
-    greetingTimeout: 15_000
-  });
+  return withImapMailboxLock(connection.id, async () => {
+    const { ImapFlow } = await import('imapflow');
+    const client = new ImapFlow({
+      host: validatedHosts.imap.address,
+      servername: validatedHosts.imap.hostname,
+      port: imapPort,
+      secure: connection.imapTls,
+      auth: { user: imapUser, pass: imapPassword },
+      logger: false,
+      tls: {
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000
+    });
 
-  try {
-    await client.connect();
-    const result = await run(client);
-    await client.logout();
-    return result;
-  } catch (error) {
     try {
-      await client.close();
-    } catch {
-      // Ignore cleanup errors.
-    }
+      await client.connect();
+      const result = await run(client);
+      await client.logout();
+      return result;
+    } catch (error) {
+      try {
+        await client.close();
+      } catch {
+        // ignore cleanup errors
+      }
 
-    const message =
-      error instanceof Error ? error.message : 'IMAP mailbox action failed';
-    if (isImapAuthError(error)) {
-      await markMailboxNeedsReauth(connection.id, message);
-    } else {
-      await prisma.mailboxConnection.update({
-        where: { id: connection.id },
-        data: { lastError: message.slice(0, 2000) }
-      });
+      const message =
+        error instanceof Error ? error.message : 'IMAP mailbox action failed';
+      if (isImapAuthError(error)) {
+        await markMailboxNeedsReauth(connection.id, message);
+      } else {
+        await prisma.mailboxConnection.update({
+          where: { id: connection.id },
+          data: { lastError: message.slice(0, 2000) }
+        });
+      }
+      throw error;
     }
-    throw error;
-  }
+  });
 }
 
-/**
- * Apply archive / folder / read state on an IMAP mailbox for the given
- * provider message ids (searched across common folders).
- */
+// archive, move, or change flags for these message ids
 export async function applyImapMailAction(input: {
   connection: ImapConnectionCreds;
   providerMessageIds: string[];
@@ -233,7 +233,7 @@ export async function applyImapMailAction(input: {
     }
 
     if (found.length === 0) {
-      // Read/unread is best-effort; folder moves must not soft-succeed locally.
+      // flag changes are best-effort, folder moves still fail the action
       if (input.action === 'read' || input.action === 'unread') {
         return;
       }
@@ -265,7 +265,7 @@ export async function applyImapMailAction(input: {
 
     let destination = paths.get(targetUse) ?? null;
 
-    // Gmail IMAP: archive = move to All Mail (no \Archive). Prefer path names.
+    // gmail archive is all mail, so prefer the path name
     if (!destination && input.action === 'archive') {
       const mailboxes = await client.list();
       const allMail = mailboxes.find(

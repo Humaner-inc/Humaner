@@ -3,24 +3,13 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
-import {
-  NavAgentTree,
-  type SidebarAgent
-} from '@/components/dashboard/nav-agent-tree';
+import type { SidebarAgent } from '@/components/dashboard/nav-agent-tree';
 import type { ConnectorNavItem } from '@/components/dashboard/nav-connectors';
-import { NavDeskTree } from '@/components/dashboard/nav-desk-tree';
-import { NavInboxTree } from '@/components/dashboard/nav-inbox-tree';
-import { NavIntegrationsTree } from '@/components/dashboard/nav-integrations-tree';
-import { NavOrganizationTree } from '@/components/dashboard/nav-organization-tree';
 import { NavSectionSidebar } from '@/components/dashboard/nav-sections';
 import { SidebarMainNavHighlight } from '@/components/dashboard/sidebar-main-nav-highlight';
 import { SidebarNavAccordionProvider } from '@/components/dashboard/sidebar-nav-accordion';
 import { SidebarNavLink } from '@/components/dashboard/sidebar-nav-tree';
-import {
-  SidebarGroup,
-  SidebarSeparator,
-  type SidebarGroupProps
-} from '@/components/ui/sidebar';
+import { SidebarGroup, type SidebarGroupProps } from '@/components/ui/sidebar';
 import { adminNavItems, mainNavItems } from '@/constants/nav-items';
 import { Routes } from '@/constants/routes';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
@@ -50,10 +39,7 @@ export function NavMain({
   profile,
   agents,
   orgTier,
-  frontierBetaEnabled = true,
   inboxUnreadCount = 0,
-  handoffOpenCount = 0,
-  agentDeskOpenCount = 0,
   mailInboxes = [],
   connectors = [],
   ...props
@@ -71,46 +57,25 @@ export function NavMain({
     <SidebarNavAccordionProvider agents={agents}>
       <SidebarMainNavHighlight
         className={cn(
-          'flex flex-col gap-0 px-2 group-data-[collapsible=icon]:px-0',
-          // Self-Host has no section header; clear the corner toggle instead.
-          oss ? 'pt-12 group-data-[collapsible=icon]:pt-3' : 'pt-3'
+          'flex flex-col gap-0 px-2 pt-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pt-3'
         )}
       >
-        {oss ? <NavOrganizationTree /> : null}
-        {!oss ? (
-          <React.Suspense fallback={null}>
-            <NavSectionSidebar
-              orgTier={orgTier}
-              unreadCount={inboxUnreadCount}
-              inboxes={mailInboxes}
-              showMcp={isWorkspaceOwner(profile)}
-              canManageTeam={
-                isWorkspaceOwner(profile) || canAccessPage(profile, 'overview')
-              }
-              canManageProviders={
-                isWorkspaceOwner(profile) || canAccessPage(profile, 'settings')
-              }
-              connectors={connectors}
-            />
-          </React.Suspense>
-        ) : null}
-        {oss && canAccessPage(profile, 'inbox') ? (
-          <NavInboxTree
+        <React.Suspense fallback={null}>
+          <NavSectionSidebar
             orgTier={orgTier}
             unreadCount={inboxUnreadCount}
+            inboxes={mailInboxes}
+            showMcp={isWorkspaceOwner(profile)}
+            canManageTeam={
+              !oss &&
+              (isWorkspaceOwner(profile) || canAccessPage(profile, 'overview'))
+            }
+            canManageProviders={
+              isWorkspaceOwner(profile) || canAccessPage(profile, 'settings')
+            }
+            connectors={oss ? [] : connectors}
           />
-        ) : null}
-        {oss && canAccessPage(profile, 'desk') ? (
-          <NavDeskTree
-            orgTier={orgTier}
-            frontierBetaEnabled={frontierBetaEnabled}
-            handoffOpenCount={handoffOpenCount}
-            agentDeskOpenCount={agentDeskOpenCount}
-          />
-        ) : null}
-        {oss && canAccessPage(profile, 'integrations') ? (
-          <NavIntegrationsTree orgTier={orgTier} />
-        ) : null}
+        </React.Suspense>
         {items.length > 0 ? (
           <SidebarGroup
             {...props}
@@ -137,18 +102,6 @@ export function NavMain({
           </SidebarGroup>
         ) : null}
       </SidebarMainNavHighlight>
-      <div className="px-2 group-data-[collapsible=icon]:px-0">
-        {oss && agents.length > 0 ? (
-          <>
-            <SidebarSeparator className="my-1.5 opacity-50" />
-            <NavAgentTree
-              agents={agents}
-              orgTier={orgTier}
-              frontierBetaEnabled={frontierBetaEnabled}
-            />
-          </>
-        ) : null}
-      </div>
     </SidebarNavAccordionProvider>
   );
 }

@@ -1,12 +1,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { MailProvider } from '@prisma/client';
 import { z } from 'zod';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
+import { stopGmailWatch } from '@/lib/inbox/gmail/watch';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 
 export const deleteMailboxConnection = ownerActionClient
@@ -26,6 +28,7 @@ export const deleteMailboxConnection = ownerActionClient
       select: {
         id: true,
         email: true,
+        provider: true,
         aliases: { select: { id: true, address: true } },
         _count: { select: { aliases: true } }
       }
@@ -33,6 +36,12 @@ export const deleteMailboxConnection = ownerActionClient
 
     if (!connection) {
       throw new NotFoundError('Mailbox connection not found');
+    }
+
+    if (connection.provider === MailProvider.GMAIL) {
+      await stopGmailWatch(connection.id).catch((error) => {
+        console.error('[gmail-watch] stop failed', connection.id, error);
+      });
     }
 
     // Cascades: aliases → threads → messages / notes / tags / members.

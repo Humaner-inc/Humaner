@@ -58,7 +58,7 @@ export function DashboardTopNav({
   const sectionNav = useDashboardSectionOptional();
   const hasSections = (sectionNav?.sections.length ?? 0) > 0;
   const compose = useComposeMailOptional();
-  const canCompose = !oss && compose != null && compose.inboxes.length > 0;
+  const canCompose = compose != null && compose.inboxes.length > 0;
 
   return (
     <header
@@ -91,33 +91,35 @@ export function DashboardTopNav({
             </Button>
           </Hint>
         ) : null}
-        <Hint label="Team">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'relative size-8 shrink-0 rounded-sm hover:bg-sidebar',
-              activeMode === 'team'
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-            onClick={() => toggleDock('team', { teamTab: 'messages' })}
-            aria-pressed={activeMode === 'team'}
-            aria-label={
-              teamUnreadCount > 0
-                ? `Team, ${teamUnreadCount} unread`
-                : 'Team messages'
-            }
-          >
-            <MessageCircleIcon className="size-4" />
-            {teamUnreadCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 font-mono text-[10px] text-white">
-                {teamUnreadCount > 9 ? '9+' : teamUnreadCount}
-              </span>
-            ) : null}
-          </Button>
-        </Hint>
+        {oss ? null : (
+          <Hint label="Team">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'relative size-8 shrink-0 rounded-sm hover:bg-sidebar',
+                activeMode === 'team'
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => toggleDock('team', { teamTab: 'messages' })}
+              aria-pressed={activeMode === 'team'}
+              aria-label={
+                teamUnreadCount > 0
+                  ? `Team, ${teamUnreadCount} unread`
+                  : 'Team messages'
+              }
+            >
+              <MessageCircleIcon className="size-4" />
+              {teamUnreadCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 font-mono text-[10px] text-white">
+                  {teamUnreadCount > 9 ? '9+' : teamUnreadCount}
+                </span>
+              ) : null}
+            </Button>
+          </Hint>
+        )}
         <Hint label={mailLabel}>
           <Button
             type="button"

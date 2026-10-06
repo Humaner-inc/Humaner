@@ -26,6 +26,7 @@ import { DockNotificationsProvider } from '@/components/dashboard/dock/dock-noti
 import { ComposeMailProvider } from '@/components/dashboard/inbox/compose-mail-context';
 import { InboxConnectPromptGate } from '@/components/dashboard/inbox/inbox-connect-prompt-gate';
 import { OrgRealtimeBridge } from '@/components/dashboard/org-realtime-bridge';
+import { MfaRecommendedBanner } from '@/components/dashboard/settings/account/security/mfa-required-banner';
 import { WorkspaceBillingAccessProvider } from '@/components/dashboard/workspace-billing-access-context';
 import { WorkspaceReadOnlyGate } from '@/components/dashboard/workspace-read-only-gate';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -49,6 +50,7 @@ import { getWorkspaceSwitcherData } from '@/data/workspaces/get-workspace-switch
 import { OrgModeProvider } from '@/hooks/use-org-mode';
 import { COMPANION_STARTER_TOPICS } from '@/lib/ask-humaner/companion-starter-topics';
 import { dedupedAuth } from '@/lib/auth';
+import { shouldRecommendMfa } from '@/lib/auth/recommend-mfa';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import {
   canAccessPageKey,
@@ -78,9 +80,14 @@ export async function DashboardSessionShell({
       completedOnboarding: true,
       inboxConnectPromptPending: true,
       frontierBetaEnabled: true,
-      workspaceRole: true,
       role: true,
-      allowedPages: true,
+      organizationMemberships: {
+        select: {
+          organizationId: true,
+          workspaceRole: true,
+          allowedPages: true
+        }
+      },
       viralBetaExpiresAt: true,
       tier: true,
       billingModel: true,
@@ -104,6 +111,13 @@ export async function DashboardSessionShell({
   });
 
   const oss = isOssDeployment();
+  const liveMembership =
+    userFromDb?.organizationMemberships.find(
+      (row) => row.organizationId === session.user.organizationId
+    ) ?? null;
+  const liveWorkspaceRole =
+    liveMembership?.workspaceRole ?? WorkspaceRole.TEAMMATE;
+  const liveAllowedPages = liveMembership?.allowedPages ?? [];
 
   if (!checkSession(session)) {
     if (!oss && !userFromDb?.completedOnboarding) {
@@ -114,7 +128,7 @@ export async function DashboardSessionShell({
 
   // Cloud: owners finish the paid wizard; teammates finish member onboarding.
   // Self-Host has no onboarding export — mark flags complete and continue.
-  const isWorkspaceOwner = userFromDb!.workspaceRole === WorkspaceRole.OWNER;
+  const isWorkspaceOwner = liveWorkspaceRole === WorkspaceRole.OWNER;
   if (
     !userFromDb!.completedOnboarding ||
     (isWorkspaceOwner && !userFromDb!.organization!.completedOnboarding)
@@ -143,16 +157,16 @@ export async function DashboardSessionShell({
   const canDesk = canAccessPageKey(
     {
       role: userFromDb!.role,
-      workspaceRole: userFromDb!.workspaceRole,
-      allowedPages: userFromDb!.allowedPages
+      workspaceRole: liveWorkspaceRole,
+      allowedPages: liveAllowedPages
     },
     'desk'
   );
   const canInbox = canAccessPageKey(
     {
       role: userFromDb!.role,
-      workspaceRole: userFromDb!.workspaceRole,
-      allowedPages: userFromDb!.allowedPages
+      workspaceRole: liveWorkspaceRole,
+      allowedPages: liveAllowedPages
     },
     'inbox'
   );
@@ -185,7 +199,8 @@ export async function DashboardSessionShell({
     taskProposals,
     mcpIntelligenceEnabled,
     companionRights,
-    connectors
+    connectors,
+    showMfaRecommendation
   ] = await Promise.all([
     getProfile(),
     getAgents(),
@@ -193,11 +208,11 @@ export async function DashboardSessionShell({
     oss ? Promise.resolve(emptyMessageUsage) : getSidebarMessageUsage(),
     billingAccessPromise,
     notificationsPromise,
-    oss || !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
+    !canInbox ? Promise.resolve(0) : getMailUnreadCount(),
     canDesk
       ? getHandoffOpenCounts()
       : Promise.resolve({ humanOpen: 0, agentOpen: 0 }),
-    oss || !canInbox ? Promise.resolve([]) : getMailInboxes(),
+    !canInbox ? Promise.resolve([]) : getMailInboxes(),
     oss || !canInbox
       ? Promise.resolve({ notes: [], messages: [] })
       : getTeamWorkspaceFeed(),
@@ -214,7 +229,10 @@ export async function DashboardSessionShell({
           actionSuggestions: true
         })
       : getCompanionWorkspaceRights(),
-    oss || !canInbox ? Promise.resolve([]) : getConnectorSummaries()
+    oss || !canInbox ? Promise.resolve([]) : getConnectorSummaries(),
+    userFromDb
+      ? shouldRecommendMfa(session.user.id, liveWorkspaceRole, userFromDb.role)
+      : Promise.resolve(false)
   ]);
   const {
     items: notifications,
@@ -223,16 +241,15 @@ export async function DashboardSessionShell({
   } = notificationsResult;
 
   const showDataImprovementPrompt =
-    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    liveWorkspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.organization!.dataImprovementConsent === null;
   // Custom gets the integration setup guide after onboarding instead; an inbox
   // dialog on top of it would land before they have an agent talking to us.
-  const inboxPromptEligible = getPlanCapabilities(
-    userFromDb!.organization!.tier
-  ).hostedAgent;
+  const inboxPromptEligible =
+    oss || getPlanCapabilities(userFromDb!.organization!.tier).hostedAgent;
   const creditsGrantedPending =
     isCreditsBillingModel(userFromDb!.organization!.billingModel) &&
-    userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+    liveWorkspaceRole === WorkspaceRole.OWNER &&
     userFromDb!.inboxConnectPromptPending;
   // Launch grants $10; following @usehumaner unlocks the other $10 → $20 total.
   const creditsGrantedUsd = userFromDb!.xFollowCreditGrantedAt
@@ -242,7 +259,7 @@ export async function DashboardSessionShell({
     !showDataImprovementPrompt &&
     (creditsGrantedPending ||
       (inboxPromptEligible &&
-        userFromDb!.workspaceRole === WorkspaceRole.OWNER &&
+        liveWorkspaceRole === WorkspaceRole.OWNER &&
         userFromDb!.inboxConnectPromptPending &&
         getPlanForTier(userFromDb!.organization!.tier).mailboxAliases > 0 &&
         userFromDb!.organization!._count.mailboxConnections === 0));
@@ -322,6 +339,9 @@ export async function DashboardSessionShell({
       {!oss && billingAccess.banner ? (
         <BillingAccessBanner access={billingAccess} />
       ) : null}
+      {showMfaRecommendation ? (
+        <MfaRecommendedBanner className="mx-4 mt-3 mb-0" />
+      ) : null}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <WorkspaceBillingAccessProvider access={billingAccess}>
           <DashboardWorkspaceColumn
@@ -351,13 +371,11 @@ export async function DashboardSessionShell({
             showPrompt={showDataImprovementPrompt}
           />
         ) : null}
-        {!isOssDeployment() ? (
-          <InboxConnectPromptGate
-            showPrompt={showInboxConnectPrompt}
-            variant={creditsGrantedPending ? 'credits' : 'inbox'}
-            creditsUsd={creditsGrantedUsd}
-          />
-        ) : null}
+        <InboxConnectPromptGate
+          showPrompt={showInboxConnectPrompt}
+          variant={oss ? 'inbox' : creditsGrantedPending ? 'credits' : 'inbox'}
+          creditsUsd={creditsGrantedUsd}
+        />
         <SidebarProvider className="h-full min-h-0 flex-col">
           <DashboardDocumentTitle />
           <OrgRealtimeBridge />

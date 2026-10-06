@@ -516,7 +516,7 @@ export function MailComposeBodyEditor({
   );
 
   return (
-    <div className={cn('relative min-h-0 flex-1', className)}>
+    <div className={cn('relative min-h-0 flex-1 overflow-y-auto', className)}>
       <LexicalComposer initialConfig={initialConfig}>
         <EditablePlugin editable={!disabled} />
         <RichTextPlugin
@@ -524,7 +524,7 @@ export function MailComposeBodyEditor({
             <ContentEditable
               aria-label="Message body"
               className={cn(
-                'mail-compose-editor min-h-32 w-full flex-1 resize-none bg-transparent text-sm outline-none',
+                'mail-compose-editor min-h-32 w-full resize-none bg-transparent text-sm outline-none',
                 disabled && 'pointer-events-none opacity-60',
                 contentClassName
               )}

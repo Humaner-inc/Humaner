@@ -44,6 +44,7 @@ import {
 import { Input } from '@/components/ui/input';
 import type { MailTagItem } from '@/data/inbox/get-mail-threads';
 import { getConnectApp } from '@/lib/connect-apps';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
 import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
 import { getSafeActionErrorMessage } from '@/lib/safe-action-error';
@@ -245,8 +246,8 @@ export function MailThreadHeaderMenu({
   const [busy, setBusy] = React.useState(false);
   const [loadingIssues, setLoadingIssues] = React.useState(false);
 
-  const linearOn = integrations.includes('linear');
-  const githubOn = integrations.includes('github');
+  const linearOn = !isOssDeployment() && integrations.includes('linear');
+  const githubOn = !isOssDeployment() && integrations.includes('github');
   const linkedLinear = linearLinks[0] ?? null;
 
   const refreshMenu = React.useCallback(async (): Promise<void> => {

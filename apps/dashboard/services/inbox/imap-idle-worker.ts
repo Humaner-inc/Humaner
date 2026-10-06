@@ -77,8 +77,9 @@ class ImapIdleSession {
   private stopped = false;
   private client: import('imapflow').ImapFlow | null = null;
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
-  private syncInFlight: Promise<void> | null = null;
+  private syncChain: Promise<void> = Promise.resolve();
   private reconnectAttempt = 0;
+  private lockRetries = 0;
 
   constructor(
     private readonly connection: IdleConnectionRow,
@@ -148,20 +149,36 @@ class ImapIdleSession {
     }
   }
 
-  private scheduleSync(reason: string): void {
+  private scheduleSync(
+    reason: string,
+    delayMs = this.config.syncDebounceMs
+  ): void {
     if (this.stopped || this.signal.aborted) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => {
       this.syncTimer = null;
-      this.syncInFlight = this.runSync(reason).finally(() => {
-        this.syncInFlight = null;
-      });
-    }, this.config.syncDebounceMs);
+      this.syncChain = this.syncChain
+        .catch(() => undefined)
+        .then(() => this.runSync(reason));
+    }, delayMs);
   }
 
   private async runSync(reason: string): Promise<void> {
+    const client = this.client;
+    if (!client) return;
     try {
-      const imported = await syncImapConnection(this.connection.id);
+      const imported = await syncImapConnection(this.connection.id, {
+        client,
+        lock: 'try'
+      });
+      if (imported == null) {
+        this.lockRetries += 1;
+        if (this.lockRetries <= 4) {
+          this.scheduleSync('lock-busy', 15_000);
+        }
+        return;
+      }
+      this.lockRetries = 0;
       if (imported > 0) {
         void publishOrgEvent(this.connection.organizationId, {
           type: 'inbox.synced',
@@ -230,8 +247,16 @@ class ImapIdleSession {
     this.client = client;
 
     const closed = new Promise<void>((resolve, reject) => {
-      client.once('close', () => resolve());
-      client.once('error', (error: Error) => reject(error));
+      let settled = false;
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        if (error) reject(error);
+        else resolve();
+      };
+      // keep the error listener for the life of the socket
+      client.on('error', (error: Error) => finish(error));
+      client.once('close', () => finish());
       this.signal.addEventListener(
         'abort',
         () => {
@@ -245,7 +270,7 @@ class ImapIdleSession {
                 // ignore
               }
             } finally {
-              resolve();
+              finish();
             }
           })();
         },
@@ -263,15 +288,13 @@ class ImapIdleSession {
     await client.mailboxOpen('INBOX');
     console.log(`[imap-idle] watching ${this.connection.email}`);
 
-    // Catch-up once on connect (covers mail arrived while offline).
+    // catch up mail that arrived while offline
     this.scheduleSync('connect');
 
     await closed;
     this.client = null;
 
-    if (this.syncInFlight) {
-      await this.syncInFlight.catch(() => undefined);
-    }
+    await this.syncChain.catch(() => undefined);
 
     if (!this.stopped && !this.signal.aborted) {
       throw new Error('IMAP IDLE connection closed');
@@ -304,10 +327,7 @@ async function loadIdleConnections(
   });
 }
 
-/**
- * Long-lived IMAP IDLE supervisor. Not for Vercel serverless — run via
- * `pnpm imap:idle` on a dedicated process (Railway/Fly/VM).
- */
+// long-lived imap idle process, not for serverless
 export async function runImapIdleWorker(
   signal: AbortSignal = new AbortController().signal
 ): Promise<void> {

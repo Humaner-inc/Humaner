@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { extractMailDocument } from '@/lib/inbox/extract-mail-document';
 import {
   mailThreadAccessWhere,
@@ -35,6 +36,11 @@ export const generateWorkspaceDocument = pageActionClient('inbox')
     })
   )
   .action(async ({ parsedInput, ctx: { session } }) => {
+    if (isOssDeployment()) {
+      throw new PreConditionError(
+        'Invoices and quotes are not available on Self-Host.'
+      );
+    }
     const organizationId = session.user.organizationId;
     const kind =
       parsedInput.kind === 'invoice'
@@ -87,7 +93,8 @@ export const generateWorkspaceDocument = pageActionClient('inbox')
         amountCents: true,
         currency: true,
         dueAt: true,
-        issuedAt: true
+        issuedAt: true,
+        payload: true
       }
     });
     if (existing && existing.status !== 'DRAFT') {
@@ -101,7 +108,8 @@ export const generateWorkspaceDocument = pageActionClient('inbox')
         amountCents: existing.amountCents,
         currency: existing.currency,
         dueAt: existing.dueAt?.toISOString() ?? null,
-        issuedAt: existing.issuedAt.toISOString()
+        issuedAt: existing.issuedAt.toISOString(),
+        payload: existing.payload
       };
     }
 
@@ -224,6 +232,7 @@ export const generateWorkspaceDocument = pageActionClient('inbox')
       amountCents: created.amountCents,
       currency: created.currency,
       dueAt: created.dueAt?.toISOString() ?? null,
-      issuedAt: created.issuedAt.toISOString()
+      issuedAt: created.issuedAt.toISOString(),
+      payload: created.payload
     };
   });

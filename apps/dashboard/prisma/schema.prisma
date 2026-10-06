@@ -1331,10 +1331,17 @@ model MailMessage {
   bodyHtml          String?              @db.Text
   sentAt            DateTime
   createdAt         DateTime             @default(now())
+  /// IMAP UID in `imapFolderPath` for the current UIDVALIDITY. Null until linked.
+  imapUid           Int?
+  /// IMAP mailbox path. Message-ID is unique per path, so Inbox and Sent stay separate.
+  imapFolderPath    String?              @db.VarChar(512)
+  /// Text/HTML exceeded the sync cap. The envelope is stored; the body loads on open.
+  bodyOmitted       Boolean              @default(false)
   attachments       MailMessageAttachment[]
 
   @@unique([threadId, providerMessageId], map: "UQ_MailMessage_thread_providerMessage")
   @@index([threadId, sentAt], map: "IX_MailMessage_thread_sentAt")
+  @@index([imapFolderPath, imapUid], map: "IX_MailMessage_imap_folder_uid")
 }
 
 /// Non-inline file attachment on an inbound mail message. Bytes live in object
@@ -1349,8 +1356,10 @@ model MailMessageAttachment {
   filename       String       @db.VarChar(512)
   mediaType      String       @db.VarChar(255)
   sizeBytes      Int
-  /// Object key inside the `mail` storage bucket.
-  storageKey     String       @db.VarChar(1024)
+  /// Object key inside the `mail` storage bucket. Null when the bytes stay on IMAP.
+  storageKey     String?      @db.VarChar(1024)
+  /// BODYSTRUCTURE part id. Set for IMAP attachments fetched when the user downloads.
+  imapPartId     String?      @db.VarChar(255)
   createdAt      DateTime     @default(now())
 
   @@index([messageId], map: "IX_MailMessageAttachment_messageId")

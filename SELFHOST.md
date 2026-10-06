@@ -1,6 +1,6 @@
-# Humaner Self-Host | Customer Support Kit
+# Humaner Self-Host | Mailbox kit
 
-Deploy the Humaner Self-Host support kit: **BYO agent** (your prompt + skills + knowledge), **Helpdesk** (with tickets handoff), and **team / org management**.
+Self-host your own mailbox for your business(es): **IMAP inbox**, **tasks**, **in-app calendar**, **resources** , **API keys**, and even **MCP**. Login is through **email or Google**.
 
 ### 1. Clone and install
 
@@ -40,10 +40,9 @@ AUTH_TRUST_HOST=true
 NEXT_PUBLIC_APP_URL=http://localhost:3001
 ```
 
-`NEXT_PUBLIC_DEPLOYMENT_MODE` is read at **build time** — it selects the Self-Host build (nav, no Polar gates). Changing it later requires a rebuild, not just a restart.
+`NEXT_PUBLIC_DEPLOYMENT_MODE` is read at **build time**, it selects the Self-Host build. (Changing it later requires a rebuild.)
 
-`AUTH_SECRET` signs sessions and the sign-up verification OTP. If it is missing, authentication fails in ways that are hard to diagnose, so set it before first boot and keep it stable — rotating it invalidates every existing session.
-
+`AUTH_SECRET` signs sessions, mailbox credentials, and the sign-up verification OTP. Set it before first boot.
 Set `AUTH_TRUST_HOST=true` when the dashboard runs behind a reverse proxy or in Docker so auth callback URLs resolve to your public origin.
 
 ### 4. Email (SMTP or Resend)
@@ -75,35 +74,19 @@ EMAIL_SERVER_PASS=your-app-specific-password
 
 For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users.
 
-### 5. LLM keys — BYO inference
+### 5. LLM keys.
 
-Agent chat and handoff summarization run on **Claude**. This key is required — without it, `/api/v1/chat` responds `503` and the agent cannot reply:
+Self-Host does not run a hosted agent. Set a Claude key if you use MCP tools that draft mail replies, or your own agent that calls the workspace API:
 
 ```bash
 CLAUDE_API_KEY=sk-ant-...   # ANTHROPIC_API_KEY is accepted as an alias
 ```
 
-OpenAI is a **separate, optional** key. It powers knowledge embeddings and reranking, not chat:
+Resources on Self-Host store files and URLs for **your** agent to embed
 
-```bash
-# OPENAI_API_KEY=sk-...     # semantic knowledge search
-# COHERE_API_KEY=...        # dedicated reranker (rerank-v3.5), otherwise gpt-4o-mini
-```
+### 6. Resources — files for your agent
 
-Without `OPENAI_API_KEY` the agent still answers — knowledge retrieval falls back to keyword-only search, which is less accurate on paraphrased questions.
-
-### 6. Knowledge base — hybrid RAG
-
-Add sources in **Agents → Knowledge** (URLs, PDFs, text). Retrieval uses pgvector hybrid search when `OPENAI_API_KEY` is set, then Postgres keyword search, then markdown files.
-
-You can also drop markdown into `data/knowledge/`:
-
-```bash
-mkdir -p data/knowledge
-npx @humaner/into-markdown https://yoursite.com > data/knowledge/site.md
-```
-
-Answers only come from what it can find there, otherwise agent offers to connect with the team if answers isn't known.
+Add URLs, PDFs, or text in **Resources** then point your own agent at the stored sources>
 
 ### 7. Migrate and start
 
@@ -112,15 +95,13 @@ pnpm --filter @humaner/dashboard exec prisma migrate deploy
 pnpm --filter @humaner/dashboard dev
 ```
 
-Open http://localhost:3001.
-
-Historical migrations may still `ADD` unused Polar billing columns (`Organization.polarCustomerId`, `User.polarCustomerId`). The Self-Host Prisma schema does not declare them, so the generated client ignores those columns if they exist. Do not drop them from a shared Cloud database.
+Open http://localhost:3001. You land on **Inbox**.
 
 ### 8. Sign up and verify
 
-1. Navigate to `/auth/sign-up` → Create your account
+1. Navigate to `/auth/sign-up` → Create your account (**email** or **Google**)
 2. Enter the 6-digit OTP from email (or terminal — see step 4)
-3. You land on Home (Self-Host skips the Cloud onboarding wizard)
+3. Enjoy the Inbox(ing)
 
 **Skip the OTP entirely?** Mark verified in the DB:
 
@@ -132,89 +113,44 @@ WHERE email = 'you@example.com';
 
 Then sign in at `/auth/login`.
 
-### 9. Onboarding
+### 9. Connect a mailbox (IMAP)
 
-1. **Account type** — create a new workspace (owner) or join an existing one (teammate invite)
-2. **Website** — your company URL
-3. **Business** — name, industry, company size (no docs URL crawl)
-4. **Invite team** — skip if solo
-5. **Agent prompt** — required Custom-style system prompt for your agent behavior. Industry skills + hybrid RAG (dashboard sources and `data/knowledge/`) are appended at reply time; they do not replace your prompt.
-6. **Launch** — accept operator responsibilities (GDPR compliance and everything data related is on your own)
+Workspace settings → Inbox. Pick a provider with IMAP (or Custom IMAP) and save credentials.
 
-### 10. Create agent → copy Agent ID
+IMAP credentials are stored encrypted (`AUTH_SECRET`).
 
-After onboarding, go to **Dashboard → Agents → your agent → Integrations**. Copy the public **Agent ID** (`YOUR_AGENT_PUBLIC_ID`). This is the only value you've to paste into embeds.
+### 10. For mail syncing: IMAP IDLE worker
 
-### 11. Allowlist domains
-
-**Widget settings → Allowed domains.** Add the hostname of the site embedding the widget. Leave empty only for allowing all.
-
-### 12. Embed the widget on your site
-
-Only the Agent ID is needed to embed the widget:
-
-**HTML (before `</body>`):**
-
-```html
-<script
-  src="https://yourwebsite.com/widget.js"
-  data-agent="YOUR_AGENT_PUBLIC_ID"
-  data-color="#e0e1df"
-  data-position="bottom-right"
-  async
-></script>
-```
-
-Use `data-agent`, not `data-agent-id`.
-
-**React:**
+Run the idle worker next to the dashboard:
 
 ```bash
-npm install @humaner/react
+pnpm --filter @humaner/dashboard imap:idle
 ```
 
-```tsx
-import { HumanerChat } from "@humaner/react";
+Production (no `.env.local` overlay):
 
-export default function SupportPage() {
-  return (
-    <HumanerChat
-      agentId="YOUR_AGENT_PUBLIC_ID"
-      baseUrl="https://yourwebsite.com"
-      position="bottom-right"
-    />
-  );
-}
+```bash
+pnpm --filter @humaner/dashboard imap:idle:prod
 ```
 
-| Prop                                              | Notes                                          |
-| ------------------------------------------------- | ---------------------------------------------- |
-| `agentId`                                         | Required. Public Agent ID.                     |
-| `baseUrl`                                         | Required for Self-Host. Your dashboard origin. |
-| `position` / `color` / `greeting` / `defaultOpen` | Optional UI props                              |
+Keep this process running. It holds IMAP IDLE on connected mailboxes and pulls new mail as it arrives.
 
-**Hosted link:**
-
-```
-https://yourwebsite.com/widget/YOUR_AGENT_PUBLIC_ID?open=1
-```
-
-### 13. REST API (headless)
+### 11. API keys and MCP
 
 Create an org API key in the dashboard. Keep it server-side.
 
+Workspace REST:
+
 ```bash
-curl -N -X POST https://yourwebsite.com/api/v1/chat \
+curl -X POST https://yourwebsite.com/api/v1/mail \
   -H "Authorization: Bearer <your-api-key>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "YOUR_AGENT_PUBLIC_ID",
-    "message": "Where is my order?",
-    "sessionId": "sess_abc123"
-  }'
+  -d '{ "tool": "list_mail_threads", "unreadOnly": true }'
 ```
 
-Chat streams SSE. On the final event, if `escalate: true`, a Helpdesk ticket is created with the transcript.
+### 12. Extra workspaces
+
+Create additional workspaces from the switcher. There is no team or assignment setup, it's up to you.
 
 ---
 
@@ -223,7 +159,6 @@ Chat streams SSE. On the final event, if `escalate: true`, a Helpdesk ticket is 
 ```bash
 export AUTH_SECRET="$(openssl rand -base64 32)"
 export ANTHROPIC_API_KEY="sk-ant-..."
-export OPENAI_API_KEY="sk-..."
 # Also export EMAIL_* or SELF_HOST_LOG_VERIFICATION=true
 
 docker compose up --build
@@ -231,106 +166,63 @@ docker compose up --build
 
 Compose starts `pgvector/pgvector:pg16` and the dashboard together, and the entrypoint rejects a missing or placeholder `AUTH_SECRET`.
 
-Open http://localhost:3001 → follow steps 8–12.
+Open http://localhost:3001 → follow steps 8–11. Run `imap:idle` in a second process (or add it to your compose file) so mail keeps syncing.
 
 ---
 
-## Responsibility split
-
-| Layer        | Your job                                                     | Dashboard job                                        |
-| ------------ | ------------------------------------------------------------ | ---------------------------------------------------- |
-| Agent prompt | Write the system prompt in onboarding or agent settings      | Wraps it with industry skills, knowledge, and safety |
-| Handoff      | Agent emits `escalate: true` when a human should take over   | Creates Helpdesk ticket with transcript + summary    |
-| Helpdesk     | Staff the queue and reply to tickets                         | Assignment, replies, audit trail                     |
-| Organization | —                                                            | Workspaces, roles, access control                    |
-| Integrations | Point `baseUrl` / `widget.js` at your origin; paste Agent ID | Embed script, SDK, REST contracts                    |
-
 ## What you configure
 
-| Setting              | Where                                                       |
-| -------------------- | ----------------------------------------------------------- |
-| Brand / colors       | `apps/dashboard/brand.config.ts` (Humaner)                  |
-| LLM API key          | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`                     |
-| Email delivery       | `EMAIL_*` in `.env.local`                                   |
-| Agent system prompt  | Onboarding → Agent prompt, or Dashboard → Agent → Persona   |
-| Industry behavior    | Agent onboarding (`@humaner/customer-support-skills`)       |
-| Knowledge            | Dashboard → Agent → Knowledge, and/or `data/knowledge/*.md` |
-| Support email        | Helpdesk settings (async follow-up)                         |
-| Ticket email replies | Helpdesk settings → connect IMAP/SMTP mailbox               |
-| Team                 | Organization → Members / invitations                        |
+| Setting          | Where                                             |
+| ---------------- | ------------------------------------------------- |
+| Brand / colors   | `apps/dashboard/brand.config.ts`                  |
+| LLM API key      | `ANTHROPIC_API_KEY` (optional, for draft helpers) |
+| Email delivery   | `EMAIL_*` in `.env.local`                         |
+| Mailbox          | Workspace settings → Inbox (IMAP/SMTP)            |
+| Mail sync        | `pnpm --filter @humaner/dashboard imap:idle`      |
+| Resources        | Dashboard → Resources                             |
+| API keys / MCP   | Workspace settings                                |
+| Extra workspaces | Workspace switcher                                |
 
-## Handoff and Helpdesk
+## Google OAuth (optional)
 
-When your agent can't resolve an issue, it emits a `HANDOFF` to your helpdesk. Creating a ticket with the full summary for your team.
-
-SSE final event when escalating:
-
-```json
-{
-  "delta": "",
-  "done": true,
-  "escalate": true,
-  "handoff": {
-    "humanDesk": true,
-    "urgency": "high",
-    "conversationSummary": "Customer cannot access account after password reset."
-  }
-}
-```
-
-Headless path: `POST /api/v1/handoff/ticket` with Agent ID + summary + urgency (Bearer API key). Urgency values: `low` | `medium` | `high` | `critical`.
-
-To reply to ticket customers by email from Humaner, connect your mail provider in **Helpdesk → Settings**. IMAP/SMTP credentials are stored encrypted (`AUTH_SECRET`). Self-Host does not include the Cloud Inbox product (shared mailbox UI, IMAP idle sync) — only outbound ticket replies from the connected address.
-
-## Google / GitHub OAuth (optional)
-
-Configure OAuth apps with callback URLs:
+Dashboard login can use Google. Configure an OAuth app with:
 
 ```text
 http://localhost:3001/api/auth/callback/google
-http://localhost:3001/api/auth/callback/github
 ```
 
-Set the corresponding `AUTH_GOOGLE_*` / `AUTH_GITHUB_*` env vars.
+Set `AUTH_GOOGLE_CLIENT_ID` and `AUTH_GOOGLE_CLIENT_SECRET`. GitHub login is Cloud-only.
 
 ## Security checklist
 
-| Check                               | Why                                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| Strong `AUTH_SECRET`                | Docker rejects placeholder secrets; generate with `openssl rand -base64 32`                |
-| Domain allowlist                    | Production rejects empty allowlists (unless `ALLOW_OPEN_WIDGET_ORIGINS=true`)              |
-| Public Agent ID only in the browser | API keys stay on the server                                                                |
-| Org-scoped keys                     | A key only touches one organization's data                                                 |
-| Hashed visitor IDs                  | Identify without sending raw PII as the id                                                 |
-| Trusted reverse proxy               | Rate limits use `X-Forwarded-For` / `X-Real-IP` — strip client-spoofed values at the proxy |
-| No OTP console logging in prod      | Disable `SELF_HOST_LOG_VERIFICATION` once email works                                      |
-| Own the DB                          | Messages and tickets live in your Postgres; set retention as needed                        |
+| Check                          | Why                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| Strong `AUTH_SECRET`           | Docker rejects placeholder secrets; generate with `openssl rand -base64 32`                |
+| Encrypted IMAP credentials     | Mailbox passwords are encrypted with `AUTH_SECRET`                                         |
+| Org-scoped keys                | A key only touches one organization's data                                                 |
+| Trusted reverse proxy          | Rate limits use `X-Forwarded-For` / `X-Real-IP` — strip client-spoofed values at the proxy |
+| No OTP console logging in prod | Disable `SELF_HOST_LOG_VERIFICATION` once email works                                      |
+| Own the DB                     | Mail, tasks, and calendar live in your Postgres                                            |
 
 Report vulnerabilities to dev@humaner.io. Do not file public issues for exploitable findings.
 
 ## Verification checklist
 
 1. DB migrated + email (or console OTP) working
-2. Sign up → verify or create a local user.
-3. Custom agent prompt saved and visible in agent settings
-4. Add your knowledge source (or `data/knowledge/`)
-5. Enable handoff (ask for a human) → ticket in Helpdesk
-6. Widget loads from your origin with agent ID
-7. Invite a teammate → member appears under Organization
+2. Sign up with email or Google
+3. Connect IMAP mailbox in Workspace settings → Inbox
+4. IMAP idle worker running — new mail appears in Inbox
+5. Create a task and an in-app calendar event
+6. Add a resource file
+7. Create an API key and list threads over MCP or `/api/v1/mail`
 
 ## Packages
 
-- [`@humaner/customer-support-skills`](https://github.com/Humaner-inc/customer-support-skills) — industry behavior
-- [`@humaner/into-markdown`](https://github.com/Humaner-inc/into-markdown) — crawl site → `.md`
-- [`@humaner/react`](./packages/react) — widget SDK
+- [`@humaner/react`](./packages/react) — widget SDK (Cloud hosted agent; not used on Self-Host mailbox)
 
 ## Deep links
 
 - [Quickstart](https://docs.humaner.io/oss/quickstart)
-- [Agent brief (Markdown)](https://docs.humaner.io/oss/agent-brief) — copy-paste instructions for an AI coding agent
 - [Self-hosting vs Cloud](https://docs.humaner.io/contributing/open-source-vs-cloud)
-- [Widget](https://docs.humaner.io/oss/widget)
-- [React SDK](https://docs.humaner.io/oss/react)
 - [API (Self-hosting)](https://docs.humaner.io/oss/api)
-- [Helpdesk](https://docs.humaner.io/oss/desk)
 - [API reference](https://docs.humaner.io/reference)

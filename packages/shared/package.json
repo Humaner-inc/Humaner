@@ -7,6 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./plans": "./src/plans.ts",
+    "./billing-access": "./src/billing-access.ts",
+    "./credits": "./src/credits.ts",
     "./llm": "./src/llm.ts",
     "./urls": "./src/urls.ts",
     "./visitor-id": "./src/visitor-id.ts",
@@ -23,6 +25,9 @@
     "./email-brand": "./src/email-brand.ts",
     "./typography": "./src/typography.ts",
     "./product-positioning": "./src/product-positioning.ts",
+    "./mail-providers": "./src/mail-providers.ts",
+    "./mail-provider-detect": "./src/mail-provider-detect.ts",
+    "./addons": "./src/addons.ts",
     "./json-ld": "./src/json-ld.ts",
     "./widget-icons": "./src/widget-icons.tsx",
     "./widget-bookmarks": "./src/widget-bookmarks.ts",

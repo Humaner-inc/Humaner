@@ -17,6 +17,7 @@ import {
   PlusIcon,
   Trash2Icon
 } from '@humaner/shared/icons';
+import { mailProviderAwaitingCertification } from '@humaner/shared/mail-providers';
 import { assignTrustedNavigation } from '@humaner/shared/urls';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -1017,7 +1018,8 @@ export function ConnectImapForm({
                 <DetectedImapProviderBanner
                   detection={detection}
                   onUseGoogle={
-                    detection.kind === 'oauth'
+                    detection.kind === 'oauth' &&
+                    !mailProviderAwaitingCertification(detection.provider)
                       ? () => beginGmailConnect(detection.provider.id)
                       : undefined
                   }

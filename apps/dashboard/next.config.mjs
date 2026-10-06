@@ -1,9 +1,39 @@
+import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import { createSecureHeaders } from 'next-secure-headers';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// postcss source maps live in the pnpm store, which the bundler does not walk
+function sourceMapJsDir() {
+  const store = path.join(__dirname, '../../node_modules/.pnpm');
+  if (!fs.existsSync(store)) {
+    return null;
+  }
+  const folder = fs
+    .readdirSync(store)
+    .find((name) => name.startsWith('postcss@'));
+  if (!folder) {
+    return null;
+  }
+  const pkg = path.join(store, folder, 'node_modules/postcss/package.json');
+  if (!fs.existsSync(pkg)) {
+    return null;
+  }
+  try {
+    const require = createRequire(pkg);
+    return path
+      .dirname(fs.realpathSync(require.resolve('source-map-js')))
+      .replaceAll('\\', '/');
+  } catch {
+    return null;
+  }
+}
+
+const sourceMapJs = sourceMapJsDir();
 
 const bundleAnalyzerConfig = withBundleAnalyzer({
   enabled: process.env.BUNDLE_ANALYZER === 'true'
@@ -48,7 +78,7 @@ const nextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   experimental: {
-    exposeTestingApiInProductionBuild: true,
+    exposeTestingApiInProductionBuild: false,
     optimizePackageImports: [
       'date-fns',
       'recharts',
@@ -78,7 +108,8 @@ const nextConfig = {
   },
   turbopack: {
     resolveAlias: {
-      '@prisma/client': './lib/generated/prisma'
+      '@prisma/client': './lib/generated/prisma',
+      ...(sourceMapJs ? { 'source-map-js': sourceMapJs } : {})
     },
     rules: {
       '*.svg': {
@@ -112,9 +143,15 @@ const nextConfig = {
       ]
     };
 
-    const dashboardCspReportOnly = [
+    // react dev overlay needs eval; production builds omit it
+    const scriptSrc =
+      process.env.NODE_ENV === 'production'
+        ? "script-src 'self' 'unsafe-inline'"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+    const dashboardCsp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
@@ -161,8 +198,8 @@ const nextConfig = {
             value: 'same-origin-allow-popups'
           },
           {
-            key: 'Content-Security-Policy-Report-Only',
-            value: dashboardCspReportOnly
+            key: 'Content-Security-Policy',
+            value: dashboardCsp
           }
         ]
       },
@@ -180,7 +217,10 @@ const nextConfig = {
           }),
           {
             key: 'Content-Security-Policy',
-            value: 'frame-ancestors *'
+            value: dashboardCsp.replace(
+              "frame-ancestors 'none'",
+              'frame-ancestors *'
+            )
           }
         ]
       }
@@ -472,7 +512,8 @@ const nextConfig = {
     // Keep runtime resolution aligned with tsconfig paths → generated client.
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@prisma/client': path.join(__dirname, 'lib/generated/prisma')
+      '@prisma/client': path.join(__dirname, 'lib/generated/prisma'),
+      ...(sourceMapJs ? { 'source-map-js': sourceMapJs } : {})
     };
     config.module.rules.push({
       test: /\.svg$/i,

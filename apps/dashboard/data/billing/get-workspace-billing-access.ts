@@ -9,5 +9,6 @@ const DEFAULT_ACCESS: WorkspaceBillingAccessDto = {
 };
 
 export const getWorkspaceBillingAccess = cache(
-  async (): Promise<WorkspaceBillingAccessDto> => DEFAULT_ACCESS
+  async (_organizationId?: string): Promise<WorkspaceBillingAccessDto> =>
+    DEFAULT_ACCESS
 );

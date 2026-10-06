@@ -44,6 +44,7 @@ import {
   aliasAllowsCompanionSend,
   sendMailThreadReply
 } from '@/lib/inbox/send-mail-thread-reply';
+import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
 import { loadTeamProfileRefs } from '@/lib/team/load-team-profile-refs';
 import { resolveProfileAssignee } from '@/lib/team/resolve-profile-assignee';
 import { inferRoutingTopics } from '@/lib/team/routing-topics';
@@ -1181,6 +1182,9 @@ export async function executeWorkspaceTool(
 ): Promise<WorkspaceToolResult> {
   const resolved: WorkspaceToolName | null = resolveWorkspaceToolName(name);
   if (!resolved) return { ok: false, error: 'Unknown tool.' };
+  if (!workspaceToolAllowedOnDeployment(resolved)) {
+    return { ok: false, error: 'Unknown tool.' };
+  }
 
   switch (resolved) {
     case 'list_mail_threads':

@@ -51,6 +51,7 @@ import { AppInfo } from '@/constants/app-info';
 import { Routes } from '@/constants/routes';
 import { useZodForm } from '@/hooks/use-zod-form';
 import { AuthErrorCode, authErrorMessages } from '@/lib/auth/errors';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { getSignedInHomePath } from '@/lib/routes/signed-in-home';
 import { cn } from '@/lib/utils';
 import {
@@ -201,6 +202,7 @@ export function LoginCard({
     setIsLoading(false);
   };
   const oss = false; // Humaner brand chrome
+  const selfHost = isOssDeployment();
   const methodButtonClassName = cn(
     isInverted ? authGlassButtonOnLightClassName : authGlassButtonClassName,
     authStackButtonClassName
@@ -295,19 +297,21 @@ export function LoginCard({
               />
               Google
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className={methodButtonClassName}
-              disabled={!canSubmit}
-              onClick={handleSignInWithGitHub}
-            >
-              <GitHubLogo
-                width="20"
-                height="20"
-              />
-              GitHub
-            </Button>
+            {selfHost ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                className={methodButtonClassName}
+                disabled={!canSubmit}
+                onClick={handleSignInWithGitHub}
+              >
+                <GitHubLogo
+                  width="20"
+                  height="20"
+                />
+                GitHub
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"

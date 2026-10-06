@@ -1,15 +1,12 @@
 import * as React from 'react';
-import { redirect } from 'next/navigation';
 
 import {
   InboxPreferencesProvider,
   InboxPreferencesSync
 } from '@/components/dashboard/inbox/inbox-preferences-context';
 import { MailboxConnectionAlerts } from '@/components/dashboard/inbox/mailbox-connection-alerts';
-import { Routes } from '@/constants/routes';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
 import { getInboxAutoSuggestReplies } from '@/data/inbox/inbox-auto-suggest';
-import { isOssDeployment } from '@/lib/deployment-mode';
 
 /** Brand cobalt — inbox accents (cube, hovers, selection). */
 const INBOX_ACCENT = '#001afc';
@@ -38,10 +35,6 @@ async function InboxLayoutChrome(): Promise<React.JSX.Element> {
 export default function InboxLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
-  if (isOssDeployment()) {
-    redirect(Routes.Home);
-  }
-
   return (
     <InboxPreferencesProvider>
       <div
