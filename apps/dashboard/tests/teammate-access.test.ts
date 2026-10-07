@@ -94,7 +94,7 @@ describe('platform admin path gate', () => {
   it('denies workspace owners platform-admin routes', async () => {
     const { canAccessPathname } = await import('@/lib/auth/workspace-access');
     const owner = {
-      role: Role.USER,
+      role: Role.MEMBER,
       workspaceRole: WorkspaceRole.OWNER,
       allowedPages: [] as string[]
     };

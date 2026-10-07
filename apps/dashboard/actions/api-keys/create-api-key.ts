@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
-import { Role } from '@prisma/client';
 import { startOfDay } from 'date-fns';
 
 import { ownerActionClient } from '@/actions/safe-action';
@@ -12,6 +11,7 @@ import {
   PLATFORM_ADMIN_API_KEY_SCOPES
 } from '@/lib/auth/api-key-scopes';
 import { generateApiKey, hashApiKey } from '@/lib/auth/api-keys';
+import { isAdmin } from '@/lib/auth/permissions';
 import {
   getOrganizationCapabilities,
   getOrganizationPlanName
@@ -50,7 +50,7 @@ export const createApiKey = ownerActionClient
       scopes: parsedInput.scopes
     });
     // Outbound is Cloud Role.ADMIN preview — never mint on Self-Host or for owners
-    if (isOssDeployment() || session.user.role !== Role.ADMIN) {
+    if (isOssDeployment() || !(await isAdmin(session.user.id))) {
       scopes = scopes.filter(
         (scope) => !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
       );

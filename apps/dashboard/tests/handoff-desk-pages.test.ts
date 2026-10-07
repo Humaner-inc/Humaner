@@ -20,7 +20,7 @@ describe('handoff desk page access', () => {
     expect(
       canAccessPageKey(
         {
-          role: Role.USER,
+          role: Role.MEMBER,
           workspaceRole: WorkspaceRole.TEAMMATE,
           allowedPages: ['support']
         },
@@ -31,7 +31,7 @@ describe('handoff desk page access', () => {
 
   it('denies support/workflow page keys to workspace owners', () => {
     const owner = {
-      role: Role.USER,
+      role: Role.MEMBER,
       workspaceRole: WorkspaceRole.OWNER,
       allowedPages: [] as string[]
     };
