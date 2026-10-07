@@ -12,13 +12,13 @@ import { inboxThreadRoute } from '@/constants/inbox-nav-items';
 import { Routes } from '@/constants/routes';
 import { prisma } from '@/lib/db/prisma';
 import { composeDraftTitle } from '@/lib/inbox/compose-draft';
-import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import {
   createGmailDraft,
   findGmailDraftIdByMessageId,
+  getGmailAccessToken,
   updateGmailDraft
-} from '@/lib/inbox/gmail/api';
-import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+} from '@/lib/inbox/gmail-bridge';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 
 export type SaveMailboxDraftResult = {
   threadId: string;

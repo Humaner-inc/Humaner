@@ -7,13 +7,13 @@ import {
 } from '@prisma/client';
 
 import { prisma } from '@/lib/db/prisma';
-import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
-import { modifyGmailThread } from '@/lib/inbox/gmail/api';
 import {
+  getGmailAccessToken,
   GMAIL_MODIFY_SCOPE_HINT,
-  hasGmailModifyScope
-} from '@/lib/inbox/gmail/oauth';
-import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+  hasGmailModifyScope,
+  modifyGmailThread
+} from '@/lib/inbox/gmail-bridge';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import { applyImapMailActionForThread } from '@/lib/inbox/imap-mail-actions';
 
 const SYNTHETIC_THREAD_RE = /^(outbound-|draft-)/i;

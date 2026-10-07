@@ -2,15 +2,16 @@ import 'server-only';
 
 import { MailProvider } from '@prisma/client';
 
-import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import {
   findGmailDraftIdByMessageId,
+  getGmailAccessToken,
+  isGmailQuotaError,
   sendGmailDraft,
   sendGmailMessage,
+  sleep,
   updateGmailDraft
-} from '@/lib/inbox/gmail/api';
-import { isGmailQuotaError, sleep } from '@/lib/inbox/gmail/quota';
-import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+} from '@/lib/inbox/gmail-bridge';
+import { humanizeMailboxActionError } from '@/lib/inbox/gmail-sync-errors';
 import type { MailAttachment } from '@/lib/inbox/mail-attachments';
 import { sendOutboundMail } from '@/lib/inbox/send-outbound-mail';
 import type { ImapSmtpEndpoints } from '@/lib/inbox/test-imap-smtp';

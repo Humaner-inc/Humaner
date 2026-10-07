@@ -1,13 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { syncGmailMailboxes } from '@/services/inbox/sync-gmail-mailboxes';
 import { syncImapMailboxes } from '@/services/inbox/sync-imap-mailboxes';
 import { z } from 'zod';
 
 import { pageActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { syncGmailMailboxes } from '@/lib/inbox/gmail-bridge';
 import { rateLimit } from '@/lib/network/rate-limit';
 import { incrementRateLimit } from '@/lib/redis/upstash';
 import {

@@ -430,7 +430,6 @@ model User {
   mailThreadNotes              MailThreadNote[]
   teamMessages                 TeamMessage[]
   teamMemberProfile            TeamMemberProfile?
-  polarCreditGrants            PolarCreditGrant[]
   createdCalendarEvents        CalendarEvent[]          @relation("CalendarEventCreator")
   calendarEventAttendance      CalendarEventAttendee[]
   calendarConnections          CalendarConnection[]
@@ -440,19 +439,6 @@ model User {
   contactGroups                ContactGroup[]
 
   @@index([organizationId], map: "IX_User_organizationId")
-}
-
-/// Cloud Polar refill ledger. Unused on Self-Host.
-model PolarCreditGrant {
-  id           String   @id(map: "PK_PolarCreditGrant") @default(uuid()) @db.Uuid
-  polarOrderId String   @unique(map: "UQ_PolarCreditGrant_polarOrderId") @db.VarChar(255)
-  ownerId      String   @db.Uuid
-  cents        Int
-  productId    String   @db.VarChar(255)
-  createdAt    DateTime @default(now())
-  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([ownerId], map: "IX_PolarCreditGrant_ownerId")
 }
 
 model OrganizationMembership {
@@ -828,35 +814,12 @@ model Agent {
   handoffTickets          HandoffTicket[]
   proactiveMessages       WidgetProactiveMessage[]
   escalationPolicies      EscalationPolicy[]
-  intelligenceRequests    IntelligenceRequestLog[]
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
 
   @@index([organizationId], map: "IX_Agent_organizationId")
   @@index([organizationId, createdAt(sort: Desc)], map: "IX_Agent_organizationId_createdAt")
   @@index([publicId], map: "IX_Agent_publicId")
-}
-
-/// One row per Intelligence REST call. Powers the Custom implementation log —
-/// hosted chat traffic is already visible through Conversation/Message.
-model IntelligenceRequestLog {
-  id             String   @id(map: "PK_IntelligenceRequestLog") @default(uuid()) @db.Uuid
-  organizationId String   @db.Uuid
-  agentId        String   @db.Uuid
-  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  /// Resolved catalog tool, e.g. search_knowledge or create_ticket.
-  tool           String   @db.VarChar(64)
-  /// REST path the caller hit, e.g. /api/v1/intelligence/retrieve.
-  path           String   @db.VarChar(255)
-  status         Int
-  durationMs     Int
-  /// Key that made the call. Null when the request failed before authorization.
-  apiKeyId       String?  @db.Uuid
-  errorMessage   String?  @db.VarChar(500)
-  createdAt      DateTime @default(now())
-
-  @@index([agentId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_agentId_createdAt")
-  @@index([organizationId, createdAt(sort: Desc)], map: "IX_IntelligenceRequestLog_organizationId_createdAt")
 }
 
 /// One row per MCP JSON-RPC call attributed to a workspace API key.

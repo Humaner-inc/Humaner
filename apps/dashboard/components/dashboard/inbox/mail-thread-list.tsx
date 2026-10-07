@@ -40,6 +40,7 @@ import {
 } from '@/components/dashboard/inbox/delete-mail-threads-dialog';
 import { MailThreadAttachmentsControl } from '@/components/dashboard/inbox/mail-attachments-control';
 import { MailThreadDetail } from '@/components/dashboard/inbox/mail-thread-detail';
+import { MailThreadRowSwipe } from '@/components/dashboard/inbox/mail-thread-row-swipe';
 import type { AssigneePerson } from '@/components/ui/assignees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -74,6 +75,7 @@ import {
   readOpenThreadNotesDetail
 } from '@/lib/inbox/open-thread-notes';
 import { getLogoUrl } from '@/lib/logo';
+import { playUiFeedbackSound } from '@/lib/sounds/ui-feedback-sound';
 import { cn, getInitials } from '@/lib/utils';
 
 const INBOX_BULK_DELETE_BUTTON_CLASS =
@@ -838,6 +840,10 @@ export function MailThreadList({
         onSelect={() => selectThread(thread.id)}
         onPrefetch={() => prefetchThread(thread.id)}
         onAskDelete={() => askDelete([thread.id])}
+        onSwipeDelete={() => {
+          removeThreads([thread.id]);
+          runBulkDelete({ threadIds: [thread.id] });
+        }}
         onArchive={(archive) => {
           removeThreads([thread.id]);
           toast.success(archive ? 'Archived' : 'Moved to inbox');
@@ -905,6 +911,8 @@ export function MailThreadList({
                 })
             : undefined
         }
+        swipeEnabled={!selectionActive}
+        inTrash={inTrash}
       />
     );
   });
@@ -924,56 +932,39 @@ export function MailThreadList({
           <MailBulkActionBar selection={selectionApi} />
         </div>
       ) : null}
-      <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {!selectionHeader && selectionActive ? (
-          <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
-            <Checkbox
-              checked={
-                allSelected ? true : someSelected ? 'indeterminate' : false
-              }
-              onCheckedChange={() => toggleAll()}
-              aria-label="Select all conversations"
-              data-no-pull
+      <MailThreadSwipeList
+        label={`${view} conversations`}
+        selectBar={
+          !selectionHeader && selectionActive ? (
+            <MailSelectAllBar
+              allSelected={allSelected}
+              someSelected={someSelected}
+              selectedCount={selectedIds.size}
+              onToggleAll={toggleAll}
             />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              {selectedIds.size} selected
-            </span>
-          </li>
-        ) : null}
-        {threadRows.length === 0 ? (
-          <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-            Nothing in this inbox yet.
-          </li>
-        ) : (
-          threadRows
-        )}
-      </ul>
+          ) : null
+        }
+        rows={threadRows}
+        swipeEnabled={!selectionActive}
+      />
     </div>
   ) : (
-    <ul className="flex h-full min-h-0 flex-col overflow-y-auto border border-border bg-background md:border-0">
-      {!selectionHeader && selectionActive ? (
-        <li className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5">
-          <Checkbox
-            checked={
-              allSelected ? true : someSelected ? 'indeterminate' : false
-            }
-            onCheckedChange={() => toggleAll()}
-            aria-label="Select all conversations"
-            data-no-pull
+    <MailThreadSwipeList
+      label={`${view} conversations`}
+      className="h-full border border-border bg-background md:border-0"
+      selectBar={
+        !selectionHeader && selectionActive ? (
+          <MailSelectAllBar
+            allSelected={allSelected}
+            someSelected={someSelected}
+            selectedCount={selectedIds.size}
+            onToggleAll={toggleAll}
           />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {selectedIds.size} selected
-          </span>
-        </li>
-      ) : null}
-      {threadRows.length === 0 ? (
-        <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-          Nothing in this inbox yet.
-        </li>
-      ) : (
-        threadRows
-      )}
-    </ul>
+        ) : null
+      }
+      rows={threadRows}
+      swipeEnabled={!selectionActive}
+    />
   );
 
   const paneMatches =
@@ -1336,6 +1327,80 @@ function MailBulkActionBar({
   );
 }
 
+function MailSelectAllBar({
+  allSelected,
+  someSelected,
+  selectedCount,
+  onToggleAll
+}: {
+  allSelected: boolean;
+  someSelected: boolean;
+  selectedCount: number;
+  onToggleAll: () => void;
+}): React.JSX.Element {
+  return (
+    <div
+      className="sticky top-0 z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-background px-4 py-2 sm:px-5"
+      data-no-pull
+    >
+      <Checkbox
+        checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+        onCheckedChange={() => onToggleAll()}
+        aria-label="Select all conversations"
+        data-no-pull
+      />
+      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        {selectedCount} selected
+      </span>
+    </div>
+  );
+}
+
+function MailThreadSwipeList({
+  label,
+  className,
+  selectBar,
+  rows,
+  swipeEnabled
+}: {
+  label: string;
+  className?: string;
+  selectBar: React.ReactNode;
+  rows: React.ReactNode[];
+  swipeEnabled: boolean;
+}): React.JSX.Element {
+  if (rows.length === 0) {
+    return (
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col overflow-hidden',
+          className
+        )}
+      >
+        {selectBar}
+        <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+          Nothing in this inbox yet.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}
+    >
+      {selectBar}
+      <ul
+        role="list"
+        aria-label={label}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+      >
+        {rows}
+      </ul>
+    </div>
+  );
+}
+
 function MailThreadRow({
   thread,
   tags,
@@ -1350,6 +1415,7 @@ function MailThreadRow({
   onSelect,
   onPrefetch,
   onAskDelete,
+  onSwipeDelete,
   onArchive,
   onMoveFolder,
   onBlock,
@@ -1359,7 +1425,9 @@ function MailThreadRow({
   onPin,
   contactId = null,
   contactImage = null,
-  onAddContact
+  onAddContact,
+  swipeEnabled = false,
+  inTrash = false
 }: {
   thread: MailThreadListItem;
   tags: MailTagItem[];
@@ -1374,6 +1442,7 @@ function MailThreadRow({
   onSelect: () => void;
   onPrefetch: () => void;
   onAskDelete: () => void;
+  onSwipeDelete?: () => void;
   onArchive: (archive: boolean) => void;
   onMoveFolder: (folder: 'INBOX' | 'SPAM' | 'TRASH') => void;
   onBlock: () => void;
@@ -1384,7 +1453,10 @@ function MailThreadRow({
   contactId?: string | null;
   contactImage?: string | null;
   onAddContact?: () => void;
+  swipeEnabled?: boolean;
+  inTrash?: boolean;
 }): React.JSX.Element {
+  const rowRef = React.useRef<HTMLLIElement>(null);
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const domain = senderDomain(thread.fromAddress);
@@ -1421,28 +1493,39 @@ function MailThreadRow({
     openThread();
   };
 
-  return (
-    <li
-      className={cn(
-        'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
-        thread.isPinned
-          ? previewActive || selected
-            ? 'bg-[color-mix(in_srgb,#f5a524_22%,transparent)]'
-            : 'bg-[color-mix(in_srgb,#f5a524_14%,transparent)]'
-          : localUnread && 'bg-[color-mix(in_srgb,#001afc_8%,transparent)]',
-        !thread.isPinned &&
-          previewActive &&
-          (localUnread
-            ? 'bg-[color-mix(in_srgb,#001afc_14%,transparent)]'
-            : 'bg-foreground/[0.06]'),
-        !thread.isPinned && selected && !localUnread && 'bg-foreground/[0.04]'
-      )}
-    >
+  const commitPin = React.useCallback((): void => {
+    const next = !thread.isPinned;
+    onPin(next);
+    toast.success(next ? 'Pinned to top' : 'Unpinned');
+  }, [onPin, thread.isPinned]);
+
+  const commitSwipeDelete = React.useCallback((): void => {
+    toast.success(inTrash ? 'Deleted forever' : 'Moved to Trash');
+    onSwipeDelete?.();
+  }, [inTrash, onSwipeDelete]);
+
+  const rowClassName = cn(
+    'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
+    thread.isPinned
+      ? previewActive || selected
+        ? 'bg-[color-mix(in_srgb,#f5a524_22%,transparent)]'
+        : 'bg-[color-mix(in_srgb,#f5a524_14%,transparent)]'
+      : localUnread && 'bg-[color-mix(in_srgb,#001afc_8%,transparent)]',
+    !thread.isPinned &&
+      previewActive &&
+      (localUnread
+        ? 'bg-[color-mix(in_srgb,#001afc_14%,transparent)]'
+        : 'bg-foreground/[0.06]'),
+    !thread.isPinned && selected && !localUnread && 'bg-foreground/[0.04]'
+  );
+
+  const rowInner = (
+    <>
       <div
         role="button"
         tabIndex={0}
         className={cn(
-          'flex cursor-pointer items-start gap-3 px-3 py-3 pr-16 text-left transition-colors sm:px-3',
+          'relative flex w-full cursor-pointer items-start gap-3 px-3 py-3 pr-16 text-left transition-colors sm:px-3',
           thread.isPinned
             ? 'hover:bg-[color-mix(in_srgb,#f5a524_20%,transparent)]'
             : 'hover:bg-foreground/[0.04]'
@@ -1569,7 +1652,8 @@ function MailThreadRow({
             title={thread.isPinned ? 'Unpin' : 'Pin to top'}
             onClick={(event) => {
               stopRowEvent(event);
-              onPin(!thread.isPinned);
+              playUiFeedbackSound('mail-pin');
+              commitPin();
             }}
           >
             <PinIcon
@@ -1624,7 +1708,12 @@ function MailThreadRow({
                   align="end"
                   onCloseAutoFocus={(event) => event.preventDefault()}
                 >
-                  <DropdownMenuItem onSelect={() => onPin(!thread.isPinned)}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      playUiFeedbackSound('mail-pin');
+                      commitPin();
+                    }}
+                  >
                     {thread.isPinned ? 'Unpin' : 'Pin to top'}
                   </DropdownMenuItem>
                   {folderView === 'trash' ? (
@@ -1718,6 +1807,26 @@ function MailThreadRow({
           )}
         </div>
       </div>
+    </>
+  );
+
+  const swipeEnabledForRow = swipeEnabled && Boolean(onSwipeDelete);
+
+  return (
+    <li
+      ref={rowRef}
+      className={rowClassName}
+    >
+      <MailThreadRowSwipe
+        enabled={swipeEnabledForRow}
+        rowRef={rowRef}
+        pinLabel={thread.isPinned ? 'Unpin' : 'Pin'}
+        deleteLabel={inTrash ? 'Delete forever' : 'Delete'}
+        onPin={commitPin}
+        onDelete={commitSwipeDelete}
+      >
+        {rowInner}
+      </MailThreadRowSwipe>
     </li>
   );
 }

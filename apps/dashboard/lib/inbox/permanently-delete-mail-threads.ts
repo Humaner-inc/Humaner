@@ -8,13 +8,13 @@ import {
 
 import { prisma } from '@/lib/db/prisma';
 import { permanentlyDeleteImapMessagesForThreads } from '@/lib/inbox/delete-imap-messages';
-import { isInsufficientScopeErrorMessage } from '@/lib/inbox/gmail-sync-errors';
-import { deleteGmailThread } from '@/lib/inbox/gmail/api';
 import {
+  deleteGmailThread,
+  getGmailAccessToken,
   GMAIL_FULL_MAIL_SCOPE_HINT,
   hasGmailFullMailScope
-} from '@/lib/inbox/gmail/oauth';
-import { getGmailAccessToken } from '@/lib/inbox/gmail/tokens';
+} from '@/lib/inbox/gmail-bridge';
+import { isInsufficientScopeErrorMessage } from '@/lib/inbox/gmail-sync-errors';
 
 const BATCH_SIZE = 50;
 const SYNTHETIC_THREAD_RE = /^(outbound-|draft-)/i;

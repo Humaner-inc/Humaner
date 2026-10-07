@@ -9,6 +9,7 @@ import {
 import { workspaceAllowsCompanionAction } from '@/data/inbox/companion-rights';
 import { prisma } from '@/lib/db/prisma';
 import { isPrismaSerializationFailure } from '@/lib/db/unique-mutations';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   COMPANION_ASSIGNEE,
   type MailAssigneeInput
@@ -40,7 +41,9 @@ export function mailAssigneeLabel(input: {
   assigneeName?: string | null;
 }): string | null {
   if (input.assigneeKind === 'COMPANION') {
-    return 'Companion';
+    // Same assignee slot MCP and REST use. Cloud calls it Companion; Self-Host
+    // is the customer's own agent on the workspace API.
+    return isOssDeployment() ? 'Agent' : 'Companion';
   }
   return input.assigneeName ?? null;
 }

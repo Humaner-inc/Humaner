@@ -1,0 +1,52 @@
+.panel {
+  transition:
+    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 220ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.sheet {
+  transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sheet[data-dragging] {
+  transition: none;
+}
+
+.sheet[data-exit='delete'] {
+  transition:
+    transform 340ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 280ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.panel[data-dragging] {
+  transition: opacity 120ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.pinPulse {
+  animation: mail-row-pin-pulse 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes mail-row-pin-pulse {
+  0% {
+    background-color: color-mix(in srgb, #f5a524 8%, transparent);
+  }
+
+  45% {
+    background-color: color-mix(in srgb, #f5a524 28%, transparent);
+  }
+
+  100% {
+    background-color: color-mix(in srgb, #f5a524 14%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .sheet {
+    transition: none;
+  }
+
+  .pinPulse {
+    animation: none;
+  }
+}

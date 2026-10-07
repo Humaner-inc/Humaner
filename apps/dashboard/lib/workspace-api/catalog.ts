@@ -154,7 +154,7 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
   {
     name: 'assign_mail_thread',
     description:
-      'Assign a thread to a teammate, Companion, or unassign it. Omit assigneeId to pick the least-loaded matching team profile from the thread (inbox, Stripe, GitHub, Linear). Pass topics to override. Pass assigneeId null to unassign.',
+      'Assign a thread to a teammate or the workspace agent, or unassign it. MCP and POST /api/v1/mail use this same tool. Pass assigneeId "companion" for the workspace agent (Companion on Cloud, your agent on Self-Host). Omit assigneeId to pick the least-loaded matching team profile, then the workspace agent. Pass assigneeId null to unassign.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,
@@ -163,7 +163,7 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
         assigneeId: {
           type: 'string',
           description:
-            'User UUID, "companion", or null to unassign. Omit when using topics.'
+            'User UUID, "companion" for the workspace agent, or null to unassign. Omit when using topics.'
         },
         topics: {
           type: 'array',

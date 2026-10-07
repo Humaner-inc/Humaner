@@ -8,7 +8,7 @@ import { ownerActionClient } from '@/actions/safe-action';
 import { Routes } from '@/constants/routes';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import { prisma } from '@/lib/db/prisma';
-import { stopGmailWatch } from '@/lib/inbox/gmail/watch';
+import { stopGmailWatch } from '@/lib/inbox/gmail-bridge';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 
 export const deleteMailboxConnection = ownerActionClient
