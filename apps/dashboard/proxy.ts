@@ -127,6 +127,16 @@ function isOssBlockedPath(pathname: string): boolean {
     if (path === '/admin/demos' || path.startsWith('/admin/demos/')) {
       return true;
     }
+    if (
+      path === '/outbound' ||
+      path.startsWith('/outbound/') ||
+      path === '/support' ||
+      path.startsWith('/support/') ||
+      path === '/workflow' ||
+      path.startsWith('/workflow/')
+    ) {
+      return true;
+    }
     if (/^\/agents\/[^/]+\/(persona|knowledge|runbooks)(\/|$)/.test(path)) {
       return true;
     }

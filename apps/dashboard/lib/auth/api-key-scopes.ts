@@ -38,9 +38,12 @@ export const API_KEY_SCOPE_OPTIONS: {
     id: 'outbound',
     label: 'Outbound',
     description:
-      'Manage outbound prospects and wave drafts over REST or MCP. Approval and send stay in the dashboard.'
+      'Cloud preview (platform admins only). Prospects and wave drafts over REST or MCP; approval and send stay in the dashboard.'
   }
 ];
+
+// Cloud Role.ADMIN preview — hide from non-admin key minting UI
+export const PLATFORM_ADMIN_API_KEY_SCOPES = new Set<ApiKeyScope>(['outbound']);
 
 const HELPDESK_INTELLIGENCE_TOOLS = new Set<string>([
   'check_escalation_signal',
@@ -56,13 +59,17 @@ function scopeIncludesLegacyHelpdesk(scopes: readonly string[]): boolean {
   return scopes.includes(LEGACY_API_KEY_SCOPE);
 }
 
-/** Empty scopes = full access (legacy keys and explicit full-access keys). */
+/**
+ * Empty scopes = full access (legacy keys and explicit full-access keys).
+ * Full access does not include Cloud preview `outbound` — that scope is
+ * Role.ADMIN-only and must be granted explicitly.
+ */
 export function apiKeyHasScope(
   scopes: readonly string[],
   required: ApiKeyScope | typeof LEGACY_API_KEY_SCOPE
 ): boolean {
   if (scopes.length === 0) {
-    return true;
+    return required !== 'outbound';
   }
   if (required === 'intelligence') {
     return (
@@ -122,7 +129,7 @@ export function apiKeyMissingScopeMessage(
     return 'This API key does not have Calendar access.';
   }
   if (scope === 'outbound') {
-    return 'This API key does not have Outbound access.';
+    return 'Outbound requires a platform-admin key with the Outbound scope.';
   }
   return 'This API key does not have Intelligence access.';
 }

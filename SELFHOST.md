@@ -38,6 +38,7 @@ DIRECT_URL=postgresql://acme:password@localhost:5432/acme
 AUTH_SECRET="$(openssl rand -base64 32)"
 AUTH_TRUST_HOST=true
 NEXT_PUBLIC_APP_URL=http://localhost:3001
+IMAP_IDLE_ENABLED=true          # required by the idle worker (step 10)
 ```
 
 `NEXT_PUBLIC_DEPLOYMENT_MODE` is read at **build time**, it selects the Self-Host build. (Changing it later requires a rebuild.)
@@ -119,21 +120,38 @@ Workspace settings → Inbox. Pick a provider with IMAP (or Custom IMAP) and sav
 
 IMAP credentials are stored encrypted (`AUTH_SECRET`).
 
-### 10. For mail syncing: IMAP IDLE worker
+### 10. IMAP IDLE worker (required for live mail)
 
-Run the idle worker next to the dashboard:
+The dashboard is serverless-friendly. **IMAP IDLE is not** — it is a long-lived Node process that holds connections to each mailbox. Without it, Self-Host has no Vercel cron: new mail will not arrive until someone hits Sync in the UI.
+
+`IMAP_IDLE_ENABLED=true` is required or the worker exits immediately. Use the **same** `DATABASE_URL` and `AUTH_SECRET` as the dashboard (credentials are decrypted with that secret). One replica only.
+
+**Local (pnpm)** — second terminal, after the dashboard:
 
 ```bash
 pnpm --filter @humaner/dashboard imap:idle
 ```
 
-Production (no `.env.local` overlay):
+Production without `.env.local`:
 
 ```bash
 pnpm --filter @humaner/dashboard imap:idle:prod
 ```
 
-Keep this process running. It holds IMAP IDLE on connected mailboxes and pulls new mail as it arrives.
+Logs should show `[imap-idle] starting`, then `watching you@yourdomain.com` for each connected IMAP mailbox.
+
+**Docker Compose** — `docker compose up --build` already starts the `imap-idle` service next to Postgres and the dashboard (`apps/dashboard/Dockerfile.imap-idle`). Do not put IDLE inside the Next.js container.
+
+**Railway** — add a **second service** from the same GitHub repo (the web service cannot hold IDLE):
+
+| Setting        | Value                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| Root directory | `/`                                                                                                    |
+| Config file    | `/apps/dashboard/railway.imap-idle.toml`                                                               |
+| Replicas       | **1**                                                                                                  |
+| Env            | `IMAP_IDLE_ENABLED=true`, plus the same `DATABASE_URL` / `DIRECT_URL` / `AUTH_SECRET` as the dashboard |
+
+Deploy. Send a message to a connected inbox and confirm it shows up without waiting. Auth failures mark that mailbox `NEEDS_REAUTH` and drop its session.
 
 ### 11. API keys and MCP
 
@@ -164,24 +182,24 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 docker compose up --build
 ```
 
-Compose starts `pgvector/pgvector:pg16` and the dashboard together, and the entrypoint rejects a missing or placeholder `AUTH_SECRET`.
+Compose starts Postgres, the dashboard, and the IMAP IDLE worker. The entrypoint rejects a missing or placeholder `AUTH_SECRET`. The worker uses `apps/dashboard/Dockerfile.imap-idle` — not the Next.js image.
 
-Open http://localhost:3001 → follow steps 8–11. Run `imap:idle` in a second process (or add it to your compose file) so mail keeps syncing.
+Open http://localhost:3001 → follow steps 8–11. Compose already runs `imap-idle`; mail syncs as long as that service stays up. On Railway, add a second service with `apps/dashboard/railway.imap-idle.toml` (see step 10).
 
 ---
 
 ## What you configure
 
-| Setting          | Where                                             |
-| ---------------- | ------------------------------------------------- |
-| Brand / colors   | `apps/dashboard/brand.config.ts`                  |
-| LLM API key      | `ANTHROPIC_API_KEY` (optional, for draft helpers) |
-| Email delivery   | `EMAIL_*` in `.env.local`                         |
-| Mailbox          | Workspace settings → Inbox (IMAP/SMTP)            |
-| Mail sync        | `pnpm --filter @humaner/dashboard imap:idle`      |
-| Resources        | Dashboard → Resources                             |
-| API keys / MCP   | Workspace settings                                |
-| Extra workspaces | Workspace switcher                                |
+| Setting          | Where                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| Brand / colors   | `apps/dashboard/brand.config.ts`                                                                 |
+| LLM API key      | `ANTHROPIC_API_KEY` (optional, for draft helpers)                                                |
+| Email delivery   | `EMAIL_*` in `.env.local`                                                                        |
+| Mailbox          | Workspace settings → Inbox (IMAP/SMTP)                                                           |
+| Mail sync        | Compose `imap-idle` service, or Railway second service (`apps/dashboard/railway.imap-idle.toml`) |
+| Resources        | Dashboard → Resources                                                                            |
+| API keys / MCP   | Workspace settings                                                                               |
+| Extra workspaces | Workspace switcher                                                                               |
 
 ## Google OAuth (optional)
 

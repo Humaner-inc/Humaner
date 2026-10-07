@@ -1,0 +1,49 @@
+# Self-Host IMAP IDLE worker — long-lived process (not serverless).
+# Build from repository root:
+#   docker build -f apps/dashboard/Dockerfile.imap-idle -t humaner-imap-idle .
+#
+# The dashboard image is Next standalone and cannot run this worker.
+# Compose and Railway must ship this as a second service.
+
+FROM node:20-alpine AS base
+RUN apk add --no-cache openssl libc6-compat
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+WORKDIR /app
+
+FROM base AS deps
+ENV HUSKY=0
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/humaner"
+ENV DIRECT_URL="postgresql://user:pass@localhost:5432/humaner"
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/dashboard/package.json apps/dashboard/
+COPY packages/shared/package.json packages/shared/
+COPY packages/react/package.json packages/react/
+COPY apps/dashboard/scripts/prisma-generate.mjs apps/dashboard/scripts/
+COPY apps/dashboard/prisma apps/dashboard/prisma/
+
+RUN pnpm install --frozen-lockfile --filter @humaner/dashboard...
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_DEPLOYMENT_MODE=oss
+ENV IMAP_IDLE_ENABLED=true
+ENV HUSKY=0
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/react/node_modules ./packages/react/node_modules
+COPY --from=deps /app/apps/dashboard/lib/generated ./apps/dashboard/lib/generated
+
+COPY packages/shared ./packages/shared
+COPY packages/react ./packages/react
+COPY apps/dashboard ./apps/dashboard
+
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/humaner"
+ENV DIRECT_URL="postgresql://user:pass@localhost:5432/humaner"
+RUN pnpm --filter @humaner/dashboard exec prisma generate
+
+CMD ["pnpm", "--filter", "@humaner/dashboard", "imap:idle:prod"]

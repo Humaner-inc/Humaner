@@ -7,8 +7,7 @@ import { Trash } from '@phosphor-icons/react/dist/ssr/Trash';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
-import { emptyTrash } from '@/actions/inbox/manage-mail-thread';
-import { updateTrashRetention } from '@/actions/inbox/update-trash-retention';
+import { emptySpam } from '@/actions/inbox/manage-mail-thread';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,88 +18,46 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import {
-  isMailTrashRetention,
-  MAIL_TRASH_RETENTION_OPTIONS,
-  type MailTrashRetentionValue
-} from '@/lib/inbox/mail-trash-retention';
 import { cn } from '@/lib/utils';
 
-export function TrashFolderToolbar({
-  retention,
+export function SpamFolderToolbar({
   mailbox = null,
   canEmpty
 }: {
-  retention: MailTrashRetentionValue;
   mailbox?: string | null;
   canEmpty: boolean;
 }): React.JSX.Element {
   const router = useRouter();
-  const [selected, setSelected] = React.useState(retention);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
 
-  const { execute: saveRetention, isExecuting: savingRetention } = useAction(
-    updateTrashRetention,
-    {
-      onError: ({ error }) => {
-        setSelected(retention);
-        toast.error(error.serverError || 'Could not update Trash auto-empty');
-      }
-    }
-  );
-
-  const { execute: runEmpty, isExecuting: emptying } = useAction(emptyTrash, {
+  const { execute: runEmpty, isExecuting: emptying } = useAction(emptySpam, {
     onSuccess: ({ data }) => {
       toast.success(
         data?.count
           ? `Emptied ${data.count} conversation${data.count === 1 ? '' : 's'}`
-          : 'Trash is empty'
+          : 'Spam is empty'
       );
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error(error.serverError || 'Could not empty Trash');
+      toast.error(error.serverError || 'Could not empty Spam');
     }
   });
-
-  React.useEffect(() => {
-    setSelected(retention);
-  }, [retention]);
 
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <h1 className="sr-only">Trash</h1>
-        <p className="text-sm text-muted-foreground">Auto-empty after</p>
-        <ToggleGroup
-          type="single"
-          value={selected}
-          disabled={savingRetention}
-          onValueChange={(value) => {
-            if (!isMailTrashRetention(value) || value === selected) return;
-            setSelected(value);
-            saveRetention({ retention: value });
-          }}
-          className="mt-2 inline-flex h-8 justify-start rounded-lg border bg-muted/40 p-0.5"
-        >
-          {MAIL_TRASH_RETENTION_OPTIONS.map((option) => (
-            <ToggleGroupItem
-              key={option.value}
-              value={option.value}
-              className="h-7 rounded-md px-2.5 font-mono text-[10px] uppercase tracking-wider data-[state=on]:bg-background data-[state=on]:shadow-sm"
-            >
-              {option.label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        <h1 className="text-sm font-medium text-foreground">Spam</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Mail from blocked senders and reported spam.
+        </p>
       </div>
 
       <button
         type="button"
         disabled={!canEmpty || emptying}
-        title="Empty trash"
-        aria-label="Empty trash"
+        title="Empty spam"
+        aria-label="Empty spam"
         onClick={() => setConfirmOpen(true)}
         className={cn(
           'flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors',
@@ -126,10 +83,10 @@ export function TrashFolderToolbar({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Empty Trash?</AlertDialogTitle>
+            <AlertDialogTitle>Empty Spam?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes every conversation in Trash from Humaner
-              and from your mailbox (Trash when available).
+              This permanently deletes every conversation in Spam from Humaner
+              and from your mailbox (Spam when available).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -138,7 +95,7 @@ export function TrashFolderToolbar({
               variant="destructive"
               onClick={() => runEmpty({ connectionId: mailbox ?? null })}
             >
-              Empty trash
+              Empty spam
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,10 +1,17 @@
 import { createHash, randomBytes } from 'crypto';
 
 import { Routes } from '@/constants/routes';
-import { API_KEY_SCOPES, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
+import {
+  API_KEY_SCOPES,
+  PLATFORM_ADMIN_API_KEY_SCOPES,
+  type ApiKeyScope
+} from '@/lib/auth/api-key-scopes';
 import { mcpPublicEndpoint, mcpServerIconUrl } from '@/lib/developers/mcp-http';
 
-export const MCP_OAUTH_SCOPES = API_KEY_SCOPES;
+// Interactive OAuth (Cursor, Claude) never grants Cloud Role.ADMIN preview scopes
+export const MCP_OAUTH_SCOPES = API_KEY_SCOPES.filter(
+  (scope) => !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
+);
 export const MCP_OAUTH_DEFAULT_SCOPES: ApiKeyScope[] = ['mailbox', 'calendar'];
 
 export const MCP_ACCESS_TOKEN_PREFIX = 'mcp_at_';

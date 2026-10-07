@@ -66,6 +66,10 @@ export enum Routes {
   InboxConnectors = '/inbox/connectors',
   /** Cloud-only cold outbound waves under Utilities. */
   Outbound = '/outbound',
+  // email-only human desk under utilities
+  Support = '/support',
+  // workflow automation under utilities
+  Workflow = '/workflow',
   Tasks = '/organization/tasks',
   Calendar = '/calendar',
   Resources = '/organization/resources',

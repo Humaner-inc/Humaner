@@ -5,7 +5,10 @@ import { z } from 'zod';
 
 import { authActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
-import { API_KEY_SCOPES } from '@/lib/auth/api-key-scopes';
+import {
+  API_KEY_SCOPES,
+  PLATFORM_ADMIN_API_KEY_SCOPES
+} from '@/lib/auth/api-key-scopes';
 import {
   parseMcpOAuthScopes,
   redirectUriMatches
@@ -36,7 +39,9 @@ export const approveMcpOAuth = authActionClient
       throw new ValidationError('Unknown MCP client.');
     }
 
-    const scopes = parseMcpOAuthScopes(parsedInput.scopes);
+    const scopes = parseMcpOAuthScopes(parsedInput.scopes).filter(
+      (scope) => !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
+    );
     const code = await createMcpAuthorizationCode({
       clientId: parsedInput.clientId,
       userId: session.user.id,

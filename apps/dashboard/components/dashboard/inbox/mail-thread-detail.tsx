@@ -27,9 +27,11 @@ import {
 } from '@/actions/inbox/manage-mail-thread';
 import { replyMailThread } from '@/actions/inbox/reply-mail-thread';
 import { suggestMailThreadReplies } from '@/actions/inbox/suggest-mail-replies';
+import { createSupportIssueFromMailThreadAction } from '@/actions/support/create-support-issue-from-mail-thread';
 import { createTaskFromMailThreadAction } from '@/actions/tasks/create-task-from-mail-thread';
 import { CompanionIcon } from '@/components/dashboard/ask-humaner/companion-icon';
 import { COMPANION_ASSIGNEE_PERSON } from '@/components/dashboard/assignee-options';
+import { useDashboardSectionOptional } from '@/components/dashboard/dashboard-section-context';
 import { useDashboardDockOptional } from '@/components/dashboard/dock/dashboard-dock-context';
 import { BlockMailSenderDialog } from '@/components/dashboard/inbox/block-mail-sender-dialog';
 import { useComposeMail } from '@/components/dashboard/inbox/compose-mail-context';
@@ -65,6 +67,7 @@ import type {
 } from '@/data/inbox/get-mail-threads';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useOnboardingSound } from '@/hooks/use-onboarding-sound';
+import { isPlatformAdmin } from '@/lib/auth/workspace-access';
 import {
   companyDomainFromEmail,
   normalizeContactEmail
@@ -400,6 +403,11 @@ export function MailThreadDetail({
   }) => void;
 }): React.JSX.Element {
   const router = useRouter();
+  const sectionNav = useDashboardSectionOptional();
+  // Cloud Role.ADMIN preview — same gate as Utilities → Support
+  const canTagSupportIssue =
+    !isOssDeployment() &&
+    Boolean(sectionNav?.profile && isPlatformAdmin(sectionNav.profile));
   const dock = useDashboardDockOptional();
   const { autoSuggestReplies } = useInboxPreferences();
   const { openCompose } = useComposeMail();
@@ -718,6 +726,26 @@ export function MailThreadDetail({
         toast.error(error.serverError || 'Could not create task')
     }
   );
+
+  const { execute: createSupportIssue, isExecuting: creatingSupportIssue } =
+    useAction(createSupportIssueFromMailThreadAction, {
+      onSuccess: ({ data }) => {
+        if (!data) return;
+        setThread((current) => ({
+          ...current,
+          handoffTicketId: data.id,
+          handoffTicketNumber: data.ticketNumber
+        }));
+        toast.success(
+          data.existing
+            ? `Support issue #${String(data.ticketNumber).padStart(5, '0')} already exists`
+            : `Tagged as support issue #${String(data.ticketNumber).padStart(5, '0')}`
+        );
+        router.refresh();
+      },
+      onError: ({ error }) =>
+        toast.error(error.serverError || 'Could not create support issue')
+    });
 
   const handleAssign = (assigneeId: string | null): void => {
     const assigneeKind =
@@ -1126,6 +1154,12 @@ export function MailThreadDetail({
             ticketNumber={thread.handoffTicketNumber}
             creatingTask={creatingTask}
             onCreateTask={() => createTask({ threadId: thread.id })}
+            creatingSupportIssue={creatingSupportIssue}
+            onCreateSupportIssue={
+              canTagSupportIssue
+                ? () => createSupportIssue({ threadId: thread.id })
+                : undefined
+            }
             assignValue={assignValue}
             assignPerson={assignPerson}
             members={members}

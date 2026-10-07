@@ -24,6 +24,7 @@ import {
 } from '@/lib/inbox/mail-assignee';
 import { mailFolderWriteData } from '@/lib/inbox/mail-thread-folder';
 import {
+  listSpamThreadIds,
   listTrashThreadIds,
   permanentlyDeleteMailThreads,
   TRASH_DELETE_BATCH_SIZE
@@ -707,6 +708,54 @@ export const emptyTrash = authActionClient
 
     for (let batch = 0; batch < MAX_EMPTY_TRASH_BATCHES; batch += 1) {
       const threadIds = await listTrashThreadIds({
+        accessWhere,
+        connectionId: parsedInput.connectionId,
+        take: TRASH_DELETE_BATCH_SIZE
+      });
+      if (threadIds.length === 0) break;
+
+      try {
+        count += await permanentlyDeleteMailThreads(threadIds, organizationId);
+      } catch (error) {
+        throw new PreConditionError(
+          error instanceof Error
+            ? error.message
+            : 'Could not delete messages from the mailbox'
+        );
+      }
+
+      if (threadIds.length < TRASH_DELETE_BATCH_SIZE) break;
+    }
+
+    revalidateMailListPaths();
+    return { success: true, count };
+  });
+
+export const emptySpam = authActionClient
+  .metadata({ actionName: 'emptySpam' })
+  .schema(
+    z.object({
+      connectionId: z.string().uuid().nullable().optional()
+    })
+  )
+  .action(async ({ parsedInput, ctx: { session } }) => {
+    const organizationId = session.user.organizationId;
+    if (!organizationId) throw new PreConditionError('No active organization');
+
+    const scope = await resolveMailAliasScope({
+      userId: session.user.id,
+      organizationId
+    });
+    const accessWhere = mailThreadAccessWhere({
+      organizationId,
+      userId: session.user.id,
+      scope
+    });
+
+    let count = 0;
+
+    for (let batch = 0; batch < MAX_EMPTY_TRASH_BATCHES; batch += 1) {
+      const threadIds = await listSpamThreadIds({
         accessWhere,
         connectionId: parsedInput.connectionId,
         take: TRASH_DELETE_BATCH_SIZE

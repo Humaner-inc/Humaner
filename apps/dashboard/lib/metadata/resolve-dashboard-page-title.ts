@@ -35,6 +35,8 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.InboxSettings]: 'Workspace settings',
   [Routes.InboxConnectors]: 'Connectors',
   [Routes.Outbound]: 'Outbound',
+  [Routes.Support]: 'Support',
+  [Routes.Workflow]: 'Workflow',
   [Routes.Resources]: 'Resources',
   [Routes.ResourcesInvoices]: 'Invoices',
   [Routes.ResourcesQuotes]: 'Quotes',

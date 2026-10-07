@@ -8,14 +8,18 @@ import {
 } from '@humaner/shared/icons';
 import { AnimatePresence, motion } from 'motion/react';
 
+import { useDashboardSectionOptional } from '@/components/dashboard/dashboard-section-context';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioCardItem, RadioCards } from '@/components/ui/radio-card';
 import {
   API_KEY_SCOPE_OPTIONS,
+  PLATFORM_ADMIN_API_KEY_SCOPES,
   type ApiKeyAccessMode,
   type ApiKeyScope
 } from '@/lib/auth/api-key-scopes';
+import { isPlatformAdmin } from '@/lib/auth/workspace-access';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 
 const FADE = { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const };
@@ -105,19 +109,30 @@ export function ApiKeyAccessPicker({
   iconClassName?: string;
   titleClassName?: string;
 }): React.JSX.Element {
+  const sectionNav = useDashboardSectionOptional();
+  const scopeOptions = React.useMemo(() => {
+    const admin =
+      !isOssDeployment() &&
+      Boolean(sectionNav?.profile) &&
+      isPlatformAdmin(sectionNav!.profile);
+    return API_KEY_SCOPE_OPTIONS.filter(
+      (option) => admin || !PLATFORM_ADMIN_API_KEY_SCOPES.has(option.id)
+    );
+  }, [sectionNav]);
+
   const toggleScope = React.useCallback(
     (scope: ApiKeyScope, checked: boolean) => {
       if (checked) {
         onScopesChange(
-          API_KEY_SCOPE_OPTIONS.map((option) => option.id).filter(
-            (id) => id === scope || scopes.includes(id)
-          )
+          scopeOptions
+            .map((option) => option.id)
+            .filter((id) => id === scope || scopes.includes(id))
         );
         return;
       }
       onScopesChange(scopes.filter((current) => current !== scope));
     },
-    [onScopesChange, scopes]
+    [onScopesChange, scopeOptions, scopes]
   );
 
   return (
@@ -165,7 +180,7 @@ export function ApiKeyAccessPicker({
               <Label className={cn('pb-0.5', labelClassName)}>
                 Permissions
               </Label>
-              {API_KEY_SCOPE_OPTIONS.map((option) => {
+              {scopeOptions.map((option) => {
                 const checked = scopes.includes(option.id);
                 return (
                   <label

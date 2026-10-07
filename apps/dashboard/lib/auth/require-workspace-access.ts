@@ -11,6 +11,7 @@ import {
   resolveTeammateAccessLevel
 } from '@/constants/dashboard-pages';
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
+import { sharesHandoffDeskAccess } from '@/constants/handoff-desk-pages';
 import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
@@ -105,12 +106,21 @@ export function canAccessPathWithContext(
   }
 }
 
+const PLATFORM_ADMIN_PAGE_KEYS = new Set<DashboardPageKey>([
+  'support',
+  'workflow'
+]);
+
 export function canAccessPageKey(
   context: UserAccessContext,
   pageKey: DashboardPageKey
 ): boolean {
   if (context.role === Role.ADMIN) {
     return true;
+  }
+
+  if (PLATFORM_ADMIN_PAGE_KEYS.has(pageKey)) {
+    return false;
   }
 
   if (context.workspaceRole === WorkspaceRole.OWNER) {
@@ -129,12 +139,7 @@ export function canAccessPageKey(
     return true;
   }
 
-  // Desk replaced Human Desk in nav; keep legacy page keys interchangeable.
-  if (pageKey === 'desk' && context.allowedPages.includes('human-desk')) {
-    return true;
-  }
-
-  if (pageKey === 'human-desk' && context.allowedPages.includes('desk')) {
+  if (sharesHandoffDeskAccess(context.allowedPages, pageKey)) {
     return true;
   }
 
@@ -160,6 +165,19 @@ export async function requirePathAccess(pathname: string): Promise<void> {
   }
 
   if (!canAccessPathWithContext(context, pathname)) {
+    redirect(getSignedInHomePath());
+  }
+}
+
+// Role.ADMIN only — workspace owner is not enough
+export async function requirePlatformAdminOrRedirect(): Promise<void> {
+  const session = await dedupedAuth();
+  if (!checkSession(session)) {
+    redirect(getLoginRedirect());
+  }
+
+  const context = await getUserAccessContext(session.user.id);
+  if (!context || context.role !== Role.ADMIN) {
     redirect(getSignedInHomePath());
   }
 }

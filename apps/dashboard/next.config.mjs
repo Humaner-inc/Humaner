@@ -471,6 +471,22 @@ const nextConfig = {
         destination: '/dashboard/outbound/:path*'
       },
       {
+        source: '/support',
+        destination: '/dashboard/support'
+      },
+      {
+        source: '/support/:path*',
+        destination: '/dashboard/support/:path*'
+      },
+      {
+        source: '/workflow',
+        destination: '/dashboard/workflow'
+      },
+      {
+        source: '/workflow/:path*',
+        destination: '/dashboard/workflow/:path*'
+      },
+      {
         source: '/calendar/:path*',
         destination: '/dashboard/calendar/:path*'
       },

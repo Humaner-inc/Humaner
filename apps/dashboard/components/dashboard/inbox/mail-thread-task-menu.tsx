@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   EllipsisIcon,
   FileTextIcon,
+  HeadsetIcon,
   Link2Icon,
   Loader2Icon,
   PinIcon,
@@ -160,6 +161,8 @@ export function MailThreadHeaderMenu({
   ticketNumber,
   creatingTask,
   onCreateTask,
+  creatingSupportIssue = false,
+  onCreateSupportIssue,
   assignValue,
   assignPerson,
   members,
@@ -195,6 +198,8 @@ export function MailThreadHeaderMenu({
   ticketNumber: number | null;
   creatingTask: boolean;
   onCreateTask: () => void;
+  creatingSupportIssue?: boolean;
+  onCreateSupportIssue?: () => void;
   assignValue: string | null;
   assignPerson: AssigneePerson | null;
   members: AssigneePerson[];
@@ -558,6 +563,22 @@ export function MailThreadHeaderMenu({
               {ticketLabel ? `Task ${ticketLabel}` : 'Create a task'}
             </span>
           </DropdownMenuItem>
+
+          {onCreateSupportIssue ? (
+            <DropdownMenuItem
+              disabled={creatingSupportIssue || creatingTask}
+              onSelect={onCreateSupportIssue}
+            >
+              <MenuRowIcon>
+                <HeadsetIcon className="size-3.5" />
+              </MenuRowIcon>
+              <span className="ml-2">
+                {ticketLabel
+                  ? `Support issue ${ticketLabel}`
+                  : 'Tag as support issue'}
+              </span>
+            </DropdownMenuItem>
+          ) : null}
 
           {linearOn || githubOn ? <DropdownMenuSeparator /> : null}
 

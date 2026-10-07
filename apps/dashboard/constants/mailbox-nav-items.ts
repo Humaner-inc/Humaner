@@ -195,12 +195,13 @@ export function getActiveMailboxFolder(
   return null;
 }
 
-/** Connectors, MCP, providers, and Outbound — the Utilities section. */
 export function isUtilitiesPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.InboxProviders)) return true;
   if (pathname.startsWith(Routes.InboxConnectors)) return true;
   if (pathname.startsWith(Routes.Developers)) return true;
   if (pathname.startsWith(Routes.Outbound)) return true;
+  if (pathname.startsWith(Routes.Support)) return true;
+  if (pathname.startsWith(Routes.Workflow)) return true;
   return false;
 }
 
@@ -211,7 +212,6 @@ export function getActiveMailboxWorkspace(
   return null;
 }
 
-/** Paths that expand the Workspace nav tree. */
 export function isWorkspaceDrawerPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.OrganizationTeam)) return true;
   if (pathname.startsWith(Routes.OrganizationWorkspace)) return true;

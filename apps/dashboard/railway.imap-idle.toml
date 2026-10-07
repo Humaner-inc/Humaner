@@ -1,0 +1,25 @@
+# Self-Host IMAP IDLE — second Railway service (same repo as the dashboard).
+# Settings → Root Directory = /
+# Settings → Config file path = /apps/dashboard/railway.imap-idle.toml
+# Replicas = 1 (IDLE cannot run serverless or as extra replicas of the web app)
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/dashboard/Dockerfile.imap-idle"
+watchPatterns = [
+  "apps/dashboard/Dockerfile.imap-idle",
+  "apps/dashboard/railway.imap-idle.toml",
+  "apps/dashboard/services/inbox/**",
+  "apps/dashboard/scripts/imap-idle-worker.ts",
+  "apps/dashboard/scripts/register-server-only-stub.mjs",
+  "apps/dashboard/lib/**",
+  "apps/dashboard/prisma/**",
+  "apps/dashboard/package.json",
+  "packages/shared/**",
+  "packages/react/**"
+]
+
+[deploy]
+startCommand = "pnpm --filter @humaner/dashboard imap:idle:prod"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

@@ -66,7 +66,8 @@ export function NavMain({
             unreadCount={inboxUnreadCount}
             inboxes={mailInboxes}
             showMcp={isWorkspaceOwner(profile)}
-            showOutbound={!oss && canAccessPage(profile, 'inbox')}
+            showCloudPreviewUtilities={!oss}
+            canAccessCloudPreviewUtilities={isPlatformAdmin(profile)}
             canManageTeam={
               !oss &&
               (isWorkspaceOwner(profile) || canAccessPage(profile, 'overview'))

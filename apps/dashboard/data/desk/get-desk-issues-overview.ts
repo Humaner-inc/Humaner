@@ -6,8 +6,6 @@ import { dedupedAuth } from '@/lib/auth';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { getDemoDeskIssuesOverview } from '@/lib/demo/demo-desk';
-import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import type {
   HandoffTicketStatus,
   HandoffTicketUrgency
@@ -57,33 +55,6 @@ export async function getDeskIssuesOverview(): Promise<DeskIssuesOverview> {
 
   const organizationId = session.user.organizationId;
   const currentUserId = session.user.id;
-
-  if (isLocalDemo()) {
-    const teamMembers = await prisma.organizationMembership.findMany({
-      where: { organizationId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { user: { name: 'asc' } }
-    });
-
-    return getDemoDeskIssuesOverview(
-      currentUserId,
-      teamMembers.map((membership) => ({
-        id: membership.user.id,
-        name: membership.user.name,
-        image: membership.user.image,
-        email: membership.user.email
-      }))
-    );
-  }
 
   const [statusCounts, activeTickets, teamMembers] = await Promise.all([
     prisma.handoffTicket.groupBy({

@@ -12,12 +12,14 @@ import { Columns } from '@phosphor-icons/react/dist/ssr/Columns';
 import { Envelope } from '@phosphor-icons/react/dist/ssr/Envelope';
 import { Gear } from '@phosphor-icons/react/dist/ssr/Gear';
 import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
+import { Headset } from '@phosphor-icons/react/dist/ssr/Headset';
 import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
 import { Prohibit } from '@phosphor-icons/react/dist/ssr/Prohibit';
 import { Tag } from '@phosphor-icons/react/dist/ssr/Tag';
 import { Trash } from '@phosphor-icons/react/dist/ssr/Trash';
+import { TreeStructure } from '@phosphor-icons/react/dist/ssr/TreeStructure';
 import { User } from '@phosphor-icons/react/dist/ssr/User';
 import { Users } from '@phosphor-icons/react/dist/ssr/Users';
 
@@ -366,19 +368,27 @@ function UtilitiesSection({
   connectors,
   showMcp,
   canManageProviders,
-  showOutbound
+  showCloudPreviewUtilities,
+  canAccessCloudPreviewUtilities
 }: {
   orgTier: string;
   connectors: ConnectorNavItem[];
   showMcp: boolean;
   canManageProviders: boolean;
-  showOutbound?: boolean;
+  // cloud-only outbound / support / workflow
+  showCloudPreviewUtilities?: boolean;
+  // Role.ADMIN only — not workspace owner
+  canAccessCloudPreviewUtilities?: boolean;
 }): React.JSX.Element {
   const pathname = usePathname();
   const locked = isInboxLocked(orgTier);
+  const previewDisabled = !canAccessCloudPreviewUtilities;
   const providersActive = getActiveMailboxWorkspace(pathname) === 'providers';
   const mcpActive = pathname.startsWith(Routes.Developers);
   const outboundActive = pathname.startsWith(Routes.Outbound);
+  const supportActive = pathname.startsWith(Routes.Support);
+  const workflowActive = pathname.startsWith(Routes.Workflow);
+  const showPreviewGroup = showCloudPreviewUtilities || connectors.length > 0;
 
   return (
     <>
@@ -391,22 +401,6 @@ function UtilitiesSection({
             active={mcpActive}
             mainNavHighlight
             leading={<McpNavIcon active={mcpActive} />}
-          />
-        ) : null}
-        {showOutbound ? (
-          <SidebarNavLink
-            href={Routes.Outbound}
-            label="Outbound"
-            active={outboundActive}
-            disabled={locked}
-            mainNavHighlight
-            leading={
-              <MailboxNavIcon
-                icon={PaperPlaneTilt}
-                active={outboundActive}
-                color={HUMANER_NAV_COLORS.foreground}
-              />
-            }
           />
         ) : null}
         {canManageProviders ? (
@@ -426,9 +420,57 @@ function UtilitiesSection({
           />
         ) : null}
       </SectionGroup>
-      {connectors.length > 0 ? (
+      {showPreviewGroup ? (
         <SectionGroup divided>
-          <NavConnectors connectors={connectors} />
+          {showCloudPreviewUtilities ? (
+            <>
+              <SidebarNavLink
+                href={Routes.Outbound}
+                label="Outbound"
+                active={outboundActive}
+                disabled={previewDisabled}
+                mainNavHighlight
+                leading={
+                  <MailboxNavIcon
+                    icon={PaperPlaneTilt}
+                    active={outboundActive}
+                    color={HUMANER_NAV_COLORS.foreground}
+                  />
+                }
+              />
+              <SidebarNavLink
+                href={Routes.Support}
+                label="Support"
+                active={supportActive}
+                disabled={previewDisabled}
+                mainNavHighlight
+                leading={
+                  <MailboxNavIcon
+                    icon={Headset}
+                    active={supportActive}
+                    color={HUMANER_NAV_COLORS.info}
+                  />
+                }
+              />
+              <SidebarNavLink
+                href={Routes.Workflow}
+                label="Workflow"
+                active={workflowActive}
+                disabled={previewDisabled}
+                mainNavHighlight
+                leading={
+                  <MailboxNavIcon
+                    icon={TreeStructure}
+                    active={workflowActive}
+                    color={HUMANER_NAV_COLORS.foreground}
+                  />
+                }
+              />
+            </>
+          ) : null}
+          {connectors.length > 0 ? (
+            <NavConnectors connectors={connectors} />
+          ) : null}
         </SectionGroup>
       ) : null}
     </>
@@ -440,7 +482,8 @@ export type NavSectionSidebarProps = {
   unreadCount?: number;
   inboxes?: MailInboxOption[];
   showMcp?: boolean;
-  showOutbound?: boolean;
+  showCloudPreviewUtilities?: boolean;
+  canAccessCloudPreviewUtilities?: boolean;
   canManageTeam?: boolean;
   canManageProviders?: boolean;
   connectors?: ConnectorNavItem[];
@@ -452,7 +495,8 @@ export function NavSectionSidebar({
   unreadCount = 0,
   inboxes = [],
   showMcp = false,
-  showOutbound = false,
+  showCloudPreviewUtilities = false,
+  canAccessCloudPreviewUtilities = false,
   canManageTeam = true,
   canManageProviders = true,
   connectors = []
@@ -484,7 +528,8 @@ export function NavSectionSidebar({
           orgTier={orgTier}
           connectors={connectors}
           showMcp={showMcp}
-          showOutbound={showOutbound}
+          showCloudPreviewUtilities={showCloudPreviewUtilities}
+          canAccessCloudPreviewUtilities={canAccessCloudPreviewUtilities}
           canManageProviders={canManageProviders}
         />
       ) : null}

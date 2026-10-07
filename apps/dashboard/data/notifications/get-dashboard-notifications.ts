@@ -18,7 +18,6 @@ import { getMessagesUsedThisMonth } from '@/lib/billing/message-usage';
 import { organizationBypassesPlanLimits } from '@/lib/billing/plan-limits';
 import { normalizeTier } from '@/lib/billing/tier';
 import { prisma } from '@/lib/db/prisma';
-import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import {
@@ -30,7 +29,6 @@ import {
   shouldNotifyDeskInApp,
   shouldNotifyMailInApp
 } from '@/lib/notifications/activity-notification-preferences';
-import { getDemoDashboardNotifications } from '@/lib/notifications/demo-dashboard-notifications';
 import type {
   DashboardNotification,
   DashboardNotificationsSnapshot
@@ -74,10 +72,6 @@ export async function getDashboardNotifications(): Promise<DashboardNotification
 
   const organizationId = session.user.organizationId;
   const userId = session.user.id;
-
-  if (isLocalDemo()) {
-    return getDemoDashboardNotifications(userId);
-  }
 
   const items: DashboardNotification[] = [];
   const oss = isOssDeployment();

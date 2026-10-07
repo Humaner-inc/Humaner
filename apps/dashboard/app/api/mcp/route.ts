@@ -22,9 +22,11 @@ import {
 import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
 import {
+  actorMayUseOutboundTools,
   authorizeMcpClient,
   authorizeMcpIntelligence,
   authorizeWorkspaceRequest,
+  isOutboundWorkspaceTool,
   scopeForWorkspaceTool,
   type IntelligenceMcpAuthSuccess,
   type WorkspaceAuthFailure,
@@ -297,12 +299,17 @@ export async function POST(request: NextRequest): Promise<Response> {
     // credential's scopes, activated connectors, and the workspace's
     // intelligence mode (Companion is hidden when MCP owns it) all gate the list.
     const { scopes } = handshake;
-    const [intelligenceOn, { integrations }] = await Promise.all([
-      readMcpIntelligenceEnabled(handshake.context.organizationId),
-      readCompanionWorkspaceRights(handshake.context.organizationId)
-    ]);
+    const [intelligenceOn, { integrations }, outboundAllowed] =
+      await Promise.all([
+        readMcpIntelligenceEnabled(handshake.context.organizationId),
+        readCompanionWorkspaceRights(handshake.context.organizationId),
+        actorMayUseOutboundTools(handshake.context.actorUserId)
+      ]);
     const availableWorkspaceTools = WORKSPACE_TOOLS.filter((tool) => {
       if (!workspaceToolAllowedOnDeployment(tool.name)) {
+        return false;
+      }
+      if (isOutboundWorkspaceTool(tool.name) && !outboundAllowed) {
         return false;
       }
       if (!apiKeyHasScope(scopes, scopeForWorkspaceTool(tool.name))) {

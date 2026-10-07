@@ -1,8 +1,11 @@
-# Humaner Self-Host — one-command local deploy
+# Humaner Self-Host — dashboard + Postgres + IMAP IDLE
 # Usage:
-#   cp apps/dashboard/.env.example .env.self-host
-#   # set AUTH_SECRET + LLM_API_KEY (required for chat)
+#   export AUTH_SECRET="$(openssl rand -base64 32)"
 #   docker compose up --build
+#
+# The idle worker is required for live mail. It is a long-lived process, not
+# part of the Next.js dashboard image. Railway: add a second service using
+# apps/dashboard/railway.imap-idle.toml (see SELFHOST.md).
 
 services:
   dashboard:
@@ -27,6 +30,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  imap-idle:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile.imap-idle
+    environment:
+      NEXT_PUBLIC_DEPLOYMENT_MODE: oss
+      IMAP_IDLE_ENABLED: 'true'
+      DATABASE_URL: postgresql://humaner:humaner@postgres:5432/humaner
+      DIRECT_URL: postgresql://humaner:humaner@postgres:5432/humaner
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET with openssl rand -base64 32}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   postgres:
     image: pgvector/pgvector:pg16

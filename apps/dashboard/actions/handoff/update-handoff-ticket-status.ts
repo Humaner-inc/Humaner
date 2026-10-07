@@ -12,7 +12,11 @@ import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError } from '@/lib/validation/exceptions';
 import { updateHandoffTicketStatusSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const updateHandoffTicketStatus = pageActionClientAny('desk', 'tasks')
+export const updateHandoffTicketStatus = pageActionClientAny(
+  'desk',
+  'human-desk',
+  'tasks'
+)
   .metadata({ actionName: 'updateHandoffTicketStatus' })
   .schema(updateHandoffTicketStatusSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

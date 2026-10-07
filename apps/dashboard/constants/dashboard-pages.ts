@@ -11,6 +11,8 @@ export const DASHBOARD_PAGE_KEYS = [
   'calendar',
   'desk',
   'human-desk',
+  'support',
+  'workflow',
   'settings'
 ] as const;
 
@@ -26,13 +28,23 @@ export const DASHBOARD_PAGE_LABELS: Record<DashboardPageKey, string> = {
   calendar: 'Calendar',
   desk: 'Desk',
   'human-desk': 'Human Desk',
+  support: 'Support',
+  workflow: 'Workflow',
   settings: 'Settings'
 };
 
 export type TeammateAccessLevel = 'admin' | 'member';
 
+// support / workflow are Role.ADMIN cloud routes — never teammate ACL grants
+const TEAMMATE_EXCLUDED_PAGE_KEYS = new Set<DashboardPageKey>([
+  'support',
+  'workflow'
+]);
+
 /** Full workspace access: team, settings, providers, and every mailbox. */
-export const ADMIN_PAGE_ACCESS: DashboardPageKey[] = [...DASHBOARD_PAGE_KEYS];
+export const ADMIN_PAGE_ACCESS: DashboardPageKey[] = DASHBOARD_PAGE_KEYS.filter(
+  (key) => !TEAMMATE_EXCLUDED_PAGE_KEYS.has(key)
+);
 
 /** Mailbox work only — no team management, workspace settings, or providers. */
 export const MEMBER_PAGE_ACCESS: DashboardPageKey[] = [
@@ -111,7 +123,6 @@ const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'integrations', prefix: Routes.Integrations },
   { key: 'history', prefix: Routes.History },
   { key: 'inbox', prefix: Routes.Inbox },
-  { key: 'inbox', prefix: Routes.Outbound },
   { key: 'inbox', prefix: Routes.Resources },
   { key: 'inbox', prefix: '/resources' },
   { key: 'tasks', prefix: Routes.Tasks },
@@ -134,6 +145,14 @@ export function resolvePathAccess(pathname: string): ResolvedPathAccess {
   const path = toPublicPathname(pathname);
 
   if (path.startsWith('/admin')) {
+    return { type: 'platform-admin' };
+  }
+
+  if (
+    path.startsWith(Routes.Outbound) ||
+    path.startsWith(Routes.Support) ||
+    path.startsWith(Routes.Workflow)
+  ) {
     return { type: 'platform-admin' };
   }
 

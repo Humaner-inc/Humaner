@@ -11,7 +11,11 @@ import { publishOrgEvent } from '@/lib/realtime/org-events';
 import { NotFoundError, PreConditionError } from '@/lib/validation/exceptions';
 import { assignHandoffTicketSchema } from '@/schemas/handoff/human-desk-schema';
 
-export const assignHandoffTicket = pageActionClientAny('desk', 'tasks')
+export const assignHandoffTicket = pageActionClientAny(
+  'desk',
+  'human-desk',
+  'tasks'
+)
   .metadata({ actionName: 'assignHandoffTicket' })
   .schema(assignHandoffTicketSchema)
   .action(async ({ parsedInput, ctx: { session } }) => {

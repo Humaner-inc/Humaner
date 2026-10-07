@@ -63,6 +63,14 @@ describe('mcp oauth scopes and pkce', () => {
     ]);
   });
 
+  it('does not advertise or grant Cloud preview outbound over OAuth', () => {
+    const resource = mcpProtectedResourceMetadata('https://app.humaner.io');
+    const server = mcpAuthorizationServerMetadata('https://app.humaner.io');
+    expect(resource.scopes_supported).not.toContain('outbound');
+    expect(server.scopes_supported).not.toContain('outbound');
+    expect(parseMcpOAuthScopes('mailbox outbound')).toEqual(['mailbox']);
+  });
+
   it('verifies S256 challenges', () => {
     expect(pkceChallengeS256('verifier')).toMatch(/^[A-Za-z0-9_-]+$/);
   });

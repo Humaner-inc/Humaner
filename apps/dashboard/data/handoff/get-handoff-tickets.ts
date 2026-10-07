@@ -7,8 +7,6 @@ import { getLoginRedirect } from '@/lib/auth/redirect';
 import { requireDashboardPageOrRedirect } from '@/lib/auth/require-workspace-access';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { getDemoHandoffTickets } from '@/lib/demo/demo-desk';
-import { isLocalDemo } from '@/lib/demo/is-local-demo';
 import { resolveTicketSlaMinutes } from '@/lib/desk/resolve-ticket-sla';
 import { toDeskRoutedTo } from '@/lib/desk/routed-to';
 import type {
@@ -49,7 +47,7 @@ export type HandoffDeskData = {
 };
 
 export async function getHandoffDeskData(
-  pageKey: 'desk' | 'tasks' = 'desk'
+  pageKey: 'desk' | 'human-desk' | 'tasks' = 'desk'
 ): Promise<HandoffDeskData> {
   const session = await dedupedAuth();
   if (!checkSession(session)) {
@@ -278,12 +276,8 @@ export async function getHandoffDeskData(
   });
 
   return {
-    humanDeskEnabled: isLocalDemo()
-      ? true
-      : (organization?.humanDeskEnabled ?? false),
-    supportEmail: isLocalDemo()
-      ? (organization?.supportEmail ?? 'support@demo.humaner.local')
-      : (organization?.supportEmail ?? null),
+    humanDeskEnabled: organization?.humanDeskEnabled ?? false,
+    supportEmail: organization?.supportEmail ?? null,
     liveChatEnabled: organization?.liveChatEnabled ?? false,
     liveChatTimeoutMinutes: organization?.liveChatTimeoutMinutes ?? 20,
     liveChatTimeoutMessage: organization?.liveChatTimeoutMessage ?? null,
@@ -295,8 +289,6 @@ export async function getHandoffDeskData(
     currentUserId: session.user.id,
     teamMembers: mappedTeamMembers,
     businessHours,
-    tickets: isLocalDemo()
-      ? getDemoHandoffTickets(session.user.id, mappedTeamMembers)
-      : mappedTickets
+    tickets: mappedTickets
   };
 }

@@ -53,9 +53,11 @@ export function McpOAuthConsentForm({
   state: string;
   defaultScopes: ApiKeyScope[];
 }): React.JSX.Element {
-  const [scopes, setScopes] = React.useState<ApiKeyScope[]>(() =>
-    defaultScopes.length > 0 ? defaultScopes : ['mailbox']
-  );
+  const [scopes, setScopes] = React.useState<ApiKeyScope[]>(() => {
+    const allowed = new Set(CONSENT_SCOPES.map((option) => option.id));
+    const next = defaultScopes.filter((scope) => allowed.has(scope));
+    return next.length > 0 ? next : ['mailbox'];
+  });
   const { execute, isExecuting } = useAction(approveMcpOAuth, {
     onSuccess: ({ data }) => {
       if (data?.redirectTo) {

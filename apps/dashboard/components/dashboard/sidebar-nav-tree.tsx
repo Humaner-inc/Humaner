@@ -317,8 +317,9 @@ export function SidebarNavChild({
       )}
     >
       <Link
-        href={href}
+        href={disabled ? '#' : href}
         tabIndex={tabIndex}
+        aria-disabled={disabled || undefined}
         className={cn(
           sidebarNavChildClassName(active, false),
           quickAction && 'pr-8'

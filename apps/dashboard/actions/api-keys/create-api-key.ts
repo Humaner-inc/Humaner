@@ -1,18 +1,23 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { Role } from '@prisma/client';
 import { startOfDay } from 'date-fns';
 
 import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
-import { normalizeApiKeyScopes } from '@/lib/auth/api-key-scopes';
+import {
+  normalizeApiKeyScopes,
+  PLATFORM_ADMIN_API_KEY_SCOPES
+} from '@/lib/auth/api-key-scopes';
 import { generateApiKey, hashApiKey } from '@/lib/auth/api-keys';
 import {
   getOrganizationCapabilities,
   getOrganizationPlanName
 } from '@/lib/billing/capabilities';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { PreConditionError } from '@/lib/validation/exceptions';
 import { createApiKeySchema } from '@/schemas/api-keys/create-api-key-schema';
 
@@ -40,10 +45,16 @@ export const createApiKey = ownerActionClient
     }
 
     const apiKey = generateApiKey();
-    const scopes = normalizeApiKeyScopes({
+    let scopes = normalizeApiKeyScopes({
       access: parsedInput.access,
       scopes: parsedInput.scopes
     });
+    // Outbound is Cloud Role.ADMIN preview — never mint on Self-Host or for owners
+    if (isOssDeployment() || session.user.role !== Role.ADMIN) {
+      scopes = scopes.filter(
+        (scope) => !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
+      );
+    }
     const created = await prisma.apiKey.create({
       data: {
         description: parsedInput.description,

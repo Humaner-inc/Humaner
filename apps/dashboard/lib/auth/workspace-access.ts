@@ -5,6 +5,7 @@ import {
   resolveTeammateAccessLevel,
   type DashboardPageKey
 } from '@/constants/dashboard-pages';
+import { sharesHandoffDeskAccess } from '@/constants/handoff-desk-pages';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 import type { NavItem } from '@/types/nav-item';
 
@@ -27,12 +28,22 @@ export function isPlatformAdmin(profile: Pick<ProfileDto, 'role'>): boolean {
   return profile.role === Role.ADMIN;
 }
 
+// Cloud preview pages — Role.ADMIN only; owners/teammates must not inherit via ACL
+const PLATFORM_ADMIN_PAGE_KEYS = new Set<DashboardPageKey>([
+  'support',
+  'workflow'
+]);
+
 export function canAccessPage(
   profile: Pick<ProfileDto, 'role' | 'workspaceRole' | 'allowedPages'>,
   pageKey: DashboardPageKey
 ): boolean {
   if (isPlatformAdmin(profile)) {
     return true;
+  }
+
+  if (PLATFORM_ADMIN_PAGE_KEYS.has(pageKey)) {
+    return false;
   }
 
   if (isWorkspaceOwner(profile)) {
@@ -51,11 +62,7 @@ export function canAccessPage(
     return true;
   }
 
-  if (pageKey === 'desk' && profile.allowedPages.includes('human-desk')) {
-    return true;
-  }
-
-  if (pageKey === 'human-desk' && profile.allowedPages.includes('desk')) {
+  if (sharesHandoffDeskAccess(profile.allowedPages, pageKey)) {
     return true;
   }
 

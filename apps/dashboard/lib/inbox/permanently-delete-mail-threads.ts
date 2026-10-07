@@ -134,7 +134,8 @@ export async function permanentlyDeleteMailThreads(
   return threads.length;
 }
 
-export async function listTrashThreadIds(input: {
+async function listFolderThreadIds(input: {
+  folder: MailThreadFolder;
   accessWhere: {
     organizationId: string;
     OR?: Array<{ aliasId: { in: string[] } } | { assigneeId: string }>;
@@ -145,7 +146,7 @@ export async function listTrashThreadIds(input: {
   const threads = await prisma.mailThread.findMany({
     where: {
       ...input.accessWhere,
-      folder: MailThreadFolder.TRASH,
+      folder: input.folder,
       ...(input.connectionId
         ? { alias: { connectionId: input.connectionId } }
         : {})
@@ -155,6 +156,28 @@ export async function listTrashThreadIds(input: {
   });
 
   return threads.map((thread) => thread.id);
+}
+
+export async function listTrashThreadIds(input: {
+  accessWhere: {
+    organizationId: string;
+    OR?: Array<{ aliasId: { in: string[] } } | { assigneeId: string }>;
+  };
+  connectionId?: string | null;
+  take?: number;
+}): Promise<string[]> {
+  return listFolderThreadIds({ ...input, folder: MailThreadFolder.TRASH });
+}
+
+export async function listSpamThreadIds(input: {
+  accessWhere: {
+    organizationId: string;
+    OR?: Array<{ aliasId: { in: string[] } } | { assigneeId: string }>;
+  };
+  connectionId?: string | null;
+  take?: number;
+}): Promise<string[]> {
+  return listFolderThreadIds({ ...input, folder: MailThreadFolder.SPAM });
 }
 
 export { BATCH_SIZE as TRASH_DELETE_BATCH_SIZE };

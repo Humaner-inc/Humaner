@@ -6,6 +6,7 @@ import {
 } from '@/components/dashboard/inbox/inbox-empty-state';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
+import { SpamFolderToolbar } from '@/components/dashboard/inbox/spam-folder-toolbar';
 import { TrashFolderToolbar } from '@/components/dashboard/inbox/trash-folder-toolbar';
 import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
@@ -60,11 +61,18 @@ export async function InboxMailFolderScreen({
         mailbox={mailbox ?? null}
         canEmpty={threads.length > 0}
       />
+    ) : folder === 'spam' ? (
+      <SpamFolderToolbar
+        mailbox={mailbox ?? null}
+        canEmpty={threads.length > 0}
+      />
     ) : null;
+
+  const hasFolderChrome = folder === 'trash' || folder === 'spam';
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      {folder === 'trash' ? null : <h1 className="sr-only">{title}</h1>}
+      {hasFolderChrome ? null : <h1 className="sr-only">{title}</h1>}
       <PullToRefreshInbox className="min-h-0 flex-1">
         {threads.length > 0 ? (
           <MailThreadList
@@ -77,7 +85,7 @@ export async function InboxMailFolderScreen({
           />
         ) : (
           <div className="flex h-full min-h-0 flex-1 flex-col">
-            {folder === 'trash' ? (
+            {hasFolderChrome ? (
               <div className="shrink-0 border-b border-border/50">
                 {listChrome}
               </div>

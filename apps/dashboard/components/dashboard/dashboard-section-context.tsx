@@ -12,10 +12,11 @@ import {
 import type { ProfileDto } from '@/types/dtos/profile-dto';
 
 type DashboardSectionContextValue = {
+  profile: ProfileDto;
   sections: DashboardSection[];
-  /** Section whose sidebar is shown. Sticks to the last one on unsectioned pages. */
+  // section whose sidebar is shown — sticks to the last one on unsectioned pages
   activeSection: DashboardSectionId;
-  /** `true` only when the current path belongs to `activeSection`. */
+  // true only when the current path belongs to activeSection
   pathInSection: boolean;
 };
 
@@ -46,11 +47,12 @@ export function DashboardSectionProvider({
 
   const value = React.useMemo<DashboardSectionContextValue>(
     () => ({
+      profile,
       sections,
       activeSection: pathSection ?? lastSection,
       pathInSection: pathSection !== null
     }),
-    [sections, pathSection, lastSection]
+    [profile, sections, pathSection, lastSection]
   );
 
   return (

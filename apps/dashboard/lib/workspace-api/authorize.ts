@@ -3,11 +3,17 @@ import 'server-only';
 import type { NextRequest } from 'next/server';
 import { getPlanCapabilities } from '@humaner/shared/plans';
 import type { IndustryType } from '@prisma/client';
+import { Role } from '@prisma/client';
 
-import { apiKeyHasScope, type ApiKeyScope } from '@/lib/auth/api-key-scopes';
+import {
+  apiKeyHasScope,
+  apiKeyMissingScopeMessage,
+  type ApiKeyScope
+} from '@/lib/auth/api-key-scopes';
 import { isApiKeyFormat, verifyApiKey } from '@/lib/auth/api-keys';
 import { resolveIanaTimeZone } from '@/lib/calendar/parse-calendar-when';
 import { prisma } from '@/lib/db/prisma';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { isMcpAccessToken } from '@/lib/developers/mcp-oauth';
 import { verifyMcpAccessToken } from '@/lib/developers/mcp-oauth-store';
 import { extractBearerToken } from '@/lib/security/authorize-public-agent-request';
@@ -78,6 +84,23 @@ const OUTBOUND_TOOLS = new Set<WorkspaceToolName>([
   'get_wave_review',
   'get_wave_results'
 ]);
+
+export function isOutboundWorkspaceTool(tool: WorkspaceToolName): boolean {
+  return OUTBOUND_TOOLS.has(tool);
+}
+
+export async function actorMayUseOutboundTools(
+  actorUserId: string
+): Promise<boolean> {
+  if (isOssDeployment()) {
+    return false;
+  }
+  const actor = await prisma.user.findFirst({
+    where: { id: actorUserId },
+    select: { role: true }
+  });
+  return actor?.role === Role.ADMIN;
+}
 
 /** Tasks ride mailbox; outbound tools use the outbound scope. */
 export function scopeForWorkspaceTool(tool: WorkspaceToolName): ApiKeyScope {
@@ -410,15 +433,42 @@ export async function authorizeWorkspaceRequest(input: {
     return {
       ok: false,
       status: 403,
-      message:
-        required === 'calendar'
-          ? 'This credential does not have Calendar access.'
-          : 'This credential does not have Mailbox access.',
+      message: apiKeyMissingScopeMessage(required),
       allowOrigin: resolved.allowOrigin,
       organizationId: resolved.caller.organizationId,
       apiKeyId: resolved.caller.apiKeyId ?? undefined,
       oauthGrantId: resolved.caller.oauthGrantId ?? undefined
     };
+  }
+
+  // Cloud Role.ADMIN preview — not Self-Host, not workspace owner
+  if (OUTBOUND_TOOLS.has(tool)) {
+    if (isOssDeployment()) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'Outbound is Cloud-only.',
+        allowOrigin: resolved.allowOrigin,
+        organizationId: resolved.caller.organizationId,
+        apiKeyId: resolved.caller.apiKeyId ?? undefined,
+        oauthGrantId: resolved.caller.oauthGrantId ?? undefined
+      };
+    }
+    const actor = await prisma.user.findFirst({
+      where: { id: resolved.caller.actorUserId },
+      select: { role: true }
+    });
+    if (actor?.role !== Role.ADMIN) {
+      return {
+        ok: false,
+        status: 403,
+        message: 'Outbound is limited to platform admins.',
+        allowOrigin: resolved.allowOrigin,
+        organizationId: resolved.caller.organizationId,
+        apiKeyId: resolved.caller.apiKeyId ?? undefined,
+        oauthGrantId: resolved.caller.oauthGrantId ?? undefined
+      };
+    }
   }
 
   return {

@@ -142,6 +142,10 @@ export function pageActionClient(pageKey: DashboardPageKey) {
   });
 }
 
+export function handoffDeskActionClient() {
+  return pageActionClientAny('desk', 'human-desk');
+}
+
 export function pageActionClientAny(...pageKeys: DashboardPageKey[]) {
   return authActionClient.use(async ({ next, ctx }) => {
     const context = await getUserAccessContext(ctx.session.user.id);

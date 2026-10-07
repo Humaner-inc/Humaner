@@ -1,6 +1,7 @@
 import {
   ActivityIcon,
   BellIcon,
+  BotIcon,
   CreditCardIcon,
   LockKeyholeIcon,
   MessageSquare,
@@ -14,15 +15,21 @@ import type { NavItem } from '@/types/nav-item';
 
 export const mainNavItems: NavItem[] = [];
 
-/** Kept empty — admin tools live in the profile menu, not the sidebar. */
+/** Kept empty — admin tools live in the profile menu / command menu. */
 export const adminNavItems: NavItem[] = [];
 
-/** Platform-operator tools shown in the profile popup and command menu. */
+/** Platform-operator tools — profile popup and command menu. */
 export const adminProfileItems: NavItem[] = [
   {
     title: 'Support tickets',
     href: Routes.AdminTickets,
     icon: MessageSquare,
+    adminOnly: true
+  },
+  {
+    title: 'Demo agents',
+    href: Routes.AdminDemos,
+    icon: BotIcon,
     adminOnly: true
   }
 ];
