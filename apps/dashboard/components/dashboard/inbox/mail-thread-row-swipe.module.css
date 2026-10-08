@@ -1,11 +1,12 @@
+/* Ease-out: fast start, soft landing (snap-back + commit). */
 .panel {
   transition:
-    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 220ms cubic-bezier(0.4, 0, 1, 1);
+    width 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 280ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .sheet {
-  transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sheet[data-dragging] {
@@ -14,16 +15,22 @@
 
 .sheet[data-exit='delete'] {
   transition:
-    transform 340ms cubic-bezier(0.4, 0, 1, 1),
-    opacity 280ms cubic-bezier(0.4, 0, 1, 1);
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .panel[data-dragging] {
-  transition: opacity 120ms cubic-bezier(0.4, 0, 1, 1);
+  transition:
+    width 80ms cubic-bezier(0, 0, 0.2, 1),
+    opacity 160ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.panel[data-ready] {
+  opacity: 1;
 }
 
 .pinPulse {
-  animation: mail-row-pin-pulse 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: mail-row-pin-pulse 480ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes mail-row-pin-pulse {

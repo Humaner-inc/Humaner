@@ -16,7 +16,7 @@ import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { isMcpAccessToken } from '@/lib/developers/mcp-oauth';
 import { verifyMcpAccessToken } from '@/lib/developers/mcp-oauth-store';
-import { extractBearerToken } from '@/lib/security/authorize-public-agent-request';
+import { extractBearerToken } from '@/lib/security/extract-bearer-token';
 import {
   resolveWorkspaceToolName,
   type WorkspaceToolName

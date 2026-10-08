@@ -222,7 +222,7 @@ Set `AUTH_GOOGLE_CLIENT_ID` and `AUTH_GOOGLE_CLIENT_SECRET`. GitHub login is Clo
 | No OTP console logging in prod | Disable `SELF_HOST_LOG_VERIFICATION` once email works                                      |
 | Own the DB                     | Mail, tasks, and calendar live in your Postgres                                            |
 
-Report vulnerabilities to dev@humaner.io. Do not file public issues for exploitable findings.
+Report vulnerabilities privately as described in [`SECURITY.md`](./SECURITY.md). Do not file public issues for exploitable findings.
 
 ## Verification checklist
 

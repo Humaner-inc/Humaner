@@ -9,9 +9,11 @@ import { cn } from '@/lib/utils';
 import styles from './mail-thread-row-swipe.module.css';
 
 const SLOP_PX = 8;
-const COMMIT_FRACTION = 1 / 3;
-const DELETE_EXIT_MS = 360;
-const PIN_SETTLE_MS = 320;
+/** Commit pin/delete when the row travels this fraction of its width. */
+const COMMIT_FRACTION = 0.4;
+const DELETE_EXIT_MS = 420;
+const PIN_SETTLE_MS = 380;
+const EASE_OUT_POWER = 2.35;
 
 type MailThreadRowSwipeProps = {
   enabled: boolean;
@@ -36,6 +38,25 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** Maps finger travel to row travel with ease-out so motion eases into the action zone. */
+function pointerToVisualOffset(raw: number, rowWidth: number): number {
+  const width = rowWidth || 320;
+  const sign = Math.sign(raw) || 1;
+  const abs = Math.abs(raw);
+  const commitAt = Math.max(80, width * COMMIT_FRACTION);
+  const maxTravel = width * 0.58;
+
+  if (abs <= commitAt) {
+    const t = abs / commitAt;
+    const eased = 1 - Math.pow(1 - t, EASE_OUT_POWER);
+    return sign * eased * commitAt;
+  }
+
+  const past = abs - commitAt;
+  const tail = commitAt + past * 0.2;
+  return sign * Math.min(tail, maxTravel);
+}
+
 export function MailThreadRowSwipe({
   enabled,
   pinLabel,
@@ -52,6 +73,7 @@ export function MailThreadRowSwipe({
   const [offsetX, setOffsetX] = React.useState(0);
   const [dragging, setDragging] = React.useState(false);
   const [exitMode, setExitMode] = React.useState<'delete' | null>(null);
+  const [readyToCommit, setReadyToCommit] = React.useState(false);
 
   const measureWidth = React.useCallback((): void => {
     const node = surfaceRef.current;
@@ -68,26 +90,8 @@ export function MailThreadRowSwipe({
     return () => observer.disconnect();
   }, [measureWidth]);
 
-  const commitThreshold = (): number =>
-    Math.max(72, widthRef.current * COMMIT_FRACTION);
-
-  const clampOffset = (raw: number): number => {
-    const max = widthRef.current || 320;
-    const sign = Math.sign(raw) || 1;
-    const distance = Math.min(Math.abs(raw), max);
-    return sign * distance;
-  };
-
-  const offsetWithResistance = (raw: number): number => {
-    const clamped = clampOffset(raw);
-    const threshold = commitThreshold();
-    const abs = Math.abs(clamped);
-    if (abs <= threshold) return clamped;
-    const overshoot = abs - threshold;
-    const resisted = threshold + overshoot * 0.28;
-    const cap = (widthRef.current || 320) * 0.5;
-    return Math.sign(clamped) * Math.min(resisted, cap);
-  };
+  const commitDistance = (): number =>
+    Math.max(80, widthRef.current * COMMIT_FRACTION);
 
   const collapseRow = React.useCallback((): void => {
     const row = rowRef?.current;
@@ -97,7 +101,7 @@ export function MailThreadRowSwipe({
     row.style.overflow = 'hidden';
     requestAnimationFrame(() => {
       row.style.transition =
-        'max-height 360ms cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease-in, border-color 300ms ease-in';
+        'max-height 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms cubic-bezier(0, 0, 0.2, 1), border-color 320ms ease-out';
       row.style.maxHeight = '0px';
       row.style.opacity = '0';
       row.style.borderColor = 'transparent';
@@ -109,13 +113,14 @@ export function MailThreadRowSwipe({
       if (committedRef.current) return;
       committedRef.current = true;
       setDragging(false);
+      setReadyToCommit(false);
       const reduced = prefersReducedMotion();
 
       if (side === 'delete') {
         playUiFeedbackSound('mail-delete');
         const width = widthRef.current || 320;
         setExitMode('delete');
-        setOffsetX(-(width + 28));
+        setOffsetX(-(width + 32));
         collapseRow();
         window.setTimeout(
           () => {
@@ -146,15 +151,18 @@ export function MailThreadRowSwipe({
   );
 
   const finishDrag = React.useCallback(
-    (raw: number): void => {
-      const threshold = commitThreshold();
-      const distance = Math.abs(raw);
+    (fingerRaw: number): void => {
+      const threshold = commitDistance();
+      const distance = Math.abs(fingerRaw);
       setDragging(false);
+      setReadyToCommit(false);
+
       if (distance >= threshold) {
-        if (raw > 0) runAction('pin');
+        if (fingerRaw > 0) runAction('pin');
         else runAction('delete');
         return;
       }
+
       setOffsetX(0);
     },
     [runAction]
@@ -165,6 +173,7 @@ export function MailThreadRowSwipe({
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     measureWidth();
     setDragging(false);
+    setReadyToCommit(false);
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -194,18 +203,10 @@ export function MailThreadRowSwipe({
       event.currentTarget.setPointerCapture(event.pointerId);
     }
 
-    const next = offsetWithResistance(
-      drag.originX + event.clientX - drag.startX
-    );
-    setOffsetX(next);
-
-    const threshold = commitThreshold();
-    if (Math.abs(next) >= threshold) {
-      if (next > 0) runAction('pin');
-      else runAction('delete');
-      dragRef.current = null;
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
+    const fingerRaw = drag.originX + event.clientX - drag.startX;
+    const visual = pointerToVisualOffset(fingerRaw, widthRef.current);
+    setOffsetX(visual);
+    setReadyToCommit(Math.abs(fingerRaw) >= commitDistance());
   };
 
   const onPointerEnd = (event: React.PointerEvent<HTMLDivElement>): void => {
@@ -214,17 +215,15 @@ export function MailThreadRowSwipe({
     const axis = drag.axis;
     dragRef.current = null;
     if (axis === 'x') {
-      const finalOffset = offsetWithResistance(
-        drag.originX + event.clientX - drag.startX
-      );
-      setOffsetX(finalOffset);
-      finishDrag(finalOffset);
+      const fingerRaw = drag.originX + event.clientX - drag.startX;
+      finishDrag(fingerRaw);
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       return;
     }
     setDragging(false);
+    setReadyToCommit(false);
   };
 
   if (!enabled) {
@@ -233,8 +232,9 @@ export function MailThreadRowSwipe({
 
   const revealPin = offsetX > 0;
   const revealDelete = offsetX < 0;
-  const threshold = commitThreshold();
-  const revealWidth = Math.min(Math.abs(offsetX), threshold);
+  const threshold = commitDistance();
+  const revealWidth = Math.min(Math.abs(offsetX), threshold * 1.05);
+  const progress = Math.min(Math.abs(offsetX) / threshold, 1);
 
   return (
     <div
@@ -245,14 +245,24 @@ export function MailThreadRowSwipe({
       <div
         aria-hidden
         data-dragging={dragging || undefined}
+        data-ready={readyToCommit && revealPin ? true : undefined}
         className={cn(
           styles.panel,
-          'pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center bg-[#f5a524] text-[#0a0d0d]',
-          revealPin ? 'opacity-100' : 'opacity-0'
+          'pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center bg-[#f5a524] text-[#0a0d0d]'
         )}
-        style={{ width: revealWidth }}
+        style={{
+          width: revealPin ? revealWidth : 0,
+          opacity: revealPin ? 0.35 + progress * 0.65 : 0
+        }}
       >
-        <div className="flex flex-col items-center gap-1 px-2">
+        <div
+          className="flex flex-col items-center gap-1 px-2 transition-transform duration-200 ease-out"
+          style={{
+            transform: revealPin
+              ? `scale(${0.88 + progress * 0.12})`
+              : 'scale(0.88)'
+          }}
+        >
           <PinIcon className="size-5" />
           <span className="font-mono text-[10px] font-medium">{pinLabel}</span>
         </div>
@@ -260,14 +270,24 @@ export function MailThreadRowSwipe({
       <div
         aria-hidden
         data-dragging={dragging || undefined}
+        data-ready={readyToCommit && revealDelete ? true : undefined}
         className={cn(
           styles.panel,
-          'pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center bg-destructive text-destructive-foreground',
-          revealDelete ? 'opacity-100' : 'opacity-0'
+          'pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center bg-destructive text-destructive-foreground'
         )}
-        style={{ width: revealWidth }}
+        style={{
+          width: revealDelete ? revealWidth : 0,
+          opacity: revealDelete ? 0.35 + progress * 0.65 : 0
+        }}
       >
-        <div className="flex flex-col items-center gap-1 px-2">
+        <div
+          className="flex flex-col items-center gap-1 px-2 transition-transform duration-200 ease-out"
+          style={{
+            transform: revealDelete
+              ? `scale(${0.88 + progress * 0.12})`
+              : 'scale(0.88)'
+          }}
+        >
           <Trash2Icon className="size-5" />
           <span className="font-mono text-[10px] font-medium">
             {deleteLabel}

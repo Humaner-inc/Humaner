@@ -17,7 +17,7 @@
 
 Humaner Self-Host is an IMAP mailbox you run yourself: shared inbox, attachments, tasks, in-app calendar, resources, extra workspaces. Login is email or Google.
 
-Point your own agent to run borign tasks for you, send, draft, book.. [MCP](https://docs.humaner.io/oss/api).
+Point your own agent to run boring tasks for you, send, draft, book.. [MCP](https://docs.humaner.io/oss/api).
 
 ## Features
 

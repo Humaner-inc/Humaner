@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
 
 import { verifyApiKey } from '@/lib/auth/api-keys';
 import { prisma } from '@/lib/db/prisma';
-import { extractBearerToken } from '@/lib/security/authorize-public-agent-request';
+import { extractBearerToken } from '@/lib/security/extract-bearer-token';
 
 const MAX_ERROR_LENGTH = 500;
 
