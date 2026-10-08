@@ -2,9 +2,9 @@
 
 All notable changes to Humaner Self-Host are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org).
 
-## [0.1.0] - Unreleased
+## [0.1.1] - Unreleased
 
-First public release of the Self-Host mailbox kit.
+First public release of the Self-Host mailbox kit. (`0.1.0` was tagged in the private repository while the release pipeline was being finished and was never published.)
 
 ### Added
 
