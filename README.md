@@ -17,8 +17,6 @@
 </p>
 
 <p align="center">
-  <a href="./CHANGELOG.md"><img alt="version" src="https://img.shields.io/github/package-json/v/Humaner-inc/Humaner?label=version&color=f85919" /></a>
-  <a href="https://github.com/Humaner-inc/Humaner/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Humaner-inc/Humaner/ci.yml?branch=main&label=CI" /></a>
   <a href="./LICENSE"><img alt="license" src="https://img.shields.io/badge/license-AGPL--3.0-blue" /></a>
   <a href="https://github.com/Humaner-inc/Humaner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Humaner-inc/Humaner?logo=github&label=Stars" /></a>
   <a href="https://docs.humaner.io/oss/api"><img alt="MCP ready" src="https://img.shields.io/badge/MCP-ready-f85919" /></a>

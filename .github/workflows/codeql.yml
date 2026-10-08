@@ -21,6 +21,9 @@ jobs:
     name: Analyze (JavaScript / TypeScript)
     runs-on: ubuntu-latest
     permissions:
+      # actions: read lets CodeQL look up its own workflow run (required for
+      # private repositories); security-events: write uploads the results.
+      actions: read
       contents: read
       security-events: write
     steps:
