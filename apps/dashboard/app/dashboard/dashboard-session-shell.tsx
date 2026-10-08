@@ -340,7 +340,7 @@ export async function DashboardSessionShell({
         <BillingAccessBanner access={billingAccess} />
       ) : null}
       {showMfaRecommendation ? (
-        <MfaRecommendedBanner className="mx-4 mt-3 mb-0" />
+        <MfaRecommendedBanner className="mx-6 mt-3 mb-0 md:mx-8" />
       ) : null}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <WorkspaceBillingAccessProvider access={billingAccess}>

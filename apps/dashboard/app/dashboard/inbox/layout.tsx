@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connection } from 'next/server';
 
 import { InboxAutoDetectMail } from '@/components/dashboard/inbox/inbox-auto-detect-mail';
 import { InboxFolderSync } from '@/components/dashboard/inbox/inbox-folder-sync';
@@ -15,6 +16,10 @@ import { getInboxAutoSuggestReplies } from '@/data/inbox/inbox-auto-suggest';
 const INBOX_ACCENT = '#001afc';
 
 async function InboxLayoutChrome(): Promise<React.JSX.Element> {
+  // Session lookup calls `crypto.getRandomValues()`; opt out of prerendering
+  // here (inside Suspense, so the shell still streams) like other dashboard pages.
+  await connection();
+
   const [autoSuggestReplies, autoDetectMail, overview] = await Promise.all([
     getInboxAutoSuggestReplies(),
     getInboxAutoDetectMail(),

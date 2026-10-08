@@ -12,15 +12,38 @@ pnpm install
 
 ### 2. Database — PostgreSQL 16+ with pgvector
 
-User and database names are yours (e.g. `acme`).
+User and database names are yours (the examples below use user `johndoe` and database `acme`).
+
+**Linux / macOS**
 
 ```bash
 sudo -u postgres psql
+```
+
+**Windows**
+
+```powershell
+psql -U postgres
+```
+
+Then, in the `psql` prompt:
+
+```sql
 CREATE USER johndoe WITH PASSWORD 'password' SUPERUSER;
 CREATE DATABASE acme OWNER johndoe;
 \c acme
 CREATE EXTENSION IF NOT EXISTS vector;
 \q
+```
+
+**Any OS, with Docker** (no local Postgres install needed; the image already bundles pgvector):
+
+```bash
+docker run -d --name humaner-pg \
+  -e POSTGRES_USER=johndoe -e POSTGRES_PASSWORD=password -e POSTGRES_DB=acme \
+  -p 5432:5432 -v humaner-pg-data:/var/lib/postgresql/data \
+  pgvector/pgvector:pg17
+docker exec humaner-pg psql -U johndoe -d acme -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
 ### 3. Environment | copy and fill your own
@@ -33,8 +56,8 @@ Required variables:
 
 ```bash
 NEXT_PUBLIC_DEPLOYMENT_MODE=oss   # mandatory to deploy the self-hosting framework
-DATABASE_URL=postgresql://acme:password@localhost:5432/acme
-DIRECT_URL=postgresql://acme:password@localhost:5432/acme
+DATABASE_URL=postgresql://johndoe:password@localhost:5432/acme
+DIRECT_URL=postgresql://johndoe:password@localhost:5432/acme
 AUTH_SECRET="$(openssl rand -base64 32)"
 AUTH_TRUST_HOST=true
 NEXT_PUBLIC_APP_URL=http://localhost:3001
@@ -42,6 +65,12 @@ IMAP_IDLE_ENABLED=true          # required by the idle worker (step 10)
 ```
 
 `NEXT_PUBLIC_DEPLOYMENT_MODE` is read at **build time**, it selects the Self-Host build. (Changing it later requires a rebuild.)
+
+On Windows (PowerShell, no `openssl` needed), generate `AUTH_SECRET` with:
+
+```powershell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])
+```
 
 `AUTH_SECRET` signs sessions, mailbox credentials, and the sign-up verification OTP. Set it before first boot.
 Set `AUTH_TRUST_HOST=true` when the dashboard runs behind a reverse proxy or in Docker so auth callback URLs resolve to your public origin.
@@ -74,6 +103,8 @@ EMAIL_SERVER_PASS=your-app-specific-password
 ```
 
 For Docker / non-development runs, set `SELF_HOST_LOG_VERIFICATION=true` only while wiring SMTP. Never leave it on for real users.
+
+Without SMTP, the welcome email after verification is skipped (a warning is logged) and sign-up still succeeds.
 
 ### 5. LLM keys.
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 import { InvitationStatus } from '@prisma/client';
 import { validate as uuidValidate } from 'uuid';
 
@@ -141,7 +141,8 @@ async function AuthLayoutBody({
   mailboxSvg: string;
 }>): Promise<React.JSX.Element> {
   // Postpone before Auth.js session work hits crypto during prerender.
-  await cookies();
+  // `cookies()` alone is not enough: it can resolve during the prerender pass.
+  await connection();
   await AuthLoggedInRedirect();
   const showBackToMarketing = !isOssDeployment() && isLoginOrSignUpRoute();
 

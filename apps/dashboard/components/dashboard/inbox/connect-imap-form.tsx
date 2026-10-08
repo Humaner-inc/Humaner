@@ -1205,13 +1205,13 @@ export function ConnectImapForm({
                     Add
                   </Button>
                 </div>
-                <p className="flex items-start gap-2 border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                <div className="flex items-start gap-2 border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                   <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
-                  <span>
+                  <p>
                     Humaner does not create aliases. It connects them as
                     different sending addresses on this mailbox.
-                  </span>
-                </p>
+                  </p>
+                </div>
               </div>
             </div>
           )}

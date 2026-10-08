@@ -63,7 +63,12 @@ export function DashboardDockPanel({
     >
       {panelMode ? (
         <div className="flex h-full w-96 max-lg:w-full flex-col bg-background">
-          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4">
+          <div
+            className={cn(
+              'flex h-12 shrink-0 items-center gap-2 border-b border-border/50',
+              panelMode === 'notifications' ? 'px-5' : 'px-4'
+            )}
+          >
             <span className="flex-1 truncate font-mono text-xs tracking-tight">
               {title}
             </span>

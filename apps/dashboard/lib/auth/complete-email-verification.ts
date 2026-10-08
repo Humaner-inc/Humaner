@@ -132,10 +132,16 @@ export async function completeEmailVerification(
 
     await verifyEmail(verificationToken.identifier);
 
-    await sendWelcomeEmail({
-      name: user.name,
-      recipient: user.email!
-    });
+    // The account is already verified; a mailer failure (e.g. SMTP not set up
+    // on a fresh self-host) must not surface as a failed verification.
+    try {
+      await sendWelcomeEmail({
+        name: user.name,
+        recipient: user.email!
+      });
+    } catch (error) {
+      console.warn('[auth] Welcome email could not be sent', error);
+    }
   }
 
   if (await isAuthenticatorAppEnabled(user.id)) {

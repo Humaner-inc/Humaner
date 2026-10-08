@@ -51,14 +51,14 @@ export function DashboardBrandSlot({
         {collapsed ? (
           <span
             aria-hidden
-            className="inline-block size-6 shrink-0 bg-[#0A0D0D] dark:bg-[#f2f2f2]"
+            className="inline-block size-6 shrink-0 bg-[linear-gradient(180deg,#0A0D0D_0%,#6d7272_100%)] dark:bg-[linear-gradient(180deg,#F2F2F2_0%,#8d9191_100%)]"
             style={brandmarkMaskStyle}
           />
         ) : (
           <HumanerBrandTitle
             name={AppInfo.APP_NAME}
             className="min-w-0"
-            wordmarkClassName="truncate font-display text-lg font-normal tracking-tight text-[#0A0D0D] dark:text-[#e0e1df]"
+            wordmarkClassName="inline-block truncate bg-[linear-gradient(180deg,#0A0D0D_0%,#6d7272_100%)] bg-clip-text font-display text-lg font-normal tracking-tight text-transparent dark:bg-[linear-gradient(180deg,#F2F2F2_0%,#8d9191_100%)]"
           />
         )}
       </Link>

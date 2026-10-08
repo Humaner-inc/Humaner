@@ -25,8 +25,9 @@ import {
 } from '@/lib/calendar/calendar-view';
 import { cn } from '@/lib/utils';
 
+/** Matches the default dashboard button: h-8 - px-3.5 - mono 11px - brand radius. */
 const TOOLBAR_BUTTON =
-  'h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal';
+  'h-8 px-3.5 font-mono text-[11px] font-medium normal-case tracking-normal';
 
 const VIEW_LABELS: Record<CalendarView, string> = {
   day: 'Day',

@@ -44,7 +44,7 @@ export function BlockMailSenderDialog({
             New mail from this address goes to Spam.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           You can unblock later
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
@@ -63,7 +63,7 @@ export function BlockMailSenderDialog({
               Unblock from Workspace settings → Inbox.
             </TooltipContent>
           </Tooltip>
-        </p>
+        </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction

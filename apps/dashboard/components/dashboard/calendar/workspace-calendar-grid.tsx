@@ -2,15 +2,21 @@
 
 import * as React from 'react';
 
+import { buttonVariants } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { HUMANER_NAV_COLORS } from '@/lib/humaner-nav-colors';
+import { cn } from '@/lib/utils';
 
 /** Same calendar chrome as the /calendar toolbar picker. */
 export const WORKSPACE_CALENDAR_CLASS_NAMES = {
   caption_label: 'font-mono text-xs font-medium capitalize',
   cell: 'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
+  day: cn(
+    buttonVariants({ variant: 'ghost' }),
+    'size-8 rounded-lg p-0 font-normal transition-colors hover:bg-foreground/10 hover:text-foreground aria-selected:opacity-100'
+  ),
   day_selected:
-    'bg-transparent text-[#f85919] hover:bg-transparent hover:text-[#f85919] focus:bg-transparent focus:text-[#f85919]',
+    'bg-transparent text-[#f85919] hover:bg-foreground/10 hover:text-[#f85919] focus:bg-transparent focus:text-[#f85919]',
   day_today: 'bg-transparent font-medium text-[#f85919]'
 } as const;
 

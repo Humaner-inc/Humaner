@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { cacheLife } from 'next/cache';
 import { cookies } from 'next/headers';
 import NextAuth, { type DefaultSession, type NextAuthConfig } from 'next-auth';
 
@@ -120,20 +121,32 @@ function isTransientAuthDbError(error: unknown): boolean {
   return code !== null && TRANSIENT_DB_CODES.has(code);
 }
 
-// Deduplicated per-request session. Await cookies first so Cache Components
-// postpones before Auth.js calls `crypto.getRandomValues()` (CSRF / session).
-// Do not use `connection()` here — it blocks instant client navigations.
-export const dedupedAuth = cache(async () => {
+// Session read as a private cache scope: Auth.js calls
+// `crypto.getRandomValues()` (CSRF / session), which Cache Components rejects
+// during prerender unless it happens inside a cache scope. Private scopes may
+// read cookies()/headers(), never persist on the server across requests, and
+// let the client router reuse the result for `stale` seconds so navigations
+// stay instant. Do not use `connection()` here — it blocks instant navigation.
+// Keep `stale` >= 30s or the scope drops out of per-link prefetching.
+async function readSession() {
+  'use cache: private';
+  cacheLife({ stale: 30, revalidate: 30, expire: 60 });
   await cookies();
+  return auth();
+}
+
+// Deduplicated per-request session. Failures are handled outside the cache
+// scope so a transient DB error is never cached as "signed out".
+export const dedupedAuth = cache(async () => {
   try {
-    return await auth();
+    return await readSession();
   } catch (error) {
     if (!isAuthSessionLookupError(error)) {
       throw error;
     }
     if (isTransientAuthDbError(error)) {
       try {
-        return await auth();
+        return await readSession();
       } catch (retryError) {
         if (!isAuthSessionLookupError(retryError)) {
           throw retryError;
