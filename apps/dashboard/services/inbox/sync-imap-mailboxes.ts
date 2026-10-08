@@ -35,7 +35,8 @@ import {
   expungedUids,
   IMAP_FETCH_PAGE,
   imapScopedThreadId,
-  readModseq
+  readModseq,
+  storedUidsMatchServer
 } from '@/lib/inbox/imap-sync-plan';
 import {
   loadBlockedSenderSet,
@@ -147,9 +148,27 @@ type ImapSyncFolder = {
   trashedAt: Date | null;
 };
 
+/** Folders a user can open; used to sync only the one they navigate to. */
+export type InboxSyncFolder = 'INBOX' | 'SPAM' | 'TRASH' | 'SENT' | 'ARCHIVE';
+
+function matchesRequestedFolder(
+  entry: ImapSyncFolder,
+  requested: InboxSyncFolder[]
+): boolean {
+  const kind: InboxSyncFolder =
+    entry.folder === MailThreadFolder.INBOX
+      ? entry.archivedAt
+        ? 'ARCHIVE'
+        : 'INBOX'
+      : (entry.folder as InboxSyncFolder);
+  return requested.includes(kind);
+}
+
 export type ImapSyncResult = {
   connections: number;
   messages: number;
+  /** Deletions and read-state changes picked up (UI should refresh). */
+  changed: number;
   errors: number;
   skipped: number;
 };
@@ -716,13 +735,14 @@ async function applyImapFlagChanges(
   connectionId: string,
   folderPath: string,
   changes: Array<{ uid: number; unread: boolean }>
-): Promise<void> {
-  if (changes.length === 0) return;
+): Promise<number> {
+  if (changes.length === 0) return 0;
   const unreadByUid = new Map(
     changes.map((change) => [change.uid, change.unread])
   );
   const uids = [...unreadByUid.keys()];
   const byThread = new Map<string, boolean[]>();
+  const threadUnread = new Map<string, boolean>();
 
   for (let offset = 0; offset < uids.length; offset += 500) {
     const slice = uids.slice(offset, offset + 500);
@@ -732,8 +752,14 @@ async function applyImapFlagChanges(
         imapUid: { in: slice },
         thread: { alias: { connectionId } }
       },
-      select: { imapUid: true, threadId: true, direction: true }
+      select: {
+        imapUid: true,
+        threadId: true,
+        direction: true,
+        thread: { select: { isUnread: true } }
+      }
     });
+    for (const row of rows) threadUnread.set(row.threadId, row.thread.isUnread);
     for (const row of rows) {
       if (row.imapUid == null) continue;
       if (row.direction !== MailMessageDirection.INBOUND) continue;
@@ -745,12 +771,18 @@ async function applyImapFlagChanges(
     }
   }
 
+  let changed = 0;
   for (const [threadId, flags] of byThread) {
+    const isUnread = flags.some(Boolean);
+    // modseq fetches echo our own STORE; skip rows that already match
+    if (threadUnread.get(threadId) === isUnread) continue;
     await prisma.mailThread.update({
       where: { id: threadId },
-      data: { isUnread: flags.some(Boolean) }
+      data: { isUnread }
     });
+    changed += 1;
   }
+  return changed;
 }
 
 export async function syncImapConnection(
@@ -759,9 +791,25 @@ export async function syncImapConnection(
     client?: import('imapflow').ImapFlow;
     // user actions wait, cron and idle try once
     lock?: 'try' | 'wait';
+    /** Sync only these folders (default: all). */
+    folders?: InboxSyncFolder[];
+    /** Filled with deletions and read-state changes, so callers can refresh the UI. */
+    changes?: { count: number };
+    /**
+     * On servers without CONDSTORE the only way to see read-state changes is
+     * fetching flags for every message. Skip that for syncs triggered by new
+     * mail; flag events, cron and folder opens still run it.
+     */
+    skipFullFlagScan?: boolean;
   }
 ): Promise<number | null> {
-  const run = () => syncImapConnectionUnlocked(connectionId, options?.client);
+  const run = () =>
+    syncImapConnectionUnlocked(connectionId, {
+      borrowedClient: options?.client,
+      onlyFolders: options?.folders,
+      changes: options?.changes,
+      skipFullFlagScan: options?.skipFullFlagScan
+    });
   if (options?.lock === 'wait') {
     return withImapMailboxLock(connectionId, run);
   }
@@ -770,7 +818,17 @@ export async function syncImapConnection(
 
 async function syncImapConnectionUnlocked(
   connectionId: string,
-  borrowedClient?: import('imapflow').ImapFlow
+  {
+    borrowedClient,
+    onlyFolders,
+    changes,
+    skipFullFlagScan
+  }: {
+    borrowedClient?: import('imapflow').ImapFlow;
+    onlyFolders?: InboxSyncFolder[];
+    changes?: { count: number };
+    skipFullFlagScan?: boolean;
+  } = {}
 ): Promise<number> {
   const connection = await prisma.mailboxConnection.findFirst({
     where: {
@@ -883,6 +941,12 @@ async function syncImapConnectionUnlocked(
       }
     }
 
+    const foldersToSync = onlyFolders?.length
+      ? syncFolders.filter((entry) =>
+          matchesRequestedFolder(entry, onlyFolders)
+        )
+      : syncFolders;
+
     const parsedMessages: ParsedSyncMessage[] = [];
     const validityResets: ImapSyncFolder[] = [];
     const previousCursor = parseSyncCursor(connection.syncCursor);
@@ -890,7 +954,7 @@ async function syncImapConnectionUnlocked(
       ...(previousCursor.imapFolders ?? {})
     };
 
-    for (const syncFolder of syncFolders) {
+    for (const syncFolder of foldersToSync) {
       let lock;
       try {
         lock = await client.getMailboxLock(syncFolder.path);
@@ -940,14 +1004,38 @@ async function syncImapConnectionUnlocked(
         if (canIncremental) {
           const serverUids = await listServerUids(client);
           if (serverUids && (serverUids.length > 0 || messageCount === 0)) {
-            const stored = await prisma.mailMessage.findMany({
-              where: {
-                imapFolderPath: syncFolder.path,
-                imapUid: { not: null },
-                thread: { alias: { connectionId: connection.id } }
-              },
-              select: { imapUid: true }
+            const storedWhere = {
+              imapFolderPath: syncFolder.path,
+              imapUid: { not: null },
+              thread: { alias: { connectionId: connection.id } }
+            };
+            // Cheap check first: one aggregate row instead of every stored UID.
+            // Stored UIDs are a subset of the server's (same window), so equal
+            // count and sum means nothing was deleted. Any mismatch falls
+            // through to the exact diff below.
+            const fingerprint = await prisma.mailMessage.aggregate({
+              where: storedWhere,
+              _count: { imapUid: true },
+              _sum: { imapUid: true },
+              _min: { imapUid: true }
             });
+            const storedMin = fingerprint._min.imapUid;
+            const storedCountWithUid = fingerprint._count.imapUid;
+            const unchanged =
+              priorLastUid != null &&
+              storedUidsMatchServer({
+                storedCount: storedCountWithUid,
+                storedSum: fingerprint._sum.imapUid ?? 0,
+                storedMin,
+                lastUid: priorLastUid,
+                serverUids
+              });
+            const stored = unchanged
+              ? []
+              : await prisma.mailMessage.findMany({
+                  where: storedWhere,
+                  select: { imapUid: true }
+                });
             const gone = expungedUids(
               stored.flatMap((row) =>
                 row.imapUid == null ? [] : [row.imapUid]
@@ -966,6 +1054,7 @@ async function syncImapConnectionUnlocked(
             }
             if (gone.length > 0) {
               await deleteEmptyFolderThreads(connection.id, syncFolder.folder);
+              if (changes) changes.count += gone.length;
             }
           }
 
@@ -1009,12 +1098,15 @@ async function syncImapConnectionUnlocked(
           const flagChanges =
             modseq != null && mailboxModseq != null
               ? await listFlagChanges(client, modseq)
-              : await listFlagChanges(client);
-          await applyImapFlagChanges(
+              : skipFullFlagScan
+                ? []
+                : await listFlagChanges(client);
+          const flagged = await applyImapFlagChanges(
             connection.id,
             syncFolder.path,
             flagChanges
           );
+          if (changes) changes.count += flagged;
         }
 
         const ranges: Array<{
@@ -1186,6 +1278,7 @@ async function syncImapConnectionUnlocked(
 export async function syncImapMailboxes(options?: {
   organizationId?: string;
   connectionId?: string;
+  folders?: InboxSyncFolder[];
   actorId?: string;
   actorName?: string;
 }): Promise<ImapSyncResult> {
@@ -1206,21 +1299,30 @@ export async function syncImapMailboxes(options?: {
   const result: ImapSyncResult = {
     connections: connections.length,
     messages: 0,
+    changed: 0,
     errors: 0,
     skipped: 0
   };
   const importedByOrg = new Map<string, number>();
+  const changedByOrg = new Map<string, number>();
 
   const outcomes = await mapPool(
     connections,
     IMAP_SYNC_CONCURRENCY,
     async (connection) => {
+      const changes = { count: 0 };
       try {
-        const imported = await syncImapConnection(connection.id);
+        const imported = await syncImapConnection(connection.id, {
+          changes,
+          folders: options?.folders,
+          // opening a folder is a user action: wait for IDLE/cron, don't skip
+          ...(options?.folders ? { lock: 'wait' as const } : {})
+        });
         if (imported == null) {
           return {
             organizationId: connection.organizationId,
             imported: 0,
+            changed: 0,
             error: false,
             skipped: true
           };
@@ -1228,6 +1330,7 @@ export async function syncImapMailboxes(options?: {
         return {
           organizationId: connection.organizationId,
           imported,
+          changed: changes.count,
           error: false,
           skipped: false
         };
@@ -1235,6 +1338,7 @@ export async function syncImapMailboxes(options?: {
         return {
           organizationId: connection.organizationId,
           imported: 0,
+          changed: 0,
           error: true,
           skipped: false
         };
@@ -1252,12 +1356,30 @@ export async function syncImapMailboxes(options?: {
       continue;
     }
     result.messages += outcome.imported;
+    result.changed += outcome.changed;
+    if (outcome.changed > 0) {
+      changedByOrg.set(
+        outcome.organizationId,
+        (changedByOrg.get(outcome.organizationId) ?? 0) + outcome.changed
+      );
+    }
     if (outcome.imported > 0) {
       importedByOrg.set(
         outcome.organizationId,
         (importedByOrg.get(outcome.organizationId) ?? 0) + outcome.imported
       );
     }
+  }
+
+  // deletions / read-state only: refresh without a "new email" toast
+  for (const organizationId of changedByOrg.keys()) {
+    if (importedByOrg.has(organizationId)) continue;
+    void publishOrgEvent(organizationId, {
+      type: 'inbox.synced',
+      actorId: options?.actorId,
+      actorName: options?.actorName,
+      count: 0
+    });
   }
 
   for (const [organizationId, count] of importedByOrg) {

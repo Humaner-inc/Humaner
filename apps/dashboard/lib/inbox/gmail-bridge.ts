@@ -52,30 +52,77 @@ export async function syncGmailMailboxes(_input: {
   return { connections: 0, messages: 0, errors: 0 };
 }
 
-export async function createGmailDraft(): Promise<never> {
+export type GmailOutgoingMessage = {
+  from: string;
+  to: string[];
+  cc?: string[];
+  subject: string;
+  text: string;
+  html?: string;
+  attachments?: Array<{
+    name: string;
+    mediaType: string;
+    data: string;
+    cid?: string;
+  }>;
+  inReplyTo?: string;
+  references?: string;
+};
+
+export type GmailDraftResult = {
+  draftId: string;
+  messageId: string;
+  threadId: string;
+};
+
+export async function createGmailDraft(
+  _accessToken: string,
+  _message: GmailOutgoingMessage
+): Promise<GmailDraftResult> {
   throw new Error(GMAIL_UNAVAILABLE);
 }
 
-export async function updateGmailDraft(): Promise<never> {
+export async function updateGmailDraft(
+  _accessToken: string,
+  _draftId: string,
+  _message: GmailOutgoingMessage
+): Promise<GmailDraftResult> {
   throw new Error(GMAIL_UNAVAILABLE);
 }
 
-export async function sendGmailDraft(): Promise<never> {
+export async function sendGmailDraft(
+  _accessToken: string,
+  _draftId: string
+): Promise<{ id: string; threadId: string }> {
   throw new Error(GMAIL_UNAVAILABLE);
 }
 
-export async function sendGmailMessage(): Promise<never> {
+export async function sendGmailMessage(
+  _accessToken: string,
+  _message: GmailOutgoingMessage,
+  _threadId?: string
+): Promise<{ id: string; threadId: string }> {
   throw new Error(GMAIL_UNAVAILABLE);
 }
 
-export async function findGmailDraftIdByMessageId(): Promise<null> {
+export async function findGmailDraftIdByMessageId(
+  _accessToken: string,
+  _messageId: string
+): Promise<string | null> {
   return null;
 }
 
-export async function modifyGmailThread(): Promise<void> {
+export async function modifyGmailThread(
+  _accessToken: string,
+  _threadId: string,
+  _input: { addLabelIds?: string[]; removeLabelIds?: string[] }
+): Promise<void> {
   throw new Error(GMAIL_UNAVAILABLE);
 }
 
-export async function deleteGmailThread(): Promise<void> {
+export async function deleteGmailThread(
+  _accessToken: string,
+  _threadId: string
+): Promise<void> {
   throw new Error(GMAIL_UNAVAILABLE);
 }

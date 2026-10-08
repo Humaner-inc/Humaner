@@ -1,0 +1,179 @@
+.highlighted-text-field__input {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  overflow: hidden;
+  scrollbar-width: none;
+}
+
+.highlighted-text-field__input::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.highlighted-text-field {
+  --highlighted-field-accent: #e0e1df;
+  --highlighted-field-accent-strong: rgb(224 225 223 / 0.38);
+  --highlighted-field-accent-soft: rgb(224 225 223 / 0.12);
+  --highlighted-field-accent-selection: rgb(0 26 252 / 0.35);
+  overflow: hidden;
+  scrollbar-width: none;
+}
+
+.highlighted-text-field::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.highlighted-text-field__input:focus,
+.highlighted-text-field__input:invalid {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.highlighted-text-field__char--highlight {
+  border-radius: 0.1rem;
+  animation: highlighted-text-field-char 0.8s ease forwards;
+}
+
+@keyframes highlighted-text-field-char {
+  0% {
+    background-color: var(--highlighted-field-accent-strong);
+  }
+  70% {
+    background-color: var(--highlighted-field-accent-soft);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlighted-text-field__char--highlight {
+    animation: none;
+    background-color: transparent;
+  }
+}
+
+.highlighted-text-field[data-tone='dark'] .highlighted-text-field__overlay {
+  color: #f2f2f2;
+}
+
+.highlighted-text-field[data-tone='dark'] .highlighted-text-field__placeholder {
+  color: rgb(255 255 255 / 0.35);
+}
+
+.highlighted-text-field[data-tone='light'] .highlighted-text-field__overlay {
+  color: #0a0d0d;
+}
+
+.highlighted-text-field[data-tone='light']
+  .highlighted-text-field__placeholder {
+  color: rgb(7 6 7 / 0.35);
+}
+
+.highlighted-text-field[data-tone='light'] .highlighted-text-field__input {
+  caret-color: #0a0d0d;
+  --highlighted-field-text: #0a0d0d;
+}
+
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__overlay {
+  color: #f2f2f2;
+}
+
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__placeholder {
+  color: rgb(255 255 255 / 0.3);
+}
+
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__input {
+  caret-color: #f2f2f2;
+  --highlighted-field-text: #f2f2f2;
+}
+
+.highlighted-text-field[data-tone='dark'] .highlighted-text-field__input {
+  caret-color: #f2f2f2;
+  --highlighted-field-text: #f2f2f2;
+}
+
+.highlighted-text-field[data-tone='dark']
+  .highlighted-text-field__input:-webkit-autofill,
+.highlighted-text-field[data-tone='dark']
+  .highlighted-text-field__input:-webkit-autofill:hover,
+.highlighted-text-field[data-tone='dark']
+  .highlighted-text-field__input:-webkit-autofill:focus,
+.highlighted-text-field[data-tone='dark']
+  .highlighted-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #0a0d0d inset !important;
+  box-shadow: 0 0 0 1000px #0a0d0d inset !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: #f2f2f2;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.highlighted-text-field[data-tone='light']
+  .highlighted-text-field__input:-webkit-autofill,
+.highlighted-text-field[data-tone='light']
+  .highlighted-text-field__input:-webkit-autofill:hover,
+.highlighted-text-field[data-tone='light']
+  .highlighted-text-field__input:-webkit-autofill:focus,
+.highlighted-text-field[data-tone='light']
+  .highlighted-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  box-shadow: 0 0 0 1000px #f2f2f2 inset !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: #0a0d0d;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__input:-webkit-autofill,
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__input:-webkit-autofill:hover,
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__input:-webkit-autofill:focus,
+.highlighted-text-field[data-tone='light-inverted']
+  .highlighted-text-field__input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  box-shadow: 0 0 0 1000px rgb(12 11 12) inset !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: #f2f2f2;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.highlighted-text-field__input::selection {
+  background-color: #001afc;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.highlighted-text-field__input::-moz-selection {
+  background-color: #001afc;
+  color: transparent !important;
+}
+
+/* While selecting, hide the mirror overlay and show native input glyphs once. */
+.highlighted-text-field--selecting .highlighted-text-field__overlay {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.highlighted-text-field--selecting .highlighted-text-field__input {
+  color: var(--highlighted-field-text) !important;
+  -webkit-text-fill-color: var(--highlighted-field-text) !important;
+}
+
+.highlighted-text-field--selecting .highlighted-text-field__input::selection {
+  background-color: #001afc;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.highlighted-text-field--selecting
+  .highlighted-text-field__input::-moz-selection {
+  background-color: #001afc;
+  color: #ffffff !important;
+}

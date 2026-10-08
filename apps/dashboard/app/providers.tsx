@@ -12,7 +12,6 @@ export function Providers({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   const pathname = usePathname();
-  const isWidget = pathname?.startsWith('/widget') ?? false;
   const forceInk =
     pathname === '/onboarding' ||
     pathname?.startsWith('/onboarding/') ||
@@ -27,7 +26,7 @@ export function Providers({
         defaultTheme="dark"
         forcedTheme={forceInk ? 'dark' : undefined}
         enableSystem={false}
-        enableColorScheme={!isWidget}
+        enableColorScheme
         disableTransitionOnChange
       >
         <TooltipProvider>

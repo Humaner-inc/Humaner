@@ -73,6 +73,7 @@ import {
   normalizeContactEmail
 } from '@/lib/contacts/contact-email';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { toastMailDeleted } from '@/lib/inbox/delete-toast';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { htmlToPlainText, isRichMailHtml } from '@/lib/inbox/mail-body-display';
 import { detectMailDocumentIntent } from '@/lib/inbox/mail-document-intent';
@@ -657,7 +658,7 @@ export function MailThreadDetail({
 
   const { execute: runDelete } = useAction(deleteMailThread, {
     onSuccess: () => {
-      toast.success(inTrash ? 'Deleted 1' : 'Moved to Trash');
+      toastMailDeleted(1, inTrash);
       router.refresh();
     },
     onError: ({ error }) => toast.error(error.serverError || 'Could not delete')
@@ -1294,7 +1295,7 @@ export function MailThreadDetail({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-4 font-mono"
+                        className="h-8 px-3.5 font-mono"
                         disabled={loadingSuggestions}
                         onClick={suggestAgain}
                       >
@@ -1304,7 +1305,7 @@ export function MailThreadDetail({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-4 font-mono"
+                        className="h-8 px-3.5 font-mono"
                         onClick={discardSuggestions}
                       >
                         Cancel
@@ -1410,7 +1411,7 @@ export function MailThreadDetail({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-4 font-mono"
+                        className="h-8 px-3.5 font-mono"
                         onClick={suggestAgain}
                       >
                         Suggest again
@@ -1440,7 +1441,7 @@ export function MailThreadDetail({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-9 px-4 font-mono"
+                      className="h-8 px-3.5 font-mono"
                       disabled={sendPhase !== 'idle'}
                       onClick={() => setComposerOpen(false)}
                     >
@@ -1449,7 +1450,7 @@ export function MailThreadDetail({
                     <Button
                       type="button"
                       size="sm"
-                      className="h-9 min-w-[7.5rem] px-4 font-mono"
+                      className="h-8 min-w-[7.5rem] px-3.5 font-mono"
                       disabled={
                         sendPhase === 'sending' ||
                         (sendPhase === 'idle' && body.trim().length === 0)

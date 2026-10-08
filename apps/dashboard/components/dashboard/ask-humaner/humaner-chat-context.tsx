@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import type { CharacterType } from '@prisma/client';
 
 import type { CompanionTaskProposal } from '@/types/companion-task-proposal';
 
@@ -23,6 +24,8 @@ export type DashboardVisitorMetadata = {
 };
 
 type HumanerChatContextValue = {
+  companionVisible: boolean;
+  setCompanionVisible: (visible: boolean) => void;
   openChat: () => void;
   isStreaming: boolean;
   sendMessage: (text: string, files?: File[]) => Promise<void>;
@@ -38,6 +41,8 @@ export type HumanerChatProviderProps = {
   organizationName?: string;
   organizationLogoUrl?: string;
   widgetColor?: string;
+  companionCharacter?: CharacterType;
+  actionSuggestionsEnabled?: boolean;
   dashboardVisitorId: string;
   visitorMetadata?: DashboardVisitorMetadata;
   suggestedTopics?: string[];

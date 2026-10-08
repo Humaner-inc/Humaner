@@ -10,7 +10,8 @@ import {
   bootstrapSequencePages,
   expungedUids,
   imapScopedThreadId,
-  readModseq
+  readModseq,
+  storedUidsMatchServer
 } from '@/lib/inbox/imap-sync-plan';
 
 const mixed: ImapBodyNode = {
@@ -88,5 +89,66 @@ describe('imap sync plan', () => {
   it('reads a CONDSTORE modseq stored as a string', () => {
     expect(readModseq('42')).toBe(42n);
     expect(readModseq('')).toBeNull();
+  });
+});
+
+describe('storedUidsMatchServer', () => {
+  const base = { lastUid: 100, serverUids: [10, 20, 30, 40, 101] };
+
+  it('matches when every stored uid is still on the server', () => {
+    expect(
+      storedUidsMatchServer({
+        ...base,
+        storedCount: 4,
+        storedSum: 100,
+        storedMin: 10
+      })
+    ).toBe(true);
+  });
+
+  it('ignores server uids above the last synced uid', () => {
+    expect(
+      storedUidsMatchServer({
+        ...base,
+        storedCount: 4,
+        storedSum: 100,
+        storedMin: 10
+      })
+    ).toBe(true);
+  });
+
+  it('detects a deleted message (server has fewer than stored)', () => {
+    expect(
+      storedUidsMatchServer({
+        lastUid: 100,
+        serverUids: [10, 20, 40],
+        storedCount: 4,
+        storedSum: 100,
+        storedMin: 10
+      })
+    ).toBe(false);
+  });
+
+  it('falls back to the exact diff when the server holds unstored uids', () => {
+    expect(
+      storedUidsMatchServer({
+        lastUid: 100,
+        serverUids: [10, 20, 30, 40, 50],
+        storedCount: 4,
+        storedSum: 100,
+        storedMin: 10
+      })
+    ).toBe(false);
+  });
+
+  it('treats an empty store as matching', () => {
+    expect(
+      storedUidsMatchServer({
+        ...base,
+        storedCount: 0,
+        storedSum: 0,
+        storedMin: null
+      })
+    ).toBe(true);
   });
 });

@@ -1,0 +1,10 @@
+# Dependencies
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
+**/.venv
+**/dist
+.git
+.env*
+*.md

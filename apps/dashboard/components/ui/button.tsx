@@ -76,7 +76,7 @@ const ossOutlineClasses = cn(
 
 const buttonVariants = cva(
   cn(
-    'inline-flex items-center justify-center text-sm font-medium transition-[color,background-color,border-color,box-shadow,backdrop-filter] duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex items-center justify-center text-[11px] font-medium transition-[color,background-color,border-color,box-shadow,backdrop-filter] duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
     oss ? ossRadius : dashboardRadiusClassName
   ),
   {
@@ -107,11 +107,12 @@ const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-foreground underline-offset-4 hover:underline'
       },
+      /** Default matches the landing CTA: h-8 · px-3.5 · mono 11px. */
       size: {
-        default: 'h-9 px-4 py-2',
-        sm: cn('h-8 px-3 text-xs', oss ? ossRadius : null),
-        lg: cn('h-10 px-8', oss ? ossRadius : null),
-        icon: 'size-9'
+        default: 'h-8 px-3.5 py-0 font-mono text-[11px]',
+        sm: cn('h-7 px-2.5 py-0 font-mono text-[11px]', oss ? ossRadius : null),
+        lg: cn('h-9 px-4 py-0 font-mono text-[11px]', oss ? ossRadius : null),
+        icon: 'size-8 p-0'
       }
     },
     defaultVariants: {

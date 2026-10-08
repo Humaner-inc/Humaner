@@ -5,6 +5,11 @@ import {
   mcpOAuthCorsHeaders
 } from '@/lib/developers/mcp-oauth';
 import { registerMcpOAuthClient } from '@/lib/developers/mcp-oauth-store';
+import {
+  checkBucketRateLimit,
+  rateLimitedHeaders
+} from '@/lib/security/api-rate-limit';
+import { getClientIp } from '@/lib/security/client-ip';
 
 export function OPTIONS(): Response {
   return new Response(null, {
@@ -14,6 +19,25 @@ export function OPTIONS(): Response {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const limited = await checkBucketRateLimit({
+    bucket: 'oauth-register',
+    identifier: getClientIp(request),
+    limit: 20,
+    windowSeconds: 3600
+  });
+  if (limited.limited) {
+    return NextResponse.json(
+      { error: 'slow_down', error_description: 'Too many requests.' },
+      {
+        status: 429,
+        headers: {
+          ...mcpOAuthCorsHeaders(),
+          ...rateLimitedHeaders(limited.retryAfterSeconds)
+        }
+      }
+    );
+  }
+
   let body: {
     client_name?: unknown;
     redirect_uris?: unknown;

@@ -9,6 +9,7 @@ import { SidebarNavChild } from '@/components/dashboard/sidebar-nav-tree';
 import { inboxConnectorRoute } from '@/constants/routes';
 import { CONNECT_APPS } from '@/lib/connect-apps';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
+import { subscribeOrgRealtime } from '@/lib/realtime/client-bus';
 import { cn } from '@/lib/utils';
 
 export type ConnectorNavItem = {
@@ -77,12 +78,22 @@ export function NavConnectors({
       }
     };
 
+    // Pushed by the realtime hub on connector events; slow poll is a fallback.
     const interval = window.setInterval(() => {
-      void poll();
-    }, 8000);
+      if (document.visibilityState === 'visible') void poll();
+    }, 300_000);
+    const unsubscribe = subscribeOrgRealtime((event) => {
+      if (event.type === 'connector.activity') void poll();
+    });
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') void poll();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       active = false;
       window.clearInterval(interval);
+      unsubscribe();
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [connectors.length]);
 

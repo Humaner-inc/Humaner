@@ -67,6 +67,7 @@ import type {
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
 import { companyDomainFromEmail } from '@/lib/contacts/contact-email';
+import { toastMailDeleted } from '@/lib/inbox/delete-toast';
 import { COMPANION_ASSIGNEE } from '@/lib/inbox/mail-assignee-shared';
 import { tagsForAlias, tagsForAliasIds } from '@/lib/inbox/mail-tag-scope';
 import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
@@ -651,11 +652,7 @@ export function MailThreadList({
       clearSelection();
       setDeleteOpen(false);
       setDeleteIds([]);
-      toast.success(
-        inTrash
-          ? `Deleted ${data?.count ?? 0}`
-          : `Moved ${data?.count ?? 0} to Trash`
-      );
+      toastMailDeleted(data?.count ?? 0, inTrash);
       refreshInBackground();
     },
     onError: ({ error, input }) => {
@@ -1500,7 +1497,7 @@ function MailThreadRow({
   }, [onPin, thread.isPinned]);
 
   const commitSwipeDelete = React.useCallback((): void => {
-    toast.success(inTrash ? 'Deleted forever' : 'Moved to Trash');
+    toastMailDeleted(1, inTrash);
     onSwipeDelete?.();
   }, [inTrash, onSwipeDelete]);
 

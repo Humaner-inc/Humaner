@@ -54,7 +54,7 @@ export function DashboardTopNav({
     notes: teamFeed?.notes ?? [],
     teamDockOpen: activeMode === 'team'
   });
-  const mailLabel = oss ? 'Notifications' : 'Mail';
+  const mailLabel = 'Notifications';
   const sectionNav = useDashboardSectionOptional();
   const hasSections = (sectionNav?.sections.length ?? 0) > 0;
   const compose = useComposeMailOptional();

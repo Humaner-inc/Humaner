@@ -36,7 +36,6 @@ export enum Routes {
   /** Companion persona. Stable path — not an agent id. */
   Persona = '/persona',
   Knowledge = '/knowledge',
-  Integrations = '/integrations',
   Analytics = '/analytics',
   History = '/history',
   Desk = '/desk',
@@ -163,10 +162,6 @@ export function agentHistoryRoute(agentId: string): string {
 
 export function inboxConnectorRoute(app: string): string {
   return `${Routes.InboxConnectors}/${encodeURIComponent(app)}`;
-}
-
-export function integrationChannelRoute(channelId: string): string {
-  return `/integrations/${channelId}`;
 }
 
 /** Public brand-hero page with the real floating widget — not full-page chat. */

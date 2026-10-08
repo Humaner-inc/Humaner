@@ -18,7 +18,6 @@ ENV DIRECT_URL="postgresql://user:pass@localhost:5432/humaner"
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/dashboard/package.json apps/dashboard/
 COPY packages/shared/package.json packages/shared/
-COPY packages/react/package.json packages/react/
 COPY apps/dashboard/scripts/prisma-generate.mjs apps/dashboard/scripts/
 COPY apps/dashboard/prisma apps/dashboard/prisma/
 
@@ -35,11 +34,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/packages/react/node_modules ./packages/react/node_modules
 COPY --from=deps /app/apps/dashboard/lib/generated ./apps/dashboard/lib/generated
 
 COPY packages/shared ./packages/shared
-COPY packages/react ./packages/react
 COPY apps/dashboard ./apps/dashboard
 
 ENV DATABASE_URL="postgresql://user:pass@localhost:5432/humaner"

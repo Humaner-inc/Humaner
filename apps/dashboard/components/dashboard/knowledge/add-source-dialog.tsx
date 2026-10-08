@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { HighlightedTextarea, HighlightedTextInput } from '@humaner/react';
-import type { HighlightedFieldTone } from '@humaner/react';
 import {
   ArrowUpRightIcon,
   FileTextIcon,
@@ -35,6 +33,11 @@ import {
 } from '@/components/dashboard/quick-create-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import {
+  HighlightedTextarea,
+  HighlightedTextInput
+} from '@/components/ui/highlighted-text';
+import type { HighlightedFieldTone } from '@/components/ui/highlighted-text';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';

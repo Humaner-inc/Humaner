@@ -15,7 +15,7 @@ const themeBootScript = `(function(){try{var p=location.pathname||'';var ink=p==
 
 const oss = isOssDeployment();
 const description = oss
-  ? `${AppInfo.APP_NAME} — customer support kit (Helpdesk, BYO agent, team & org).`
+  ? `${AppInfo.APP_NAME} — self-hosted mailbox for your business operations: inbox, tasks, calendar, and MCP.`
   : AppInfo.APP_DESCRIPTION;
 
 function metadataBaseUrl(clientBaseUrl: string): URL {
@@ -30,7 +30,9 @@ function metadataBaseUrl(clientBaseUrl: string): URL {
     }
     return u;
   } catch {
-    return new URL('https://app.humaner.io');
+    return new URL(
+      isOssDeployment() ? 'http://localhost:3001' : 'https://app.humaner.io'
+    );
   }
 }
 

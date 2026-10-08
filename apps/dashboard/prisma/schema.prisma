@@ -176,6 +176,10 @@ model Invitation {
   email          String           @db.VarChar(255)
   role           Role             @default(MEMBER)
   allowedPages   String[]         @default([])
+  /// Empty = every inbox channel. Otherwise only these MailAlias ids.
+  allowedAliasIds String[]        @default([])
+  /// IANA timezone applied when the invitee joins, e.g. Europe/Paris.
+  timeZone       String?          @db.VarChar(64)
   status         InvitationStatus @default(PENDING)
   lastSentAt     DateTime?
   createdAt      DateTime         @default(now())
@@ -202,6 +206,10 @@ model Notification {
 }
 
 model Organization {
+  /// Mirrors of the account add-on counters (always 0 on Self-Host).
+  extraSeats                 Int                      @default(0)
+  extraMailboxes             Int                      @default(0)
+  workspaceDocuments         WorkspaceDocument[]
   id                         String                   @id(map: "PK_Organization") @default(uuid()) @db.Uuid
   name                       String                   @db.VarChar(255)
   address                    String?                  @db.VarChar(255)
@@ -368,6 +376,13 @@ model Session {
 }
 
 model User {
+  viralBetaExpiresAt           DateTime?
+  extraSeats                   Int                      @default(0)
+  extraMailboxes               Int                      @default(0)
+  xFollowCreditGrantedAt       DateTime?
+  billingGraceStartedAt        DateTime?
+  viralBetaCodesIssued         ViralBetaAccessCode[]    @relation("ViralBetaCodesIssued")
+  viralBetaCodesRedeemed       ViralBetaAccessCode[]    @relation("ViralBetaCodesRedeemed")
   id                           String                   @id(map: "PK_User") @default(uuid()) @db.Uuid
   organizationId               String?                  @db.Uuid
   image                        String?                  @db.VarChar(2048)
@@ -1224,6 +1239,7 @@ model MailAliasMember {
 }
 
 model MailThread {
+  documents        WorkspaceDocument[]
   id               String           @id(map: "PK_MailThread") @default(uuid()) @db.Uuid
   organizationId   String           @db.Uuid
   organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -1517,4 +1533,67 @@ model EscalationPolicy {
 
   @@index([organizationId], map: "IX_EscalationPolicy_organizationId")
   @@index([agentId], map: "IX_EscalationPolicy_agentId")
+}
+
+/// One-time 11-character access codes issued by beta workspace owners.
+model ViralBetaAccessCode {
+  id                String    @id(map: "PK_ViralBetaAccessCode") @default(uuid()) @db.Uuid
+  code              String    @unique(map: "UQ_ViralBetaAccessCode_code") @db.VarChar(11)
+  issuedByOwnerId   String    @db.Uuid
+  redeemedByOwnerId String?   @db.Uuid
+  redeemedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  issuedBy          User      @relation("ViralBetaCodesIssued", fields: [issuedByOwnerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  redeemedBy        User?     @relation("ViralBetaCodesRedeemed", fields: [redeemedByOwnerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([issuedByOwnerId], map: "IX_ViralBetaAccessCode_issuedByOwnerId")
+  @@index([redeemedByOwnerId], map: "IX_ViralBetaAccessCode_redeemedByOwnerId")
+}
+
+enum WorkspaceDocumentKind {
+  INVOICE
+  QUOTE
+}
+
+enum WorkspaceDocumentStatus {
+  DRAFT
+  SENT
+  PAID
+  ACCEPTED
+  DECLINED
+  VOID
+}
+
+/// Mail-sourced invoice (vendor receipt filed as a bill) or quote (reply to a
+/// quote request). Issued under the workspace brand scanned at onboarding.
+model WorkspaceDocument {
+  id             String                  @id(map: "PK_WorkspaceDocument") @default(uuid()) @db.Uuid
+  organizationId String                  @db.Uuid
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  kind           WorkspaceDocumentKind
+  status         WorkspaceDocumentStatus @default(DRAFT)
+  /// Org-scoped human reference, e.g. INV-102 / QUO-102.
+  reference      String                  @db.VarChar(32)
+  /// Sequential per-org, per-kind counter backing `reference`.
+  sequence       Int
+  counterpartyName  String?              @db.VarChar(255)
+  counterpartyEmail String?              @db.VarChar(255)
+  amountCents    Int                     @default(0)
+  currency       String                  @default("USD") @db.VarChar(8)
+  issuedAt       DateTime                @default(now())
+  dueAt          DateTime?
+  sourceThreadId  String?                @db.Uuid
+  sourceThread    MailThread?            @relation(fields: [sourceThreadId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sourceMessageId String?                @db.Uuid
+  /// Line items, tax, notes, and the raw extracted fields.
+  payload        Json                    @default("{}")
+  /// Object key of the rendered HTML in the `mail` Neon bucket, when generated.
+  htmlStorageKey String?                 @db.VarChar(1024)
+  createdById    String?                 @db.Uuid
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@unique([organizationId, kind, sequence], map: "UQ_WorkspaceDocument_org_kind_sequence")
+  @@index([organizationId, kind, createdAt(sort: Desc)], map: "IX_WorkspaceDocument_org_kind_created")
+  @@index([sourceThreadId], map: "IX_WorkspaceDocument_sourceThreadId")
 }

@@ -1,7 +1,6 @@
 import { AppInfo } from '@/constants/app-info';
 import { agentOverviewRoute, Routes } from '@/constants/routes';
 import { isOssDeployment } from '@/lib/deployment-mode';
-import { INTEGRATION_CHANNELS } from '@/lib/integrations';
 import { toPublicPathname } from '@/lib/routes/public-pathname';
 
 const EXACT_TITLES: Record<string, string> = {
@@ -11,7 +10,6 @@ const EXACT_TITLES: Record<string, string> = {
   [Routes.Persona]: 'Persona',
   [Routes.AgentNew]: 'New agent',
   [Routes.Knowledge]: 'Knowledge',
-  [Routes.Integrations]: 'Integrations',
   [Routes.Analytics]: 'Analytics',
   [Routes.History]: 'History',
   [Routes.Desk]: 'Desk',
@@ -112,13 +110,6 @@ export function resolveDashboardPageTitle(pathname: string): string {
       return 'Agent';
     }
     return AGENT_TAB_TITLES[tab] ?? 'Agent';
-  }
-
-  const integrationMatch = publicPath.match(/^\/integrations\/([^/]+)$/);
-  if (integrationMatch) {
-    const channelId = integrationMatch[1];
-    const channel = INTEGRATION_CHANNELS.find((item) => item.id === channelId);
-    return channel?.name ?? 'Integration';
   }
 
   if (publicPath.startsWith(Routes.InboxConnectors)) {

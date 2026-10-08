@@ -9,8 +9,11 @@ import { syncInboxNow } from '@/actions/inbox/sync-inbox-now';
 import { useInboxPreferences } from '@/components/dashboard/inbox/inbox-preferences-context';
 import { subscribeOrgRealtime } from '@/lib/realtime/client-bus';
 
-/** Fallback when Gmail Pub/Sub / IMAP IDLE are quiet — keep the open inbox hot. */
-const POLL_INTERVAL_MS = 10_000;
+/**
+ * Safety net only. Live mail arrives through IMAP IDLE / Gmail Pub/Sub and the
+ * realtime hub; each poll opens an IMAP session and re-renders the route.
+ */
+const POLL_INTERVAL_MS = 120_000;
 /** First pull soon after landing so a closed-tab gap closes quickly. */
 const INITIAL_SYNC_DELAY_MS = 800;
 

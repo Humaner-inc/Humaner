@@ -6,7 +6,7 @@
  * still imports. josh renames this onto `plans.ts`.
  */
 
-export type PlanTier = "free" | "byo" | "classic" | "humaner";
+export type PlanTier = "free" | "classic";
 
 export type LlmModelId = "claude-sonnet-5" | "claude-sonnet-4-5";
 
@@ -96,6 +96,12 @@ export type PlanDefinition = {
 };
 
 export const INBOX_TRIAL_DAYS = 7;
+
+/** Self-Host has no paid add-ons; shared code still imports the price constants. */
+export const EXTRA_SEAT_PRICE_MONTHLY = 0;
+export const EXTRA_SEAT_PRICE_YEARLY = 0;
+export const EXTRA_INBOX_PRICE_MONTHLY = 0;
+export const EXTRA_INBOX_PRICE_YEARLY = 0;
 
 export const INBOX_MAX_KNOWLEDGE_SOURCES = 50;
 export const INBOX_MAX_KNOWLEDGE_CHUNKS = 10_000;
@@ -197,21 +203,18 @@ export function formatPlanMembers(plan: PlanDefinition): string {
 }
 
 export function normalizePlanTier(tier: string): PlanTier {
-  const normalized = tier.toLowerCase();
+  const normalized = tier.trim().toLowerCase();
   if (
     normalized === "refined" ||
     normalized === "grow" ||
     normalized === "native" ||
-    normalized === "frontier"
+    normalized === "frontier" ||
+    normalized === "byo" ||
+    normalized === "humaner"
   ) {
     return "classic";
   }
-  if (
-    normalized === "free" ||
-    normalized === "byo" ||
-    normalized === "classic" ||
-    normalized === "humaner"
-  ) {
+  if (normalized === "free" || normalized === "classic") {
     return normalized;
   }
   return "free";

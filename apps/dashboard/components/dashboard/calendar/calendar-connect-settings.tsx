@@ -185,7 +185,7 @@ function CalendarConnectSettingsCloud({
           type="button"
           variant="outline"
           size="sm"
-          className="h-9 px-3 font-mono text-xs font-medium normal-case tracking-normal"
+          className="h-8 px-3.5 font-mono text-[11px] font-medium normal-case tracking-normal"
         >
           Connect calendar
         </Button>

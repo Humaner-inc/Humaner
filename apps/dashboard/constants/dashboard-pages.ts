@@ -120,7 +120,6 @@ export const ACCOUNT_ROUTE_PREFIXES = [
 const PAGE_KEY_ROUTE_PREFIXES: { key: DashboardPageKey; prefix: string }[] = [
   { key: 'overview', prefix: Routes.Home },
   { key: 'overview', prefix: Routes.OrganizationTeam },
-  { key: 'integrations', prefix: Routes.Integrations },
   { key: 'history', prefix: Routes.History },
   { key: 'inbox', prefix: Routes.Inbox },
   { key: 'inbox', prefix: Routes.Resources },

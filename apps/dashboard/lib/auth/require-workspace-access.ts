@@ -13,6 +13,7 @@ import {
 import type { DashboardPageKey } from '@/constants/dashboard-pages';
 import { sharesHandoffDeskAccess } from '@/constants/handoff-desk-pages';
 import { dedupedAuth } from '@/lib/auth';
+import { probeAuthCache, storeAuthCache } from '@/lib/auth/auth-cache';
 import { getLoginRedirect } from '@/lib/auth/redirect';
 import { checkSession } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
@@ -27,6 +28,10 @@ export type UserAccessContext = {
 
 export const getUserAccessContext = cache(
   async (userId: string): Promise<UserAccessContext | null> => {
+    const cacheKey = `access:${userId}`;
+    const probe = await probeAuthCache<UserAccessContext>(cacheKey);
+    if (probe.value) return probe.value;
+
     const user = await prisma.user.findFirst({
       where: { id: userId },
       select: {
@@ -50,11 +55,13 @@ export const getUserAccessContext = cache(
       (row) => row.organizationId === user.organizationId
     );
 
-    return {
+    const context: UserAccessContext = {
       role: user.role,
       workspaceRole: membership?.workspaceRole ?? WorkspaceRole.TEAMMATE,
       allowedPages: membership?.allowedPages ?? []
     };
+    await storeAuthCache(cacheKey, context, probe.epoch);
+    return context;
   }
 );
 

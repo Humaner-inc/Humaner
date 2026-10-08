@@ -21,8 +21,14 @@ const syncInboxLimiter = rateLimit({ intervalInMs: 60 * 1000 });
 
 export const syncInboxNow = pageActionClient('inbox')
   .metadata({ actionName: 'syncInboxNow' })
-  .schema(z.object({}))
-  .action(async ({ ctx: { session } }) => {
+  .schema(
+    z.object({
+      // Set when the user opens a folder; omitted = everything (manual sync).
+      folder: z.enum(['INBOX', 'SPAM', 'TRASH', 'SENT', 'ARCHIVE']).optional()
+    })
+  )
+  .action(async ({ ctx: { session }, parsedInput }) => {
+    const folder = parsedInput.folder;
     const organizationId = session.user.organizationId;
     if (!organizationId) {
       throw new PreConditionError('No active organization');
@@ -55,20 +61,23 @@ export const syncInboxNow = pageActionClient('inbox')
       syncImapMailboxes({
         organizationId,
         actorId: session.user.id,
-        actorName: session.user.name
+        actorName: session.user.name,
+        ...(folder ? { folders: [folder] } : {})
       }),
       isOssDeployment()
         ? Promise.resolve({ connections: 0, messages: 0, errors: 0 })
         : // Inbox-first: keep auto-detect / Sync snappy. Spam/sent/etc. catch up on cron.
           syncGmailMailboxes({
             organizationId,
-            inboxOnly: true,
+            // Gmail's optional folders only sync when the user opens one.
+            inboxOnly: !folder || folder === 'INBOX',
             priority: 'user'
           })
     ]);
     const result = {
       connections: imap.connections + gmail.connections,
       messages: imap.messages + gmail.messages,
+      changed: imap.changed,
       errors: imap.errors + gmail.errors
     };
 

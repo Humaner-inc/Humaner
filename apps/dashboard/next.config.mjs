@@ -184,9 +184,9 @@ const nextConfig = {
         ]
       },
       {
-        // Everything except the embeddable widget gets strict frame protection.
+        // Strict frame protection everywhere.
         locale: false,
-        source: '/((?!widget/).*)',
+        source: '/(.*)',
         headers: [
           ...createSecureHeaders({
             ...baseSecureHeaders,
@@ -198,29 +198,14 @@ const nextConfig = {
             value: 'same-origin-allow-popups'
           },
           {
-            key: 'Content-Security-Policy',
-            value: dashboardCsp
-          }
-        ]
-      },
-      {
-        // The widget is designed to be iframed on third-party sites, so we must
-        // NOT send X-Frame-Options: DENY here. `frame-ancestors *` allows
-        // embedding while keeping the other hardening headers.
-        locale: false,
-        source: '/widget/:path*',
-        headers: [
-          ...createSecureHeaders({
-            ...baseSecureHeaders,
-            frameGuard: false,
-            referrerPolicy: 'strict-origin-when-cross-origin'
-          }),
+            // The dashboard uses no device APIs.
+            key: 'Permissions-Policy',
+            value:
+              'microphone=(), camera=(), geolocation=(), payment=(), usb=()'
+          },
           {
             key: 'Content-Security-Policy',
-            value: dashboardCsp.replace(
-              "frame-ancestors 'none'",
-              'frame-ancestors *'
-            )
+            value: dashboardCsp
           }
         ]
       }

@@ -7,6 +7,7 @@ import { authActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import {
   API_KEY_SCOPES,
+  isApiKeyScopeAvailable,
   PLATFORM_ADMIN_API_KEY_SCOPES
 } from '@/lib/auth/api-key-scopes';
 import {
@@ -40,7 +41,9 @@ export const approveMcpOAuth = authActionClient
     }
 
     const scopes = parseMcpOAuthScopes(parsedInput.scopes).filter(
-      (scope) => !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
+      (scope) =>
+        isApiKeyScopeAvailable(scope) &&
+        !PLATFORM_ADMIN_API_KEY_SCOPES.has(scope)
     );
     const code = await createMcpAuthorizationCode({
       clientId: parsedInput.clientId,

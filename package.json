@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:dashboard": "turbo dev --filter=@humaner/dashboard",
-    "dev:into-markdown": "turbo dev --filter=@humaner/into-markdown",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
@@ -38,7 +37,7 @@
       "react": "19.2.7",
       "react-dom": "19.2.7",
       "react-is": "19.2.7",
-      "next": "16.3.6",
+      "next": "16.3.8",
       "nodemailer": "10.0.6",
       "markdown-it": "14.2.0",
       "ws@7": "7.5.11",

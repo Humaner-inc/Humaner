@@ -1,0 +1,67 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "ANTHROPIC_API_KEY",
+    "AUTH_GOOGLE_CLIENT_ID",
+    "AUTH_GOOGLE_CLIENT_SECRET",
+    "AUTH_SECRET",
+    "AUTH_SECRET_PREVIOUS",
+    "AUTH_TRUST_HOST",
+    "AUTH_URL",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_ENDPOINT_URL_S3",
+    "AWS_REGION",
+    "AWS_SECRET_ACCESS_KEY",
+    "BUNDLE_ANALYZER",
+    "CLAUDE_API_KEY",
+    "CRON_SECRET",
+    "DATABASE_CONNECTION_LIMIT",
+    "DATABASE_POOL_TIMEOUT",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "EMAIL_MAILER",
+    "EMAIL_RESEND_API_KEY",
+    "EMAIL_SENDER",
+    "EMAIL_SERVER",
+    "EMAIL_SERVER_CIPHERS",
+    "EMAIL_SERVER_HOST",
+    "EMAIL_SERVER_PASS",
+    "EMAIL_SERVER_PORT",
+    "EMAIL_SERVER_USER",
+    "IMAP_IDLE_ENABLED",
+    "IMAP_IDLE_MAX_CONNECTIONS",
+    "IMAP_IDLE_RECONNECT_MS",
+    "IMAP_IDLE_ROSTER_REFRESH_MS",
+    "IMAP_IDLE_SYNC_DEBOUNCE_MS",
+    "LOGO_DEV_API_KEY",
+    "MAIL_STORAGE_BUCKET",
+    "MESSAGE_RETENTION_DAYS",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_BASE_URL",
+    "NEXT_PUBLIC_DEPLOYMENT_MODE",
+    "NEXT_PUBLIC_DOCS_URL",
+    "NEXT_PUBLIC_INTO_MARKDOWN_URL",
+    "NEXT_PUBLIC_SUPPORT_EMAIL",
+    "SELF_HOST_LOG_VERIFICATION"
+  ],
+  "globalPassThroughEnv": ["CI", "NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

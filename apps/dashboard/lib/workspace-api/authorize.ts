@@ -16,6 +16,12 @@ import { prisma } from '@/lib/db/prisma';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { isMcpAccessToken } from '@/lib/developers/mcp-oauth';
 import { verifyMcpAccessToken } from '@/lib/developers/mcp-oauth-store';
+import {
+  checkCredentialRateLimit,
+  checkIpRateLimit,
+  recordFailedAuth
+} from '@/lib/security/api-rate-limit';
+import { getClientIp } from '@/lib/security/client-ip';
 import { extractBearerToken } from '@/lib/security/extract-bearer-token';
 import {
   resolveWorkspaceToolName,
@@ -57,8 +63,10 @@ export type WorkspaceAuthSuccess = {
 
 export type WorkspaceAuthFailure = {
   ok: false;
-  status: 400 | 401 | 403;
+  status: 400 | 401 | 403 | 429;
   message: string;
+  /** Set with status 429. */
+  retryAfterSeconds?: number;
   allowOrigin: string | null;
   organizationId?: string;
   apiKeyId?: string;
@@ -174,7 +182,7 @@ function missingCredential(
   };
 }
 
-async function resolveMcpCaller(
+async function resolveMcpCredential(
   request: NextRequest
 ): Promise<
   | { ok: true; allowOrigin: string | null; caller: ResolvedMcpCaller }
@@ -319,6 +327,65 @@ async function resolveMcpCaller(
       ...(timeZone ? { timeZone } : {})
     }
   };
+}
+
+function tooManyRequests(
+  allowOrigin: string | null,
+  retryAfterSeconds: number,
+  extra: Partial<WorkspaceAuthFailure> = {}
+): WorkspaceAuthFailure {
+  return {
+    ok: false,
+    status: 429,
+    message: 'Too many requests. Slow down and retry shortly.',
+    allowOrigin,
+    retryAfterSeconds,
+    ...extra
+  };
+}
+
+/**
+ * Rate-limited credential resolution shared by MCP and REST: per-address cap,
+ * a cap on rejected credentials, then a per-key / per-grant cap once verified.
+ */
+async function resolveMcpCaller(
+  request: NextRequest
+): Promise<
+  | { ok: true; allowOrigin: string | null; caller: ResolvedMcpCaller }
+  | WorkspaceAuthFailure
+> {
+  const allowOrigin = request.headers.get('origin');
+  const ip = getClientIp(request);
+
+  const ipCheck = await checkIpRateLimit(ip);
+  if (ipCheck.limited) {
+    return tooManyRequests(allowOrigin, ipCheck.retryAfterSeconds);
+  }
+
+  const resolved = await resolveMcpCredential(request);
+  if (!resolved.ok) {
+    if (resolved.status === 401 && extractBearerToken(request)) {
+      const failed = await recordFailedAuth(ip);
+      if (failed.limited) {
+        return tooManyRequests(allowOrigin, failed.retryAfterSeconds);
+      }
+    }
+    return resolved;
+  }
+
+  const credentialId = resolved.caller.apiKeyId ?? resolved.caller.oauthGrantId;
+  if (credentialId) {
+    const credentialCheck = await checkCredentialRateLimit(credentialId);
+    if (credentialCheck.limited) {
+      return tooManyRequests(allowOrigin, credentialCheck.retryAfterSeconds, {
+        organizationId: resolved.caller.organizationId,
+        apiKeyId: resolved.caller.apiKeyId ?? undefined,
+        oauthGrantId: resolved.caller.oauthGrantId ?? undefined
+      });
+    }
+  }
+
+  return resolved;
 }
 
 /**

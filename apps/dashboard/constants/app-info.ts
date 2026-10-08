@@ -13,7 +13,7 @@ import packageInfo from '../package.json';
 export const AppInfo = {
   APP_NAME: brand.name,
   APP_DESCRIPTION: isOssDeployment()
-    ? `${brand.name} customer support kit — Helpdesk, BYO agent, team & org.`
+    ? `${brand.name} self-hosted mailbox — inbox, tasks, calendar, and MCP.`
     : HUMANER_META_DESCRIPTION,
   PRODUCTION: process.env.NODE_ENV === 'production',
   VERSION: packageInfo.version,

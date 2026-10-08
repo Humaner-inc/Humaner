@@ -8,10 +8,13 @@ import { toast } from 'sonner';
 
 import { approveMcpOAuth } from '@/actions/developers/approve-mcp-oauth';
 import { CheckMark } from '@/components/ui/check-icon';
-import { type ApiKeyScope } from '@/lib/auth/api-key-scopes';
+import {
+  isApiKeyScopeAvailable,
+  type ApiKeyScope
+} from '@/lib/auth/api-key-scopes';
 import { cn } from '@/lib/utils';
 
-const CONSENT_SCOPES: {
+const ALL_CONSENT_SCOPES: {
   id: ApiKeyScope;
   label: string;
   hint: string;
@@ -32,6 +35,10 @@ const CONSENT_SCOPES: {
     hint: 'Knowledge search (FTS) only'
   }
 ];
+
+const CONSENT_SCOPES = ALL_CONSENT_SCOPES.filter((option) =>
+  isApiKeyScopeAvailable(option.id)
+);
 
 const PILL =
   'inline-flex h-10 flex-1 items-center justify-center rounded-full border-2 font-sans text-sm font-medium transition-colors duration-200 disabled:opacity-50';

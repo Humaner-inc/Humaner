@@ -11,3 +11,11 @@ export async function attributeInboundToWave(_input: {
 }): Promise<{ attributed: boolean; waveId?: string }> {
   return { attributed: false };
 }
+
+// Self-Host: no outbound waves, so there is no wave tag to filter by.
+export async function getOutboundWaveTagId(_input: {
+  organizationId: string;
+  waveId: string;
+}): Promise<string | null> {
+  return null;
+}

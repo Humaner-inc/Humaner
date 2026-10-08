@@ -17,7 +17,7 @@ export const deleteWorkspaceTask = pageActionClientAny('desk', 'tasks')
     await requireOrganizationCapability(
       session.user.organizationId,
       'tasks',
-      'Tasks are included on Frontier. Upgrade to create and manage tasks.'
+      'Tasks are not available on this plan.'
     );
     const ticket = await prisma.handoffTicket.findFirst({
       where: {

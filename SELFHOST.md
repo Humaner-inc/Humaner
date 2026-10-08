@@ -228,15 +228,11 @@ Report vulnerabilities privately as described in [`SECURITY.md`](./SECURITY.md).
 
 1. DB migrated + email (or console OTP) working
 2. Sign up with email or Google
-3. Connect IMAP mailbox in Workspace settings → Inbox
-4. IMAP idle worker running — new mail appears in Inbox
-5. Create a task and an in-app calendar event
-6. Add a resource file
-7. Create an API key and list threads over MCP or `/api/v1/mail`
-
-## Packages
-
-- [`@humaner/react`](./packages/react) — widget SDK (Cloud hosted agent; not used on Self-Host mailbox)
+3. Connect your mailbox in Workspace → Inbox
+   (Syncing works through IMAP idle)
+4. Create a task and an in-app calendar event
+5. Add a resource file
+6. Create an API key and list threads over MCP or `/api/v1/mail`
 
 ## Deep links
 

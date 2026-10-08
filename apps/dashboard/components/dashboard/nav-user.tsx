@@ -61,7 +61,12 @@ function MenuRow({
   return (
     <DropdownMenuItem
       asChild
-      className={cn(dashboardItemRadiusClassName, 'px-2.5 py-2')}
+      className={cn(
+        dashboardItemRadiusClassName,
+        'px-2.5 py-2 transition-colors',
+        'hover:bg-foreground/[0.07] focus:bg-foreground/[0.07] data-[highlighted]:bg-foreground/[0.07]',
+        'dark:hover:bg-white/[0.09] dark:focus:bg-white/[0.09] dark:data-[highlighted]:bg-white/[0.09]'
+      )}
     >
       <Link
         href={href}
@@ -234,7 +239,7 @@ export function NavUser({
           size="sm"
           className={cn(
             dashboardItemRadiusClassName,
-            'mt-1 h-9 w-full justify-center gap-1.5 bg-destructive/10 px-2 text-xs text-destructive hover:bg-destructive/15 hover:text-destructive'
+            'mt-1 h-8 w-full justify-center gap-1.5 bg-destructive/10 px-2 text-[11px] text-destructive hover:bg-destructive/15 hover:text-destructive'
           )}
           onClick={() => void handleLogOut()}
         >

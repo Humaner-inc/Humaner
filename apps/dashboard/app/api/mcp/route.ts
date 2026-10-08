@@ -21,6 +21,7 @@ import {
 } from '@/lib/developers/mcp-oauth';
 import { integrationForConnectorTool } from '@/lib/inbox/companion-rights';
 import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
+import { rateLimitedHeaders } from '@/lib/security/api-rate-limit';
 import {
   actorMayUseOutboundTools,
   authorizeMcpClient,
@@ -73,6 +74,15 @@ function rpcError(
       headers: { ...mcpCorsHeaders(origin), ...extraHeaders }
     }
   );
+}
+
+function retryAfterHeaders(failure: {
+  status: number;
+  retryAfterSeconds?: number;
+}): Record<string, string> | undefined {
+  return failure.status === 429 && failure.retryAfterSeconds
+    ? rateLimitedHeaders(failure.retryAfterSeconds)
+    : undefined;
 }
 
 function mcpUnauthorized(
@@ -194,7 +204,14 @@ export async function DELETE(request: NextRequest): Promise<Response> {
     if (auth.status === 401) {
       return mcpUnauthorized(request, null, auth.message, auth.allowOrigin);
     }
-    return rpcError(null, -32001, auth.message, auth.allowOrigin, auth.status);
+    return rpcError(
+      null,
+      -32001,
+      auth.message,
+      auth.allowOrigin,
+      auth.status,
+      retryAfterHeaders(auth)
+    );
   }
   return new Response(null, {
     status: 200,
@@ -245,7 +262,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       -32001,
       handshake.message,
       handshake.allowOrigin,
-      handshake.status
+      handshake.status,
+      retryAfterHeaders(handshake)
     );
   }
 
@@ -372,7 +390,8 @@ export async function POST(request: NextRequest): Promise<Response> {
           -32001,
           intel.message,
           intel.allowOrigin,
-          intel.status
+          intel.status,
+          retryAfterHeaders(intel)
         );
       }
 
@@ -440,7 +459,14 @@ export async function POST(request: NextRequest): Promise<Response> {
       if (auth.status === 401) {
         return mcpUnauthorized(request, id, auth.message, auth.allowOrigin);
       }
-      return rpcError(id, -32001, auth.message, auth.allowOrigin, auth.status);
+      return rpcError(
+        id,
+        -32001,
+        auth.message,
+        auth.allowOrigin,
+        auth.status,
+        retryAfterHeaders(auth)
+      );
     }
 
     const result = await executeWorkspaceTool(name, args, auth.context);

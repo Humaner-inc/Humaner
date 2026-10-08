@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 import { prisma } from '@/lib/db/prisma';
 import type { CompanionIntegrationId } from '@/lib/inbox/companion-rights';
+import { publishOrgEvent } from '@/lib/realtime/org-events';
 
 export type ConnectorDirection = 'inbound' | 'outbound';
 export type ConnectorEventStatus = 'processing' | 'ok' | 'error';
@@ -70,7 +71,12 @@ export async function recordConnectorEvent(
     )
   `;
 
+  void publishConnectorActivity(input.organizationId);
   return id;
+}
+
+async function publishConnectorActivity(organizationId: string): Promise<void> {
+  await publishOrgEvent(organizationId, { type: 'connector.activity' });
 }
 
 export async function finishConnectorEvent(
@@ -83,7 +89,7 @@ export async function finishConnectorEvent(
     externalUrl?: string | null;
   }
 ): Promise<void> {
-  await prisma.$executeRaw`
+  const rows = await prisma.$queryRaw<Array<{ organizationId: string }>>`
     UPDATE "ConnectorEvent"
     SET
       "status" = ${patch.status},
@@ -93,7 +99,10 @@ export async function finishConnectorEvent(
       "externalUrl" = COALESCE(${clip(patch.externalUrl, 2000)}, "externalUrl"),
       "finishedAt" = NOW()
     WHERE "id" = ${id}::uuid
+    RETURNING "organizationId"
   `;
+  const organizationId = rows[0]?.organizationId;
+  if (organizationId) void publishConnectorActivity(organizationId);
 }
 
 type EventRow = {

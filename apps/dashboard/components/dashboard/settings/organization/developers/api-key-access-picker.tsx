@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { RadioCardItem, RadioCards } from '@/components/ui/radio-card';
 import {
   API_KEY_SCOPE_OPTIONS,
+  isApiKeyScopeAvailable,
   PLATFORM_ADMIN_API_KEY_SCOPES,
   type ApiKeyAccessMode,
   type ApiKeyScope
@@ -32,7 +33,9 @@ const ACCESS_OPTIONS = [
   {
     id: 'full' as const,
     label: 'Full access',
-    description: 'Mailbox, calendar, and Intelligence.',
+    description: isOssDeployment()
+      ? 'Mailbox and calendar.'
+      : 'Mailbox, calendar, and Intelligence.',
     Icon: KeyRoundIcon
   },
   {
@@ -116,7 +119,9 @@ export function ApiKeyAccessPicker({
       Boolean(sectionNav?.profile) &&
       isPlatformAdmin(sectionNav!.profile);
     return API_KEY_SCOPE_OPTIONS.filter(
-      (option) => admin || !PLATFORM_ADMIN_API_KEY_SCOPES.has(option.id)
+      (option) =>
+        isApiKeyScopeAvailable(option.id) &&
+        (admin || !PLATFORM_ADMIN_API_KEY_SCOPES.has(option.id))
     );
   }, [sectionNav]);
 

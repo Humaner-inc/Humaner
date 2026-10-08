@@ -10,6 +10,7 @@ import { MailConnectionStatus, MailProvider } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { validateMailEndpoints } from '@/lib/inbox/validate-mail-endpoint';
 import { publishOrgEvent } from '@/lib/realtime/org-events';
+import { onMailboxRosterChanged } from '@/lib/realtime/roster-signal';
 import { decryptSensitiveField } from '@/lib/security/sensitive-fields';
 
 type IdleConfig = {
@@ -18,6 +19,8 @@ type IdleConfig = {
   reconnectMs: number;
   rosterRefreshMs: number;
   syncDebounceMs: number;
+  /** Optional all-folder tick (0 = off). Other folders sync when opened. */
+  fullSyncMs: number;
 };
 
 type IdleConnectionRow = {
@@ -46,12 +49,16 @@ export function getImapIdleConfig(): IdleConfig {
     reconnectMs: parsePositiveInt(process.env.IMAP_IDLE_RECONNECT_MS, 5_000),
     rosterRefreshMs: parsePositiveInt(
       process.env.IMAP_IDLE_ROSTER_REFRESH_MS,
-      60_000
+      // With the hub, roster changes are pushed; this is only a safety net.
+      process.env.REALTIME_HUB_ENABLED === 'true' ? 1_800_000 : 300_000
     ),
     syncDebounceMs: parsePositiveInt(
       process.env.IMAP_IDLE_SYNC_DEBOUNCE_MS,
       1_000
-    )
+    ),
+    fullSyncMs: process.env.IMAP_IDLE_FULL_SYNC_MS
+      ? parsePositiveInt(process.env.IMAP_IDLE_FULL_SYNC_MS, 0)
+      : 0
   };
 }
 
@@ -167,9 +174,16 @@ class ImapIdleSession {
     const client = this.client;
     if (!client) return;
     try {
+      const changes = { count: 0 };
       const imported = await syncImapConnection(this.connection.id, {
         client,
-        lock: 'try'
+        changes,
+        // new-mail events don't need a full flag scan; flag events/connect do
+        skipFullFlagScan: reason.startsWith('exists'),
+        lock: 'try',
+        // Walking other folders on the IDLE socket would move it off INBOX and
+        // drop later events. Other folders sync when the user opens them.
+        folders: ['INBOX']
       });
       if (imported == null) {
         this.lockRetries += 1;
@@ -179,6 +193,17 @@ class ImapIdleSession {
         return;
       }
       this.lockRetries = 0;
+      if (imported === 0 && changes.count > 0) {
+        // deleted or marked read in another client: refresh, no toast
+        void publishOrgEvent(this.connection.organizationId, {
+          type: 'inbox.synced',
+          resourceId: this.connection.id,
+          count: 0
+        });
+        console.log(
+          `[imap-idle] ${this.connection.email}: ${changes.count} change(s) (${reason})`
+        );
+      }
       if (imported > 0) {
         void publishOrgEvent(this.connection.organizationId, {
           type: 'inbox.synced',
@@ -285,6 +310,10 @@ class ImapIdleSession {
       }
     });
 
+    // read/unread and deletes from other clients arrive on the same IDLE socket
+    client.on('flags', () => this.scheduleSync('flags'));
+    client.on('expunge', () => this.scheduleSync('expunge'));
+
     await client.connect();
     await client.mailboxOpen('INBOX');
     console.log(`[imap-idle] watching ${this.connection.email}`);
@@ -292,7 +321,19 @@ class ImapIdleSession {
     // catch up mail that arrived while offline
     this.scheduleSync('connect');
 
-    await closed;
+    const fullSyncTimer =
+      this.config.fullSyncMs > 0
+        ? setInterval(
+            () => this.scheduleSync('periodic', 0),
+            this.config.fullSyncMs
+          )
+        : null;
+
+    try {
+      await closed;
+    } finally {
+      if (fullSyncTimer) clearInterval(fullSyncTimer);
+    }
     this.client = null;
 
     await this.syncChain.catch(() => undefined);
@@ -371,6 +412,20 @@ export async function runImapIdleWorker(
 
   await reconcile();
 
+  let rosterTimer: ReturnType<typeof setTimeout> | null = null;
+  const stopRosterListener = onMailboxRosterChanged(() => {
+    if (rosterTimer || signal.aborted) return;
+    rosterTimer = setTimeout(() => {
+      rosterTimer = null;
+      reconcile().catch((error) => {
+        console.error(
+          '[imap-idle] roster reload failed',
+          error instanceof Error ? error.message : error
+        );
+      });
+    }, 2_000);
+  });
+
   while (!signal.aborted) {
     try {
       await sleep(config.rosterRefreshMs, signal);
@@ -387,6 +442,8 @@ export async function runImapIdleWorker(
     }
   }
 
+  stopRosterListener();
+  if (rosterTimer) clearTimeout(rosterTimer);
   for (const session of sessions.values()) {
     session.stop();
   }

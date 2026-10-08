@@ -13,7 +13,7 @@ const startCalendarConnectSchema = z.object({
 export const startCalendarConnect = pageActionClient('calendar')
   .metadata({ actionName: 'startCalendarConnect' })
   .schema(startCalendarConnectSchema)
-  .action(async () => {
+  .action(async (): Promise<{ url: string }> => {
     throw new PreConditionError(
       'External calendar providers are not available on Self-Host.'
     );

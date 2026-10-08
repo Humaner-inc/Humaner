@@ -15,8 +15,7 @@ watchPatterns = [
   "apps/dashboard/lib/**",
   "apps/dashboard/prisma/**",
   "apps/dashboard/package.json",
-  "packages/shared/**",
-  "packages/react/**"
+  "packages/shared/**"
 ]
 
 [deploy]

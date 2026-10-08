@@ -1,3 +1,5 @@
+import { isOssDeployment } from '@/lib/deployment-mode';
+
 export const API_KEY_SCOPES = [
   'intelligence',
   'mailbox',
@@ -50,6 +52,16 @@ const HELPDESK_INTELLIGENCE_TOOLS = new Set<string>([
   'create_ticket',
   'send_team_email'
 ]);
+
+/** Scopes with nothing behind them on Self-Host (Cloud knowledge search, outbound preview). */
+const SELF_HOST_UNAVAILABLE_SCOPES = new Set<ApiKeyScope>([
+  'intelligence',
+  'outbound'
+]);
+
+export function isApiKeyScopeAvailable(scope: ApiKeyScope): boolean {
+  return !(isOssDeployment() && SELF_HOST_UNAVAILABLE_SCOPES.has(scope));
+}
 
 export function isApiKeyScope(value: string): value is ApiKeyScope {
   return API_KEY_SCOPES.includes(value as ApiKeyScope);

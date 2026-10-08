@@ -28,17 +28,23 @@ export async function hasConnectGrant(
 export async function startConnectAuthorization(
   _organizationId: string,
   id: CompanionIntegrationId
-): Promise<never> {
+): Promise<{ url: string } | { alreadyConnected: true }> {
   throw new Error(
     `${VERCEL_CONNECT_APPS[id].name} connect is not available on Self-Host.`
   );
 }
 
-export async function completeConnectAuthorization(): Promise<never> {
+export async function completeConnectAuthorization(
+  _organizationId: string,
+  _id: CompanionIntegrationId
+): Promise<void> {
   throw new Error(CONNECT_UNAVAILABLE);
 }
 
-export async function revokeConnectAuthorization(): Promise<void> {
+export async function revokeConnectAuthorization(
+  _organizationId: string,
+  _id: CompanionIntegrationId
+): Promise<void> {
   // Connect grants are Cloud-only.
 }
 

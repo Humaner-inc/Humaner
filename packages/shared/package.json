@@ -36,16 +36,14 @@
     "./widget-radius": "./src/widget-radius.ts",
     "./widget-surface": "./src/widget-surface.ts",
     "./widget-message-time": "./src/widget-message-time.ts",
-    "./widget-suggested-topics": "./src/widget-suggested-topics.ts",
-    "./use-live-chat-poll": "./src/use-live-chat-poll.ts",
     "./live-chat-handoff": "./src/live-chat-handoff.ts",
-    "./conversation-handoff-banner": "./src/conversation-handoff-banner.tsx",
-    "./visitor-home-tickets": "./src/visitor-home-tickets.tsx",
-    "./team-member-joined-divider": "./src/team-member-joined-divider.tsx",
     "./gradient-pillar-icon": "./src/gradient-pillar-icon.tsx",
     "./archetypes": "./src/archetypes.ts",
     "./mask-sensitive-value": "./src/mask-sensitive-value.ts",
-    "./chat-attachments": "./src/chat-attachments.ts"
+    "./chat-attachments": "./src/chat-attachments.ts",
+    "./companion-icon": "./src/companion-icon.tsx",
+    "./dated-calendar-icon": "./src/dated-calendar-icon.tsx",
+    "./squircle-loader": "./src/squircle-loader.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -53,6 +51,7 @@
   "dependencies": {
     "@react-email/components": "0.0.26",
     "@react-email/tailwind": "1.0.0",
+    "ldrs": "^1.1.9",
     "lucide-animated": "^1.0.4",
     "lucide-react": "^1.24.0",
     "react-icons": "^5.7.0"

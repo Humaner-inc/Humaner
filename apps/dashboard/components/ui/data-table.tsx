@@ -404,7 +404,7 @@ function DataTableFilter({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 border-dashed text-sm"
+          className="h-8 border-dashed text-[11px]"
         >
           <PlusCircledIcon className="mr-2 size-4" />
           {title}

@@ -1,6 +1,17 @@
-import type { Adapter, AdapterAccount } from '@auth/core/adapters';
+import { createHash } from 'node:crypto';
+import type {
+  Adapter,
+  AdapterAccount,
+  AdapterSession,
+  AdapterUser
+} from '@auth/core/adapters';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 
+import {
+  authCacheTtlSeconds,
+  probeAuthCache,
+  storeAuthCache
+} from '@/lib/auth/auth-cache';
 import { prisma } from '@/lib/db/prisma';
 import {
   decryptSensitiveField,
@@ -52,9 +63,80 @@ async function rewriteAccountTokens(
   });
 }
 
+// Only what the session needs. The raw user row has password hashes and MFA
+// material, which must never be copied into Redis.
+type CachedSession = {
+  session: { sessionToken: string; userId: string; expires: string };
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+    emailVerified: string | null;
+    organizationId: string | null;
+  };
+};
+
+function sessionCacheKey(sessionToken: string): string {
+  return `session:${createHash('sha256').update(sessionToken).digest('hex')}`;
+}
+
+function toCached(found: {
+  session: AdapterSession;
+  user: AdapterUser;
+}): CachedSession {
+  return {
+    session: {
+      sessionToken: found.session.sessionToken,
+      userId: found.session.userId,
+      expires: found.session.expires.toISOString()
+    },
+    user: {
+      id: found.user.id,
+      name: found.user.name ?? null,
+      email: found.user.email,
+      image: found.user.image ?? null,
+      emailVerified: found.user.emailVerified?.toISOString() ?? null,
+      organizationId: found.user.organizationId ?? null
+    }
+  };
+}
+
+function fromCached(cached: CachedSession): {
+  session: AdapterSession;
+  user: AdapterUser;
+} {
+  return {
+    session: {
+      sessionToken: cached.session.sessionToken,
+      userId: cached.session.userId,
+      expires: new Date(cached.session.expires)
+    },
+    user: {
+      ...cached.user,
+      emailVerified: cached.user.emailVerified
+        ? new Date(cached.user.emailVerified)
+        : null
+    }
+  };
+}
+
 // this auth.js adapter has no updateAccount, so plaintext rows are rewritten on read
 export const adapter = Object.freeze({
   ...base,
+  async getSessionAndUser(sessionToken: string) {
+    if (authCacheTtlSeconds() === 0) {
+      return base.getSessionAndUser!(sessionToken);
+    }
+    const key = sessionCacheKey(sessionToken);
+    const probe = await probeAuthCache<CachedSession>(key);
+    if (probe.value && new Date(probe.value.session.expires) > new Date()) {
+      return fromCached(probe.value);
+    }
+    const found = await base.getSessionAndUser!(sessionToken);
+    if (found) await storeAuthCache(key, toCached(found), probe.epoch);
+    return found;
+  },
   async linkAccount(account: AdapterAccount): Promise<void> {
     await base.linkAccount!(encryptAccountTokens(account));
   },

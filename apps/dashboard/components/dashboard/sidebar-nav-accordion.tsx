@@ -4,14 +4,12 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 
 import { isDeskPath } from '@/constants/desk-nav-items';
-import { isIntegrationsPath } from '@/constants/integration-nav-items';
 import {
   isPerInboxMailboxPath,
   isWorkspaceDrawerPath
 } from '@/constants/mailbox-nav-items';
 
 export const SIDEBAR_DRAWER_IDS = {
-  integrations: 'integrations',
   inbox: 'inbox',
   workspace: 'workspace',
   desk: 'desk',
@@ -30,7 +28,6 @@ export function getActiveSidebarDrawerId(
   pathname: string,
   agents: { id: string }[]
 ): string | null {
-  if (isIntegrationsPath(pathname)) return SIDEBAR_DRAWER_IDS.integrations;
   if (isPerInboxMailboxPath(pathname)) {
     return SIDEBAR_DRAWER_IDS.inbox;
   }

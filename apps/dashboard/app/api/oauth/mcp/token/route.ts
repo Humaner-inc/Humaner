@@ -8,6 +8,11 @@ import {
   exchangeMcpAuthorizationCode,
   refreshMcpAccessToken
 } from '@/lib/developers/mcp-oauth-store';
+import {
+  checkBucketRateLimit,
+  rateLimitedHeaders
+} from '@/lib/security/api-rate-limit';
+import { getClientIp } from '@/lib/security/client-ip';
 
 export function OPTIONS(): Response {
   return new Response(null, {
@@ -39,6 +44,25 @@ async function readTokenBody(
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const limited = await checkBucketRateLimit({
+    bucket: 'oauth-token',
+    identifier: getClientIp(request),
+    limit: 60,
+    windowSeconds: 60
+  });
+  if (limited.limited) {
+    return NextResponse.json(
+      { error: 'slow_down', error_description: 'Too many requests.' },
+      {
+        status: 429,
+        headers: {
+          ...mcpOAuthCorsHeaders(),
+          ...rateLimitedHeaders(limited.retryAfterSeconds)
+        }
+      }
+    );
+  }
+
   let body: Record<string, string>;
   try {
     body = await readTokenBody(request);

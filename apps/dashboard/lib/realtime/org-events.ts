@@ -23,6 +23,11 @@ export type {
  * replicas, back these two functions with Redis or a Postgres `OrgEvent` table.
  */
 
+/** Hub hook is Cloud-only; Self-Host publishes in process. */
+export function registerLocalOrgEventSink(
+  _sink: (organizationId: string, event: OrgRealtimeEvent) => void
+): void {}
+
 const MAX_EVENTS = 100;
 const EVENT_TTL_MS = 300_000;
 const PRESENCE_TTL_MS = 45_000;

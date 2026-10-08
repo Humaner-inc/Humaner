@@ -93,7 +93,7 @@ export function InboxConnectPromptGate({
                 type="button"
                 disabled={isPending}
                 loading={isPending}
-                className="h-11 w-full rounded-full bg-[#0A0D0D] text-[#f2f2f2] hover:bg-[#161919] hover:text-[#f2f2f2]"
+                className="h-8 w-full rounded-full bg-[#0A0D0D] text-[#f2f2f2] hover:bg-[#161919] hover:text-[#f2f2f2]"
                 onClick={() => resolvePrompt()}
               >
                 Continue

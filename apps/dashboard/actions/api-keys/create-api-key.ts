@@ -7,6 +7,7 @@ import { ownerActionClient } from '@/actions/safe-action';
 import { Caching, OrganizationCacheKey } from '@/data/caching';
 import { recordAuditEvent } from '@/lib/audit/record-audit-event';
 import {
+  isApiKeyScopeAvailable,
   normalizeApiKeyScopes,
   PLATFORM_ADMIN_API_KEY_SCOPES
 } from '@/lib/auth/api-key-scopes';
@@ -49,6 +50,8 @@ export const createApiKey = ownerActionClient
       access: parsedInput.access,
       scopes: parsedInput.scopes
     });
+    // Scopes with nothing behind them on Self-Host are never minted there.
+    scopes = scopes.filter(isApiKeyScopeAvailable);
     // Outbound is Cloud Role.ADMIN preview — never mint on Self-Host or for owners
     if (isOssDeployment() || !(await isAdmin(session.user.id))) {
       scopes = scopes.filter(

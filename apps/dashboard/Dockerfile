@@ -10,7 +10,6 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/dashboard/package.json apps/dashboard/
 COPY packages/shared/package.json packages/shared/
-COPY packages/react/package.json packages/react/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
@@ -37,7 +36,6 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder /app/apps/dashboard/public ./apps/dashboard/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
-COPY --from=builder /app/data/knowledge ./data/knowledge
 COPY --from=builder /app/apps/dashboard/prisma ./apps/dashboard/prisma
 COPY --from=builder /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/.pnpm/prisma*/node_modules/prisma ./node_modules/prisma

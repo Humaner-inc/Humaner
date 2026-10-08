@@ -2,7 +2,6 @@
   "files": [],
   "references": [
     { "path": "./apps/dashboard" },
-    { "path": "./packages/react" },
     { "path": "./packages/shared" }
   ]
 }

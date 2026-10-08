@@ -47,6 +47,31 @@ export function expungedUids(
   return gone;
 }
 
+/**
+ * True when the stored UIDs provably match the server window, so the exact
+ * expunge diff can be skipped. Stored UIDs are a subset of the server's, so
+ * equal count and sum over [storedMin, lastUid] means no stored UID vanished.
+ */
+export function storedUidsMatchServer(input: {
+  storedCount: number;
+  storedSum: number;
+  storedMin: number | null;
+  lastUid: number;
+  serverUids: readonly number[];
+}): boolean {
+  if (input.storedCount === 0) return true;
+  if (input.storedMin == null) return false;
+  let count = 0;
+  let sum = 0;
+  for (const uid of input.serverUids) {
+    if (uid >= input.storedMin && uid <= input.lastUid) {
+      count += 1;
+      sum += uid;
+    }
+  }
+  return count === input.storedCount && sum === input.storedSum;
+}
+
 export function readModseq(value: unknown): bigint | null {
   if (typeof value === 'bigint' && value >= 0n) return value;
   if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {

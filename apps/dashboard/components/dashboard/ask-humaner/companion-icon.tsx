@@ -5,7 +5,7 @@ import { BotIcon } from '@humaner/shared/icons';
 
 import { cn } from '@/lib/utils';
 
-export type CompanionFigureState = 'idle' | 'enter' | 'exit';
+export type CompanionFigureState = 'idle' | 'enter' | 'exit' | 'thinking';
 
 export type CompanionIconProps = {
   active?: boolean;

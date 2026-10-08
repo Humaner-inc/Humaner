@@ -112,7 +112,12 @@ function isOssBlockedPath(pathname: string): boolean {
     if (path === '/agents' || path.startsWith('/agents/')) {
       return true;
     }
-    if (path === '/integrations' || path.startsWith('/integrations/')) {
+    if (
+      path === '/persona' ||
+      path.startsWith('/persona/') ||
+      path === '/inbox/connectors' ||
+      path.startsWith('/inbox/connectors/')
+    ) {
       return true;
     }
     if (path === '/invitations' || path.startsWith('/invitations/')) {
@@ -125,6 +130,16 @@ function isOssBlockedPath(pathname: string): boolean {
       return true;
     }
     if (path === '/admin/demos' || path.startsWith('/admin/demos/')) {
+      return true;
+    }
+    if (
+      path === '/admin/tickets' ||
+      path.startsWith('/admin/tickets/') ||
+      path === '/analytics' ||
+      path.startsWith('/analytics/') ||
+      path === '/history' ||
+      path.startsWith('/history/')
+    ) {
       return true;
     }
     if (

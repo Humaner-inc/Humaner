@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { InboxAutoDetectMail } from '@/components/dashboard/inbox/inbox-auto-detect-mail';
+import { InboxFolderSync } from '@/components/dashboard/inbox/inbox-folder-sync';
 import {
   InboxPreferencesProvider,
   InboxPreferencesSync
@@ -48,6 +49,7 @@ export default function InboxLayout({
         className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
         style={{ '--accent-color': INBOX_ACCENT } as React.CSSProperties}
       >
+        <InboxFolderSync />
         <React.Suspense fallback={null}>
           <InboxLayoutChrome />
         </React.Suspense>

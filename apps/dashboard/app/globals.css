@@ -1,4 +1,4 @@
-@import '@humaner/react/highlighted-text-field.css';
+@import '../components/ui/highlighted-text/highlighted-text-field.css';
 
 @tailwind base;
 @tailwind components;

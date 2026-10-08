@@ -158,4 +158,4 @@ jobs:
           NEXT_PUBLIC_LANDING_URL: http://localhost:3001
           NEXT_PUBLIC_DOCS_URL: http://localhost:3002
           NEXT_PUBLIC_DEPLOYMENT_MODE: oss
-        run: pnpm turbo run build --filter=@humaner/react --filter=@humaner/dashboard --filter=@humaner/into-markdown
+        run: pnpm turbo run build --filter=@humaner/dashboard

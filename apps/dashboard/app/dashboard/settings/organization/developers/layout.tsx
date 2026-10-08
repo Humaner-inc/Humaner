@@ -8,6 +8,7 @@ import { Routes } from '@/constants/routes';
 import { getMcpOAuthGrants } from '@/data/developers/get-mcp-oauth-grants';
 import { getMcpIntelligenceEnabled } from '@/data/developers/mcp-intelligence-mode';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +39,9 @@ export default async function DevelopersLayout({
       <section className={cn(dashboardSurfaceClassName, 'overflow-hidden')}>
         <div className="space-y-4 px-5 py-5 sm:px-6">
           <McpServerConfigPanel />
-          <McpIntelligenceToggle enabled={mcpIntelligenceEnabled} />
+          {isOssDeployment() ? null : (
+            <McpIntelligenceToggle enabled={mcpIntelligenceEnabled} />
+          )}
         </div>
 
         <div className="border-t border-border/40" />

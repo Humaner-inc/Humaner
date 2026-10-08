@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { isApiKeyScopeAvailable } from '@/lib/auth/api-key-scopes';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import { MCP_SERVER_ICON_VERSION } from '@/lib/developers/mcp-http';
 import {
   isAllowedMcpRedirectUri,
@@ -57,10 +59,19 @@ describe('mcp oauth redirect URIs', () => {
 describe('mcp oauth scopes and pkce', () => {
   it('defaults to mailbox and calendar', () => {
     expect(parseMcpOAuthScopes('')).toEqual(['mailbox', 'calendar']);
-    expect(parseMcpOAuthScopes('mailbox intelligence')).toEqual([
-      'mailbox',
-      'intelligence'
-    ]);
+    // Knowledge search over MCP is Cloud-only; Self-Host never grants it.
+    expect(parseMcpOAuthScopes('mailbox intelligence')).toEqual(
+      isOssDeployment() ? ['mailbox'] : ['mailbox', 'intelligence']
+    );
+  });
+
+  it('only offers scopes that exist on this deployment', () => {
+    expect(isApiKeyScopeAvailable('mailbox')).toBe(true);
+    expect(isApiKeyScopeAvailable('calendar')).toBe(true);
+    expect(isApiKeyScopeAvailable('intelligence')).toBe(!isOssDeployment());
+    if (isOssDeployment()) {
+      expect(isApiKeyScopeAvailable('outbound')).toBe(false);
+    }
   });
 
   it('does not advertise or grant Cloud preview outbound over OAuth', () => {

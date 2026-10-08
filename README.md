@@ -1,17 +1,33 @@
-![hero](github.png)
+<h1 align="center">Humaner</h1>
 
 <p align="center">
-  <p align="center">
-    Self-host your mailbox and run your business ops with your agent | Inbox, tasks, calendar, and MCP.
-    <br />
-    <br />
-    <a href="https://humaner.io"><strong>Website</strong></a>
-    ·
-    <a href="https://docs.humaner.io/oss"><strong>Docs</strong></a>
-    ·
-    <a href="https://github.com/Humaner-inc/humaner/issues"><strong>Issues</strong></a>
-  </p>
+  Self-host your mailbox and run your business ops with your agent.
+  <br />
+  Inbox, tasks, calendar, and MCP.
 </p>
+
+<p align="center">
+  <a href="https://humaner.io">Website</a>
+  •
+  <a href="https://docs.humaner.io/oss">Docs</a>
+  •
+  <a href="./SELFHOST.md">Self-Host guide</a>
+  •
+  <a href="https://github.com/Humaner-inc/Humaner/issues">Issues</a>
+</p>
+
+<p align="center">
+  <a href="./CHANGELOG.md"><img alt="version" src="https://img.shields.io/github/package-json/v/Humaner-inc/Humaner?label=version&color=f85919" /></a>
+  <a href="https://github.com/Humaner-inc/Humaner/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Humaner-inc/Humaner/ci.yml?branch=main&label=CI" /></a>
+  <a href="./LICENSE"><img alt="license" src="https://img.shields.io/badge/license-AGPL--3.0-blue" /></a>
+  <a href="https://github.com/Humaner-inc/Humaner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Humaner-inc/Humaner?logo=github&label=Stars" /></a>
+  <a href="https://docs.humaner.io/oss/api"><img alt="MCP ready" src="https://img.shields.io/badge/MCP-ready-f85919" /></a>
+  <a href="./SELFHOST.md"><img alt="Docker Compose" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white" /></a>
+  <img alt="PostgreSQL 16+" src="https://img.shields.io/badge/PostgreSQL-16%2B-336791?logo=postgresql&logoColor=white" />
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs" />
+</p>
+
+![hero](github.png)
 
 ## About
 
@@ -75,14 +91,14 @@ Questions → [docs.humaner.io](https://docs.humaner.io) (hosted, not in this re
 
 ## Self-Host vs Cloud
 
-|              | Self-Host                                     | Cloud (`app.humaner.io`)             |
-| ------------ | --------------------------------------------- | ------------------------------------ |
-| Mailbox      | IMAP + idle worker                            | IMAP idle (Railway) + Gmail Pub/Sub  |
-| Agent        | Yours, over MCP / API keys                    | Companion                            |
-| Calendar     | In-app                                        | In-app + Google / Outlook / Calendly |
-| Team         | Extra workspaces · Assigned                   | Team dock, invites, Connect          |
-| Not included | Companion, Desk, widget, invoices, Hybrid RAG | —                                    |
-| Billing      | None                                          | Polar                                |
+|              | Self-Host                             | Cloud (`app.humaner.io`)             |
+| ------------ | ------------------------------------- | ------------------------------------ |
+| Mailbox      | IMAP + idle worker                    | IMAP idle (Railway) + Gmail Pub/Sub  |
+| Agent        | Yours, over MCP / API keys            | Companion                            |
+| Calendar     | In-app                                | In-app + Google / Outlook / Calendly |
+| Team         | Extra workspaces · Assigned           | Team dock, invites, Connect          |
+| Not included | Companion, Desk, invoices, Hybrid RAG | —                                    |
+| Billing      | None                                  | Polar                                |
 
 Details: [`SELFHOST.md`](./SELFHOST.md)
 

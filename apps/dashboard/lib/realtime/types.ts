@@ -3,6 +3,7 @@ export type OrgRealtimeEventType =
   | 'thread.updated'
   | 'agent.changed'
   | 'inbox.synced'
+  | 'connector.activity'
   | 'presence.changed';
 
 export type OrgRealtimeEvent = {
@@ -13,6 +14,8 @@ export type OrgRealtimeEvent = {
   actorName?: string;
   /** Messages imported for `inbox.synced` (when known). */
   count?: number;
+  /** Full viewer list for `presence.changed` pushed by the hub. */
+  presence?: ResourcePresence[];
   at: number;
 };
 

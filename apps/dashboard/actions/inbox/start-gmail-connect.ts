@@ -15,8 +15,13 @@ const startGmailConnectSchema = z.object({
 export const startGmailConnect = ownerActionClient
   .metadata({ actionName: 'startGmailConnect' })
   .schema(startGmailConnectSchema)
-  .action(async () => {
-    throw new PreConditionError(
-      'Google mail OAuth is not available on Self-Host. Connect IMAP instead.'
-    );
-  });
+  .action(
+    async (): Promise<
+      | { url: string; needsMailbox?: undefined; canApplyToBill?: undefined }
+      | { needsMailbox: true; canApplyToBill: boolean; url?: undefined }
+    > => {
+      throw new PreConditionError(
+        'Google mail OAuth is not available on Self-Host. Connect IMAP instead.'
+      );
+    }
+  );

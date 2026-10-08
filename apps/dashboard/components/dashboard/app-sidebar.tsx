@@ -26,6 +26,7 @@ import {
 import { AppInfo } from '@/constants/app-info';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
 import type { UserWorkspaceSummary } from '@/lib/auth/workspace-membership';
+import { dashboardSecondaryRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
 import { cn } from '@/lib/utils';
 import type { ProfileDto } from '@/types/dtos/profile-dto';
@@ -104,17 +105,20 @@ function SidebarPanelToggle(): React.JSX.Element | null {
           onClick={sidebar.toggleSidebar}
           aria-label={label}
           aria-expanded={sidebar.open}
-          className="flex size-7 items-center justify-center rounded-sm text-sidebar-foreground/45 transition-colors hover:bg-sidebar-item hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+          className={cn(
+            'flex size-7 items-center justify-center border border-sidebar-foreground/10 bg-sidebar-foreground/[0.04] text-sidebar-foreground/55 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12)] backdrop-blur-xl backdrop-saturate-150 transition-[color,background-color,border-color] duration-200 hover:border-sidebar-foreground/25 hover:bg-sidebar-foreground/[0.10] hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring',
+            dashboardSecondaryRadiusClassName
+          )}
         >
           {collapsed ? (
             <ChevronsLeftRightIcon
               className="shrink-0 text-current"
-              size={16}
+              size={14}
             />
           ) : (
             <ChevronsRightLeftIcon
               className="shrink-0 text-current"
-              size={16}
+              size={14}
             />
           )}
         </button>

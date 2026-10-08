@@ -29,8 +29,18 @@ function evictOverflow(): void {
   }
 }
 
+/**
+ * Shape of the Cloud Redis client as shared code sees it. Self-Host never
+ * constructs one (`getUpstashRedis()` returns `null`), so every method is
+ * loosely typed; the type only lets shared code compile.
+ */
+export type SharedStoreClient = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [method: string]: <T = any>(...args: any[]) => Promise<T>;
+};
+
 /** No raw client in Self-Host. Callers must treat `null` as "no shared store". */
-export function getUpstashRedis(): null {
+export function getUpstashRedis(): SharedStoreClient | null {
   return null;
 }
 
@@ -74,11 +84,25 @@ export async function acquireLock(
   };
 }
 
+function pruneCounters(now: number): void {
+  if (counters.size <= MAX_KEYS) return;
+  for (const [key, entry] of counters) {
+    if (entry.resetAt <= now) counters.delete(key);
+  }
+  // Still over the cap (a flood of live keys): drop the oldest first.
+  while (counters.size > MAX_KEYS) {
+    const oldest = counters.keys().next().value;
+    if (oldest === undefined) break;
+    counters.delete(oldest);
+  }
+}
+
 export async function incrementRateLimit(
   key: string,
   windowSeconds: number
 ): Promise<number> {
   const now = Date.now();
+  pruneCounters(now);
   const entry = counters.get(key);
   if (!entry || entry.resetAt <= now) {
     counters.set(key, { count: 1, resetAt: now + windowSeconds * 1_000 });

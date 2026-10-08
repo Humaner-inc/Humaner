@@ -7,8 +7,7 @@ import {
   agentHistoryRoute,
   agentKnowledgeRoute,
   agentPersonaRoute,
-  agentRunbooksRoute,
-  integrationChannelRoute
+  agentRunbooksRoute
 } from '@/constants/routes';
 
 import { createPageMetadata } from './create-page-metadata';
@@ -52,11 +51,4 @@ export function createAgentTabMetadata(
   } as const;
 
   return createPageMetadata(pathByTab[tab], title);
-}
-
-export function createIntegrationChannelMetadata(
-  channelId: string,
-  title: string
-): Metadata {
-  return createPageMetadata(integrationChannelRoute(channelId), title);
 }

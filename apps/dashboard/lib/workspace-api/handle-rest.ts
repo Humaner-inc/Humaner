@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { workspaceToolAllowedOnDeployment } from '@/lib/oss-surface';
+import { rateLimitedHeaders } from '@/lib/security/api-rate-limit';
 import { authorizeWorkspaceRequest } from '@/lib/workspace-api/authorize';
 import { executeWorkspaceTool } from '@/lib/workspace-api/execute-tools';
 
@@ -21,11 +22,18 @@ function corsHeaders(allowOrigin: string | null): Record<string, string> {
 function jsonError(
   status: number,
   message: string,
-  allowOrigin: string | null
+  allowOrigin: string | null,
+  retryAfterSeconds?: number
 ): NextResponse {
   return NextResponse.json(
     { error: message },
-    { status, headers: corsHeaders(allowOrigin) }
+    {
+      status,
+      headers: {
+        ...corsHeaders(allowOrigin),
+        ...(retryAfterSeconds ? rateLimitedHeaders(retryAfterSeconds) : {})
+      }
+    }
   );
 }
 
@@ -55,7 +63,12 @@ export async function handleWorkspaceRest(
 
   const auth = await authorizeWorkspaceRequest({ request, tool });
   if (!auth.ok) {
-    return jsonError(auth.status, auth.message, auth.allowOrigin);
+    return jsonError(
+      auth.status,
+      auth.message,
+      auth.allowOrigin,
+      auth.retryAfterSeconds
+    );
   }
 
   const result = await executeWorkspaceTool(tool, body, auth.context);

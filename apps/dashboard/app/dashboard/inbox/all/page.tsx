@@ -53,19 +53,15 @@ async function InboxAllPageContent({
 
   let waveTagId: string | null = tagParam ?? null;
   if (!waveTagId && waveParam && outboundOnly) {
-    const { prisma } = await import('@/lib/db/prisma');
+    const { getOutboundWaveTagId } = await import('@/lib/outbound/attribution');
     const { dedupedAuth } = await import('@/lib/auth');
     const { checkSession } = await import('@/lib/auth/session');
     const session = await dedupedAuth();
     if (checkSession(session) && session.user.organizationId) {
-      const wave = await prisma.outboundWave.findFirst({
-        where: {
-          id: waveParam,
-          organizationId: session.user.organizationId
-        },
-        select: { mailTagId: true }
+      waveTagId = await getOutboundWaveTagId({
+        organizationId: session.user.organizationId,
+        waveId: waveParam
       });
-      waveTagId = wave?.mailTagId ?? null;
     }
   }
 
