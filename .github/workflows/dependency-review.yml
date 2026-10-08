@@ -9,6 +9,9 @@ permissions:
 jobs:
   dependency-review:
     name: Review dependency changes
+    # Needs the dependency graph plus GitHub Advanced Security on private
+    # repositories. Free on public ones, so it only runs there.
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

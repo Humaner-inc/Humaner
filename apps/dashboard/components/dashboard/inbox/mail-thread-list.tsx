@@ -942,7 +942,6 @@ export function MailThreadList({
           ) : null
         }
         rows={threadRows}
-        swipeEnabled={!selectionActive}
       />
     </div>
   ) : (
@@ -960,7 +959,6 @@ export function MailThreadList({
         ) : null
       }
       rows={threadRows}
-      swipeEnabled={!selectionActive}
     />
   );
 
@@ -1357,14 +1355,12 @@ function MailThreadSwipeList({
   label,
   className,
   selectBar,
-  rows,
-  swipeEnabled
+  rows
 }: {
   label: string;
   className?: string;
   selectBar: React.ReactNode;
   rows: React.ReactNode[];
-  swipeEnabled: boolean;
 }): React.JSX.Element {
   if (rows.length === 0) {
     return (

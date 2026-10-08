@@ -89,14 +89,16 @@ Questions → [docs.humaner.io](https://docs.humaner.io) (hosted, not in this re
 
 ## Self-Host vs Cloud
 
-|              | Self-Host                             | Cloud (`app.humaner.io`)             |
-| ------------ | ------------------------------------- | ------------------------------------ |
-| Mailbox      | IMAP + idle worker                    | IMAP idle (Railway) + Gmail Pub/Sub  |
-| Agent        | Yours, over MCP / API keys            | Companion                            |
-| Calendar     | In-app                                | In-app + Google / Outlook / Calendly |
-| Team         | Extra workspaces · Assigned           | Team dock, invites, Connect          |
-| Not included | Companion, Desk, invoices, Hybrid RAG | —                                    |
-| Billing      | None                                  | Polar                                |
+|              | Self-Host                             | Cloud (`app.humaner.io`)                 |
+| ------------ | ------------------------------------- | ---------------------------------------- |
+| Mailbox      | IMAP + idle worker                    | IMAP idle (Railway) + Gmail Pub/Sub      |
+| Agent        | Yours, over MCP / API keys            | Companion                                |
+| Calendar     | In-app                                | In-app + Google / Outlook / Calendly     |
+| Team         | Extra workspaces · Assigned           | Team dock, invites, Connect              |
+| Files        | —                                     | Automatic generation (quotes, invoices…) |
+| Contacts     | —                                     | Memory / Retrieval                       |
+| Not included | Companion, Desk, invoices, Hybrid RAG | —                                        |
+| Billing      | None                                  | Polar                                    |
 
 Details: [`SELFHOST.md`](./SELFHOST.md)
 

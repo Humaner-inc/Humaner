@@ -8,7 +8,7 @@ import type {
   ReactNode,
   RefObject
 } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useCharHighlights } from './use-char-highlights';
 
@@ -22,11 +22,9 @@ export function cn(
 
 export function HighlightedValueMirror({
   value,
-  mirrorClassName,
   highlightedIndices
 }: {
   value: string;
-  mirrorClassName?: string;
   highlightedIndices: Set<number>;
 }): React.JSX.Element {
   return (
@@ -99,7 +97,7 @@ export function useHighlightedFieldSelection<T extends HighlightedFieldElement>(
 } {
   const [isSelecting, setIsSelecting] = useState(false);
 
-  const updateSelection = (element: T | null | undefined): void => {
+  const updateSelection = useCallback((element: T | null | undefined): void => {
     if (!element) {
       setIsSelecting(false);
       return;
@@ -107,7 +105,7 @@ export function useHighlightedFieldSelection<T extends HighlightedFieldElement>(
     const start = element.selectionStart;
     const end = element.selectionEnd;
     setIsSelecting(start !== null && end !== null && start !== end);
-  };
+  }, []);
 
   // `select` alone misses drag-selection frames; keep mirror/input in sync.
   useEffect(() => {
@@ -123,7 +121,7 @@ export function useHighlightedFieldSelection<T extends HighlightedFieldElement>(
     return () => {
       document.removeEventListener('selectionchange', syncFromDocument);
     };
-  }, [elementRef]);
+  }, [elementRef, updateSelection]);
 
   return {
     isSelecting,

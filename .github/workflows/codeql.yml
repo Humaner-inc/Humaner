@@ -19,6 +19,10 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (JavaScript / TypeScript)
+    # Uploading results to a private repository needs GitHub Code Security.
+    # It is free on public repositories, so this runs on the public Self-Host
+    # repo (this file is projected there) and is skipped in the private one.
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     permissions:
       # actions: read lets CodeQL look up its own workflow run (required for

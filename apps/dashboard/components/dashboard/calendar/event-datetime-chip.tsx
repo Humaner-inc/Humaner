@@ -62,7 +62,8 @@ export function EventDateTimeChip({
   const minutes = nearestMinute(date?.getMinutes() ?? 0);
 
   React.useEffect(() => {
-    if (date) setVisibleMonth(date);
+    const parsed = parseDraftDate(value);
+    if (parsed) setVisibleMonth(parsed);
   }, [value]);
 
   const write = (next: Date): void => {

@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start --port 3001",
     "analyze": "BUNDLE_ANALYZE=both next build",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint --fix .",
     "prettier:fix": "prettier --write .",
     "eslint:fix": "npx eslint --fix .",
