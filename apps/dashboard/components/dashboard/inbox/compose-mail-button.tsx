@@ -42,7 +42,7 @@ export function ComposeMailButton({
       type="button"
       size="sm"
       className={cn(
-        'h-8 gap-1.5 px-3 font-mono text-[11px] normal-case tracking-normal',
+        'h-8 shrink-0 gap-1.5 whitespace-nowrap px-3 font-mono text-[11px] normal-case tracking-normal',
         className
       )}
       disabled={inboxes.length === 0}

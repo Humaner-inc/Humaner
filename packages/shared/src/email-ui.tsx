@@ -206,11 +206,21 @@ export function EmailText({
 
 export function EmailMuted({
   children,
+  className,
 }: {
   children: React.ReactNode;
   center?: boolean;
+  className?: string;
 }): React.JSX.Element {
-  return <Text className={EMAIL_MUTED_CLASS}>{children}</Text>;
+  return (
+    <Text
+      className={
+        className ? `${EMAIL_MUTED_CLASS} ${className}` : EMAIL_MUTED_CLASS
+      }
+    >
+      {children}
+    </Text>
+  );
 }
 
 export function EmailDivider(): React.JSX.Element {

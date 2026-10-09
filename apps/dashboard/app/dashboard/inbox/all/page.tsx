@@ -36,6 +36,7 @@ async function InboxAllPageContent({
     thread?: string;
     outbound?: string;
     wave?: string;
+    q?: string;
   }>;
 }): Promise<React.JSX.Element> {
   const {
@@ -45,7 +46,8 @@ async function InboxAllPageContent({
     tag: tagParam,
     compose: composeParam,
     outbound: outboundParam,
-    wave: waveParam
+    wave: waveParam,
+    q: searchParam
   } = await searchParams;
   const activeFilter = parseFilter(filterParam);
   const autoCompose = composeParam === '1' || composeParam === 'true';
@@ -65,7 +67,9 @@ async function InboxAllPageContent({
     }
   }
 
+  const search = searchParam?.trim() || null;
   const threadFilters = {
+    search,
     aliasId: mailboxParam ? null : (aliasParam ?? null),
     tagId: waveTagId,
     outboundOnly: outboundOnly && !waveTagId,
@@ -136,6 +140,7 @@ async function InboxAllPageContent({
       activeFilter={activeFilter}
       activeTagId={activeTagId}
       autoCompose={autoCompose}
+      emptyLabel={search ? `No mail matches “${search}”` : undefined}
     />
   );
 }

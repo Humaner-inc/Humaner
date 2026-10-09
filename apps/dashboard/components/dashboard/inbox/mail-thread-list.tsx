@@ -9,6 +9,7 @@ import {
   Trash2Icon,
   UserPlus2Icon
 } from '@humaner/shared/icons';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatDistanceToNow } from 'date-fns';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -82,6 +83,8 @@ import { cn, getInitials } from '@/lib/utils';
 const INBOX_BULK_DELETE_BUTTON_CLASS =
   'h-8 font-mono text-[10px] hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive';
 const ROW_SELECT_LONG_PRESS_MS = 450;
+/** Matches the 3-line row (py-3 + 13/12/11px text); measured per row after mount. */
+const ROW_ESTIMATE_PX = 84;
 
 function senderDomain(email: string | null): string | null {
   if (!email) return null;
@@ -165,6 +168,7 @@ export function MailThreadList({
   folderView = 'inbox',
   selectionHeader,
   listChrome,
+  emptyLabel,
   variant = 'card'
 }: {
   threads: MailThreadListItem[];
@@ -175,6 +179,8 @@ export function MailThreadList({
   selectionHeader?: (selection: MailListSelectionApi) => React.ReactNode;
   /** Extra chrome above the thread rows (title, filters) — desk triage sidebar. */
   listChrome?: React.ReactNode;
+  /** Shown when the list has no rows (search misses, empty folders). */
+  emptyLabel?: string;
   /** `desk` = Human Desk full-bleed list/detail split. */
   variant?: 'card' | 'desk';
 }): React.JSX.Element {
@@ -820,7 +826,9 @@ export function MailThreadList({
 
   const selectionActive = selectMode || selectedIds.size > 0;
 
-  const threadRows = displayThreads.map((thread, index) => {
+  const renderThreadRow = (index: number): React.ReactNode => {
+    const thread = displayThreads[index];
+    if (!thread) return null;
     return (
       <MailThreadRow
         key={thread.id}
@@ -912,7 +920,9 @@ export function MailThreadList({
         inTrash={inTrash}
       />
     );
-  });
+  };
+  const threadRowKey = (index: number): string =>
+    displayThreads[index]?.id ?? String(index);
 
   const listPanel = isDesk ? (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -941,7 +951,10 @@ export function MailThreadList({
             />
           ) : null
         }
-        rows={threadRows}
+        rowCount={displayThreads.length}
+        rowKey={threadRowKey}
+        renderRow={renderThreadRow}
+        emptyLabel={emptyLabel}
       />
     </div>
   ) : (
@@ -958,7 +971,10 @@ export function MailThreadList({
           />
         ) : null
       }
-      rows={threadRows}
+      rowCount={displayThreads.length}
+      rowKey={threadRowKey}
+      renderRow={renderThreadRow}
+      emptyLabel={emptyLabel}
     />
   );
 
@@ -1355,14 +1371,31 @@ function MailThreadSwipeList({
   label,
   className,
   selectBar,
-  rows
+  rowCount,
+  rowKey,
+  renderRow,
+  emptyLabel
 }: {
   label: string;
   className?: string;
   selectBar: React.ReactNode;
-  rows: React.ReactNode[];
+  rowCount: number;
+  rowKey: (index: number) => string;
+  renderRow: (index: number) => React.ReactNode;
+  emptyLabel?: string;
 }): React.JSX.Element {
-  if (rows.length === 0) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  // Only the rows in (and just around) the viewport are mounted, so a
+  // 200-thread list costs the same to render, select and re-render as 20.
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_ESTIMATE_PX,
+    getItemKey: rowKey,
+    overscan: 8
+  });
+
+  if (rowCount === 0) {
     return (
       <div
         className={cn(
@@ -1372,7 +1405,7 @@ function MailThreadSwipeList({
       >
         {selectBar}
         <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-          Nothing in this inbox yet.
+          {emptyLabel ?? 'Nothing in this inbox yet.'}
         </div>
       </div>
     );
@@ -1383,13 +1416,31 @@ function MailThreadSwipeList({
       className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}
     >
       {selectBar}
-      <ul
+      <div
+        ref={scrollRef}
         role="list"
         aria-label={label}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        className="min-h-0 flex-1 overflow-y-auto"
       >
-        {rows}
-      </ul>
+        <div
+          role="presentation"
+          className="relative w-full"
+          style={{ height: `${virtualizer.getTotalSize()}px` }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => (
+            <div
+              key={virtualRow.key}
+              role="presentation"
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              className="absolute left-0 top-0 w-full"
+              style={{ transform: `translateY(${virtualRow.start}px)` }}
+            >
+              {renderRow(virtualRow.index)}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1449,7 +1500,7 @@ function MailThreadRow({
   swipeEnabled?: boolean;
   inTrash?: boolean;
 }): React.JSX.Element {
-  const rowRef = React.useRef<HTMLLIElement>(null);
+  const rowRef = React.useRef<HTMLDivElement>(null);
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const domain = senderDomain(thread.fromAddress);
@@ -1498,7 +1549,7 @@ function MailThreadRow({
   }, [inTrash, onSwipeDelete]);
 
   const rowClassName = cn(
-    'message-item group relative border-b border-border last:border-b-0 [content-visibility:auto] [contain-intrinsic-size:auto_5.25rem]',
+    'message-item group relative border-b border-border',
     thread.isPinned
       ? previewActive || selected
         ? 'bg-[color-mix(in_srgb,#f5a524_22%,transparent)]'
@@ -1806,8 +1857,9 @@ function MailThreadRow({
   const swipeEnabledForRow = swipeEnabled && Boolean(onSwipeDelete);
 
   return (
-    <li
+    <div
       ref={rowRef}
+      role="listitem"
       className={rowClassName}
     >
       <MailThreadRowSwipe
@@ -1820,6 +1872,6 @@ function MailThreadRow({
       >
         {rowInner}
       </MailThreadRowSwipe>
-    </li>
+    </div>
   );
 }

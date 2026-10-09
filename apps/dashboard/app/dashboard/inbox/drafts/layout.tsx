@@ -1,16 +1,8 @@
 import * as React from 'react';
-import type { Metadata } from 'next';
 
 import { SectionPage } from '@/components/ui/section-shell';
-import { Routes } from '@/constants/routes';
-import { createDashboardPageMetadata } from '@/lib/metadata/dashboard-metadata';
 
-export const metadata: Metadata = createDashboardPageMetadata(
-  Routes.InboxArchive
-);
-
-/** Full-bleed, same shell as All. */
-export default function InboxArchiveLayout({
+export default function InboxDraftsLayout({
   children
 }: React.PropsWithChildren): React.JSX.Element {
   return (

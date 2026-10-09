@@ -7,9 +7,13 @@ import { useDashboardSection } from '@/components/dashboard/dashboard-section-co
 import { DASHBOARD_SECTION_ICONS } from '@/components/dashboard/dashboard-section-icons';
 import { cn } from '@/lib/utils';
 
-/** Same size and radius in every state, so hover never reflows the type. */
+/**
+ * Same size and radius in every state, so hover never reflows the type.
+ * Height and radius match the size-8 / rounded-sm icon buttons on the right of
+ * the top nav; min-w-8 keeps icon-only tabs the same footprint as those.
+ */
 const tabShapeClassName =
-  'h-8 gap-0 rounded-md px-2 py-0 font-display text-[13px] font-bold leading-none tracking-tight';
+  'h-8 min-w-8 justify-center gap-0 rounded-sm px-2 py-0 font-display text-xs font-semibold leading-none tracking-tight';
 
 const tabMotionClassName =
   'transition-[background-color,color,box-shadow] duration-[var(--resize-dur)] ease-[var(--resize-ease)] motion-reduce:transition-none';
@@ -81,7 +85,7 @@ export function DashboardSectionTabs({
           )}
         >
           <span className="overflow-hidden">
-            <span className="block whitespace-nowrap pl-2">
+            <span className="block whitespace-nowrap pl-1.5">
               {section.label}
             </span>
           </span>

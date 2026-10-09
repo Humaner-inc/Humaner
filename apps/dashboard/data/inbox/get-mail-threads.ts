@@ -366,6 +366,8 @@ export async function getMailThreads(options?: {
   tagId?: string | null;
   /** Threads tagged with any outbound wave (`wave:` prefix) or a specific wave tag. */
   outboundOnly?: boolean;
+  /** Case-insensitive match on subject or sender address. */
+  search?: string | null;
 }): Promise<MailThreadListItem[]> {
   const session = await requireInboxReadSession();
   if (!session) return [];
@@ -396,9 +398,28 @@ export async function getMailThreads(options?: {
     return [];
   }
 
+  const search = options?.search?.trim().slice(0, 120) ?? '';
+
   const threads = await prisma.mailThread.findMany({
     where: {
       organizationId,
+      ...(search
+        ? {
+            OR: [
+              { subject: { contains: search, mode: 'insensitive' as const } },
+              {
+                messages: {
+                  some: {
+                    fromAddress: {
+                      contains: search,
+                      mode: 'insensitive' as const
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        : {}),
       ...(assignedToCurrentUser
         ? {
             assigneeId: session.user.id,

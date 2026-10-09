@@ -12,9 +12,9 @@ export const metadata: Metadata = createDashboardPageMetadata(
 export default async function InboxDraftsPage({
   searchParams
 }: {
-  searchParams: Promise<{ mailbox?: string }>;
+  searchParams: Promise<{ mailbox?: string; q?: string }>;
 }): Promise<React.JSX.Element> {
-  const { mailbox } = await searchParams;
+  const { mailbox, q } = await searchParams;
   return (
     <InboxMailFolderScreen
       folder="drafts"
@@ -22,6 +22,7 @@ export default async function InboxDraftsPage({
       emptyTitle="No drafts"
       emptyDescription="Compose from an alias. Unsent mail will land here."
       mailbox={mailbox}
+      query={q}
     />
   );
 }

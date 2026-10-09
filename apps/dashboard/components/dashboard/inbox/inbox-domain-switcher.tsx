@@ -10,7 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import type { MailInboxOption } from '@/data/inbox/get-mail-threads';
@@ -76,45 +75,55 @@ export function InboxDomainSwitcher({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-80"
+        className="w-80 p-1"
       >
-        {mailboxes.map((mailbox, index) => {
+        <p className="px-2.5 pb-1 pt-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Mailboxes
+        </p>
+        {mailboxes.map((mailbox) => {
           const selected =
             (activeMailboxId ?? mailboxes[0]?.connectionId) ===
             mailbox.connectionId;
           return (
-            <React.Fragment key={mailbox.connectionId}>
-              {index > 0 ? <DropdownMenuSeparator /> : null}
-              <DropdownMenuItem
-                asChild
-                className={cn(
-                  'cursor-pointer hover:bg-background focus:bg-background focus:text-popover-foreground data-[highlighted]:bg-background data-[highlighted]:text-popover-foreground',
-                  selected && 'font-medium'
-                )}
+            <DropdownMenuItem
+              key={mailbox.connectionId}
+              asChild
+              className={cn(
+                'cursor-pointer rounded-lg px-2.5 py-2 focus:bg-foreground/[0.06] focus:text-popover-foreground data-[highlighted]:bg-foreground/[0.06] data-[highlighted]:text-popover-foreground',
+                selected && 'bg-foreground/[0.04]'
+              )}
+            >
+              <Link
+                href={hrefFor(mailbox.connectionId)}
+                aria-current={selected ? 'true' : undefined}
+                className="flex w-full items-center gap-3"
               >
-                <Link
-                  href={hrefFor(mailbox.connectionId)}
-                  className="flex w-full items-start gap-2"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{mailbox.email}</span>
-                    <span className="block truncate text-[10px] font-normal text-muted-foreground">
-                      {mailbox.providerName} · inbox
-                    </span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={cn(
+                      'block truncate font-mono text-xs',
+                      selected ? 'text-foreground' : 'text-foreground/85'
+                    )}
+                  >
+                    {mailbox.email}
                   </span>
-                  <span className="ml-auto flex shrink-0 items-center gap-2 pt-0.5">
-                    {mailbox.unreadCount > 0 ? (
-                      <span className="tabular-nums text-xs text-muted-foreground">
-                        {formatUnreadCount(mailbox.unreadCount)}
-                      </span>
-                    ) : null}
-                    {selected ? (
-                      <CheckIcon className="size-3.5 text-emerald-600" />
-                    ) : null}
+                  <span className="mt-0.5 block truncate text-[10px] font-normal text-muted-foreground">
+                    {mailbox.providerName}
                   </span>
-                </Link>
-              </DropdownMenuItem>
-            </React.Fragment>
+                </span>
+                {/* Fixed columns keep counts and check marks aligned across rows. */}
+                <span className="min-w-6 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground">
+                  {mailbox.unreadCount > 0
+                    ? formatUnreadCount(mailbox.unreadCount)
+                    : ''}
+                </span>
+                <span className="flex size-4 shrink-0 items-center justify-center">
+                  {selected ? (
+                    <CheckIcon className="size-3.5 text-emerald-600" />
+                  ) : null}
+                </span>
+              </Link>
+            </DropdownMenuItem>
           );
         })}
       </DropdownMenuContent>

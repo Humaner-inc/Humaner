@@ -2,6 +2,7 @@ import { HUMANER_LEGAL_CONTACT_EMAIL } from '@humaner/shared/company';
 import {
   EmailInlineLink,
   EmailLayout,
+  EmailMuted,
   EmailText
 } from '@humaner/shared/email-ui';
 
@@ -20,26 +21,26 @@ export const WelcomeEmail = (_data: WelcomeEmailData) => {
     >
       <EmailText>Hey it&apos;s Alexandre from {AppInfo.APP_NAME}.</EmailText>
       <EmailText>
-        I wanted to automate my emails while still being kind of personal and
-        here we're, reinventing mailing with you.
+        Have you too, ever felt your inbox wasn't made for your business ? Super
+        time consuming, hard to switch between inboxes, not connected enough,
+        and the list goes on.. Humaner fixes all of these, and way more to come.
       </EmailText>
       <EmailText>
-        Follow the onboarding and connect your mail provider(s). You can then
-        customize Companion's behavior, or use your own agent with our MCP
-        server.
+        Follow the onboarding, connect your mail provider(s) and automate things
+        right away with Companion or your own agent.
       </EmailText>
       <EmailText>
-        If you need anything just reach out to me at{' '}
+        If you need anything else just reach out to me at{' '}
         <EmailInlineLink href={`mailto:${HUMANER_LEGAL_CONTACT_EMAIL}`}>
           {HUMANER_LEGAL_CONTACT_EMAIL}
         </EmailInlineLink>
         .
       </EmailText>
       <EmailText>Until then, have a fast, and happy emailing.</EmailText>
-      <EmailText>
-        You were granted some credits to try everything Humaner has to offer,
-        enjoy!
-      </EmailText>
+      <EmailMuted className="italic">
+        btw: you were granted some credits to try everything Humaner has to
+        offer, enjoy!
+      </EmailMuted>
     </EmailLayout>
   );
 };

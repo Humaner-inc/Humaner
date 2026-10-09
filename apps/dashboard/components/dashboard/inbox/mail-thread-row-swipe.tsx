@@ -19,7 +19,7 @@ type MailThreadRowSwipeProps = {
   enabled: boolean;
   pinLabel: string;
   deleteLabel: string;
-  rowRef?: React.RefObject<HTMLLIElement | null>;
+  rowRef?: React.RefObject<HTMLElement | null>;
   onPin: () => void;
   onDelete: () => void;
   children: React.ReactNode;

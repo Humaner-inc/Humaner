@@ -5,9 +5,9 @@ import { InboxMailFolderScreen } from '@/components/dashboard/inbox/inbox-mail-f
 export default async function InboxSentPage({
   searchParams
 }: {
-  searchParams: Promise<{ mailbox?: string }>;
+  searchParams: Promise<{ mailbox?: string; q?: string }>;
 }): Promise<React.JSX.Element> {
-  const { mailbox } = await searchParams;
+  const { mailbox, q } = await searchParams;
   return (
     <InboxMailFolderScreen
       folder="sent"
@@ -15,6 +15,7 @@ export default async function InboxSentPage({
       emptyTitle="No sent mail"
       emptyDescription="Messages you send will appear here."
       mailbox={mailbox}
+      query={q}
     />
   );
 }

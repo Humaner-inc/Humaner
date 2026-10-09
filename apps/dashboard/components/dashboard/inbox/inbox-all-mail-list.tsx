@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 
-import { ComposeMailButton } from '@/components/dashboard/inbox/compose-mail-button';
-import { InboxDomainSwitcher } from '@/components/dashboard/inbox/inbox-domain-switcher';
+import { InboxListChrome } from '@/components/dashboard/inbox/inbox-list-chrome';
 import {
   InboxListHeader,
   type InboxListFilter
@@ -15,7 +14,6 @@ import type {
   MailTagItem,
   MailThreadListItem
 } from '@/data/inbox/get-mail-threads';
-import { primaryAliasForMailbox } from '@/lib/inbox/mail-inbox-groups';
 
 export function InboxAllMailList({
   threads,
@@ -25,7 +23,8 @@ export function InboxAllMailList({
   activeMailboxId,
   activeFilter,
   activeTagId,
-  autoCompose = false
+  autoCompose = false,
+  emptyLabel
 }: {
   threads: MailThreadListItem[];
   tags: MailTagItem[];
@@ -35,6 +34,7 @@ export function InboxAllMailList({
   activeFilter: InboxListFilter;
   activeTagId: string | null;
   autoCompose?: boolean;
+  emptyLabel?: string;
 }): React.JSX.Element {
   return (
     <MailThreadList
@@ -42,18 +42,13 @@ export function InboxAllMailList({
       threads={threads}
       tags={tags}
       members={members}
+      emptyLabel={emptyLabel}
       listChrome={
-        <div className="flex items-center justify-between gap-2 px-3 py-3">
-          <InboxDomainSwitcher
-            inboxes={inboxes}
-            activeMailboxId={activeMailboxId}
-          />
-          <ComposeMailButton
-            inboxes={inboxes}
-            defaultAliasId={primaryAliasForMailbox(inboxes, activeMailboxId)}
-            autoOpen={autoCompose}
-          />
-        </div>
+        <InboxListChrome
+          inboxes={inboxes}
+          activeMailboxId={activeMailboxId}
+          autoCompose={autoCompose}
+        />
       }
       selectionHeader={(selection) => (
         <InboxListHeader

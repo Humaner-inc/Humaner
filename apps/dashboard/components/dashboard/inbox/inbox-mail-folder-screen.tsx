@@ -4,28 +4,44 @@ import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
+import { InboxListChrome } from '@/components/dashboard/inbox/inbox-list-chrome';
+import { InboxListHeader } from '@/components/dashboard/inbox/inbox-list-header';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
 import { SpamFolderToolbar } from '@/components/dashboard/inbox/spam-folder-toolbar';
 import { TrashFolderToolbar } from '@/components/dashboard/inbox/trash-folder-toolbar';
 import { toAssigneePerson } from '@/components/ui/assignees';
 import { getInboxOverview } from '@/data/inbox/get-inbox-overview';
-import { getMailTags, getMailThreads } from '@/data/inbox/get-mail-threads';
+import {
+  getMailInboxes,
+  getMailTags,
+  getMailThreads
+} from '@/data/inbox/get-mail-threads';
 import { getOrganizationMembers } from '@/data/members/get-organization-members';
+import { groupMailInboxes } from '@/lib/inbox/mail-inbox-groups';
 import type { MailListFolder } from '@/lib/inbox/mail-thread-folder-shared';
+
+/** Folders that share the All inbox chrome: mailbox switcher, compose, search, select. */
+const UNIFIED_FOLDERS: ReadonlySet<MailListFolder> = new Set([
+  'drafts',
+  'sent',
+  'archive'
+]);
 
 export async function InboxMailFolderScreen({
   folder,
   title,
   emptyTitle,
   emptyDescription,
-  mailbox
+  mailbox,
+  query
 }: {
   folder: MailListFolder;
   title: string;
   emptyTitle: string;
   emptyDescription: string;
   mailbox?: string;
+  query?: string;
 }): Promise<React.JSX.Element> {
   const overview = await getInboxOverview();
 
@@ -41,6 +57,52 @@ export async function InboxMailFolderScreen({
     return (
       <div className="p-6 md:p-8">
         <InboxOptionalEmptyState />
+      </div>
+    );
+  }
+
+  if (UNIFIED_FOLDERS.has(folder)) {
+    const search = query?.trim() || null;
+    const inboxes = await getMailInboxes();
+    const mailboxes = groupMailInboxes(inboxes);
+    const activeMailboxId =
+      mailbox && mailboxes.some((item) => item.connectionId === mailbox)
+        ? mailbox
+        : (mailboxes[0]?.connectionId ?? null);
+    const [threads, tags, members] = await Promise.all([
+      getMailThreads({ folder, connectionId: activeMailboxId, search }),
+      getMailTags(),
+      getOrganizationMembers()
+    ]);
+
+    return (
+      <div className="flex h-full min-h-0 flex-1 flex-col">
+        <h1 className="sr-only">{title}</h1>
+        <PullToRefreshInbox className="min-h-0 flex-1">
+          <MailThreadList
+            variant="desk"
+            threads={threads}
+            tags={tags}
+            members={members.map(toAssigneePerson)}
+            folderView={folder}
+            emptyLabel={
+              search ? `No mail matches “${search}”` : emptyDescription
+            }
+            listChrome={
+              <InboxListChrome
+                inboxes={inboxes}
+                activeMailboxId={activeMailboxId}
+              />
+            }
+            selectionHeader={(selection) => (
+              <InboxListHeader
+                showFilters={false}
+                activeMailboxId={activeMailboxId}
+                selection={selection}
+              />
+            )}
+          />
+        </PullToRefreshInbox>
       </div>
     );
   }

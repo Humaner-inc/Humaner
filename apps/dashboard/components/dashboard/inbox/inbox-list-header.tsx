@@ -248,6 +248,7 @@ export function InboxListHeader({
   activeMailboxId = null,
   tags = [],
   selection,
+  showFilters = true,
   className
 }: {
   activeFilter?: InboxListFilter;
@@ -255,6 +256,8 @@ export function InboxListHeader({
   activeMailboxId?: string | null;
   tags?: MailTagItem[];
   selection?: MailListSelectionApi;
+  /** Status and tag chips only apply to the inbox list; other folders hide them. */
+  showFilters?: boolean;
   className?: string;
 }): React.JSX.Element {
   const router = useRouter();
@@ -571,7 +574,11 @@ export function InboxListHeader({
               transition={PANEL_TRANSITION}
               className="flex min-w-0 flex-1 items-center gap-1"
             >
-              <InboxFilterOverflow items={filterItems} />
+              {showFilters ? (
+                <InboxFilterOverflow items={filterItems} />
+              ) : (
+                <div className="min-w-0 flex-1" />
+              )}
 
               {selection ? (
                 <button
