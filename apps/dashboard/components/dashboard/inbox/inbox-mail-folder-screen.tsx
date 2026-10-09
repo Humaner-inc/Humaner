@@ -4,8 +4,7 @@ import {
   InboxOptionalEmptyState,
   InboxUpgradeEmptyState
 } from '@/components/dashboard/inbox/inbox-empty-state';
-import { InboxListChrome } from '@/components/dashboard/inbox/inbox-list-chrome';
-import { InboxListHeader } from '@/components/dashboard/inbox/inbox-list-header';
+import { InboxFolderMailList } from '@/components/dashboard/inbox/inbox-folder-mail-list';
 import { MailThreadList } from '@/components/dashboard/inbox/mail-thread-list';
 import { PullToRefreshInbox } from '@/components/dashboard/inbox/pull-to-refresh-inbox';
 import { SpamFolderToolbar } from '@/components/dashboard/inbox/spam-folder-toolbar';
@@ -79,28 +78,16 @@ export async function InboxMailFolderScreen({
       <div className="flex h-full min-h-0 flex-1 flex-col">
         <h1 className="sr-only">{title}</h1>
         <PullToRefreshInbox className="min-h-0 flex-1">
-          <MailThreadList
-            variant="desk"
+          <InboxFolderMailList
+            folder={folder}
             threads={threads}
             tags={tags}
             members={members.map(toAssigneePerson)}
-            folderView={folder}
+            inboxes={inboxes}
+            activeMailboxId={activeMailboxId}
             emptyLabel={
               search ? `No mail matches “${search}”` : emptyDescription
             }
-            listChrome={
-              <InboxListChrome
-                inboxes={inboxes}
-                activeMailboxId={activeMailboxId}
-              />
-            }
-            selectionHeader={(selection) => (
-              <InboxListHeader
-                showFilters={false}
-                activeMailboxId={activeMailboxId}
-                selection={selection}
-              />
-            )}
           />
         </PullToRefreshInbox>
       </div>

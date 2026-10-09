@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import { InboxMailFolderScreen } from '@/components/dashboard/inbox/inbox-mail-folder-screen';
+import { InboxPageLoader } from '@/components/dashboard/inbox/inbox-page-loader';
 
-export default async function InboxTrashPage({
+async function InboxTrashPageContent({
   searchParams
 }: {
   searchParams: Promise<{ mailbox?: string }>;
@@ -16,5 +17,17 @@ export default async function InboxTrashPage({
       emptyDescription="Deleted conversations will appear here until auto-empty or you empty the bin."
       mailbox={mailbox}
     />
+  );
+}
+
+export default function InboxTrashPage({
+  searchParams
+}: {
+  searchParams: Promise<{ mailbox?: string }>;
+}): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<InboxPageLoader />}>
+      <InboxTrashPageContent searchParams={searchParams} />
+    </React.Suspense>
   );
 }

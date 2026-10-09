@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import { InboxMailFolderScreen } from '@/components/dashboard/inbox/inbox-mail-folder-screen';
+import { InboxPageLoader } from '@/components/dashboard/inbox/inbox-page-loader';
 
-export default async function InboxArchivePage({
+async function InboxArchivePageContent({
   searchParams
 }: {
   searchParams: Promise<{ mailbox?: string; q?: string }>;
@@ -17,5 +18,17 @@ export default async function InboxArchivePage({
       mailbox={mailbox}
       query={q}
     />
+  );
+}
+
+export default function InboxArchivePage({
+  searchParams
+}: {
+  searchParams: Promise<{ mailbox?: string; q?: string }>;
+}): React.JSX.Element {
+  return (
+    <React.Suspense fallback={<InboxPageLoader />}>
+      <InboxArchivePageContent searchParams={searchParams} />
+    </React.Suspense>
   );
 }
