@@ -13,7 +13,7 @@ export function DashboardChromeFallback(): React.JSX.Element {
       data-dashboard-shell="pending"
     >
       <div className="flex h-12 shrink-0 items-center gap-1.5 px-2">
-        <div className="hidden h-8 w-[15rem] shrink-0 md:block" />
+        <div className="hidden h-8 w-[12rem] shrink-0 md:block" />
         <div className="hidden min-w-0 flex-1 gap-1.5 md:flex">
           {Array.from({ length: 5 }, (_, index) => (
             <div
@@ -26,7 +26,7 @@ export function DashboardChromeFallback(): React.JSX.Element {
       <div className="flex min-h-0 flex-1 gap-2 px-2 pb-2 max-md:p-0">
         <div
           className={cn(
-            'hidden w-[15rem] shrink-0 bg-sidebar md:block',
+            'hidden w-[12rem] shrink-0 bg-sidebar md:block',
             dashboardRadiusClassName
           )}
         />

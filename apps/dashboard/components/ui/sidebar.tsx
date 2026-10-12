@@ -32,7 +32,7 @@ const sidebarNavLabelClassName = 'font-mono uppercase tracking-wide';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = '15rem';
+const SIDEBAR_WIDTH = '12rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
 // One navbar button wide: with the shell's 8px gutter, rail icons share the
 // top bar's inset on every side.
