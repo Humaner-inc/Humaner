@@ -1,6 +1,7 @@
 import type * as React from 'react';
 import { DatedCalendarIcon } from '@humaner/shared/dated-calendar-icon';
 import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
+import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
 import { Stack } from '@phosphor-icons/react/dist/ssr/Stack';
 import { Tray } from '@phosphor-icons/react/dist/ssr/Tray';
 import { Warehouse } from '@phosphor-icons/react/dist/ssr/Warehouse';
@@ -22,5 +23,6 @@ export const DASHBOARD_SECTION_ICONS: Record<
   calendar: DatedCalendarIcon,
   inbox: Tray,
   workspace: Warehouse,
+  outbound: PaperPlaneTilt,
   utilities: Stack
 };

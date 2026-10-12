@@ -78,33 +78,96 @@ function parseMarkdownTable(text: string): ParsedContactRow[] {
   return rows;
 }
 
-function parseCsv(text: string): ParsedContactRow[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-  if (lines.length < 2 || !lines[0].includes(',')) return [];
+/** RFC 4180-style splitter: quoted fields, escaped quotes, embedded newlines. */
+function splitCsvRecords(text: string, delimiter: string): string[][] {
+  const records: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let inQuotes = false;
 
-  const headers = lines[0]
-    .toLowerCase()
-    .split(',')
-    .map((h) => h.trim());
-  const emailIdx = headers.findIndex(
-    (h) => h === 'email' || h === 'e-mail' || h.includes('mail')
+  const endRow = () => {
+    row.push(field.trim());
+    field = '';
+    if (row.some((c) => c !== '')) records.push(row);
+    row = [];
+  };
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delimiter) {
+      row.push(field.trim());
+      field = '';
+    } else if (ch === '\n') {
+      endRow();
+    } else if (ch !== '\r') {
+      field += ch;
+    }
+  }
+  endRow();
+  return records;
+}
+
+function detectDelimiter(headerLine: string): string {
+  const count = (d: string) => headerLine.split(d).length - 1;
+  return [';', '\t'].reduce(
+    (best, d) => (count(d) > count(best) ? d : best),
+    ','
   );
+}
+
+function parseCsv(text: string): ParsedContactRow[] {
+  const delimiter = detectDelimiter(text.split(/\r?\n/, 1)[0] ?? '');
+  const records = splitCsvRecords(text, delimiter);
+  if (records.length < 2 || records[0].length < 2) return [];
+
+  const headers = records[0].map((h) => h.toLowerCase());
+  const idx = (names: string[]) => headers.findIndex((h) => names.includes(h));
+  let emailIdx = idx([
+    'email',
+    'e-mail',
+    'email_address',
+    'public_email',
+    'contact_email'
+  ]);
+  if (emailIdx < 0) {
+    emailIdx = headers.findIndex(
+      (h) => h.includes('mail') && !h.includes('source')
+    );
+  }
   if (emailIdx < 0) return [];
 
-  const idx = (names: string[]) => headers.findIndex((h) => names.includes(h));
-  const nameIdx = idx(['name', 'full_name', 'fullname']);
-  const companyIdx = idx(['company', 'organization', 'org']);
+  const nameIdx = idx(['name', 'full_name', 'fullname', 'contact_name']);
+  const companyIdx = idx([
+    'company',
+    'organization',
+    'org',
+    'store',
+    'store_name',
+    'brand'
+  ]);
   const roleIdx = idx(['role', 'title', 'job_title', 'position']);
   const industryIdx = idx(['industry', 'sector']);
 
   const rows: ParsedContactRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.trim());
+  const seen = new Set<string>();
+  for (let i = 1; i < records.length; i++) {
+    const cols = records[i];
     const email = cols[emailIdx]?.match(EMAIL_RE)?.[0]?.toLowerCase();
-    if (!email) continue;
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
     rows.push({
       email,
       name: nameIdx >= 0 ? cols[nameIdx] || undefined : undefined,

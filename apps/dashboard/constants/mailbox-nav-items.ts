@@ -199,7 +199,6 @@ export function isUtilitiesPath(pathname: string): boolean {
   if (pathname.startsWith(Routes.InboxProviders)) return true;
   if (pathname.startsWith(Routes.InboxConnectors)) return true;
   if (pathname.startsWith(Routes.Developers)) return true;
-  if (pathname.startsWith(Routes.Outbound)) return true;
   if (pathname.startsWith(Routes.Support)) return true;
   if (pathname.startsWith(Routes.Workflow)) return true;
   return false;

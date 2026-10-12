@@ -363,6 +363,32 @@ function WorkspaceSection({
   );
 }
 
+function OutboundSection(): React.JSX.Element {
+  const pathname = usePathname();
+  const active = pathname.startsWith(Routes.Outbound);
+
+  return (
+    <>
+      <SectionHeader id="outbound" />
+      <SectionGroup>
+        <SidebarNavLink
+          href={Routes.Outbound}
+          label="Waves"
+          active={active}
+          mainNavHighlight
+          leading={
+            <MailboxNavIcon
+              icon={PaperPlaneTilt}
+              active={active}
+              color={HUMANER_NAV_COLORS.info}
+            />
+          }
+        />
+      </SectionGroup>
+    </>
+  );
+}
+
 function UtilitiesSection({
   orgTier,
   connectors,
@@ -385,7 +411,6 @@ function UtilitiesSection({
   const previewDisabled = !canAccessCloudPreviewUtilities;
   const providersActive = getActiveMailboxWorkspace(pathname) === 'providers';
   const mcpActive = pathname.startsWith(Routes.Developers);
-  const outboundActive = pathname.startsWith(Routes.Outbound);
   const supportActive = pathname.startsWith(Routes.Support);
   const workflowActive = pathname.startsWith(Routes.Workflow);
   const showPreviewGroup = showCloudPreviewUtilities || connectors.length > 0;
@@ -424,20 +449,6 @@ function UtilitiesSection({
         <SectionGroup divided>
           {showCloudPreviewUtilities ? (
             <>
-              <SidebarNavLink
-                href={Routes.Outbound}
-                label="Outbound"
-                active={outboundActive}
-                disabled={previewDisabled}
-                mainNavHighlight
-                leading={
-                  <MailboxNavIcon
-                    icon={PaperPlaneTilt}
-                    active={outboundActive}
-                    color={HUMANER_NAV_COLORS.foreground}
-                  />
-                }
-              />
               <SidebarNavLink
                 href={Routes.Support}
                 label="Support"
@@ -523,6 +534,7 @@ export function NavSectionSidebar({
           canManageTeam={canManageTeam}
         />
       ) : null}
+      {activeSection === 'outbound' ? <OutboundSection /> : null}
       {activeSection === 'utilities' ? (
         <UtilitiesSection
           orgTier={orgTier}

@@ -4,7 +4,8 @@ import {
   isUtilitiesPath
 } from '@/constants/mailbox-nav-items';
 import { Routes } from '@/constants/routes';
-import { canAccessPage } from '@/lib/auth/workspace-access';
+import { canAccessPage, isPlatformAdmin } from '@/lib/auth/workspace-access';
+import { isOssDeployment } from '@/lib/deployment-mode';
 import {
   HUMANER_NAV_COLORS,
   type HumanerNavColor
@@ -16,6 +17,7 @@ export type DashboardSectionId =
   | 'inbox'
   | 'calendar'
   | 'workspace'
+  | 'outbound'
   | 'utilities';
 
 export type DashboardSection = {
@@ -52,6 +54,12 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     color: HUMANER_NAV_COLORS.yellow
   },
   {
+    id: 'outbound',
+    label: 'Outbound',
+    href: Routes.Outbound,
+    color: HUMANER_NAV_COLORS.info
+  },
+  {
     id: 'utilities',
     label: 'Utilities',
     href: Routes.InboxProviders,
@@ -73,6 +81,9 @@ export function canAccessDashboardSection(
       return canAccessPage(profile, 'inbox');
     case 'workspace':
       return canAccessPage(profile, 'tasks') || canAccessPage(profile, 'inbox');
+    // cloud preview — platform admins only
+    case 'outbound':
+      return !isOssDeployment() && isPlatformAdmin(profile);
   }
 }
 
@@ -104,6 +115,7 @@ export function getDashboardSectionForPath(
     return 'inbox';
   }
   if (getActiveWorkspaceSectionItem(pathname)) return 'workspace';
+  if (pathname.startsWith(Routes.Outbound)) return 'outbound';
   if (isUtilitiesPath(pathname)) return 'utilities';
   return null;
 }
