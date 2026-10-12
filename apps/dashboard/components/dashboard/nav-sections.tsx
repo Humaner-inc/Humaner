@@ -10,6 +10,7 @@ import { CalendarDots } from '@phosphor-icons/react/dist/ssr/CalendarDots';
 import { Checks } from '@phosphor-icons/react/dist/ssr/Checks';
 import { Columns } from '@phosphor-icons/react/dist/ssr/Columns';
 import { Envelope } from '@phosphor-icons/react/dist/ssr/Envelope';
+import { FileText } from '@phosphor-icons/react/dist/ssr/FileText';
 import { Gear } from '@phosphor-icons/react/dist/ssr/Gear';
 import { Globe } from '@phosphor-icons/react/dist/ssr/Globe';
 import { Headset } from '@phosphor-icons/react/dist/ssr/Headset';
@@ -17,6 +18,7 @@ import { NotePencil } from '@phosphor-icons/react/dist/ssr/NotePencil';
 import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr/PaperPlaneTilt';
 import { Plugs } from '@phosphor-icons/react/dist/ssr/Plugs';
 import { Prohibit } from '@phosphor-icons/react/dist/ssr/Prohibit';
+import { Shapes } from '@phosphor-icons/react/dist/ssr/Shapes';
 import { Tag } from '@phosphor-icons/react/dist/ssr/Tag';
 import { Trash } from '@phosphor-icons/react/dist/ssr/Trash';
 import { TreeStructure } from '@phosphor-icons/react/dist/ssr/TreeStructure';
@@ -365,25 +367,47 @@ function WorkspaceSection({
 
 function OutboundSection(): React.JSX.Element {
   const pathname = usePathname();
-  const active = pathname.startsWith(Routes.Outbound);
+  const onWaves = pathname.startsWith(Routes.OutboundWaves);
+  const onTemplates = pathname.startsWith(Routes.OutboundTemplates);
+  const onCanvas =
+    pathname.startsWith(Routes.Outbound) && !onWaves && !onTemplates;
+
+  const items = [
+    { href: Routes.Outbound, label: 'Canva', active: onCanvas, icon: Shapes },
+    {
+      href: Routes.OutboundWaves,
+      label: 'Wave',
+      active: onWaves,
+      icon: PaperPlaneTilt
+    },
+    {
+      href: Routes.OutboundTemplates,
+      label: 'Template',
+      active: onTemplates,
+      icon: FileText
+    }
+  ];
 
   return (
     <>
       <SectionHeader id="outbound" />
       <SectionGroup>
-        <SidebarNavLink
-          href={Routes.Outbound}
-          label="Waves"
-          active={active}
-          mainNavHighlight
-          leading={
-            <MailboxNavIcon
-              icon={PaperPlaneTilt}
-              active={active}
-              color={HUMANER_NAV_COLORS.info}
-            />
-          }
-        />
+        {items.map((item) => (
+          <SidebarNavLink
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            active={item.active}
+            mainNavHighlight
+            leading={
+              <MailboxNavIcon
+                icon={item.icon}
+                active={item.active}
+                color={HUMANER_NAV_COLORS.info}
+              />
+            }
+          />
+        ))}
       </SectionGroup>
     </>
   );
