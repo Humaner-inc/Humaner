@@ -369,8 +369,12 @@ function OutboundSection(): React.JSX.Element {
   const pathname = usePathname();
   const onWaves = pathname.startsWith(Routes.OutboundWaves);
   const onTemplates = pathname.startsWith(Routes.OutboundTemplates);
+  const onMailboxes = pathname.startsWith(Routes.OutboundMailboxes);
   const onCanvas =
-    pathname.startsWith(Routes.Outbound) && !onWaves && !onTemplates;
+    pathname.startsWith(Routes.Outbound) &&
+    !onWaves &&
+    !onTemplates &&
+    !onMailboxes;
 
   const items = [
     { href: Routes.Outbound, label: 'Canva', active: onCanvas, icon: Shapes },
@@ -385,6 +389,12 @@ function OutboundSection(): React.JSX.Element {
       label: 'Template',
       active: onTemplates,
       icon: FileText
+    },
+    {
+      href: Routes.OutboundMailboxes,
+      label: 'Mailbox',
+      active: onMailboxes,
+      icon: Envelope
     }
   ];
 

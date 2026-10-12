@@ -67,6 +67,7 @@ export enum Routes {
   Outbound = '/outbound',
   OutboundWaves = '/outbound/waves',
   OutboundTemplates = '/outbound/templates',
+  OutboundMailboxes = '/outbound/mailboxes',
   // email-only human desk under utilities
   Support = '/support',
   // workflow automation under utilities
