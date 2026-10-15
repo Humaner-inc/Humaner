@@ -1002,6 +1002,7 @@ model MessageEmbedding {
 enum HandoffTicketStatus {
   OPEN        @map("open")
   IN_PROGRESS @map("inProgress")
+  CHECKING    @map("checking")
   RESOLVED    @map("resolved")
   CLOSED      @map("closed")
 }
