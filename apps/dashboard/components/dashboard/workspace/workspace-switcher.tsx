@@ -210,7 +210,7 @@ export function WorkspaceSwitcher({
           side="top"
           sideOffset={8}
           className={cn(
-            'w-[--radix-dropdown-menu-trigger-width] min-w-56',
+            'w-[--radix-dropdown-menu-trigger-width] min-w-[--radix-dropdown-menu-trigger-width] max-w-[--radix-dropdown-menu-trigger-width]',
             dashboardRadiusClassName
           )}
         >

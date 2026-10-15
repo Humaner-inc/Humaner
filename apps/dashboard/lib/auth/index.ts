@@ -107,8 +107,15 @@ const TRANSIENT_DB_CODES = new Set(['P1001', 'P1008', 'P1017', 'P2024']);
 
 function readErrorCode(error: unknown, depth = 0): string | null {
   if (!error || typeof error !== 'object' || depth > 4) return null;
-  const record = error as { code?: unknown; cause?: unknown; err?: unknown };
+  const record = error as {
+    code?: unknown;
+    errorCode?: unknown;
+    cause?: unknown;
+    err?: unknown;
+  };
   if (typeof record.code === 'string') return record.code;
+  // PrismaClientInitializationError (unreachable DB) exposes `errorCode`.
+  if (typeof record.errorCode === 'string') return record.errorCode;
   return (
     readErrorCode(record.err, depth + 1) ??
     readErrorCode(record.cause, depth + 1)
@@ -118,7 +125,23 @@ function readErrorCode(error: unknown, depth = 0): string | null {
 /** Neon asleep or a pooled connection closed. Not an application bug. */
 function isTransientAuthDbError(error: unknown): boolean {
   const code = readErrorCode(error);
-  return code !== null && TRANSIENT_DB_CODES.has(code);
+  if (code !== null && TRANSIENT_DB_CODES.has(code)) return true;
+  return hasUnreachableDbMessage(error);
+}
+
+function hasUnreachableDbMessage(error: unknown, depth = 0): boolean {
+  if (!error || typeof error !== 'object' || depth > 4) return false;
+  const record = error as { message?: unknown; cause?: unknown; err?: unknown };
+  if (
+    typeof record.message === 'string' &&
+    record.message.includes("Can't reach database server")
+  ) {
+    return true;
+  }
+  return (
+    hasUnreachableDbMessage(record.err, depth + 1) ||
+    hasUnreachableDbMessage(record.cause, depth + 1)
+  );
 }
 
 // Session read as a private cache scope: Auth.js calls

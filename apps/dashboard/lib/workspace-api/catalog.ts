@@ -396,7 +396,7 @@ export const WORKSPACE_TOOLS: WorkspaceToolDefinition[] = [
       properties: {
         status: {
           type: 'string',
-          enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
+          enum: ['OPEN', 'IN_PROGRESS', 'CHECKING', 'RESOLVED', 'CLOSED']
         },
         limit: { type: 'integer', minimum: 1, maximum: 50 }
       }

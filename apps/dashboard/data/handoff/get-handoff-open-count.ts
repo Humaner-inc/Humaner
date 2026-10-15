@@ -30,14 +30,14 @@ export async function getHandoffOpenCounts(): Promise<HandoffOpenCounts> {
     prisma.handoffTicket.count({
       where: {
         organizationId,
-        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        status: { in: ['OPEN', 'IN_PROGRESS', 'CHECKING'] },
         routedTo: 'HUMAN'
       }
     }),
     prisma.handoffTicket.count({
       where: {
         organizationId,
-        status: { in: ['OPEN', 'IN_PROGRESS'] },
+        status: { in: ['OPEN', 'IN_PROGRESS', 'CHECKING'] },
         routedTo: 'AI'
       }
     })

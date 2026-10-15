@@ -12,6 +12,7 @@ export function WorkspacePageShell({
   leading,
   actions,
   toolbar,
+  fill = false,
   children,
   className
 }: {
@@ -21,6 +22,8 @@ export function WorkspacePageShell({
   actions?: React.ReactNode;
   /** Optional controls under the header row (filters, create form, etc.). */
   toolbar?: React.ReactNode;
+  /** Body becomes a flex column so a single child can fill the full height. */
+  fill?: boolean;
   children: React.ReactNode;
   className?: string;
 }): React.JSX.Element {
@@ -54,7 +57,14 @@ export function WorkspacePageShell({
           ) : null}
         </header>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-auto px-5 py-4">{children}</div>
+      <div
+        className={cn(
+          'min-h-0 flex-1 overflow-auto px-5 py-4',
+          fill && 'flex flex-col'
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

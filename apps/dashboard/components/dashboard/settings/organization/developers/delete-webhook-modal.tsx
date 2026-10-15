@@ -27,6 +27,7 @@ import { MediaQueries } from '@/constants/media-queries';
 import { useEnhancedModal } from '@/hooks/use-enhanced-modal';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { toastDeleted } from '@/lib/toast-deleted';
 import {
   deleteWebhookSchema,
   type DeleteWebhookSchema
@@ -59,7 +60,7 @@ export const DeleteWebhookModal = NiceModal.create<DeleteWebhookModalProps>(
       }
       const result = await deleteWebhook(values);
       if (!result?.serverError && !result?.validationErrors) {
-        toast.success('Webhook deleted');
+        toastDeleted('Webhook deleted');
         modal.handleClose();
       } else {
         toast.error("Couldn't delete webhook");

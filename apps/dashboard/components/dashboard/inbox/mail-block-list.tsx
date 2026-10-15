@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { BanIcon } from '@humaner/shared/icons';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 
@@ -16,6 +15,7 @@ import {
 } from '@/components/dashboard/inbox/inbox-settings-group-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SquircleStatusIcon } from '@/components/ui/squircle-status-icon';
 import type { BlockedSenderItem } from '@/data/inbox/get-blocked-senders';
 
 export function MailBlockList({
@@ -49,7 +49,14 @@ export function MailBlockList({
           );
         }
         setEmail('');
-        toast.success(next ? `Blocked ${next}` : 'Sender blocked');
+        toast.success(next ? `Blocked ${next}` : 'Sender blocked', {
+          icon: (
+            <SquircleStatusIcon
+              kind="blocked"
+              className="size-4"
+            />
+          )
+        });
       },
       onError: ({ error }) =>
         toast.error(error.serverError || 'Could not block sender')
@@ -79,9 +86,9 @@ export function MailBlockList({
       subtitleClassName="text-orange-700/70 dark:text-orange-300/70"
       headerClassName="border-orange-400/25 bg-orange-500/10 dark:bg-orange-500/10"
       headerIcon={
-        <BanIcon
-          className="size-5 shrink-0 text-orange-600 dark:text-orange-400"
-          aria-hidden
+        <SquircleStatusIcon
+          kind="blocked"
+          className="size-5"
         />
       }
     >

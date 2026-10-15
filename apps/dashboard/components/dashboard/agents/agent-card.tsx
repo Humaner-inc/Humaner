@@ -34,6 +34,7 @@ import type { AgentOverviewItem } from '@/data/agents/get-agents-overview';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { dashboardRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
 
@@ -227,7 +228,7 @@ export function AgentCard({
         toast.error("Couldn't delete agent");
         return;
       }
-      toast.success('Agent deleted');
+      toastDeleted('Agent deleted');
       setDeleteOpen(false);
       router.refresh();
     });

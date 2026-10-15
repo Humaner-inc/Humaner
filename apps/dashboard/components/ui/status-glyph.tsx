@@ -1,15 +1,33 @@
 import * as React from 'react';
-import { CheckIcon, XIcon } from '@humaner/shared/icons';
 
+import {
+  SquircleStatusIcon,
+  type SquircleStatusKind
+} from '@/components/ui/squircle-status-icon';
 import { cn } from '@/lib/utils';
 
 export type StatusGlyphKind =
   | 'open'
   | 'unopened'
   | 'progress'
+  | 'checking'
+  | 'blocked'
+  | 'cancelled'
   | 'resolved'
   | 'closed'
   | 'snoozed';
+
+const GLYPH_TO_SQUIRCLE: Record<StatusGlyphKind, SquircleStatusKind> = {
+  open: 'open',
+  unopened: 'dashed',
+  progress: 'progress',
+  checking: 'checking',
+  resolved: 'done',
+  closed: 'idle',
+  snoozed: 'dashed',
+  blocked: 'blocked',
+  cancelled: 'cancelled'
+};
 
 export function StatusGlyph({
   kind,
@@ -20,93 +38,15 @@ export function StatusGlyph({
   className?: string;
   color?: string;
 }): React.JSX.Element {
-  const tone = color ? { color } : undefined;
-
-  if (kind === 'unopened') {
-    return (
-      <span
-        className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
-          className
-        )}
-        style={tone}
-        aria-hidden
-      >
-        <span className="size-2 rounded-full bg-current" />
-      </span>
-    );
-  }
-
-  if (kind === 'open') {
-    return (
-      <span
-        className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-info',
-          className
-        )}
-        style={tone}
-        aria-hidden
-      >
-        <span className="size-2 rounded-full border-[1.5px] border-current" />
-      </span>
-    );
-  }
-
-  if (kind === 'progress') {
-    return (
-      <span
-        className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-warning',
-          className
-        )}
-        style={tone}
-        aria-hidden
-      >
-        <span className="h-[2px] w-2.5 shrink-0 rounded-full bg-current" />
-      </span>
-    );
-  }
-
-  if (kind === 'snoozed') {
-    return (
-      <span
-        className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground',
-          className
-        )}
-        style={tone}
-        aria-hidden
-      >
-        <span className="size-2 rounded-full border border-dashed border-current" />
-      </span>
-    );
-  }
-
-  if (kind === 'closed') {
-    return (
-      <span
-        className={cn(
-          'inline-flex size-3.5 shrink-0 items-center justify-center text-muted-foreground',
-          className
-        )}
-        style={tone}
-        aria-hidden
-      >
-        <XIcon className="size-3.5" />
-      </span>
-    );
-  }
-
   return (
     <span
-      className={cn(
-        'inline-flex size-3.5 shrink-0 items-center justify-center text-success',
-        className
-      )}
-      style={tone}
-      aria-hidden
+      className={cn('inline-flex shrink-0', className)}
+      style={color ? { color } : undefined}
     >
-      <CheckIcon className="size-3.5" />
+      <SquircleStatusIcon
+        kind={GLYPH_TO_SQUIRCLE[kind]}
+        className={color ? 'text-current' : undefined}
+      />
     </span>
   );
 }
@@ -131,7 +71,7 @@ export function StatusGlyphMetricLabel({
 export function mailStatusToGlyph(status: string): StatusGlyphKind {
   switch (status.toUpperCase()) {
     case 'PENDING':
-      return 'progress';
+      return 'checking';
     case 'RESOLVED':
       return 'resolved';
     case 'CLOSED':

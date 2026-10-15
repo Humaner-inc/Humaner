@@ -19,6 +19,7 @@ import { MAX_IMAGE_SIZE } from '@/constants/limits';
 import { resolveAgentAvatarSrc } from '@/lib/agent-avatar';
 import { dashboardPictureRadiusClassName } from '@/lib/dashboard/surface-styles';
 import { isOssDeployment } from '@/lib/deployment-mode';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { toSameOriginImageUrl } from '@/lib/urls/to-same-origin-image-url';
 import { cn } from '@/lib/utils';
 import { FileUploadAction } from '@/types/file-upload-action';
@@ -130,7 +131,7 @@ export function AgentAvatarUpload({
 
     setCurrentImage(null);
     onImageChange?.(null);
-    toast.success('Profile picture removed');
+    toastDeleted('Profile picture removed');
   };
 
   const avatarSize =

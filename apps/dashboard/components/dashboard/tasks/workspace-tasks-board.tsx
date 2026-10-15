@@ -42,6 +42,7 @@ import type {
 } from '@/data/handoff/get-handoff-tickets';
 import { formatTicketRef } from '@/lib/desk/ticket-ref';
 import { formatDueLabel, isDueOverdue } from '@/lib/tasks/due-date';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn } from '@/lib/utils';
 import type { WorkHoursDto } from '@/types/dtos/work-hours-dto';
 import { HandoffTicketStatus } from '@/types/handoff-ticket';
@@ -58,6 +59,12 @@ const COLUMNS = [
     label: 'In progress',
     status: HandoffTicketStatus.IN_PROGRESS,
     glyph: 'progress' as const
+  },
+  {
+    id: 'CHECKING',
+    label: 'Checking',
+    status: HandoffTicketStatus.CHECKING,
+    glyph: 'checking' as const
   },
   {
     id: 'RESOLVED',
@@ -166,7 +173,10 @@ export function WorkspaceTasksBoard({
   const { execute: deleteTask, isExecuting: isDeleting } = useAction(
     deleteWorkspaceTask,
     {
-      onSuccess: () => router.refresh(),
+      onSuccess: () => {
+        toastDeleted('Task deleted');
+        router.refresh();
+      },
       onError: ({ error }) => {
         toast.error(error.serverError ?? "Couldn't delete the task");
       }
@@ -176,6 +186,7 @@ export function WorkspaceTasksBoard({
   const grouped = {
     OPEN: tickets.filter((ticket) => ticket.status === 'OPEN'),
     IN_PROGRESS: tickets.filter((ticket) => ticket.status === 'IN_PROGRESS'),
+    CHECKING: tickets.filter((ticket) => ticket.status === 'CHECKING'),
     RESOLVED: tickets.filter(
       (ticket) => ticket.status === 'RESOLVED' || ticket.status === 'CLOSED'
     )
@@ -185,146 +196,155 @@ export function WorkspaceTasksBoard({
     <>
       <WorkspacePageShell
         title="Tasks"
-        actions={
-          <>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label="Working hours for today"
-                >
-                  <InfoIcon className="size-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="bottom"
-                className="max-w-xs"
-              >
-                {formatWorkingHours(businessHours)}
-              </TooltipContent>
-            </Tooltip>
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 px-3.5 font-mono text-[11px] font-medium normal-case tracking-normal"
-              onClick={() => setCreateOpen(true)}
-            >
-              Create task
-            </Button>
-          </>
-        }
+        fill
       >
-        <div className="grid min-h-full gap-4 lg:grid-cols-3">
-          {COLUMNS.map((column) => (
-            <section
-              key={column.id}
-              className="flex min-h-72 flex-col overflow-hidden rounded-[12px] border border-border/60"
-            >
-              <header className="flex items-center justify-between border-b border-border/50 px-3 py-2">
-                <h2 className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  <StatusGlyph kind={column.glyph} />
-                  {column.label}
-                </h2>
-                <span className="font-mono text-[11px] text-muted-foreground">
-                  {grouped[column.id].length}
-                </span>
-              </header>
-              <ul className="flex flex-1 flex-col gap-2 p-2">
-                {grouped[column.id].map((ticket) => (
-                  <li
-                    key={ticket.id}
-                    className="rounded-[12px] border border-border/50 bg-background px-3 py-2.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                        {formatTicketRef(ticket.ticketNumber)}
-                      </p>
-                      <DeleteIconActionButton
-                        srLabel="Delete task"
-                        className="-mr-1.5 -mt-1 size-7"
-                        disabled={isDeleting}
-                        onClick={() => deleteTask({ id: ticket.id })}
-                      />
-                    </div>
-                    <p className="mt-1 text-sm leading-snug">
-                      {ticket.subject}
-                    </p>
-                    {ticket.dueAt ? (
-                      <p
-                        className={cn(
-                          'mt-1 font-mono text-[10px]',
-                          isDueOverdue(ticket.dueAt)
-                            ? 'text-[#f85919]'
-                            : 'text-muted-foreground'
-                        )}
-                      >
-                        Due {formatDueLabel(ticket.dueAt)}
-                      </p>
-                    ) : null}
-                    {ticket.summary && ticket.summary !== ticket.subject ? (
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {ticket.summary}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap items-center gap-1">
-                      <AssigneePicker
-                        members={teamMembers}
-                        value={ticket.assignee?.id ?? null}
-                        currentUserId={currentUserId}
-                        compact
-                        align="start"
-                        className="min-w-0 flex-1"
-                        onChange={(next) =>
-                          assignTask({
-                            id: ticket.id,
-                            assigneeId: next
-                          })
-                        }
-                      />
-                      <Select
-                        value={
-                          ticket.status === 'CLOSED'
-                            ? HandoffTicketStatus.RESOLVED
-                            : ticket.status
-                        }
-                        onValueChange={(next) =>
-                          updateStatus({
-                            id: ticket.id,
-                            status:
-                              next as (typeof HandoffTicketStatus)[keyof typeof HandoffTicketStatus]
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-7 min-h-7 w-40 shrink-0 items-center gap-1.5 rounded-lg py-0 text-xs leading-none [&>span]:flex [&>span]:h-full [&>span]:items-center [&>span]:gap-1.5 [&>span]:whitespace-nowrap [&>span]:leading-none">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={option.value}
-                              textValue={option.label}
-                              className="items-center py-1.5 text-xs leading-none"
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto md:grid-cols-2 xl:grid-cols-4 xl:grid-rows-1 xl:overflow-visible">
+            {COLUMNS.map((column) => (
+              <section
+                key={column.id}
+                className="flex min-h-72 flex-col rounded-2xl bg-muted/30 p-1.5 xl:min-h-0"
+              >
+                <header className="flex items-center justify-between px-2.5 py-2">
+                  <h2 className="inline-flex items-center gap-2 text-[13px] font-medium text-foreground">
+                    <StatusGlyph
+                      kind={column.glyph}
+                      className="size-4"
+                    />
+                    {column.label}
+                  </h2>
+                  <span className="inline-flex items-center gap-1.5">
+                    {column.id === 'OPEN' ? (
+                      <>
+                        <Tooltip delayDuration={0}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex size-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                              aria-label="Working hours for today"
                             >
-                              <span className="inline-flex h-4 items-center gap-1.5 whitespace-nowrap leading-none">
-                                <StatusGlyph
-                                  kind={ticketStatusToGlyph(option.value)}
-                                />
-                                <span className="leading-none">
-                                  {option.label}
+                              <InfoIcon className="size-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-xs"
+                          >
+                            {formatWorkingHours(businessHours)}
+                          </TooltipContent>
+                        </Tooltip>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-6 rounded-lg px-2.5 font-mono text-[10px] font-medium normal-case tracking-normal"
+                          onClick={() => setCreateOpen(true)}
+                        >
+                          Create task
+                        </Button>
+                      </>
+                    ) : null}
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                      {grouped[column.id].length}
+                    </span>
+                  </span>
+                </header>
+                <ul className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto">
+                  {grouped[column.id].map((ticket) => (
+                    <li
+                      key={ticket.id}
+                      className="rounded-xl border border-border/40 bg-background px-3 py-2.5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                          {formatTicketRef(ticket.ticketNumber)}
+                        </p>
+                        <DeleteIconActionButton
+                          srLabel="Delete task"
+                          className="-mr-1.5 -mt-1 size-7"
+                          disabled={isDeleting}
+                          onClick={() => deleteTask({ id: ticket.id })}
+                        />
+                      </div>
+                      <p className="mt-1 text-sm leading-snug">
+                        {ticket.subject}
+                      </p>
+                      {ticket.dueAt ? (
+                        <p
+                          className={cn(
+                            'mt-1 font-mono text-[10px]',
+                            isDueOverdue(ticket.dueAt)
+                              ? 'text-[#f85919]'
+                              : 'text-muted-foreground'
+                          )}
+                        >
+                          Due {formatDueLabel(ticket.dueAt)}
+                        </p>
+                      ) : null}
+                      {ticket.summary && ticket.summary !== ticket.subject ? (
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                          {ticket.summary}
+                        </p>
+                      ) : null}
+                      <div className="mt-2 flex flex-wrap items-center gap-1">
+                        <AssigneePicker
+                          members={teamMembers}
+                          value={ticket.assignee?.id ?? null}
+                          currentUserId={currentUserId}
+                          compact
+                          align="start"
+                          className="min-w-0 flex-1"
+                          onChange={(next) =>
+                            assignTask({
+                              id: ticket.id,
+                              assigneeId: next
+                            })
+                          }
+                        />
+                        <Select
+                          value={
+                            ticket.status === 'CLOSED'
+                              ? HandoffTicketStatus.RESOLVED
+                              : ticket.status
+                          }
+                          onValueChange={(next) =>
+                            updateStatus({
+                              id: ticket.id,
+                              status:
+                                next as (typeof HandoffTicketStatus)[keyof typeof HandoffTicketStatus]
+                            })
+                          }
+                        >
+                          <SelectTrigger className="h-7 min-h-7 w-36 shrink-0 items-center gap-1.5 rounded-lg py-0 text-xs leading-none [&>span]:flex [&>span]:h-full [&>span]:items-center [&>span]:gap-1.5 [&>span]:whitespace-nowrap [&>span]:leading-none">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                                textValue={option.label}
+                                className="items-center py-1.5 text-xs leading-none data-[highlighted]:bg-foreground/[0.07]"
+                              >
+                                <span className="inline-flex h-4 items-center gap-1.5 whitespace-nowrap leading-none">
+                                  <StatusGlyph
+                                    kind={ticketStatusToGlyph(option.value)}
+                                    className="size-4"
+                                  />
+                                  <span className="leading-none">
+                                    {option.label}
+                                  </span>
                                 </span>
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         </div>
       </WorkspacePageShell>
       <Dialog

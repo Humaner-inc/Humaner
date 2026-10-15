@@ -27,6 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { MailTagItem } from '@/data/inbox/get-mail-threads';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
@@ -151,7 +152,7 @@ export function MailTagsSettings({
 
   const { execute: removeTag } = useAction(deleteMailTag, {
     onSuccess: () => {
-      toast.success('Tag deleted');
+      toastDeleted('Tag deleted');
       router.refresh();
     },
     onError: ({ error }) =>

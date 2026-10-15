@@ -34,6 +34,7 @@ import {
   fromLocalDateTimeInput,
   toLocalDateTimeInput
 } from '@/lib/calendar/calendar-view';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn, getInitials } from '@/lib/utils';
 
 type Draft = {
@@ -99,7 +100,7 @@ export function EventDetailSidebar({
     deleteCalendarEvent,
     {
       onSuccess: () => {
-        toast.success('Event deleted');
+        toastDeleted('Event deleted');
         onDeleted();
       },
       onError: ({ error }) => {

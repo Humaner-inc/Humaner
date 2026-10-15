@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import { SquircleStatusIcon } from '@/components/ui/squircle-status-icon';
+
 const TOAST_ID = 'mail-delete';
 
 let total = 0;
@@ -30,6 +32,16 @@ export function toastMailDeleted(count: number, inTrash: boolean): void {
     >
       {message}
     </span>,
-    { id: TOAST_ID, onDismiss: reset, onAutoClose: reset }
+    {
+      id: TOAST_ID,
+      icon: (
+        <SquircleStatusIcon
+          kind="cancelled"
+          className="size-4"
+        />
+      ),
+      onDismiss: reset,
+      onAutoClose: reset
+    }
   );
 }

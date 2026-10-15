@@ -32,6 +32,7 @@ export type DeskTicketPreview = {
 export const DESK_TICKET_STATUS_LABELS: Record<HandoffTicketStatus, string> = {
   OPEN: 'Open',
   IN_PROGRESS: 'In progress',
+  CHECKING: 'Checking',
   RESOLVED: 'Solved',
   CLOSED: 'Closed'
 };
@@ -54,6 +55,8 @@ export function ticketStatusToGlyph(
       return 'open';
     case 'IN_PROGRESS':
       return 'progress';
+    case 'CHECKING':
+      return 'checking';
     case 'RESOLVED':
       return 'resolved';
     case 'CLOSED':

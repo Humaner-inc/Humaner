@@ -39,6 +39,7 @@ import {
 } from '@/lib/contacts/group-colors';
 import { parseContactListText } from '@/lib/contacts/parse-contact-list';
 import { getLogoUrl } from '@/lib/logo';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn, getInitials } from '@/lib/utils';
 
 function MiniAvatar({
@@ -298,7 +299,7 @@ export function ContactsGroupsCanvas({
       onSuccess: ({ data }) => {
         if (data) {
           setGroups((prev) => prev.filter((g) => g.id !== data.id));
-          toast.success('Group removed — contacts kept');
+          toastDeleted('Group removed — contacts kept');
         }
         setPendingDelete(null);
       },

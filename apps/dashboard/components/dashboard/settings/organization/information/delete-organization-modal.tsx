@@ -37,6 +37,7 @@ import { MediaQueries } from '@/constants/media-queries';
 import { useEnhancedModal } from '@/hooks/use-enhanced-modal';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useZodForm } from '@/hooks/use-zod-form';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn } from '@/lib/utils';
 import {
   deleteOrganizationSchema,
@@ -82,7 +83,7 @@ export const DeleteOrganizationModal =
         toast.error(result.serverError ?? "Couldn't delete workspace");
         return;
       }
-      toast.success('Workspace deleted');
+      toastDeleted('Workspace deleted');
       modal.handleClose();
       assignTrustedNavigation(result.data?.redirectTo ?? '/workspace');
     };

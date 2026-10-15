@@ -23,6 +23,7 @@ import { deleteIconButtonClassName } from '@/components/ui/delete-action-button'
 import { ListRowActions } from '@/components/ui/status-pill';
 import type { KnowledgeSourceItem } from '@/data/knowledge/get-knowledge-sources';
 import { dashboardListSurfaceClassName } from '@/lib/dashboard/surface-styles';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn } from '@/lib/utils';
 
 const TYPE_ICON: Record<SourceType, typeof GlobeIcon> = {
@@ -71,7 +72,7 @@ export function SourceList({
         router.refresh();
         return;
       }
-      toast.success('Source removed');
+      toastDeleted('Source removed');
       router.refresh();
     } catch {
       router.refresh();

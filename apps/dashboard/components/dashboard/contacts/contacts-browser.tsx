@@ -29,6 +29,7 @@ import {
 import type { ContactHistoryThread } from '@/lib/contacts/contact-history';
 import { dashboardSurfaceClassName } from '@/lib/dashboard/surface-styles';
 import { getLogoUrl } from '@/lib/logo';
+import { toastDeleted } from '@/lib/toast-deleted';
 import { cn, getInitials } from '@/lib/utils';
 
 function playReveal(el: HTMLElement, start: number | null): void {
@@ -266,7 +267,7 @@ export function ContactsBrowser({
         setHistory([]);
         setHistoryFor(null);
         historyRequest.current = null;
-        toast.success('Removed');
+        toastDeleted('Removed');
       },
       onError: ({ error }) => {
         toast.error(error.serverError || 'Could not remove contact');

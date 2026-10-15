@@ -62,6 +62,7 @@ export type HandoffInboxStatusFilter =
   | 'all'
   | 'OPEN'
   | 'IN_PROGRESS'
+  | 'CHECKING'
   | 'RESOLVED'
   | 'CLOSED';
 
@@ -85,7 +86,11 @@ const URGENCY_RANK: Record<HandoffTicketUrgency, number> = {
   LOW: 2
 };
 
-const ACTIVE_STATUSES = new Set<HandoffTicketStatus>(['OPEN', 'IN_PROGRESS']);
+const ACTIVE_STATUSES = new Set<HandoffTicketStatus>([
+  'OPEN',
+  'IN_PROGRESS',
+  'CHECKING'
+]);
 
 export function filterHandoffInboxTickets(
   tickets: HandoffInboxTicket[],
@@ -158,8 +163,9 @@ export function filterHandoffInboxTickets(
 const STATUS_SORT_RANK: Record<HandoffTicketStatus, number> = {
   OPEN: 0,
   IN_PROGRESS: 1,
-  RESOLVED: 2,
-  CLOSED: 3
+  CHECKING: 2,
+  RESOLVED: 3,
+  CLOSED: 4
 };
 
 export function sortHandoffInboxTickets(

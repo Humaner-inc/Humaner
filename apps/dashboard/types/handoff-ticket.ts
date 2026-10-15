@@ -6,6 +6,7 @@
 export const HandoffTicketStatus = {
   OPEN: 'OPEN',
   IN_PROGRESS: 'IN_PROGRESS',
+  CHECKING: 'CHECKING',
   RESOLVED: 'RESOLVED',
   CLOSED: 'CLOSED'
 } as const;

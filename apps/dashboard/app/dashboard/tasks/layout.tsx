@@ -14,6 +14,7 @@ export default function TasksLayout({
   return (
     <SectionPage
       width="full"
+      overflow="hidden"
       className="flex min-h-0 flex-1 flex-col p-0 md:p-0"
     >
       {children}

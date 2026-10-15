@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { SquircleStatusIcon } from '@/components/ui/squircle-status-icon';
 import { cn } from '@/lib/utils';
 
 export function SpamFolderToolbar({
@@ -47,7 +48,13 @@ export function SpamFolderToolbar({
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <h1 className="text-sm font-medium text-foreground">Spam</h1>
+        <h1 className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+          <SquircleStatusIcon
+            kind="blocked"
+            className="size-4"
+          />
+          Spam
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Mail from blocked senders and reported spam.
         </p>
